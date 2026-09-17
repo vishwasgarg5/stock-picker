@@ -135,6 +135,24 @@ def _window(evals: pd.DataFrame, days: int) -> pd.DataFrame:
     return evals[evals["target_date"].between(start, end)]
 
 
+def _pct_diff(predicted: object, actual: object) -> float:
+    try:
+        predicted_value = float(predicted)
+        actual_value = float(actual)
+        if predicted_value == 0:
+            return float("nan")
+        return (actual_value - predicted_value) / predicted_value * 100.0
+    except (TypeError, ValueError):
+        return float("nan")
+
+
+def _fmt_pct(value: object) -> str:
+    try:
+        return f"{float(value):+.2f}%"
+    except (TypeError, ValueError):
+        return "-"
+
+
 def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str:
     evals = evals.copy()
     evals["target_date"] = pd.to_datetime(evals["target_date"], errors="coerce").dt.normalize()
@@ -150,20 +168,34 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         f"{target_date:%d-%b-%Y} | EVENING",
         f"{len(rows)} predictions evaluated",
         "",
+        "<b>OHLC PREDICT vs ACTUAL</b>",
         "<pre>",
-        "Index   | P/A             | Δ       | Err%",
-        "------------------------------------------------",
+        "Index   | Open          | High          | Low           | Close",
+        "        | P/A   Δ%      | P/A   Δ%      | P/A   Δ%      | P/A   Δ%",
+        "---------------------------------------------------------------------",
     ]
     for _, row in rows.head(10).iterrows():
-        diff = row["actual_close"] - row["predicted_close"]
-        err = row["close_abs_pct_error"] * 100
-        pa = f"{_fmt(row['predicted_close'])}/{_fmt(row['actual_close'])}"
-        lines.append(f"{int(row['rank']):>2} {str(row['symbol'])[:7]:<7} | {pa:>15} | {diff:>7.2f} | {err:>5.2f}")
+        values = []
+        for field in ["open", "high", "low", "close"]:
+            predicted = row[f"predicted_{field}"]
+            actual = row[f"actual_{field}"]
+            values.append(f"{_fmt(predicted)}/{_fmt(actual)} {_fmt_pct(_pct_diff(predicted, actual))}")
+        lines.append(f"{int(row['rank']):>2} {str(row['symbol'])[:7]:<7} | {values[0]:<13} | {values[1]:<13} | {values[2]:<13} | {values[3]:<13}")
     lines += [
-        "</pre>", "", "<b>MODEL ACCURACY</b>",
-        f"Open     {_fmt(metrics['open'])}%", f"High     {_fmt(metrics['high'])}%", f"Low      {_fmt(metrics['low'])}%",
-        f"Close    {_fmt(metrics['close'])}%", f"Overall  <b>{_fmt(overall)}%</b>", f"Direction {_fmt(direction)}%",
-        f"Baseline Close {_fmt(baseline_close)}%", "", "<b>ROLLING CLOSE ACCURACY</b>",
+        "</pre>",
+        "",
+        "Δ% = (Actual - Predicted) / Predicted × 100",
+        "",
+        "<b>MODEL ACCURACY</b>",
+        f"Open     {_fmt(metrics['open'])}%",
+        f"High     {_fmt(metrics['high'])}%",
+        f"Low      {_fmt(metrics['low'])}%",
+        f"Close    {_fmt(metrics['close'])}%",
+        f"Overall  <b>{_fmt(overall)}%</b>",
+        f"Direction {_fmt(direction)}%",
+        f"Baseline Close {_fmt(baseline_close)}%",
+        "",
+        "<b>ROLLING CLOSE ACCURACY</b>",
     ]
     for days in [7, 30, 90]:
         window = _window(evals, days)

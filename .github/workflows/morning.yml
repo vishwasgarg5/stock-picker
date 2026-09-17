@@ -2,6 +2,10 @@ name: Morning stock prediction
 
 on:
   workflow_dispatch:
+  # Temporary push trigger to run the delivery-state reset immediately.
+  push:
+    paths:
+      - '.github/workflows/morning.yml'
   schedule:
     # 04:00 IST = 22:30 UTC on Mon-Fri.
     - cron: '30 22 * * 0-4'

@@ -3,8 +3,8 @@ name: Morning stock prediction
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 8 * * 1-5'
-      timezone: 'Asia/Kolkata'
+    # 04:00 IST = 22:30 UTC on weekdays.
+    - cron: '30 22 * * 1-5'
 
 permissions:
   contents: write

@@ -3,8 +3,8 @@ name: Morning stock prediction
 on:
   workflow_dispatch:
   schedule:
-    # 04:00 IST = 22:30 UTC on weekdays.
-    - cron: '30 22 * * 1-5'
+    # 04:00 IST = 22:30 UTC on Mon-Fri.
+    - cron: '30 22 * * 0-4'
 
 permissions:
   contents: write
@@ -36,6 +36,12 @@ jobs:
 
       - name: Run morning pipeline
         run: python jobs/morning.py
+
+      - name: Send predictions to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m src.telegram
 
       - name: Commit generated data and models
         run: |

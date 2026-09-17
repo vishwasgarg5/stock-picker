@@ -21,25 +21,13 @@ RANKING_FILE = DATA / "rankings.csv"
 PREDICTIONS_FILE = DATA / "predictions.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 
-FEATURE_COLUMNS = [
-    "return_1d", "return_5d", "return_20d", "sma20", "sma50",
-    "ema20", "ema50", "rsi14", "volume_ratio"
-]
-TARGETS = {
-    "open": "target_open_return",
-    "high": "target_high_return",
-    "low": "target_low_return",
-    "close": "target_close_return",
-}
+FEATURE_COLUMNS = ["return_1d", "return_5d", "return_20d", "sma20", "sma50", "ema20", "ema50", "rsi14", "volume_ratio"]
+TARGETS = {"open": "target_open_return", "high": "target_high_return", "low": "target_low_return", "close": "target_close_return"}
 EMPTY_HISTORY = ["date", "symbol", "open", "high", "low", "close", "volume"]
 
 
 def load_universe() -> list[str]:
-    if not UNIVERSE_FILE.exists():
-        raise FileNotFoundError("data/universe.csv is missing")
     df = pd.read_csv(UNIVERSE_FILE)
-    if "symbol" not in df.columns:
-        raise ValueError("data/universe.csv must contain a symbol column")
     symbols = df["symbol"].dropna().astype(str).str.upper().str.strip().unique().tolist()
     if len(symbols) < 100:
         raise RuntimeError(f"Universe contains only {len(symbols)} symbols; refusing to run")
@@ -49,11 +37,7 @@ def load_universe() -> list[str]:
 def _normalise_history(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame(columns=EMPTY_HISTORY)
-    df = df.reset_index()
-    df = df.rename(columns={
-        "Date": "date", "Datetime": "date", "Open": "open", "High": "high",
-        "Low": "low", "Close": "close", "Volume": "volume",
-    })
+    df = df.reset_index().rename(columns={"Date":"date", "Datetime":"date", "Open":"open", "High":"high", "Low":"low", "Close":"close", "Volume":"volume"})
     required = set(EMPTY_HISTORY) - {"symbol"}
     if not required.issubset(df.columns):
         return pd.DataFrame(columns=EMPTY_HISTORY)
@@ -63,15 +47,11 @@ def _normalise_history(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
 
 
 def download_history(symbols: list[str], start: str) -> pd.DataFrame:
-    rows: list[pd.DataFrame] = []
+    rows = []
     for batch_start in range(0, len(symbols), 25):
         batch = symbols[batch_start:batch_start + 25]
-        tickers = [f"{s}.NS" for s in batch]
         try:
-            raw = yf.download(
-                tickers, start=start, interval="1d", auto_adjust=False,
-                group_by="ticker", progress=False, threads=True,
-            )
+            raw = yf.download([f"{s}.NS" for s in batch], start=start, interval="1d", auto_adjust=False, group_by="ticker", progress=False, threads=True)
         except Exception as exc:
             print(f"Download batch failed: {exc}")
             continue
@@ -92,9 +72,9 @@ def download_history(symbols: list[str], start: str) -> pd.DataFrame:
                     if len(batch) != 1:
                         continue
                     part = raw.copy()
-                normalised = _normalise_history(part, symbol)
-                if not normalised.empty:
-                    rows.append(normalised)
+                x = _normalise_history(part, symbol)
+                if not x.empty:
+                    rows.append(x)
             except Exception as exc:
                 print(f"Skipping {symbol}: {exc}")
     return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=EMPTY_HISTORY)
@@ -105,31 +85,17 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
         existing = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
     else:
         existing = pd.DataFrame(columns=EMPTY_HISTORY)
-
     existing["date"] = pd.to_datetime(existing.get("date"), errors="coerce")
     existing = existing.dropna(subset=["date", "symbol", "close"])
-
-    # Use the earliest missing start per symbol so newly added constituents receive full history.
-    starts: dict[str, str] = {}
+    starts = {}
     for symbol in symbols:
         rows = existing.loc[existing["symbol"].astype(str).str.upper() == symbol]
-        if rows.empty:
-            starts[symbol] = "2018-01-01"
-        else:
-            last = rows["date"].max()
-            starts[symbol] = (last - timedelta(days=10)).strftime("%Y-%m-%d")
-
-    fresh_parts = []
-    for start in sorted(set(starts.values())):
-        batch_symbols = [s for s, value in starts.items() if value == start]
-        fresh_parts.append(download_history(batch_symbols, start))
+        starts[symbol] = "2018-01-01" if rows.empty else (rows["date"].max() - timedelta(days=10)).strftime("%Y-%m-%d")
+    fresh_parts = [download_history([s for s, value in starts.items() if value == start], start) for start in sorted(set(starts.values()))]
     fresh = pd.concat(fresh_parts, ignore_index=True) if fresh_parts else pd.DataFrame(columns=EMPTY_HISTORY)
-
     combined = pd.concat([existing, fresh], ignore_index=True)
     combined["date"] = pd.to_datetime(combined["date"], errors="coerce")
-    combined = combined.dropna(subset=["date", "symbol", "close"])
-    combined = combined.drop_duplicates(["date", "symbol"], keep="last")
-    combined = combined.sort_values(["symbol", "date"]).reset_index(drop=True)
+    combined = combined.dropna(subset=["date", "symbol", "close"]).drop_duplicates(["date", "symbol"], keep="last").sort_values(["symbol", "date"]).reset_index(drop=True)
     combined.to_csv(HISTORY_FILE, index=False)
     return combined
 
@@ -170,10 +136,8 @@ def technical_score(latest: pd.DataFrame) -> pd.Series:
 
 
 def rank_stocks(df: pd.DataFrame) -> pd.DataFrame:
-    latest = df.sort_values("date").groupby("symbol", as_index=False).tail(1).copy()
-    latest = latest.dropna(subset=FEATURE_COLUMNS)
+    latest = df.sort_values("date").groupby("symbol", as_index=False).tail(1).dropna(subset=FEATURE_COLUMNS).copy()
     latest["technical_score"] = technical_score(latest)
-    # Fundamentals are deliberately neutral until point-in-time fundamental data is added.
     latest["fundamental_score"] = 0.0
     latest["total_score"] = latest["technical_score"]
     latest["rank"] = latest["total_score"].rank(ascending=False, method="first").astype(int)
@@ -194,10 +158,7 @@ def train(df: pd.DataFrame) -> None:
     if len(work) < 500:
         raise RuntimeError(f"Not enough training rows: {len(work)}")
     for name, target in TARGETS.items():
-        model = HistGradientBoostingRegressor(
-            max_iter=300, learning_rate=0.05, max_leaf_nodes=31,
-            l2_regularization=1.0, random_state=42,
-        )
+        model = HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, max_leaf_nodes=31, l2_regularization=1.0, random_state=42)
         model.fit(work[FEATURE_COLUMNS], work[target])
         joblib.dump(model, MODELS / f"{name}.joblib")
 
@@ -206,7 +167,19 @@ def models_ready() -> bool:
     return all((MODELS / f"{name}.joblib").exists() for name in TARGETS)
 
 
-def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame) -> pd.DataFrame:
+def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.Timestamp:
+    dates = pd.to_datetime(history_dates, errors="coerce").dropna().dt.normalize().drop_duplicates().sort_values()
+    future = dates[dates > pd.Timestamp(last_date).normalize()]
+    if not future.empty:
+        return future.iloc[0]
+    # If tomorrow is not yet present in the downloaded data, skip weekends.
+    candidate = pd.Timestamp(last_date).normalize() + pd.Timedelta(days=1)
+    while candidate.weekday() >= 5:
+        candidate += pd.Timedelta(days=1)
+    return candidate
+
+
+def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:
     ranked = ranking.head(10)[["symbol", "date", "close", "rank", "total_score"]].copy()
     latest = features(df).sort_values("date").groupby("symbol", as_index=False).tail(1)
     latest = latest[latest["symbol"].isin(ranked["symbol"])].dropna(subset=FEATURE_COLUMNS)
@@ -214,18 +187,15 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame) -> pd.DataFrame:
         raise RuntimeError("Prediction models are missing")
     for name in TARGETS:
         model = joblib.load(MODELS / f"{name}.joblib")
-        latest[f"pred_{name}_return"] = model.predict(latest[FEATURE_COLUMNS])
-        latest[f"predicted_{name}"] = latest["close"] * (1 + latest[f"pred_{name}_return"])
-
-    # Keep OHLC internally consistent.
+        latest[f"predicted_{name}"] = latest["close"] * (1 + model.predict(latest[FEATURE_COLUMNS]))
     latest["predicted_high"] = latest[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
     latest["predicted_low"] = latest[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
-
     out = latest[["date", "symbol", "close", "predicted_open", "predicted_high", "predicted_low", "predicted_close"]].copy()
     out = out.rename(columns={"date": "prediction_date", "close": "base_close"})
     lookup = ranked.set_index("symbol")
     out["rank"] = out["symbol"].map(lookup["rank"])
     out["score"] = out["symbol"].map(lookup["total_score"])
+    out["target_date"] = pd.Timestamp(target_date).normalize()
     out["created_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     return out.sort_values("rank")
 
@@ -237,16 +207,23 @@ def run_morning() -> None:
     ranking.to_csv(RANKING_FILE, index=False)
     if not models_ready():
         train(hist)
-    predictions = predict_top10(hist, ranking)
 
-    # Append predictions so the evening job can evaluate historical sessions.
-    if PREDICTIONS_FILE.exists():
-        old = pd.read_csv(PREDICTIONS_FILE)
-        predictions = pd.concat([old, predictions], ignore_index=True)
-    predictions = predictions.drop_duplicates(["prediction_date", "symbol"], keep="last")
-    predictions = predictions.sort_values(["prediction_date", "rank"])
-    predictions.to_csv(PREDICTIONS_FILE, index=False)
-    print(f"Morning run complete: {len(ranking)} ranked, {len(predictions.tail(10))} new predictions")
+    last_date = pd.to_datetime(hist["date"], errors="coerce").max().normalize()
+    target_date = _next_trading_date(last_date, hist["date"])
+
+    existing = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date", "target_date"]) if PREDICTIONS_FILE.exists() else pd.DataFrame()
+    # Idempotency: once a target session has predictions, preserve them exactly.
+    if not existing.empty and "target_date" in existing.columns:
+        same_target = existing[existing["target_date"].dt.normalize() == target_date]
+        if not same_target.empty:
+            print(f"Predictions already exist for {target_date.date()}; keeping existing output unchanged.")
+            return
+
+    predictions = predict_top10(hist, ranking, target_date)
+    combined = pd.concat([existing, predictions], ignore_index=True) if not existing.empty else predictions
+    combined = combined.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank"])
+    combined.to_csv(PREDICTIONS_FILE, index=False)
+    print(f"Morning run complete: target session {target_date.date()}, {len(predictions)} predictions created")
 
 
 def run_evening() -> None:
@@ -256,48 +233,28 @@ def run_evening() -> None:
         print("No predictions file; nothing to evaluate.")
         train(hist)
         return
-
-    predictions = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date"])
-    hist["date"] = pd.to_datetime(hist["date"], errors="coerce")
+    predictions = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date", "target_date"])
+    hist["date"] = pd.to_datetime(hist["date"], errors="coerce").dt.normalize()
     actual = hist.sort_values(["symbol", "date"]).copy()
-    actual["actual_date"] = actual.groupby("symbol")["date"].shift(-1)
-    for field in ["open", "high", "low", "close"]:
-        actual[f"next_{field}"] = actual.groupby("symbol")[field].shift(-1)
-    actual = actual[["symbol", "date", "actual_date", "next_open", "next_high", "next_low", "next_close"]]
-
-    evals = predictions.merge(
-        actual, left_on=["symbol", "prediction_date"], right_on=["symbol", "date"], how="inner"
-    )
-    evals = evals.dropna(subset=["actual_date", "next_open", "next_high", "next_low", "next_close"])
+    actual = actual.rename(columns={"date": "target_date", "open": "actual_open", "high": "actual_high", "low": "actual_low", "close": "actual_close"})
+    evals = predictions.merge(actual[["symbol", "target_date", "actual_open", "actual_high", "actual_low", "actual_close"]], on=["symbol", "target_date"], how="inner")
+    evals = evals.dropna(subset=["actual_open", "actual_high", "actual_low", "actual_close"])
     if evals.empty:
         print("No completed prediction sessions to evaluate yet.")
         train(hist)
         return
-
     for field in ["open", "high", "low", "close"]:
         pred = evals[f"predicted_{field}"]
-        real = evals[f"next_{field}"]
+        real = evals[f"actual_{field}"]
         evals[f"{field}_error"] = real - pred
         evals[f"{field}_abs_pct_error"] = (real - pred).abs() / real.abs().replace(0, np.nan)
-
-    evals = evals.rename(columns={"date": "prediction_date"})
-    keep = [
-        "prediction_date", "actual_date", "symbol", "rank", "score",
-        "predicted_open", "next_open", "open_error", "open_abs_pct_error",
-        "predicted_high", "next_high", "high_error", "high_abs_pct_error",
-        "predicted_low", "next_low", "low_error", "low_abs_pct_error",
-        "predicted_close", "next_close", "close_error", "close_abs_pct_error",
-    ]
+    keep = ["prediction_date", "target_date", "symbol", "rank", "score", "predicted_open", "actual_open", "open_error", "open_abs_pct_error", "predicted_high", "actual_high", "high_error", "high_abs_pct_error", "predicted_low", "actual_low", "low_error", "low_abs_pct_error", "predicted_close", "actual_close", "close_error", "close_abs_pct_error"]
     evals = evals[keep]
-
     if EVALUATIONS_FILE.exists():
         old = pd.read_csv(EVALUATIONS_FILE)
         evals = pd.concat([old, evals], ignore_index=True)
-    evals = evals.drop_duplicates(["prediction_date", "symbol"], keep="last")
-    evals = evals.sort_values(["prediction_date", "rank"])
+    evals = evals.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank"])
     evals.to_csv(EVALUATIONS_FILE, index=False)
-
-    # Retrain using all completed historical observations after evaluating the latest session.
     train(hist)
     print(f"Evening run complete: {len(evals)} total evaluations and models retrained")
 

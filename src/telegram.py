@@ -106,16 +106,16 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
         f"{target_date:%d-%b-%Y} | TOP 10 / {total_stocks}",
         "",
         "<pre>",
-        "#  Stock       Open      High       Low     Close",
-        "---------------------------------------------------",
+        "Index   | Open      | High      | Low       | Close",
+        "-----------------------------------------------------",
     ]
     for _, row in rows.iterrows():
         symbol = str(row["symbol"])[:8]
         lines.append(
-            f"{int(row['rank']):>2} {symbol:<8} "
-            f"{_fmt(row['predicted_open']):>8} "
-            f"{_fmt(row['predicted_high']):>9} "
-            f"{_fmt(row['predicted_low']):>9} "
+            f"{int(row['rank']):>2} {symbol:<7} | "
+            f"{_fmt(row['predicted_open']):>9} | "
+            f"{_fmt(row['predicted_high']):>9} | "
+            f"{_fmt(row['predicted_low']):>9} | "
             f"{_fmt(row['predicted_close']):>9}"
         )
     lines.append("</pre>")
@@ -158,16 +158,16 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         f"{len(rows)} predictions evaluated",
         "",
         "<pre>",
-        "# Stock    P/A             Δ    Err%",
-        "------------------------------------",
+        "Index   | P/A             | Δ       | Err%",
+        "------------------------------------------------",
     ]
     for _, row in rows.head(10).iterrows():
         diff = row["actual_close"] - row["predicted_close"]
         err = row["close_abs_pct_error"] * 100
         pa = f"{_fmt(row['predicted_close'])}/{_fmt(row['actual_close'])}"
         lines.append(
-            f"{int(row['rank']):>2} {str(row['symbol'])[:8]:<8} "
-            f"{pa:>13} {diff:>7.2f} {err:>6.2f}"
+            f"{int(row['rank']):>2} {str(row['symbol'])[:7]:<7} | "
+            f"{pa:>15} | {diff:>7.2f} | {err:>5.2f}"
         )
     lines += [
         "</pre>",

@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 PREDICTIONS_FILE = DATA / "predictions.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
+UNIVERSE_FILE = DATA / "universe.csv"
 SENT_FILE = DATA / "telegram_sent.csv"
 EVENING_SENT_FILE = DATA / "telegram_evening_sent.csv"
 
@@ -77,6 +78,19 @@ def _record_sent(path: Path, target_date: pd.Timestamp, message: str) -> None:
     sent.to_csv(path, index=False)
 
 
+def _universe_count() -> int:
+    if not UNIVERSE_FILE.exists():
+        raise RuntimeError("Universe file does not exist")
+    universe = pd.read_csv(UNIVERSE_FILE)
+    if "symbol" not in universe.columns:
+        raise RuntimeError("Universe file has no symbol column")
+    symbols = universe["symbol"].astype(str).str.strip()
+    count = symbols[symbols.ne("") & symbols.ne("nan")].nunique()
+    if count <= 0:
+        raise RuntimeError("Universe contains no stocks")
+    return int(count)
+
+
 def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) -> str:
     rows = (
         predictions[predictions["target_date"].dt.normalize() == target_date.normalize()]
@@ -86,19 +100,24 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
     if len(rows) < 10:
         raise RuntimeError(f"Expected 10 predictions for {target_date.date()}, found {len(rows)}")
 
+    total_stocks = _universe_count()
     lines = [
         "<b>STOCK PICKER</b>",
-        f"{target_date:%d-%b-%Y} | TOP 10",
+        f"{target_date:%d-%b-%Y} | TOP 10 / {total_stocks}",
         "",
         "<pre>",
-        "# Stock    O/H             L/C",
-        "--------------------------------",
+        "#  Stock       Open      High       Low     Close",
+        "---------------------------------------------------",
     ]
     for _, row in rows.iterrows():
         symbol = str(row["symbol"])[:8]
-        oh = f"{_fmt(row['predicted_open'])}/{_fmt(row['predicted_high'])}"
-        lc = f"{_fmt(row['predicted_low'])}/{_fmt(row['predicted_close'])}"
-        lines.append(f"{int(row['rank']):>2} {symbol:<8} {oh:>13} {lc:>13}")
+        lines.append(
+            f"{int(row['rank']):>2} {symbol:<8} "
+            f"{_fmt(row['predicted_open']):>8} "
+            f"{_fmt(row['predicted_high']):>9} "
+            f"{_fmt(row['predicted_low']):>9} "
+            f"{_fmt(row['predicted_close']):>9}"
+        )
     lines.append("</pre>")
     return "\n".join(lines)
 

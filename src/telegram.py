@@ -16,7 +16,7 @@ EVENING_SENT_FILE = DATA / "telegram_evening_sent.csv"
 
 def _fmt(value: object) -> str:
     try:
-        return f"{float(value):,.2f}"
+        return f"{float(value):.2f}"
     except (TypeError, ValueError):
         return "-"
 
@@ -28,7 +28,12 @@ def _send(message: str) -> None:
         raise RuntimeError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be configured")
     response = requests.post(
         f"https://api.telegram.org/bot{token}/sendMessage",
-        data={"chat_id": chat_id, "text": message, "parse_mode": "HTML", "disable_web_page_preview": True},
+        data={
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True,
+        },
         timeout=30,
     )
     response.raise_for_status()
@@ -48,25 +53,45 @@ def _already_sent(path: Path, target_date: pd.Timestamp) -> bool:
 
 def _record_sent(path: Path, target_date: pd.Timestamp) -> None:
     sent = pd.read_csv(path) if path.exists() else pd.DataFrame(columns=["target_date"])
-    sent = pd.concat([sent, pd.DataFrame({"target_date": [target_date.date().isoformat()]})], ignore_index=True)
+    sent = pd.concat(
+        [sent, pd.DataFrame({"target_date": [target_date.date().isoformat()]})],
+        ignore_index=True,
+    )
     sent.drop_duplicates("target_date", keep="first").to_csv(path, index=False)
 
 
 def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) -> str:
-    rows = predictions[predictions["target_date"].dt.normalize() == target_date.normalize()].sort_values("rank").head(10)
+    rows = (
+        predictions[predictions["target_date"].dt.normalize() == target_date.normalize()]
+        .sort_values("rank")
+        .head(10)
+    )
     if len(rows) < 10:
         raise RuntimeError(f"Expected 10 predictions for {target_date.date()}, found {len(rows)}")
+
+    # Keep the table under ~40 characters wide for comfortable phone viewing.
     lines = [
-        "<b>🚀 STOCK PICKER — MORNING</b>",
-        f"📅 Target: <b>{target_date:%d-%b-%Y}</b>",
-        "📈 Universe: Nifty Midcap 150", "", "<pre>",
-        "#  Stock     Open     High      Low    Close",
-        "────────────────────────────────────────────",
+        "<b>🚀 STOCK PICKER</b>",
+        f"📅 <b>{target_date:%d-%b-%Y}</b> • TOP 10",
+        "📈 Nifty Midcap 150", "", "<pre>",
+        "# Stock      O       H       L       C",
+        "────────────────────────────────────────",
     ]
     for _, row in rows.iterrows():
         symbol = str(row["symbol"])[:8]
-        lines.append(f"{int(row['rank']):<3} {symbol:<8} {_fmt(row['predicted_open']):>8} {_fmt(row['predicted_high']):>8} {_fmt(row['predicted_low']):>8} {_fmt(row['predicted_close']):>8}")
-    lines += ["</pre>", "🤖 <i>Automated model prediction</i>", "⚠️ <i>For informational purposes only.</i>"]
+        lines.append(
+            f"{int(row['rank']):>2} {symbol:<8} "
+            f"{_fmt(row['predicted_open']):>7} "
+            f"{_fmt(row['predicted_high']):>7} "
+            f"{_fmt(row['predicted_low']):>7} "
+            f"{_fmt(row['predicted_close']):>7}"
+        )
+    lines += [
+        "</pre>",
+        "O=Open  H=High  L=Low  C=Close",
+        "🤖 <i>Automated model prediction</i>",
+        "⚠️ <i>For informational purposes only.</i>",
+    ]
     return "\n".join(lines)
 
 
@@ -86,7 +111,10 @@ def send_morning() -> None:
 
 
 def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str:
-    rows = evals[evals["target_date"].dt.normalize() == target_date.normalize()].sort_values("rank")
+    rows = (
+        evals[evals["target_date"].dt.normalize() == target_date.normalize()]
+        .sort_values("rank")
+    )
     if rows.empty:
         raise RuntimeError(f"No evaluations found for {target_date.date()}")
 
@@ -97,23 +125,31 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
 
     overall = pd.Series(metrics, dtype="float64").mean()
     lines = [
-        "<b>🌙 STOCK PICKER — EVENING</b>",
-        f"📅 Session: <b>{target_date:%d-%b-%Y}</b>",
-        f"📊 Predictions evaluated: <b>{len(rows)}</b>", "", "<pre>",
-        "#  Stock    P.Close A.Close     Δ   Err%",
-        "────────────────────────────────────────",
+        "<b>🌙 STOCK PICKER</b>",
+        f"📅 <b>{target_date:%d-%b-%Y}</b> • EVENING",
+        f"📊 {len(rows)} predictions evaluated", "", "<pre>",
+        "# Stock     P      A      Δ    Err%",
+        "────────────────────────────────────",
     ]
     for _, row in rows.head(10).iterrows():
         diff = row["actual_close"] - row["predicted_close"]
         err = row["close_abs_pct_error"] * 100
-        lines.append(f"{int(row['rank']):<3} {str(row['symbol'])[:8]:<8} {_fmt(row['predicted_close']):>8} {_fmt(row['actual_close']):>8} {diff:>7.2f} {err:>6.2f}")
+        lines.append(
+            f"{int(row['rank']):>2} {str(row['symbol'])[:8]:<8} "
+            f"{_fmt(row['predicted_close']):>7} "
+            f"{_fmt(row['actual_close']):>7} "
+            f"{diff:>7.2f} {err:>6.2f}"
+        )
     lines += [
-        "</pre>", "", "<b>📈 MODEL ACCURACY</b>",
-        f"Open   : {_fmt(metrics['open'])}%",
-        f"High   : {_fmt(metrics['high'])}%",
-        f"Low    : {_fmt(metrics['low'])}%",
-        f"Close  : {_fmt(metrics['close'])}%",
-        f"Overall: {_fmt(overall)}%",
+        "</pre>",
+        "P=Predicted  A=Actual  Δ=A−P",
+        "",
+        "<b>📈 MODEL ACCURACY</b>",
+        f"Open   {_fmt(metrics['open'])}%",
+        f"High   {_fmt(metrics['high'])}%",
+        f"Low    {_fmt(metrics['low'])}%",
+        f"Close  {_fmt(metrics['close'])}%",
+        f"Overall <b>{_fmt(overall)}%</b>",
         "🤖 <i>Models retrained after evaluation</i>",
         "⚠️ <i>Historical accuracy does not guarantee future results.</i>",
     ]

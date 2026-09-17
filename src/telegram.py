@@ -141,7 +141,7 @@ def _pct_diff(predicted: object, actual: object) -> float:
         actual_value = float(actual)
         if predicted_value == 0:
             return float("nan")
-        return (actual_value - predicted_value) / predicted_value * 100.0
+        return (predicted_value - actual_value) / predicted_value * 100.0
     except (TypeError, ValueError):
         return float("nan")
 
@@ -168,23 +168,19 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         f"{target_date:%d-%b-%Y} | EVENING",
         f"{len(rows)} predictions evaluated",
         "",
-        "<b>OHLC PREDICT vs ACTUAL</b>",
+        "<b>OHLC DIFFERENCE %</b>",
         "<pre>",
-        "Index   | Open          | High          | Low           | Close",
-        "        | P/A   Δ%      | P/A   Δ%      | P/A   Δ%      | P/A   Δ%",
-        "---------------------------------------------------------------------",
+        "Index   | Open      | High      | Low       | Close",
+        "-----------------------------------------------------",
     ]
     for _, row in rows.head(10).iterrows():
-        values = []
-        for field in ["open", "high", "low", "close"]:
-            predicted = row[f"predicted_{field}"]
-            actual = row[f"actual_{field}"]
-            values.append(f"{_fmt(predicted)}/{_fmt(actual)} {_fmt_pct(_pct_diff(predicted, actual))}")
-        lines.append(f"{int(row['rank']):>2} {str(row['symbol'])[:7]:<7} | {values[0]:<13} | {values[1]:<13} | {values[2]:<13} | {values[3]:<13}")
+        values = [_fmt_pct(_pct_diff(row[f"predicted_{field}"], row[f"actual_{field}"])) for field in ["open", "high", "low", "close"]]
+        lines.append(f"{int(row['rank']):>2} {str(row['symbol'])[:7]:<7} | {values[0]:>9} | {values[1]:>9} | {values[2]:>9} | {values[3]:>9}")
     lines += [
         "</pre>",
         "",
-        "Δ% = (Actual - Predicted) / Predicted × 100",
+        "+% = Actual lower than Predicted",
+        "-% = Actual higher than Predicted",
         "",
         "<b>MODEL ACCURACY</b>",
         f"Open     {_fmt(metrics['open'])}%",

@@ -34,10 +34,16 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
-      - name: Run evening pipeline
+      - name: Run evening evaluation and retraining
         run: python jobs/evening.py
 
-      - name: Commit generated data and models
+      - name: Send evening accuracy report to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python jobs/evening_telegram.py
+
+      - name: Commit generated data, models and Telegram state
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

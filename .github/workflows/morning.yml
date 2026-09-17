@@ -2,9 +2,6 @@ name: Morning stock prediction
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'src/telegram.py'
   schedule:
     # 04:00 IST = 22:30 UTC on Mon-Fri.
     - cron: '30 22 * * 0-4'

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 from pathlib import Path
 
@@ -19,6 +20,10 @@ def _fmt(value: object) -> str:
         return f"{float(value):.2f}"
     except (TypeError, ValueError):
         return "-"
+
+
+def _message_hash(message: str) -> str:
+    return hashlib.sha256(message.encode("utf-8")).hexdigest()
 
 
 def _send(message: str) -> None:
@@ -42,22 +47,36 @@ def _send(message: str) -> None:
         raise RuntimeError(f"Telegram API error: {result}")
 
 
-def _already_sent(path: Path, target_date: pd.Timestamp) -> bool:
+def _already_sent(path: Path, target_date: pd.Timestamp, message: str) -> bool:
     if not path.exists():
         return False
     sent = pd.read_csv(path)
-    if "target_date" not in sent.columns:
+    if "target_date" not in sent.columns or "message_hash" not in sent.columns:
+        # Legacy state files only stored the date. Treat them as stale so the
+        # current message is sent once and the state is upgraded with a hash.
         return False
-    return pd.to_datetime(sent["target_date"], errors="coerce").dt.normalize().eq(target_date.normalize()).any()
+    target = target_date.normalize()
+    current_hash = _message_hash(message)
+    dates = pd.to_datetime(sent["target_date"], errors="coerce").dt.normalize()
+    return ((dates == target) & sent["message_hash"].astype(str).eq(current_hash)).any()
 
 
-def _record_sent(path: Path, target_date: pd.Timestamp) -> None:
-    sent = pd.read_csv(path) if path.exists() else pd.DataFrame(columns=["target_date"])
-    sent = pd.concat(
-        [sent, pd.DataFrame({"target_date": [target_date.date().isoformat()]})],
-        ignore_index=True,
-    )
-    sent.drop_duplicates("target_date", keep="first").to_csv(path, index=False)
+def _record_sent(path: Path, target_date: pd.Timestamp, message: str) -> None:
+    columns = ["target_date", "message_hash"]
+    if path.exists():
+        sent = pd.read_csv(path)
+        if not set(columns).issubset(sent.columns):
+            sent = pd.DataFrame(columns=columns)
+    else:
+        sent = pd.DataFrame(columns=columns)
+
+    new_row = pd.DataFrame({
+        "target_date": [target_date.date().isoformat()],
+        "message_hash": [_message_hash(message)],
+    })
+    sent = pd.concat([sent, new_row], ignore_index=True)
+    sent = sent.drop_duplicates(["target_date", "message_hash"], keep="last")
+    sent.to_csv(path, index=False)
 
 
 def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) -> str:
@@ -97,13 +116,12 @@ def send_morning() -> None:
     target_date = predictions["target_date"].dropna().dt.normalize().max()
     if pd.isna(target_date):
         raise RuntimeError("No target dates found in predictions.csv")
-    # The sent-state file is only a duplicate guard; a date is recorded there
-    # by _record_sent only after Telegram confirms a successful API response.
-    if _already_sent(SENT_FILE, target_date):
-        print(f"Morning Telegram already sent for {target_date.date()}; skipping duplicate.")
+    message = build_morning_message(predictions, target_date)
+    if _already_sent(SENT_FILE, target_date, message):
+        print(f"Morning Telegram already sent for {target_date.date()} with this exact message; skipping duplicate.")
         return
-    _send(build_morning_message(predictions, target_date))
-    _record_sent(SENT_FILE, target_date)
+    _send(message)
+    _record_sent(SENT_FILE, target_date, message)
     print(f"Morning Telegram sent for {target_date.date()}")
 
 
@@ -164,11 +182,12 @@ def send_evening() -> None:
     if pd.isna(target_date):
         print("No valid evaluation date; skipping evening Telegram report.")
         return
-    if _already_sent(EVENING_SENT_FILE, target_date):
-        print(f"Evening Telegram already sent for {target_date.date()}; skipping duplicate.")
+    message = build_evening_message(evals, target_date)
+    if _already_sent(EVENING_SENT_FILE, target_date, message):
+        print(f"Evening Telegram already sent for {target_date.date()} with this exact message; skipping duplicate.")
         return
-    _send(build_evening_message(evals, target_date))
-    _record_sent(EVENING_SENT_FILE, target_date)
+    _send(message)
+    _record_sent(EVENING_SENT_FILE, target_date, message)
     print(f"Evening Telegram sent for {target_date.date()}")
 
 

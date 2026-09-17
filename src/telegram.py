@@ -95,7 +95,7 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         err = rows[f"{field}_abs_pct_error"].dropna()
         metrics[field] = max(0.0, 100.0 - err.mean() * 100.0) if not err.empty else float("nan")
 
-    direction_correct = ((rows["predicted_close"] - rows["base_close"]) * (rows["actual_close"] - rows["base_close"]) > 0).sum() if "base_close" in rows.columns else None
+    overall = pd.Series(metrics, dtype="float64").mean()
     lines = [
         "<b>🌙 STOCK PICKER — EVENING</b>",
         f"📅 Session: <b>{target_date:%d-%b-%Y}</b>",
@@ -113,11 +113,10 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         f"High   : {_fmt(metrics['high'])}%",
         f"Low    : {_fmt(metrics['low'])}%",
         f"Close  : {_fmt(metrics['close'])}%",
-        f"Overall: {_fmt(pd.Series(metrics).mean())}%",
+        f"Overall: {_fmt(overall)}%",
+        "🤖 <i>Models retrained after evaluation</i>",
+        "⚠️ <i>Historical accuracy does not guarantee future results.</i>",
     ]
-    if direction_correct is not None:
-        lines.append(f"🎯 Close direction: {direction_correct}/{len(rows)}")
-    lines += ["🤖 <i>Models retrained after evaluation</i>", "⚠️ <i>Historical accuracy does not guarantee future results.</i>"]
     return "\n".join(lines)
 
 

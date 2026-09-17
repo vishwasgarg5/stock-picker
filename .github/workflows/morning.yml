@@ -13,6 +13,9 @@ concurrency:
   group: stock-picker-morning
   cancel-in-progress: false
 
+env:
+  PYTHONPATH: ${{ github.workspace }}
+
 jobs:
   morning:
     runs-on: ubuntu-latest

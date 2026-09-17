@@ -69,13 +69,13 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
     if len(rows) < 10:
         raise RuntimeError(f"Expected 10 predictions for {target_date.date()}, found {len(rows)}")
 
-    # Keep the table under ~40 characters wide for comfortable phone viewing.
+    # Fixed-width layout modeled on a simple log/table format for mobile viewing.
     lines = [
-        "<b>🚀 STOCK PICKER</b>",
-        f"📅 <b>{target_date:%d-%b-%Y}</b> • TOP 10",
-        "📈 Nifty Midcap 150", "", "<pre>",
-        "# Stock      O       H       L       C",
-        "────────────────────────────────────────",
+        "<b>STOCK PICKER</b>",
+        f"{target_date:%d-%b-%Y} | TOP 10",
+        "", "<pre>",
+        "# Stock       O      H      L      C",
+        "----------------------------------------",
     ]
     for _, row in rows.iterrows():
         symbol = str(row["symbol"])[:8]
@@ -89,7 +89,7 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
     lines += [
         "</pre>",
         "O=Open  H=High  L=Low  C=Close",
-        "🤖 <i>Automated model prediction</i>",
+        "<i>Automated model prediction</i>",
         "⚠️ <i>For informational purposes only.</i>",
     ]
     return "\n".join(lines)
@@ -127,11 +127,11 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
 
     overall = pd.Series(metrics, dtype="float64").mean()
     lines = [
-        "<b>🌙 STOCK PICKER</b>",
-        f"📅 <b>{target_date:%d-%b-%Y}</b> • EVENING",
-        f"📊 {len(rows)} predictions evaluated", "", "<pre>",
-        "# Stock     P      A      Δ    Err%",
-        "────────────────────────────────────",
+        "<b>STOCK PICKER</b>",
+        f"{target_date:%d-%b-%Y} | EVENING",
+        f"{len(rows)} predictions evaluated", "", "<pre>",
+        "# Stock      P      A       Δ    Err%",
+        "----------------------------------------",
     ]
     for _, row in rows.head(10).iterrows():
         diff = row["actual_close"] - row["predicted_close"]
@@ -146,13 +146,13 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         "</pre>",
         "P=Predicted  A=Actual  Δ=A−P",
         "",
-        "<b>📈 MODEL ACCURACY</b>",
-        f"Open   {_fmt(metrics['open'])}%",
-        f"High   {_fmt(metrics['high'])}%",
-        f"Low    {_fmt(metrics['low'])}%",
-        f"Close  {_fmt(metrics['close'])}%",
-        f"Overall <b>{_fmt(overall)}%</b>",
-        "🤖 <i>Models retrained after evaluation</i>",
+        "<b>MODEL ACCURACY</b>",
+        f"Open     {_fmt(metrics['open'])}%",
+        f"High     {_fmt(metrics['high'])}%",
+        f"Low      {_fmt(metrics['low'])}%",
+        f"Close    {_fmt(metrics['close'])}%",
+        f"Overall  <b>{_fmt(overall)}%</b>",
+        "<i>Models retrained after evaluation</i>",
         "⚠️ <i>Historical accuracy does not guarantee future results.</i>",
     ]
     return "\n".join(lines)

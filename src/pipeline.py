@@ -38,7 +38,7 @@ def load_universe() -> list[str]:
 def _normalise_history(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame(columns=EMPTY_HISTORY)
-    df = df.reset_index().rename(columns={"Date":"date", "Datetime":"date", "Open":"open", "High":"high", "Low":"low", "Close":"close", "Volume":"volume"})
+    df = df.reset_index().rename(columns={"Date": "date", "Datetime": "date", "Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"})
     required = set(EMPTY_HISTORY) - {"symbol"}
     if not required.issubset(df.columns):
         return pd.DataFrame(columns=EMPTY_HISTORY)
@@ -157,12 +157,7 @@ def _safe_number(value: object) -> float:
 
 
 def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFrame:
-    """Fetch/cache current company fundamentals used by the ranking model.
-
-    Fundamentals are refreshed weekly so the daily workflow does not repeatedly
-    make 150 metadata requests. Failed individual lookups are retained from the
-    previous cache when possible.
-    """
+    """Fetch/cache current fundamentals used by ranking; never use them as historical training features."""
     columns = ["symbol", "updated_at"] + list(FUNDAMENTAL_FIELDS)
     if FUNDAMENTALS_FILE.exists():
         cached = pd.read_csv(FUNDAMENTALS_FILE)
@@ -171,10 +166,8 @@ def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFra
         cached = pd.DataFrame(columns=columns)
 
     now = pd.Timestamp.now(tz="UTC")
-    cached_dates = pd.to_datetime(cached.get("updated_at"), errors="coerce", utc=True)
     cache_map = {row["symbol"]: row for _, row in cached.iterrows() if pd.notna(row.get("symbol"))}
     refreshed = []
-
     for symbol in symbols:
         old = cache_map.get(symbol)
         old_date = pd.to_datetime(old.get("updated_at"), errors="coerce", utc=True) if old is not None else pd.NaT
@@ -182,10 +175,7 @@ def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFra
         if not stale:
             refreshed.append({c: old.get(c, np.nan) for c in columns})
             continue
-
-        row = {"symbol": symbol, "updated_at": now.isoformat(timespec="seconds")}
-        for field in FUNDAMENTAL_FIELDS:
-            row[field] = np.nan
+        row = {"symbol": symbol, "updated_at": now.isoformat(timespec="seconds"), **{f: np.nan for f in FUNDAMENTAL_FIELDS}}
         try:
             info = yf.Ticker(f"{symbol}.NS").get_info()
             for field in FUNDAMENTAL_FIELDS:
@@ -195,25 +185,14 @@ def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFra
             print(f"Fundamentals lookup failed for {symbol}: {exc}")
             if old is not None:
                 row = {c: old.get(c, np.nan) for c in columns}
-            else:
-                row = {"symbol": symbol, "updated_at": now.isoformat(timespec="seconds"), **{f: np.nan for f in FUNDAMENTAL_FIELDS}}
         refreshed.append(row)
 
-    result = pd.DataFrame(refreshed, columns=columns)
-    result = result.drop_duplicates("symbol", keep="last").sort_values("symbol").reset_index(drop=True)
+    result = pd.DataFrame(refreshed, columns=columns).drop_duplicates("symbol", keep="last").sort_values("symbol").reset_index(drop=True)
     result.to_csv(FUNDAMENTALS_FILE, index=False)
     return result
 
 
 def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
-    """Score fundamentals from 0-20 using cross-sectional percentile ranks.
-
-    Higher ROE/margins/growth/dividend yield score higher; lower PE/PB/debt
-    score higher. Missing metrics are ignored rather than turning every score
-    into zero. A stock with no usable fundamental data receives the neutral
-    midpoint (10/20), making data availability visible without dominating the
-    ranking.
-    """
     result = pd.Series(0.0, index=fundamentals.index)
     weight_used = pd.Series(0.0, index=fundamentals.index)
     for field, (weight, higher_is_better) in FUNDAMENTAL_FIELDS.items():
@@ -228,7 +207,6 @@ def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
             ranks = 1.0 - ranks + (1.0 / valid.sum())
         result.loc[valid] += ranks * weight
         weight_used.loc[valid] += weight
-
     scored = pd.Series(10.0, index=fundamentals.index)
     usable = weight_used > 0
     scored.loc[usable] = (result.loc[usable] / weight_used.loc[usable]) * 20.0
@@ -236,7 +214,11 @@ def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
 
 
 def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None) -> pd.DataFrame:
-    latest = df.sort_values("date").groupby("symbol", as_index=False).tail(1).dropna(subset=FEATURE_COLUMNS).copy()
+    """Rank all symbols deterministically; rank 1..N is guaranteed unique."""
+    work = df.copy()
+    work["date"] = pd.to_datetime(work["date"], errors="coerce").dt.normalize()
+    latest_date = work["date"].max()
+    latest = work[work["date"] == latest_date].dropna(subset=FEATURE_COLUMNS).copy()
     latest["technical_score"] = technical_score(latest)
     if fundamentals is None:
         fundamentals = pd.DataFrame({"symbol": latest["symbol"]})
@@ -245,8 +227,12 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None) -> p
     latest = latest.merge(available, on="symbol", how="left")
     latest["fundamental_score"] = fundamental_score(latest)
     latest["total_score"] = latest["technical_score"] + latest["fundamental_score"]
-    latest["rank"] = latest["total_score"].rank(ascending=False, method="first").astype(int)
-    return latest.sort_values("rank")
+    latest = latest.sort_values(["total_score", "symbol"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
+    latest["rank"] = np.arange(1, len(latest) + 1, dtype=int)
+    expected = list(range(1, len(latest) + 1))
+    if latest["rank"].tolist() != expected or latest["rank"].duplicated().any():
+        raise RuntimeError("Ranking validation failed: ranks are not unique and sequential")
+    return latest
 
 
 def add_targets(df: pd.DataFrame) -> pd.DataFrame:
@@ -259,6 +245,7 @@ def add_targets(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def train(df: pd.DataFrame) -> None:
+    """Train only on information available at t to predict t+1; no future rows/features are used."""
     work = add_targets(features(df)).dropna(subset=FEATURE_COLUMNS + list(TARGETS.values()))
     if len(work) < 500:
         raise RuntimeError(f"Not enough training rows: {len(work)}")
@@ -285,8 +272,12 @@ def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.
 
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:
     ranked = ranking.head(10)[["symbol", "date", "close", "rank", "total_score"]].copy()
+    if len(ranked) != 10:
+        raise RuntimeError(f"Expected 10 ranked stocks, found {len(ranked)}")
     latest = features(df).sort_values("date").groupby("symbol", as_index=False).tail(1)
     latest = latest[latest["symbol"].isin(ranked["symbol"])].dropna(subset=FEATURE_COLUMNS)
+    if len(latest) != 10:
+        raise RuntimeError(f"Expected features for 10 top stocks, found {len(latest)}")
     if not models_ready():
         raise RuntimeError("Prediction models are missing")
     for name in TARGETS:
@@ -294,10 +285,9 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         latest[f"predicted_{name}"] = latest["close"] * (1 + model.predict(latest[FEATURE_COLUMNS]))
     latest["predicted_high"] = latest[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
     latest["predicted_low"] = latest[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
-    out = latest[["date", "symbol", "close", "predicted_open", "predicted_high", "predicted_low", "predicted_close"]].copy()
-    out = out.rename(columns={"date": "prediction_date", "close": "base_close"})
+    out = latest[["date", "symbol", "close", "predicted_open", "predicted_high", "predicted_low", "predicted_close"]].copy().rename(columns={"date": "prediction_date", "close": "base_close"})
     lookup = ranked.set_index("symbol")
-    out["rank"] = out["symbol"].map(lookup["rank"])
+    out["rank"] = out["symbol"].map(lookup["rank"]).astype(int)
     out["score"] = out["symbol"].map(lookup["total_score"])
     out["target_date"] = pd.Timestamp(target_date).normalize()
     out["created_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -315,11 +305,15 @@ def run_morning() -> None:
 
     last_date = pd.to_datetime(hist["date"], errors="coerce").max().normalize()
     target_date = _next_trading_date(last_date, hist["date"])
+    print(f"Morning session: latest completed market date={last_date.date()}, prediction target={target_date.date()}")
 
     existing = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date", "target_date"]) if PREDICTIONS_FILE.exists() else pd.DataFrame()
     if not existing.empty and "target_date" in existing.columns:
-        same_target = existing[existing["target_date"].dt.normalize() == target_date]
+        existing["target_date"] = pd.to_datetime(existing["target_date"], errors="coerce").dt.normalize()
+        same_target = existing[existing["target_date"] == target_date]
         if not same_target.empty:
+            if len(same_target) != 10:
+                raise RuntimeError(f"Prediction session {target_date.date()} exists but has {len(same_target)} rows; refusing partial session")
             print(f"Predictions already exist for {target_date.date()}; keeping existing output unchanged.")
             return
 
@@ -335,32 +329,64 @@ def run_evening() -> None:
     hist = update_history(symbols)
     if not PREDICTIONS_FILE.exists():
         print("No predictions file; nothing to evaluate.")
-        train(hist)
+        if not models_ready():
+            train(hist)
         return
+
     predictions = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date", "target_date"])
+    predictions["target_date"] = pd.to_datetime(predictions["target_date"], errors="coerce").dt.normalize()
     hist["date"] = pd.to_datetime(hist["date"], errors="coerce").dt.normalize()
-    actual = hist.sort_values(["symbol", "date"]).copy()
-    actual = actual.rename(columns={"date": "target_date", "open": "actual_open", "high": "actual_high", "low": "actual_low", "close": "actual_close"})
-    evals = predictions.merge(actual[["symbol", "target_date", "actual_open", "actual_high", "actual_low", "actual_close"]], on=["symbol", "target_date"], how="inner")
-    evals = evals.dropna(subset=["actual_open", "actual_high", "actual_low", "actual_close"])
-    if evals.empty:
+    latest_actual_date = hist["date"].max()
+    completed_predictions = predictions[predictions["target_date"] <= latest_actual_date].copy()
+    print(f"Evening session: latest actual market date={latest_actual_date.date()}, completed prediction rows available={len(completed_predictions)}")
+
+    if completed_predictions.empty:
         print("No completed prediction sessions to evaluate yet.")
-        train(hist)
         return
+
+    actual = hist.sort_values(["symbol", "date"]).rename(columns={"date": "target_date", "open": "actual_open", "high": "actual_high", "low": "actual_low", "close": "actual_close"})
+    evals = completed_predictions.merge(actual[["symbol", "target_date", "actual_open", "actual_high", "actual_low", "actual_close"]], on=["symbol", "target_date"], how="inner")
+    evals = evals.dropna(subset=["actual_open", "actual_high", "actual_low", "actual_close", "base_close"])
+    if evals.empty:
+        print("Completed target dates exist, but actual OHLC rows are not available yet.")
+        return
+
     for field in ["open", "high", "low", "close"]:
-        pred = evals[f"predicted_{field}"]
-        real = evals[f"actual_{field}"]
+        pred = pd.to_numeric(evals[f"predicted_{field}"], errors="coerce")
+        real = pd.to_numeric(evals[f"actual_{field}"], errors="coerce")
+        baseline = pd.to_numeric(evals["base_close"], errors="coerce")
         evals[f"{field}_error"] = real - pred
         evals[f"{field}_abs_pct_error"] = (real - pred).abs() / real.abs().replace(0, np.nan)
-    keep = ["prediction_date", "target_date", "symbol", "rank", "score", "predicted_open", "actual_open", "open_error", "open_abs_pct_error", "predicted_high", "actual_high", "high_error", "high_abs_pct_error", "predicted_low", "actual_low", "low_error", "low_abs_pct_error", "predicted_close", "actual_close", "close_error", "close_abs_pct_error"]
+        evals[f"baseline_{field}_error"] = real - baseline
+        evals[f"baseline_{field}_abs_pct_error"] = (real - baseline).abs() / real.abs().replace(0, np.nan)
+
+    predicted_return = pd.to_numeric(evals["predicted_close"], errors="coerce") / pd.to_numeric(evals["base_close"], errors="coerce") - 1
+    actual_return = pd.to_numeric(evals["actual_close"], errors="coerce") / pd.to_numeric(evals["base_close"], errors="coerce") - 1
+    evals["predicted_close_direction"] = np.sign(predicted_return).astype(int)
+    evals["actual_close_direction"] = np.sign(actual_return).astype(int)
+    evals["close_direction_correct"] = (evals["predicted_close_direction"] == evals["actual_close_direction"]).astype(int)
+
+    keep = [
+        "prediction_date", "target_date", "symbol", "rank", "score", "base_close",
+        "predicted_open", "actual_open", "open_error", "open_abs_pct_error", "baseline_open_error", "baseline_open_abs_pct_error",
+        "predicted_high", "actual_high", "high_error", "high_abs_pct_error", "baseline_high_error", "baseline_high_abs_pct_error",
+        "predicted_low", "actual_low", "low_error", "low_abs_pct_error", "baseline_low_error", "baseline_low_abs_pct_error",
+        "predicted_close", "actual_close", "close_error", "close_abs_pct_error", "baseline_close_error", "baseline_close_abs_pct_error",
+        "predicted_close_direction", "actual_close_direction", "close_direction_correct",
+    ]
     evals = evals[keep]
     if EVALUATIONS_FILE.exists():
         old = pd.read_csv(EVALUATIONS_FILE)
         evals = pd.concat([old, evals], ignore_index=True)
+    before = len(evals)
     evals = evals.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank"])
     evals.to_csv(EVALUATIONS_FILE, index=False)
+    newly_saved = len(evals) - (before - len(evals))
+
     train(hist)
-    print(f"Evening run complete: {len(evals)} total evaluations and models retrained")
+    sessions = evals["target_date"].nunique()
+    latest_session = evals["target_date"].max().date()
+    print(f"Evening run complete: latest evaluated session={latest_session}, total evaluations={len(evals)}, sessions={sessions}, models retrained={models_ready()}")
 
 
 if __name__ == "__main__":

@@ -102,6 +102,8 @@ def send_morning() -> None:
     target_date = predictions["target_date"].dropna().dt.normalize().max()
     if pd.isna(target_date):
         raise RuntimeError("No target dates found in predictions.csv")
+    # The sent-state file is only a duplicate guard; a date is recorded there
+    # by _record_sent only after Telegram confirms a successful API response.
     if _already_sent(SENT_FILE, target_date):
         print(f"Morning Telegram already sent for {target_date.date()}; skipping duplicate.")
         return

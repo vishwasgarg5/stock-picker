@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-import json
+from datetime import datetime, timedelta
+
+import joblib
 import numpy as np
 import pandas as pd
 import yfinance as yf
 from sklearn.ensemble import HistGradientBoostingRegressor
-import joblib
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -20,28 +21,77 @@ RANKING_FILE = DATA / "rankings.csv"
 PREDICTIONS_FILE = DATA / "predictions.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 
+FEATURE_COLUMNS = [
+    "return_1d", "return_5d", "return_20d", "sma20", "sma50",
+    "ema20", "ema50", "rsi14", "volume_ratio"
+]
+TARGETS = {
+    "open": "target_open_return",
+    "high": "target_high_return",
+    "low": "target_low_return",
+    "close": "target_close_return",
+}
+
 
 def load_universe() -> list[str]:
     if not UNIVERSE_FILE.exists():
-        raise FileNotFoundError(f"Create {UNIVERSE_FILE} with columns symbol,company_name")
+        raise FileNotFoundError(f"Missing {UNIVERSE_FILE}; run the universe updater first")
     return pd.read_csv(UNIVERSE_FILE)["symbol"].dropna().astype(str).unique().tolist()
+
+
+def _normalise_history(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
+    if df.empty:
+        return pd.DataFrame(columns=["date", "symbol", "open", "high", "low", "close", "volume"])
+    df = df.reset_index()
+    rename = {"Date": "date", "Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"}
+    df = df.rename(columns=rename)
+    df["symbol"] = symbol
+    df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(None)
+    return df[["date", "symbol", "open", "high", "low", "close", "volume"]]
 
 
 def download_history(symbols: list[str], start: str = "2018-01-01") -> pd.DataFrame:
     tickers = [f"{s}.NS" for s in symbols]
-    raw = yf.download(tickers, start=start, interval="1d", auto_adjust=False, group_by="ticker", progress=False, threads=True)
-    rows = []
+    raw = yf.download(
+        tickers,
+        start=start,
+        interval="1d",
+        auto_adjust=False,
+        group_by="ticker",
+        progress=False,
+        threads=True,
+    )
+    rows: list[pd.DataFrame] = []
+    if raw.empty:
+        return pd.DataFrame(columns=["date", "symbol", "open", "high", "low", "close", "volume"])
     for symbol in symbols:
         ticker = f"{symbol}.NS"
-        if ticker not in raw.columns.get_level_values(0):
-            continue
-        df = raw[ticker].copy().reset_index()
-        df["symbol"] = symbol
-        df = df.rename(columns={"Date":"date", "Open":"open", "High":"high", "Low":"low", "Close":"close", "Volume":"volume"})
-        rows.append(df[["date","symbol","open","high","low","close","volume"]])
-    if not rows:
-        return pd.DataFrame(columns=["date","symbol","open","high","low","close","volume"])
-    return pd.concat(rows, ignore_index=True)
+        try:
+            if isinstance(raw.columns, pd.MultiIndex):
+                if ticker not in raw.columns.get_level_values(0):
+                    continue
+                rows.append(_normalise_history(raw[ticker].copy(), symbol))
+            else:
+                rows.append(_normalise_history(raw.copy(), symbol))
+        except Exception as exc:
+            print(f"Skipping {symbol}: {exc}")
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=["date", "symbol", "open", "high", "low", "close", "volume"])
+
+
+def update_history(symbols: list[str]) -> pd.DataFrame:
+    if HISTORY_FILE.exists():
+        existing = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
+        start = (existing["date"].max() - timedelta(days=10)).strftime("%Y-%m-%d")
+    else:
+        existing = pd.DataFrame()
+        start = "2018-01-01"
+
+    fresh = download_history(symbols, start=start)
+    combined = pd.concat([existing, fresh], ignore_index=True)
+    combined = combined.drop_duplicates(["date", "symbol"], keep="last")
+    combined = combined.sort_values(["symbol", "date"]).reset_index(drop=True)
+    combined.to_csv(HISTORY_FILE, index=False)
+    return combined
 
 
 def rsi(close: pd.Series, period: int = 14) -> pd.Series:
@@ -81,66 +131,116 @@ def technical_score(latest: pd.DataFrame) -> pd.Series:
 
 def rank_stocks(df: pd.DataFrame) -> pd.DataFrame:
     latest = df.sort_values("date").groupby("symbol", as_index=False).tail(1).copy()
+    latest = latest.dropna(subset=["return_20d", "return_5d", "volume_ratio", "rsi14", "ema20", "ema50"])
     latest["technical_score"] = technical_score(latest)
-    # Fundamental score is intentionally zero until point-in-time fundamental data is supplied.
     latest["fundamental_score"] = 0.0
     latest["total_score"] = latest["technical_score"]
     latest["rank"] = latest["total_score"].rank(ascending=False, method="first").astype(int)
     return latest.sort_values("rank")
 
 
-FEATURE_COLUMNS = ["return_1d","return_5d","return_20d","sma20","sma50","ema20","ema50","rsi14","volume_ratio"]
-TARGETS = {"open":"target_open_return", "high":"target_high_return", "low":"target_low_return", "close":"target_close_return"}
-
-
 def add_targets(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.sort_values(["symbol","date"]).copy()
+    df = df.sort_values(["symbol", "date"]).copy()
     g = df.groupby("symbol", group_keys=False)
-    next_close = g["close"].shift(-1)
-    next_open = g["open"].shift(-1)
-    next_high = g["high"].shift(-1)
-    next_low = g["low"].shift(-1)
-    df["target_open_return"] = next_open / df["close"] - 1
-    df["target_high_return"] = next_high / df["close"] - 1
-    df["target_low_return"] = next_low / df["close"] - 1
-    df["target_close_return"] = next_close / df["close"] - 1
+    base = df["close"]
+    df["target_open_return"] = g["open"].shift(-1) / base - 1
+    df["target_high_return"] = g["high"].shift(-1) / base - 1
+    df["target_low_return"] = g["low"].shift(-1) / base - 1
+    df["target_close_return"] = g["close"].shift(-1) / base - 1
     return df
 
 
 def train(df: pd.DataFrame) -> None:
     work = add_targets(features(df)).dropna(subset=FEATURE_COLUMNS + list(TARGETS.values()))
+    if len(work) < 500:
+        raise RuntimeError(f"Not enough training rows: {len(work)}")
     for name, target in TARGETS.items():
-        model = HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, max_leaf_nodes=31, l2_regularization=1.0, random_state=42)
+        model = HistGradientBoostingRegressor(
+            max_iter=300,
+            learning_rate=0.05,
+            max_leaf_nodes=31,
+            l2_regularization=1.0,
+            random_state=42,
+        )
         model.fit(work[FEATURE_COLUMNS], work[target])
         joblib.dump(model, MODELS / f"{name}.joblib")
 
 
+def models_ready() -> bool:
+    return all((MODELS / f"{name}.joblib").exists() for name in TARGETS)
+
+
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame) -> pd.DataFrame:
-    ranked = ranking.head(10)[["symbol","date","close","rank","total_score"]].copy()
+    ranked = ranking.head(10)[["symbol", "date", "close", "rank", "total_score"]].copy()
     latest = features(df).sort_values("date").groupby("symbol", as_index=False).tail(1)
-    latest = latest[latest.symbol.isin(ranked.symbol)]
+    latest = latest[latest.symbol.isin(ranked.symbol)].dropna(subset=FEATURE_COLUMNS)
+    if not models_ready():
+        raise RuntimeError("Prediction models are missing")
     for name in TARGETS:
         model = joblib.load(MODELS / f"{name}.joblib")
         latest[f"pred_{name}_return"] = model.predict(latest[FEATURE_COLUMNS])
         latest[f"predicted_{name}"] = latest["close"] * (1 + latest[f"pred_{name}_return"])
-    out = latest[["date","symbol","close","predicted_open","predicted_high","predicted_low","predicted_close"]].copy()
-    out = out.rename(columns={"date":"prediction_date","close":"base_close"})
-    out["rank"] = out.symbol.map(ranked.set_index("symbol")["rank"])
-    out["score"] = out.symbol.map(ranked.set_index("symbol")["total_score"])
-    return out
+    out = latest[["date", "symbol", "close", "predicted_open", "predicted_high", "predicted_low", "predicted_close"]].copy()
+    out = out.rename(columns={"date": "prediction_date", "close": "base_close"})
+    lookup = ranked.set_index("symbol")
+    out["rank"] = out.symbol.map(lookup["rank"])
+    out["score"] = out.symbol.map(lookup["total_score"])
+    out["created_at"] = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    return out.sort_values("rank")
 
 
-def run_initial() -> None:
+def run_morning() -> None:
     symbols = load_universe()
-    hist = download_history(symbols)
-    hist.to_csv(HISTORY_FILE, index=False)
-    feat = features(hist)
-    ranking = rank_stocks(feat)
+    hist = update_history(symbols)
+    ranking = rank_stocks(features(hist))
     ranking.to_csv(RANKING_FILE, index=False)
-    train(hist)
+    if not models_ready():
+        train(hist)
     predictions = predict_top10(hist, ranking)
     predictions.to_csv(PREDICTIONS_FILE, index=False)
+    print(f"Morning run complete: {len(ranking)} ranked, {len(predictions)} predictions")
+
+
+def run_evening() -> None:
+    symbols = load_universe()
+    hist = update_history(symbols)
+    if not PREDICTIONS_FILE.exists():
+        print("No predictions file; nothing to evaluate.")
+        return
+
+    predictions = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date"])
+    hist["date"] = pd.to_datetime(hist["date"])
+    actual = hist.sort_values(["symbol", "date"]).copy()
+    actual["actual_date"] = actual.groupby("symbol")["date"].shift(-1)
+    actual["next_open"] = actual.groupby("symbol")["open"].shift(-1)
+    actual["next_high"] = actual.groupby("symbol")["high"].shift(-1)
+    actual["next_low"] = actual.groupby("symbol")["low"].shift(-1)
+    actual["next_close"] = actual.groupby("symbol")["close"].shift(-1)
+    actual = actual[["symbol", "date", "actual_date", "next_open", "next_high", "next_low", "next_close"]]
+
+    evals = predictions.merge(actual, left_on=["symbol", "prediction_date"], right_on=["symbol", "date"], how="inner")
+    if evals.empty:
+        print("No completed prediction sessions to evaluate yet.")
+        return
+    for field in ["open", "high", "low", "close"]:
+        pred = evals[f"predicted_{field}"]
+        real = evals[f"next_{field}"]
+        evals[f"{field}_error"] = real - pred
+        evals[f"{field}_abs_pct_error"] = (real - pred).abs() / real.abs().replace(0, np.nan)
+    evals = evals.rename(columns={"date": "prediction_date"})
+    keep = ["prediction_date", "actual_date", "symbol", "rank", "score", "predicted_open", "next_open", "open_error", "open_abs_pct_error", "predicted_high", "next_high", "high_error", "high_abs_pct_error", "predicted_low", "next_low", "low_error", "low_abs_pct_error", "predicted_close", "next_close", "close_error", "close_abs_pct_error"]
+    evals = evals[keep]
+
+    if EVALUATIONS_FILE.exists():
+        old = pd.read_csv(EVALUATIONS_FILE)
+        evals = pd.concat([old, evals], ignore_index=True)
+    evals = evals.drop_duplicates(["prediction_date", "symbol"], keep="last").sort_values(["prediction_date", "rank"])
+    evals.to_csv(EVALUATIONS_FILE, index=False)
+
+    # Retrain after adding the newly available observations.
+    train(hist)
+    print(f"Evening run complete: evaluated {len(evals)} rows and retrained models")
 
 
 if __name__ == "__main__":
-    run_initial()
+    run_morning()

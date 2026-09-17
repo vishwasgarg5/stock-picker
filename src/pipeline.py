@@ -194,6 +194,8 @@ def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
     result = pd.Series(0.0, index=fundamentals.index)
     weight_used = pd.Series(0.0, index=fundamentals.index)
     for field, (weight, higher_is_better) in FUNDAMENTAL_FIELDS.items():
+        if field not in fundamentals.columns:
+            continue
         values = pd.to_numeric(fundamentals[field], errors="coerce")
         valid = values.notna()
         if field in {"trailingPE", "priceToBook", "debtToEquity"}:
@@ -258,9 +260,9 @@ def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.
     """Return the next NSE session, including exchange holidays rather than only skipping weekends."""
     last = pd.Timestamp(last_date).normalize()
     schedule = mcal.get_calendar("XNSE").schedule(start_date=last + pd.Timedelta(days=1), end_date=last + pd.Timedelta(days=14))
-    if not schedule.empty:
-        return pd.Timestamp(schedule.index[0]).normalize()
-    raise RuntimeError(f"Could not determine next NSE trading session after {last.date()}")
+    if schedule.empty:
+        raise RuntimeError(f"Could not determine next NSE trading session after {last.date()}")
+    return pd.Timestamp(schedule.index[0]).normalize()
 
 
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:

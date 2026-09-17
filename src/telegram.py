@@ -69,11 +69,11 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
     if len(rows) < 10:
         raise RuntimeError(f"Expected 10 predictions for {target_date.date()}, found {len(rows)}")
 
-    # Fixed-width layout modeled on a simple log/table format for mobile viewing.
     lines = [
         "<b>STOCK PICKER</b>",
         f"{target_date:%d-%b-%Y} | TOP 10",
-        "", "<pre>",
+        "",
+        "<pre>",
         "# Stock       O      H      L      C",
         "----------------------------------------",
     ]
@@ -86,12 +86,7 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
             f"{_fmt(row['predicted_low']):>7} "
             f"{_fmt(row['predicted_close']):>7}"
         )
-    lines += [
-        "</pre>",
-        "O=Open  H=High  L=Low  C=Close",
-        "<i>Automated model prediction</i>",
-        "⚠️ <i>For informational purposes only.</i>",
-    ]
+    lines.append("</pre>")
     return "\n".join(lines)
 
 
@@ -129,7 +124,9 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
     lines = [
         "<b>STOCK PICKER</b>",
         f"{target_date:%d-%b-%Y} | EVENING",
-        f"{len(rows)} predictions evaluated", "", "<pre>",
+        f"{len(rows)} predictions evaluated",
+        "",
+        "<pre>",
         "# Stock      P      A       Δ    Err%",
         "----------------------------------------",
     ]
@@ -144,7 +141,6 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         )
     lines += [
         "</pre>",
-        "P=Predicted  A=Actual  Δ=A−P",
         "",
         "<b>MODEL ACCURACY</b>",
         f"Open     {_fmt(metrics['open'])}%",
@@ -152,8 +148,6 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         f"Low      {_fmt(metrics['low'])}%",
         f"Close    {_fmt(metrics['close'])}%",
         f"Overall  <b>{_fmt(overall)}%</b>",
-        "<i>Models retrained after evaluation</i>",
-        "⚠️ <i>Historical accuracy does not guarantee future results.</i>",
     ]
     return "\n".join(lines)
 

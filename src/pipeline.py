@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from datetime import datetime, timedelta
 
 import joblib
 import numpy as np
@@ -21,75 +21,72 @@ RANKING_FILE = DATA / "rankings.csv"
 PREDICTIONS_FILE = DATA / "predictions.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 
-FEATURE_COLUMNS = [
-    "return_1d", "return_5d", "return_20d", "sma20", "sma50",
-    "ema20", "ema50", "rsi14", "volume_ratio"
-]
-TARGETS = {
-    "open": "target_open_return",
-    "high": "target_high_return",
-    "low": "target_low_return",
-    "close": "target_close_return",
-}
+FEATURE_COLUMNS = ["return_1d", "return_5d", "return_20d", "sma20", "sma50", "ema20", "ema50", "rsi14", "volume_ratio"]
+TARGETS = {"open": "target_open_return", "high": "target_high_return", "low": "target_low_return", "close": "target_close_return"}
+EMPTY_HISTORY = ["date", "symbol", "open", "high", "low", "close", "volume"]
 
 
 def load_universe() -> list[str]:
     if not UNIVERSE_FILE.exists():
-        raise FileNotFoundError(f"Missing {UNIVERSE_FILE}; run the universe updater first")
-    return pd.read_csv(UNIVERSE_FILE)["symbol"].dropna().astype(str).unique().tolist()
+        raise FileNotFoundError("data/universe.csv is missing. Run update_universe.py first.")
+    df = pd.read_csv(UNIVERSE_FILE)
+    symbols = df["symbol"].dropna().astype(str).str.upper().str.strip().unique().tolist()
+    if len(symbols) < 100:
+        raise RuntimeError(f"Universe contains only {len(symbols)} symbols; refusing to run.")
+    return symbols
 
 
 def _normalise_history(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     if df.empty:
-        return pd.DataFrame(columns=["date", "symbol", "open", "high", "low", "close", "volume"])
+        return pd.DataFrame(columns=EMPTY_HISTORY)
     df = df.reset_index()
-    rename = {"Date": "date", "Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"}
-    df = df.rename(columns=rename)
+    df = df.rename(columns={"Date": "date", "Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"})
+    required = {"date", "open", "high", "low", "close", "volume"}
+    if not required.issubset(df.columns):
+        return pd.DataFrame(columns=EMPTY_HISTORY)
     df["symbol"] = symbol
-    df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(None)
-    return df[["date", "symbol", "open", "high", "low", "close", "volume"]]
+    df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.tz_localize(None)
+    return df[["date", "symbol", "open", "high", "low", "close", "volume"]].dropna(subset=["date", "close"])
 
 
-def download_history(symbols: list[str], start: str = "2018-01-01") -> pd.DataFrame:
-    tickers = [f"{s}.NS" for s in symbols]
-    raw = yf.download(
-        tickers,
-        start=start,
-        interval="1d",
-        auto_adjust=False,
-        group_by="ticker",
-        progress=False,
-        threads=True,
-    )
+def download_history(symbols: list[str], start: str) -> pd.DataFrame:
     rows: list[pd.DataFrame] = []
-    if raw.empty:
-        return pd.DataFrame(columns=["date", "symbol", "open", "high", "low", "close", "volume"])
-    for symbol in symbols:
-        ticker = f"{symbol}.NS"
-        try:
-            if isinstance(raw.columns, pd.MultiIndex):
-                if ticker not in raw.columns.get_level_values(0):
-                    continue
-                rows.append(_normalise_history(raw[ticker].copy(), symbol))
-            else:
-                rows.append(_normalise_history(raw.copy(), symbol))
-        except Exception as exc:
-            print(f"Skipping {symbol}: {exc}")
-    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=["date", "symbol", "open", "high", "low", "close", "volume"])
+    for batch_start in range(0, len(symbols), 40):
+        batch = symbols[batch_start:batch_start + 40]
+        tickers = [f"{s}.NS" for s in batch]
+        raw = yf.download(tickers, start=start, interval="1d", auto_adjust=False, group_by="ticker", progress=False, threads=True)
+        if raw.empty:
+            continue
+        for symbol in batch:
+            ticker = f"{symbol}.NS"
+            try:
+                if isinstance(raw.columns, pd.MultiIndex):
+                    if ticker not in raw.columns.get_level_values(0):
+                        continue
+                    part = raw[ticker].copy()
+                else:
+                    if len(batch) != 1:
+                        continue
+                    part = raw.copy()
+                rows.append(_normalise_history(part, symbol))
+            except Exception as exc:
+                print(f"Skipping {symbol}: {exc}")
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=EMPTY_HISTORY)
 
 
 def update_history(symbols: list[str]) -> pd.DataFrame:
     if HISTORY_FILE.exists():
         existing = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
-        start = (existing["date"].max() - timedelta(days=10)).strftime("%Y-%m-%d")
+        last = existing["date"].max() if not existing.empty else pd.Timestamp("2018-01-01")
+        start = (last - timedelta(days=10)).strftime("%Y-%m-%d")
     else:
-        existing = pd.DataFrame()
+        existing = pd.DataFrame(columns=EMPTY_HISTORY)
         start = "2018-01-01"
-
-    fresh = download_history(symbols, start=start)
+    fresh = download_history(symbols, start)
     combined = pd.concat([existing, fresh], ignore_index=True)
-    combined = combined.drop_duplicates(["date", "symbol"], keep="last")
-    combined = combined.sort_values(["symbol", "date"]).reset_index(drop=True)
+    combined["date"] = pd.to_datetime(combined["date"], errors="coerce").dt.tz_localize(None)
+    combined = combined.dropna(subset=["date", "symbol", "close"])
+    combined = combined.drop_duplicates(["date", "symbol"], keep="last").sort_values(["symbol", "date"]).reset_index(drop=True)
     combined.to_csv(HISTORY_FILE, index=False)
     return combined
 
@@ -155,13 +152,7 @@ def train(df: pd.DataFrame) -> None:
     if len(work) < 500:
         raise RuntimeError(f"Not enough training rows: {len(work)}")
     for name, target in TARGETS.items():
-        model = HistGradientBoostingRegressor(
-            max_iter=300,
-            learning_rate=0.05,
-            max_leaf_nodes=31,
-            l2_regularization=1.0,
-            random_state=42,
-        )
+        model = HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, max_leaf_nodes=31, l2_regularization=1.0, random_state=42)
         model.fit(work[FEATURE_COLUMNS], work[target])
         joblib.dump(model, MODELS / f"{name}.joblib")
 
@@ -185,7 +176,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame) -> pd.DataFrame:
     lookup = ranked.set_index("symbol")
     out["rank"] = out.symbol.map(lookup["rank"])
     out["score"] = out.symbol.map(lookup["total_score"])
-    out["created_at"] = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    out["created_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     return out.sort_values("rank")
 
 
@@ -207,17 +198,13 @@ def run_evening() -> None:
     if not PREDICTIONS_FILE.exists():
         print("No predictions file; nothing to evaluate.")
         return
-
     predictions = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date"])
     hist["date"] = pd.to_datetime(hist["date"])
     actual = hist.sort_values(["symbol", "date"]).copy()
     actual["actual_date"] = actual.groupby("symbol")["date"].shift(-1)
-    actual["next_open"] = actual.groupby("symbol")["open"].shift(-1)
-    actual["next_high"] = actual.groupby("symbol")["high"].shift(-1)
-    actual["next_low"] = actual.groupby("symbol")["low"].shift(-1)
-    actual["next_close"] = actual.groupby("symbol")["close"].shift(-1)
+    for field in ["open", "high", "low", "close"]:
+        actual[f"next_{field}"] = actual.groupby("symbol")[field].shift(-1)
     actual = actual[["symbol", "date", "actual_date", "next_open", "next_high", "next_low", "next_close"]]
-
     evals = predictions.merge(actual, left_on=["symbol", "prediction_date"], right_on=["symbol", "date"], how="inner")
     if evals.empty:
         print("No completed prediction sessions to evaluate yet.")
@@ -230,14 +217,11 @@ def run_evening() -> None:
     evals = evals.rename(columns={"date": "prediction_date"})
     keep = ["prediction_date", "actual_date", "symbol", "rank", "score", "predicted_open", "next_open", "open_error", "open_abs_pct_error", "predicted_high", "next_high", "high_error", "high_abs_pct_error", "predicted_low", "next_low", "low_error", "low_abs_pct_error", "predicted_close", "next_close", "close_error", "close_abs_pct_error"]
     evals = evals[keep]
-
     if EVALUATIONS_FILE.exists():
         old = pd.read_csv(EVALUATIONS_FILE)
         evals = pd.concat([old, evals], ignore_index=True)
     evals = evals.drop_duplicates(["prediction_date", "symbol"], keep="last").sort_values(["prediction_date", "rank"])
     evals.to_csv(EVALUATIONS_FILE, index=False)
-
-    # Retrain after adding the newly available observations.
     train(hist)
     print(f"Evening run complete: evaluated {len(evals)} rows and retrained models")
 

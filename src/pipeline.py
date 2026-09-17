@@ -157,14 +157,12 @@ def _safe_number(value: object) -> float:
 
 
 def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFrame:
-    """Fetch/cache current fundamentals used by ranking; never use them as historical training features."""
     columns = ["symbol", "updated_at"] + list(FUNDAMENTAL_FIELDS)
     if FUNDAMENTALS_FILE.exists():
         cached = pd.read_csv(FUNDAMENTALS_FILE)
         cached["symbol"] = cached.get("symbol", pd.Series(dtype=str)).astype(str).str.upper().str.strip()
     else:
         cached = pd.DataFrame(columns=columns)
-
     now = pd.Timestamp.now(tz="UTC")
     cache_map = {row["symbol"]: row for _, row in cached.iterrows() if pd.notna(row.get("symbol"))}
     refreshed = []
@@ -186,7 +184,6 @@ def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFra
             if old is not None:
                 row = {c: old.get(c, np.nan) for c in columns}
         refreshed.append(row)
-
     result = pd.DataFrame(refreshed, columns=columns).drop_duplicates("symbol", keep="last").sort_values("symbol").reset_index(drop=True)
     result.to_csv(FUNDAMENTALS_FILE, index=False)
     return result
@@ -214,7 +211,6 @@ def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
 
 
 def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None) -> pd.DataFrame:
-    """Rank all symbols deterministically; rank 1..N is guaranteed unique."""
     work = df.copy()
     work["date"] = pd.to_datetime(work["date"], errors="coerce").dt.normalize()
     latest_date = work["date"].max()
@@ -229,8 +225,7 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None) -> p
     latest["total_score"] = latest["technical_score"] + latest["fundamental_score"]
     latest = latest.sort_values(["total_score", "symbol"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
     latest["rank"] = np.arange(1, len(latest) + 1, dtype=int)
-    expected = list(range(1, len(latest) + 1))
-    if latest["rank"].tolist() != expected or latest["rank"].duplicated().any():
+    if latest["rank"].duplicated().any() or latest["rank"].tolist() != list(range(1, len(latest) + 1)):
         raise RuntimeError("Ranking validation failed: ranks are not unique and sequential")
     return latest
 
@@ -245,7 +240,6 @@ def add_targets(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def train(df: pd.DataFrame) -> None:
-    """Train only on information available at t to predict t+1; no future rows/features are used."""
     work = add_targets(features(df)).dropna(subset=FEATURE_COLUMNS + list(TARGETS.values()))
     if len(work) < 500:
         raise RuntimeError(f"Not enough training rows: {len(work)}")
@@ -294,6 +288,18 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     return out.sort_values("rank")
 
 
+def _save_next_session_prediction(hist: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp, existing: pd.DataFrame) -> None:
+    if not existing.empty and "target_date" in existing.columns:
+        existing_dates = pd.to_datetime(existing["target_date"], errors="coerce").dt.normalize()
+        if (existing_dates == target_date.normalize()).any():
+            return
+    prediction = predict_top10(hist, ranking, target_date)
+    combined = pd.concat([existing, prediction], ignore_index=True) if not existing.empty else prediction
+    combined = combined.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank"])
+    combined.to_csv(PREDICTIONS_FILE, index=False)
+    print(f"Backfilled next prediction session: {target_date.date()} ({len(prediction)} stocks)")
+
+
 def run_morning() -> None:
     symbols = load_universe()
     hist = update_history(symbols)
@@ -302,11 +308,9 @@ def run_morning() -> None:
     ranking.to_csv(RANKING_FILE, index=False)
     if not models_ready():
         train(hist)
-
     last_date = pd.to_datetime(hist["date"], errors="coerce").max().normalize()
     target_date = _next_trading_date(last_date, hist["date"])
     print(f"Morning session: latest completed market date={last_date.date()}, prediction target={target_date.date()}")
-
     existing = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date", "target_date"]) if PREDICTIONS_FILE.exists() else pd.DataFrame()
     if not existing.empty and "target_date" in existing.columns:
         existing["target_date"] = pd.to_datetime(existing["target_date"], errors="coerce").dt.normalize()
@@ -316,7 +320,6 @@ def run_morning() -> None:
                 raise RuntimeError(f"Prediction session {target_date.date()} exists but has {len(same_target)} rows; refusing partial session")
             print(f"Predictions already exist for {target_date.date()}; keeping existing output unchanged.")
             return
-
     predictions = predict_top10(hist, ranking, target_date)
     combined = pd.concat([existing, predictions], ignore_index=True) if not existing.empty else predictions
     combined = combined.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank"])
@@ -328,9 +331,14 @@ def run_evening() -> None:
     symbols = load_universe()
     hist = update_history(symbols)
     if not PREDICTIONS_FILE.exists():
-        print("No predictions file; nothing to evaluate.")
+        print("No predictions file; creating a next-session prediction if models are available.")
         if not models_ready():
             train(hist)
+        fundamentals = update_fundamentals(symbols)
+        ranking = rank_stocks(features(hist), fundamentals)
+        ranking.to_csv(RANKING_FILE, index=False)
+        target_date = _next_trading_date(pd.to_datetime(hist["date"], errors="coerce").max().normalize(), hist["date"])
+        _save_next_session_prediction(hist, ranking, target_date, pd.DataFrame())
         return
 
     predictions = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date", "target_date"])
@@ -341,7 +349,14 @@ def run_evening() -> None:
     print(f"Evening session: latest actual market date={latest_actual_date.date()}, completed prediction rows available={len(completed_predictions)}")
 
     if completed_predictions.empty:
-        print("No completed prediction sessions to evaluate yet.")
+        if not models_ready():
+            train(hist)
+        fundamentals = update_fundamentals(symbols)
+        ranking = rank_stocks(features(hist), fundamentals)
+        ranking.to_csv(RANKING_FILE, index=False)
+        target_date = _next_trading_date(latest_actual_date, hist["date"])
+        _save_next_session_prediction(hist, ranking, target_date, predictions)
+        print("No completed prediction session to evaluate; ensured next session is predicted.")
         return
 
     actual = hist.sort_values(["symbol", "date"]).rename(columns={"date": "target_date", "open": "actual_open", "high": "actual_high", "low": "actual_low", "close": "actual_close"})
@@ -378,15 +393,19 @@ def run_evening() -> None:
     if EVALUATIONS_FILE.exists():
         old = pd.read_csv(EVALUATIONS_FILE)
         evals = pd.concat([old, evals], ignore_index=True)
-    before = len(evals)
     evals = evals.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank"])
     evals.to_csv(EVALUATIONS_FILE, index=False)
-    newly_saved = len(evals) - (before - len(evals))
-
     train(hist)
+
+    target_date = _next_trading_date(latest_actual_date, hist["date"])
+    fundamentals = update_fundamentals(symbols)
+    ranking = rank_stocks(features(hist), fundamentals)
+    ranking.to_csv(RANKING_FILE, index=False)
+    _save_next_session_prediction(hist, ranking, target_date, predictions)
+
     sessions = evals["target_date"].nunique()
     latest_session = evals["target_date"].max().date()
-    print(f"Evening run complete: latest evaluated session={latest_session}, total evaluations={len(evals)}, sessions={sessions}, models retrained={models_ready()}")
+    print(f"Evening run complete: latest evaluated session={latest_session}, total evaluations={len(evals)}, sessions={sessions}, next target={target_date.date()}, models retrained={models_ready()}")
 
 
 if __name__ == "__main__":

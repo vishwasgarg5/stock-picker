@@ -52,8 +52,6 @@ def _already_sent(path: Path, target_date: pd.Timestamp, message: str) -> bool:
         return False
     sent = pd.read_csv(path)
     if "target_date" not in sent.columns or "message_hash" not in sent.columns:
-        # Legacy state files only stored the date. Treat them as stale so the
-        # current message is sent once and the state is upgraded with a hash.
         return False
     target = target_date.normalize()
     current_hash = _message_hash(message)

@@ -6,6 +6,7 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
+import pandas_market_calendars as mcal
 import yfinance as yf
 from sklearn.ensemble import HistGradientBoostingRegressor
 
@@ -254,14 +255,12 @@ def models_ready() -> bool:
 
 
 def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.Timestamp:
-    dates = pd.to_datetime(history_dates, errors="coerce").dropna().dt.normalize().drop_duplicates().sort_values()
-    future = dates[dates > pd.Timestamp(last_date).normalize()]
-    if not future.empty:
-        return future.iloc[0]
-    candidate = pd.Timestamp(last_date).normalize() + pd.Timedelta(days=1)
-    while candidate.weekday() >= 5:
-        candidate += pd.Timedelta(days=1)
-    return candidate
+    """Return the next NSE session, including exchange holidays rather than only skipping weekends."""
+    last = pd.Timestamp(last_date).normalize()
+    schedule = mcal.get_calendar("XNSE").schedule(start_date=last + pd.Timedelta(days=1), end_date=last + pd.Timedelta(days=14))
+    if not schedule.empty:
+        return pd.Timestamp(schedule.index[0]).normalize()
+    raise RuntimeError(f"Could not determine next NSE trading session after {last.date()}")
 
 
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:

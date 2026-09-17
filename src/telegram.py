@@ -34,12 +34,7 @@ def _send(message: str) -> None:
         raise RuntimeError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be configured")
     response = requests.post(
         f"https://api.telegram.org/bot{token}/sendMessage",
-        data={
-            "chat_id": chat_id,
-            "text": message,
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
-        },
+        data={"chat_id": chat_id, "text": message, "parse_mode": "HTML", "disable_web_page_preview": True},
         timeout=30,
     )
     response.raise_for_status()
@@ -55,9 +50,8 @@ def _already_sent(path: Path, target_date: pd.Timestamp, message: str) -> bool:
     if "target_date" not in sent.columns or "message_hash" not in sent.columns:
         return False
     target = target_date.normalize()
-    current_hash = _message_hash(message)
     dates = pd.to_datetime(sent["target_date"], errors="coerce").dt.normalize()
-    return ((dates == target) & sent["message_hash"].astype(str).eq(current_hash)).any()
+    return ((dates == target) & sent["message_hash"].astype(str).eq(_message_hash(message))).any()
 
 
 def _record_sent(path: Path, target_date: pd.Timestamp, message: str) -> None:
@@ -68,13 +62,8 @@ def _record_sent(path: Path, target_date: pd.Timestamp, message: str) -> None:
             sent = pd.DataFrame(columns=columns)
     else:
         sent = pd.DataFrame(columns=columns)
-
-    new_row = pd.DataFrame({
-        "target_date": [target_date.date().isoformat()],
-        "message_hash": [_message_hash(message)],
-    })
-    sent = pd.concat([sent, new_row], ignore_index=True)
-    sent = sent.drop_duplicates(["target_date", "message_hash"], keep="last")
+    new_row = pd.DataFrame({"target_date": [target_date.date().isoformat()], "message_hash": [_message_hash(message)]})
+    sent = pd.concat([sent, new_row], ignore_index=True).drop_duplicates(columns, keep="last")
     sent.to_csv(path, index=False)
 
 
@@ -92,14 +81,9 @@ def _universe_count() -> int:
 
 
 def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) -> str:
-    rows = (
-        predictions[predictions["target_date"].dt.normalize() == target_date.normalize()]
-        .sort_values("rank")
-        .head(10)
-    )
+    rows = predictions[predictions["target_date"].dt.normalize() == target_date.normalize()].sort_values("rank").head(10)
     if len(rows) < 10:
         raise RuntimeError(f"Expected 10 predictions for {target_date.date()}, found {len(rows)}")
-
     total_stocks = _universe_count()
     lines = [
         "<b>STOCK PICKER</b>",
@@ -111,13 +95,7 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
     ]
     for _, row in rows.iterrows():
         symbol = str(row["symbol"])[:8]
-        lines.append(
-            f"{int(row['rank']):>2} {symbol:<7} | "
-            f"{_fmt(row['predicted_open']):>9} | "
-            f"{_fmt(row['predicted_high']):>9} | "
-            f"{_fmt(row['predicted_low']):>9} | "
-            f"{_fmt(row['predicted_close']):>9}"
-        )
+        lines.append(f"{int(row['rank']):>2} {symbol:<7} | {_fmt(row['predicted_open']):>9} | {_fmt(row['predicted_high']):>9} | {_fmt(row['predicted_low']):>9} | {_fmt(row['predicted_close']):>9}")
     lines.append("</pre>")
     return "\n".join(lines)
 
@@ -138,20 +116,34 @@ def send_morning() -> None:
     print(f"Morning Telegram sent for {target_date.date()}")
 
 
+def _accuracy(rows: pd.DataFrame, field: str) -> float:
+    err = pd.to_numeric(rows[f"{field}_abs_pct_error"], errors="coerce").dropna()
+    return max(0.0, 100.0 - err.mean() * 100.0) if not err.empty else float("nan")
+
+
+def _baseline_accuracy(rows: pd.DataFrame, field: str) -> float:
+    err = pd.to_numeric(rows[f"baseline_{field}_abs_pct_error"], errors="coerce").dropna()
+    return max(0.0, 100.0 - err.mean() * 100.0) if not err.empty else float("nan")
+
+
+def _window(evals: pd.DataFrame, days: int) -> pd.DataFrame:
+    end = evals["target_date"].max().normalize()
+    start = end - pd.Timedelta(days=days - 1)
+    return evals[evals["target_date"].between(start, end)]
+
+
 def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str:
-    rows = (
-        evals[evals["target_date"].dt.normalize() == target_date.normalize()]
-        .sort_values("rank")
-    )
+    evals = evals.copy()
+    evals["target_date"] = pd.to_datetime(evals["target_date"], errors="coerce").dt.normalize()
+    rows = evals[evals["target_date"] == target_date.normalize()].sort_values("rank")
     if rows.empty:
         raise RuntimeError(f"No evaluations found for {target_date.date()}")
 
-    metrics = {}
-    for field in ["open", "high", "low", "close"]:
-        err = rows[f"{field}_abs_pct_error"].dropna()
-        metrics[field] = max(0.0, 100.0 - err.mean() * 100.0) if not err.empty else float("nan")
-
+    metrics = {field: _accuracy(rows, field) for field in ["open", "high", "low", "close"]}
     overall = pd.Series(metrics, dtype="float64").mean()
+    baseline_close = _baseline_accuracy(rows, "close")
+    direction = pd.to_numeric(rows.get("close_direction_correct"), errors="coerce").mean() * 100 if "close_direction_correct" in rows else float("nan")
+
     lines = [
         "<b>STOCK PICKER</b>",
         f"{target_date:%d-%b-%Y} | EVENING",
@@ -165,10 +157,7 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         diff = row["actual_close"] - row["predicted_close"]
         err = row["close_abs_pct_error"] * 100
         pa = f"{_fmt(row['predicted_close'])}/{_fmt(row['actual_close'])}"
-        lines.append(
-            f"{int(row['rank']):>2} {str(row['symbol'])[:7]:<7} | "
-            f"{pa:>15} | {diff:>7.2f} | {err:>5.2f}"
-        )
+        lines.append(f"{int(row['rank']):>2} {str(row['symbol'])[:7]:<7} | {pa:>15} | {diff:>7.2f} | {err:>5.2f}")
     lines += [
         "</pre>",
         "",
@@ -178,7 +167,14 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         f"Low      {_fmt(metrics['low'])}%",
         f"Close    {_fmt(metrics['close'])}%",
         f"Overall  <b>{_fmt(overall)}%</b>",
+        f"Direction {_fmt(direction)}%",
+        f"Baseline Close {_fmt(baseline_close)}%",
+        "",
+        "<b>ROLLING CLOSE ACCURACY</b>",
     ]
+    for days in [7, 30, 90]:
+        window = _window(evals, days)
+        lines.append(f"{days:>2}d       {_fmt(_accuracy(window, 'close'))}% | baseline {_fmt(_baseline_accuracy(window, 'close'))}% | direction {_fmt(pd.to_numeric(window.get('close_direction_correct'), errors='coerce').mean() * 100 if 'close_direction_correct' in window else float('nan'))}%")
     return "\n".join(lines)
 
 

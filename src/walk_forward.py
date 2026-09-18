@@ -24,6 +24,7 @@ def _fit_models(train_rows: pd.DataFrame) -> dict[str, HistGradientBoostingRegre
     models = {}
     for name, target in TARGETS.items():
         model = HistGradientBoostingRegressor(
+            loss="absolute_error",
             max_iter=300,
             learning_rate=0.05,
             max_leaf_nodes=31,

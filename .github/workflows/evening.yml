@@ -38,13 +38,13 @@ jobs:
         run: python jobs/evening.py
 
       - name: Send evening accuracy report to Telegram
-        continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python jobs/evening_telegram.py
 
       - name: Commit generated data, models and Telegram state
+        if: always()
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

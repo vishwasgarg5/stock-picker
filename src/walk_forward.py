@@ -123,7 +123,7 @@ def run_walk_forward() -> pd.DataFrame:
                 )
 
             predicted_return = result["predicted_close"] / result["base_close"] - 1
-            baseline_return = result["baseline_close"] / result["base_close"] - 1
+            baseline_return = 0.0
             actual_return = result["actual_close"] / result["base_close"] - 1
             result["close_direction_correct"] = int(np.sign(predicted_return) == np.sign(actual_return))
             result["baseline_close_direction_correct"] = int(

@@ -2,6 +2,13 @@ name: Walk-forward evaluation
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/walk_forward.py'
+      - 'jobs/walk_forward.py'
+      - '.github/workflows/walk_forward.yml'
+      - 'data/ohlcv.csv'
 
 permissions:
   contents: write

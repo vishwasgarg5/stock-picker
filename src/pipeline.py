@@ -247,7 +247,7 @@ def train(df: pd.DataFrame) -> None:
     if len(work) < 500:
         raise RuntimeError(f"Not enough training rows: {len(work)}")
     for name, target in TARGETS.items():
-        model = HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, max_leaf_nodes=31, l2_regularization=1.0, random_state=42)
+        model = HistGradientBoostingRegressor(loss="absolute_error", max_iter=300, learning_rate=0.05, max_leaf_nodes=31, l2_regularization=1.0, random_state=42)
         model.fit(work[FEATURE_COLUMNS], work[target])
         joblib.dump(model, MODELS / f"{name}.joblib")
 

@@ -11,9 +11,9 @@ from src.pipeline import FEATURE_COLUMNS, TARGETS, features, add_targets, rank_s
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
-MODELS = ROOT / "models"
 HISTORY_FILE = DATA / "ohlcv.csv"
 OUTPUT_FILE = DATA / "walk_forward_evaluations.csv"
+SUMMARY_FILE = DATA / "walk_forward_summary.csv"
 
 MIN_TRAIN_ROWS = 500
 LOOKBACK_MONTHS = 24
@@ -42,7 +42,6 @@ def _checkpoints(dates: pd.Series) -> list[pd.Timestamp]:
         return []
     start = unique.max() - pd.DateOffset(months=LOOKBACK_MONTHS)
     eligible = unique[unique >= start]
-    # Use evenly spaced historical checkpoints so the backtest stays practical.
     idx = np.linspace(0, len(eligible) - 2, min(CHECKPOINTS, max(1, len(eligible) - 1)), dtype=int)
     return list(eligible.iloc[np.unique(idx)])
 
@@ -72,14 +71,13 @@ def run_walk_forward() -> pd.DataFrame:
         if session.empty:
             continue
 
-        # Rank using information available strictly at the checkpoint.
+        # Rank using only technical information available at the checkpoint.
         ranking = rank_stocks(feat[feat["date"] <= checkpoint], None)
         top = ranking.head(10)[["symbol", "rank", "total_score"]]
         session = session.merge(top, on="symbol", how="inner")
         if len(session) < 10:
             continue
 
-        # The next actual session is the label; no rows from it enter training.
         next_dates = dates[dates > checkpoint]
         if next_dates.empty:
             continue
@@ -88,6 +86,12 @@ def run_walk_forward() -> pd.DataFrame:
         session = session.merge(actual, on="symbol", how="inner", suffixes=("", "_actual"))
         if len(session) < 10:
             continue
+
+        # The baseline is the previous close: a simple no-change prediction for every OHLC field.
+        session["baseline_open"] = session["close"]
+        session["baseline_high"] = session["close"]
+        session["baseline_low"] = session["close"]
+        session["baseline_close"] = session["close"]
 
         models = _fit_models(train_rows)
         for name, model in models.items():
@@ -106,14 +110,25 @@ def run_walk_forward() -> pd.DataFrame:
                 "base_close": float(row["close"]),
             }
             for field in ["open", "high", "low", "close"]:
-                pred = float(row[f"predicted_{field}"])
                 actual_value = float(row[f"{field}_actual"])
+                pred = float(row[f"predicted_{field}"])
+                baseline = float(row[f"baseline_{field}"])
                 result[f"predicted_{field}"] = pred
                 result[f"actual_{field}"] = actual_value
-                result[f"{field}_abs_pct_error"] = abs(actual_value - pred) / abs(actual_value) if actual_value else np.nan
+                result[f"{field}_abs_pct_error"] = (
+                    abs(actual_value - pred) / abs(actual_value) if actual_value else np.nan
+                )
+                result[f"baseline_{field}_abs_pct_error"] = (
+                    abs(actual_value - baseline) / abs(actual_value) if actual_value else np.nan
+                )
+
             predicted_return = result["predicted_close"] / result["base_close"] - 1
+            baseline_return = result["baseline_close"] / result["base_close"] - 1
             actual_return = result["actual_close"] / result["base_close"] - 1
             result["close_direction_correct"] = int(np.sign(predicted_return) == np.sign(actual_return))
+            result["baseline_close_direction_correct"] = int(
+                np.sign(baseline_return) == np.sign(actual_return)
+            )
             rows.append(result)
 
     output = pd.DataFrame(rows)
@@ -125,12 +140,34 @@ def run_walk_forward() -> pd.DataFrame:
 
     summary = output.groupby("target_date").agg(
         stocks=("symbol", "count"),
+        open_mape=("open_abs_pct_error", "mean"),
+        high_mape=("high_abs_pct_error", "mean"),
+        low_mape=("low_abs_pct_error", "mean"),
         close_mape=("close_abs_pct_error", "mean"),
+        baseline_open_mape=("baseline_open_abs_pct_error", "mean"),
+        baseline_high_mape=("baseline_high_abs_pct_error", "mean"),
+        baseline_low_mape=("baseline_low_abs_pct_error", "mean"),
+        baseline_close_mape=("baseline_close_abs_pct_error", "mean"),
         close_direction_accuracy=("close_direction_correct", "mean"),
+        baseline_close_direction_accuracy=("baseline_close_direction_correct", "mean"),
     ).reset_index()
-    summary["close_mape_pct"] = summary["close_mape"] * 100
+
+    for field in ["open", "high", "low", "close"]:
+        summary[f"{field}_mape_pct"] = summary[f"{field}_mape"] * 100
+        summary[f"baseline_{field}_mape_pct"] = summary[f"baseline_{field}_mape"] * 100
+
     summary["close_direction_accuracy_pct"] = summary["close_direction_accuracy"] * 100
-    summary.to_csv(DATA / "walk_forward_summary.csv", index=False)
+    summary["baseline_close_direction_accuracy_pct"] = (
+        summary["baseline_close_direction_accuracy"] * 100
+    )
+    summary["close_mape_delta_pct"] = (
+        summary["close_mape_pct"] - summary["baseline_close_mape_pct"]
+    )
+    summary["close_direction_delta_pct_points"] = (
+        summary["close_direction_accuracy_pct"]
+        - summary["baseline_close_direction_accuracy_pct"]
+    )
+    summary.to_csv(SUMMARY_FILE, index=False)
     return output
 
 
@@ -139,6 +176,8 @@ if __name__ == "__main__":
     print(
         f"Walk-forward complete: {len(result)} predictions, "
         f"{result['target_date'].nunique()} sessions, "
-        f"close MAPE={result['close_abs_pct_error'].mean() * 100:.2f}%, "
-        f"direction accuracy={result['close_direction_correct'].mean() * 100:.2f}%"
+        f"model close MAPE={result['close_abs_pct_error'].mean() * 100:.2f}%, "
+        f"baseline close MAPE={result['baseline_close_abs_pct_error'].mean() * 100:.2f}%, "
+        f"model direction accuracy={result['close_direction_correct'].mean() * 100:.2f}%, "
+        f"baseline direction accuracy={result['baseline_close_direction_correct'].mean() * 100:.2f}%"
     )

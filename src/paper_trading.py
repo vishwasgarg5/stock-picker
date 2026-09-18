@@ -19,6 +19,9 @@ ENTRY_MODEL = MODELS / "entry_model.joblib"
 MFE_MODEL = MODELS / "mfe_model.joblib"
 MAE_MODEL = MODELS / "mae_model.joblib"
 
+STARTING_CAPITAL = 100_000.0
+ROUND_TRIP_COST_PCT = 0.001  # 0.10% of allocated capital per completed trade.
+
 FEATURES = [
     "predicted_return",
     "predicted_upside",
@@ -109,13 +112,92 @@ def _simulate_day(row: pd.Series, entry_model, mfe_model, mae_model, learned: bo
     else:
         exit_price, reason = actual_close, "close"
 
-    pnl = exit_price - actual_open
+    # Keep the per-share move here; rupee P/L is assigned after equal-capital
+    # sizing in _build_portfolio so it is consistent with the portfolio value.
+    pnl_per_share = exit_price - actual_open
     return {
         "symbol": row["symbol"], "target_date": row["target_date"], "rank": int(row["rank"]),
         "signal": "BUY", "entry_price": actual_open, "exit_price": exit_price, "exit_reason": reason,
         "target_pct": target_pct * 100, "stop_pct": stop_pct * 100,
-        "profit_loss": pnl, "return_pct": pnl / actual_open * 100, "entry_probability": probability,
+        "pnl_per_share": pnl_per_share, "profit_loss": pnl_per_share,
+        "return_pct": pnl_per_share / actual_open * 100, "entry_probability": probability,
     }
+
+
+def _build_portfolio(trades: pd.DataFrame) -> pd.DataFrame:
+    """Apply equal-capital sizing sequentially, with a fixed round-trip cost."""
+    settled = trades[trades["signal"] == "BUY"].copy()
+    if settled.empty:
+        return pd.DataFrame()
+
+    settled["target_date"] = pd.to_datetime(settled["target_date"], errors="coerce").dt.normalize()
+    settled = settled.sort_values(["target_date", "rank", "symbol"]).reset_index()
+
+    portfolio = STARTING_CAPITAL
+    daily_rows = []
+    net_pnl_by_index: dict[int, float] = {}
+    shares_by_index: dict[int, float] = {}
+    allocation_by_index: dict[int, float] = {}
+    costs_by_index: dict[int, float] = {}
+
+    for target_date, day in settled.groupby("target_date", sort=True):
+        allocation = portfolio / len(day)
+        day_gross_pnl = 0.0
+        day_costs = 0.0
+
+        for idx, row in day.iterrows():
+            entry = float(row["entry_price"])
+            exit_price = float(row["exit_price"])
+            shares = allocation / entry
+            gross_pnl = shares * (exit_price - entry)
+            costs = allocation * ROUND_TRIP_COST_PCT
+            net_pnl = gross_pnl - costs
+
+            shares_by_index[idx] = shares
+            allocation_by_index[idx] = allocation
+            costs_by_index[idx] = costs
+            net_pnl_by_index[idx] = net_pnl
+            day_gross_pnl += gross_pnl
+            day_costs += costs
+
+        day_net_pnl = day_gross_pnl - day_costs
+        daily_return_pct = day_net_pnl / portfolio * 100
+        portfolio += day_net_pnl
+        daily_rows.append({
+            "target_date": target_date,
+            "trades": len(day),
+            "winners": int(sum(net_pnl_by_index[idx] > 0 for idx in day.index)),
+            "losers": int(sum(net_pnl_by_index[idx] < 0 for idx in day.index)),
+            "gross_pnl": day_gross_pnl,
+            "costs": day_costs,
+            "net_pnl": day_net_pnl,
+            "daily_return_pct": daily_return_pct,
+            "portfolio_value": portfolio,
+        })
+
+    settled["shares"] = [shares_by_index[i] for i in settled["index"]]
+    settled["allocated_capital"] = [allocation_by_index[i] for i in settled["index"]]
+    settled["costs"] = [costs_by_index[i] for i in settled["index"]]
+    settled["gross_profit_loss"] = settled["shares"] * (settled["exit_price"] - settled["entry_price"])
+    settled["profit_loss"] = [net_pnl_by_index[i] for i in settled["index"]]
+    settled["return_pct"] = settled["profit_loss"] / settled["allocated_capital"] * 100
+
+    # Copy the updated accounting fields back to the full trade table.
+    trades = trades.copy()
+    for column in ["shares", "allocated_capital", "costs", "gross_profit_loss", "profit_loss", "return_pct"]:
+        if column not in trades.columns:
+            trades[column] = np.nan
+    for i, row in settled.iterrows():
+        original_index = int(row["index"])
+        for column in ["shares", "allocated_capital", "costs", "gross_profit_loss", "profit_loss", "return_pct"]:
+            trades.loc[original_index, column] = row[column]
+
+    daily = pd.DataFrame(daily_rows)
+    daily["cumulative_return_pct"] = (daily["portfolio_value"] / STARTING_CAPITAL - 1) * 100
+    daily["peak_value"] = daily["portfolio_value"].cummax()
+    daily["drawdown_pct"] = (daily["portfolio_value"] / daily["peak_value"] - 1) * 100
+    daily["win_rate_pct"] = daily["winners"] / daily["trades"] * 100
+    return trades, daily
 
 
 def run_paper_trading() -> pd.DataFrame:
@@ -163,43 +245,43 @@ def run_paper_trading() -> pd.DataFrame:
         else:
             trades = pd.concat([old, new], ignore_index=True)
         trades["target_date"] = pd.to_datetime(trades["target_date"], errors="coerce").dt.normalize()
-        trades = trades.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank", "symbol"])
-        trades.to_csv(TRADES_FILE, index=False)
+        trades = trades.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank", "symbol"]).reset_index(drop=True)
     else:
         trades = old
 
     if trades.empty:
         return trades
 
-    # Equal-weight portfolio accounting for a simple, reproducible paper test.
-    settled = trades[trades["signal"] == "BUY"].copy()
-    daily = settled.groupby("target_date", as_index=False).agg(
-        trades=("symbol", "count"),
-        winners=("profit_loss", lambda s: int((s > 0).sum())),
-        losers=("profit_loss", lambda s: int((s < 0).sum())),
-        avg_return_pct=("return_pct", "mean"),
-        daily_return_pct=("return_pct", "mean"),
-        daily_pnl_per_100k=("profit_loss", lambda s: float(s.sum() / max(len(s), 1) * 10)),
-    )
-    daily["win_rate_pct"] = daily["winners"] / daily["trades"] * 100
-    daily["portfolio_value"] = 100000 * (1 + daily["daily_return_pct"] / 100).cumprod()
-    daily["cumulative_return_pct"] = (daily["portfolio_value"] / 100000 - 1) * 100
-    daily["peak_value"] = daily["portfolio_value"].cummax()
-    daily["drawdown_pct"] = (daily["portfolio_value"] / daily["peak_value"] - 1) * 100
+    # Rebuild portfolio from all settled trades so the result is deterministic
+    # even when this job is rerun. Equal capital is allocated across BUY signals
+    # for each session using the portfolio value entering that session.
+    trades, daily = _build_portfolio(trades)
+    trades.to_csv(TRADES_FILE, index=False)
     daily.to_csv(PORTFOLIO_FILE, index=False)
 
+    settled = trades[trades["signal"] == "BUY"].copy()
+    final = daily.iloc[-1]
     metrics = pd.DataFrame([{
-        "as_of": daily["target_date"].max(),
+        "as_of": final["target_date"],
         "sessions": len(daily),
         "trades": int(len(settled)),
         "win_rate_pct": float((settled["profit_loss"] > 0).mean() * 100),
-        "total_return_pct": float(daily["cumulative_return_pct"].iloc[-1]),
+        "total_return_pct": float(final["cumulative_return_pct"]),
         "max_drawdown_pct": float(daily["drawdown_pct"].min()),
         "avg_trade_return_pct": float(settled["return_pct"].mean()),
-        "profit_factor": float(settled.loc[settled["profit_loss"] > 0, "profit_loss"].sum() / max(abs(settled.loc[settled["profit_loss"] < 0, "profit_loss"].sum()), 1e-9)),
+        "profit_factor": float(
+            settled.loc[settled["profit_loss"] > 0, "profit_loss"].sum()
+            / max(abs(settled.loc[settled["profit_loss"] < 0, "profit_loss"].sum()), 1e-9)
+        ),
+        "starting_capital": STARTING_CAPITAL,
+        "ending_capital": float(final["portfolio_value"]),
+        "round_trip_cost_pct": ROUND_TRIP_COST_PCT * 100,
     }])
     metrics.to_csv(STRATEGY_FILE, index=False)
-    print(f"Paper trading complete: {len(settled)} settled trades, {len(daily)} sessions, return={metrics.iloc[0]['total_return_pct']:.2f}%")
+    print(
+        f"Paper trading complete: {len(settled)} settled trades, {len(daily)} sessions, "
+        f"net return={metrics.iloc[0]['total_return_pct']:.2f}%"
+    )
     return trades
 
 

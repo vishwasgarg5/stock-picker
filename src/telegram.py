@@ -87,17 +87,17 @@ def _universe_count() -> int:
 def _previous_closes(target_date: pd.Timestamp, symbols: pd.Series) -> dict[str, float]:
     if not OHLCV_FILE.exists():
         raise RuntimeError("OHLCV file does not exist")
-    columns = ["symbol", "date", "Close"]
+    columns = ["symbol", "date", "close"]
     ohlcv = pd.read_csv(OHLCV_FILE, usecols=columns, parse_dates=["date"])
     ohlcv["symbol"] = ohlcv["symbol"].astype(str).str.strip()
-    ohlcv["Close"] = pd.to_numeric(ohlcv["Close"], errors="coerce")
+    ohlcv["close"] = pd.to_numeric(ohlcv["close"], errors="coerce")
     target = target_date.normalize()
-    previous = ohlcv[ohlcv["date"].dt.normalize() < target].dropna(subset=["Close"])
+    previous = ohlcv[ohlcv["date"].dt.normalize() < target].dropna(subset=["close"])
     previous = previous[previous["symbol"].isin(symbols.astype(str).str.strip())]
     if previous.empty:
         raise RuntimeError(f"No prior closes found before {target_date.date()}")
     previous = previous.sort_values(["symbol", "date"]).drop_duplicates("symbol", keep="last")
-    return dict(zip(previous["symbol"], previous["Close"]))
+    return dict(zip(previous["symbol"], previous["close"]))
 
 
 def _open_gap_pct(predicted_open: object, previous_close: object) -> float:

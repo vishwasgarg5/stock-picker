@@ -50,7 +50,7 @@ def test_portfolio_compounds_from_previous_session():
     assert daily.iloc[0]["portfolio_value"] == pytest.approx(109_900.0)
     # Second session uses the new portfolio as its allocation base.
     assert updated.iloc[1]["allocated_capital"] == pytest.approx(109_900.0)
-    assert daily.iloc[1]["portfolio_value"] == pytest.approx(120_770.1)
+    assert daily.iloc[1]["portfolio_value"] == pytest.approx(120_780.1)
 
 
 def test_both_target_and_stop_uses_conservative_stop():

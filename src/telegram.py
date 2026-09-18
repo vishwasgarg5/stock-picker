@@ -119,14 +119,14 @@ def send_morning() -> None:
     print(f"Morning Telegram sent for {target_date.date()}")
 
 
-def _accuracy(rows: pd.DataFrame, field: str) -> float:
+def _mape(rows: pd.DataFrame, field: str) -> float:
     err = pd.to_numeric(rows[f"{field}_abs_pct_error"], errors="coerce").dropna()
-    return max(0.0, 100.0 - err.mean() * 100.0) if not err.empty else float("nan")
+    return err.mean() * 100.0 if not err.empty else float("nan")
 
 
-def _baseline_accuracy(rows: pd.DataFrame, field: str) -> float:
+def _baseline_mape(rows: pd.DataFrame, field: str) -> float:
     err = pd.to_numeric(rows[f"baseline_{field}_abs_pct_error"], errors="coerce").dropna()
-    return max(0.0, 100.0 - err.mean() * 100.0) if not err.empty else float("nan")
+    return err.mean() * 100.0 if not err.empty else float("nan")
 
 
 def _window(evals: pd.DataFrame, days: int) -> pd.DataFrame:
@@ -159,9 +159,9 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
     rows = evals[evals["target_date"] == target_date.normalize()].sort_values("rank")
     if rows.empty:
         raise RuntimeError(f"No evaluations found for {target_date.date()}")
-    metrics = {field: _accuracy(rows, field) for field in ["open", "high", "low", "close"]}
+    metrics = {field: _mape(rows, field) for field in ["open", "high", "low", "close"]}
     overall = pd.Series(metrics, dtype="float64").mean()
-    baseline_close = _baseline_accuracy(rows, "close")
+    baseline_close = _baseline_mape(rows, "close")
     direction = pd.to_numeric(rows.get("close_direction_correct"), errors="coerce").mean() * 100 if "close_direction_correct" in rows else float("nan")
     lines = [
         "<b>STOCK PICKER</b>",
@@ -182,20 +182,20 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         "+% = Actual lower than Predicted",
         "-% = Actual higher than Predicted",
         "",
-        "<b>MODEL ACCURACY</b>",
+        "<b>MODEL PRICE ERROR (MAPE)</b>",
         f"Open     {_fmt(metrics['open'])}%",
         f"High     {_fmt(metrics['high'])}%",
         f"Low      {_fmt(metrics['low'])}%",
         f"Close    {_fmt(metrics['close'])}%",
         f"Overall  <b>{_fmt(overall)}%</b>",
-        f"Direction {_fmt(direction)}%",
-        f"Baseline Close {_fmt(baseline_close)}%",
+        f"Direction Accuracy {_fmt(direction)}%",
+        f"Baseline Close MAPE {_fmt(baseline_close)}%",
         "",
-        "<b>ROLLING CLOSE ACCURACY</b>",
+        "<b>ROLLING CLOSE MAPE</b>",
     ]
     for days in [7, 30, 90]:
         window = _window(evals, days)
-        lines.append(f"{days:>2}d       {_fmt(_accuracy(window, 'close'))}% | baseline {_fmt(_baseline_accuracy(window, 'close'))}% | direction {_fmt(pd.to_numeric(window.get('close_direction_correct'), errors='coerce').mean() * 100 if 'close_direction_correct' in window else float('nan'))}%")
+        lines.append(f"{days:>2}d       {_fmt(_mape(window, 'close'))}% | baseline {_fmt(_baseline_mape(window, 'close'))}% | direction {_fmt(pd.to_numeric(window.get('close_direction_correct'), errors='coerce').mean() * 100 if 'close_direction_correct' in window else float('nan'))}%")
     return "\n".join(lines)
 
 

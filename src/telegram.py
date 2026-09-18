@@ -14,6 +14,7 @@ EVALUATIONS_FILE = DATA / "evaluations.csv"
 PAPER_TRADES_FILE = DATA / "paper_trades.csv"
 PORTFOLIO_FILE = DATA / "portfolio_daily.csv"
 UNIVERSE_FILE = DATA / "universe.csv"
+OHLCV_FILE = DATA / "ohlcv.csv"
 SENT_FILE = DATA / "telegram_sent.csv"
 EVENING_SENT_FILE = DATA / "telegram_evening_sent.csv"
 PAPER_SENT_FILE = DATA / "telegram_paper_sent.csv"
@@ -83,23 +84,65 @@ def _universe_count() -> int:
     return int(count)
 
 
+def _previous_closes(target_date: pd.Timestamp, symbols: pd.Series) -> dict[str, float]:
+    if not OHLCV_FILE.exists():
+        raise RuntimeError("OHLCV file does not exist")
+    columns = ["symbol", "date", "Close"]
+    ohlcv = pd.read_csv(OHLCV_FILE, usecols=columns, parse_dates=["date"])
+    ohlcv["symbol"] = ohlcv["symbol"].astype(str).str.strip()
+    ohlcv["Close"] = pd.to_numeric(ohlcv["Close"], errors="coerce")
+    target = target_date.normalize()
+    previous = ohlcv[ohlcv["date"].dt.normalize() < target].dropna(subset=["Close"])
+    previous = previous[previous["symbol"].isin(symbols.astype(str).str.strip())]
+    if previous.empty:
+        raise RuntimeError(f"No prior closes found before {target_date.date()}")
+    previous = previous.sort_values(["symbol", "date"]).drop_duplicates("symbol", keep="last")
+    return dict(zip(previous["symbol"], previous["Close"]))
+
+
+def _open_gap_pct(predicted_open: object, previous_close: object) -> float:
+    try:
+        predicted = float(predicted_open)
+        previous = float(previous_close)
+        if previous == 0:
+            return float("nan")
+        return (predicted - previous) / previous * 100.0
+    except (TypeError, ValueError):
+        return float("nan")
+
+
+def _fmt_pct(value: object) -> str:
+    try:
+        return f"{float(value):+.2f}%"
+    except (TypeError, ValueError):
+        return "-"
+
+
 def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) -> str:
     rows = predictions[predictions["target_date"].dt.normalize() == target_date.normalize()].sort_values("rank").head(10)
     if len(rows) < 10:
         raise RuntimeError(f"Expected 10 predictions for {target_date.date()}, found {len(rows)}")
     total_stocks = _universe_count()
+    previous_closes = _previous_closes(target_date, rows["symbol"])
     lines = [
         "<b>STOCK PICKER</b>",
         f"{target_date:%d-%b-%Y} | TOP 10 / {total_stocks}",
         "",
         "<pre>",
-        "Index   | Open      | High      | Low       | Close",
-        "-----------------------------------------------------",
+        "Index   | Open      | High      | Low       | Close     | O→PC %",
+        "---------------------------------------------------------------",
     ]
     for _, row in rows.iterrows():
-        symbol = str(row["symbol"])[:8]
-        lines.append(f"{int(row['rank']):>2} {symbol:<7} | {_fmt(row['predicted_open']):>9} | {_fmt(row['predicted_high']):>9} | {_fmt(row['predicted_low']):>9} | {_fmt(row['predicted_close']):>9}")
+        symbol = str(row["symbol"]).strip()
+        previous_close = previous_closes.get(symbol, float("nan"))
+        gap_pct = _open_gap_pct(row["predicted_open"], previous_close)
+        lines.append(
+            f"{int(row['rank']):>2} {symbol[:7]:<7} | "
+            f"{_fmt(row['predicted_open']):>9} | {_fmt(row['predicted_high']):>9} | "
+            f"{_fmt(row['predicted_low']):>9} | {_fmt(row['predicted_close']):>9} | {_fmt_pct(gap_pct):>7}"
+        )
     lines.append("</pre>")
+    lines.append("O→PC % = Predicted Open vs Previous Close")
     return "\n".join(lines)
 
 
@@ -144,13 +187,6 @@ def _pct_diff(predicted: object, actual: object) -> float:
         return (predicted_value - actual_value) / predicted_value * 100.0
     except (TypeError, ValueError):
         return float("nan")
-
-
-def _fmt_pct(value: object) -> str:
-    try:
-        return f"{float(value):+.2f}%"
-    except (TypeError, ValueError):
-        return "-"
 
 
 def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str:

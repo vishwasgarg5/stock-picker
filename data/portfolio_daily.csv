@@ -1,0 +1,2 @@
+target_date,trades,winners,losers,gross_pnl,costs,net_pnl,daily_return_pct,portfolio_value,cumulative_return_pct,peak_value,drawdown_pct,win_rate_pct
+2026-09-18,10,5,5,602.2532846552576,100.0,502.25328465525763,0.5022532846552576,100502.25328465526,0.5022532846552741,100502.25328465526,0.0,50.0

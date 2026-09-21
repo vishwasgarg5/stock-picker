@@ -23,7 +23,7 @@ FUNDAMENTALS_FILE = DATA / "fundamentals.csv"
 PREDICTIONS_FILE = DATA / "predictions.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 
-FEATURE_COLUMNS = ["return_1d", "return_5d", "return_20d", "sma20", "sma50", "ema20", "ema50", "rsi14", "volume_ratio"]
+FEATURE_COLUMNS = [\n    "return_1d", "return_5d", "return_20d",\n    "sma20", "sma50", "ema20", "ema50",\n    "rsi14", "volume_ratio",\n    "atr14_pct", "macd", "macd_signal",\n    "bb_position", "range_pct", "close_sma20_gap",\n    "close_sma50_gap", "volatility20", "volume_trend5",\n]
 TARGETS = {"open": "target_open_return", "high": "target_high_return", "low": "target_low_return", "close": "target_close_return"}
 EMPTY_HISTORY = ["date", "symbol", "open", "high", "low", "close", "volume"]
 
@@ -111,8 +111,11 @@ def rsi(close: pd.Series, period: int = 14) -> pd.Series:
 
 
 def features(df: pd.DataFrame) -> pd.DataFrame:
+    """Build strictly historical, next-day-safe features for each stock."""
     df = df.sort_values(["symbol", "date"]).copy()
     g = df.groupby("symbol", group_keys=False)
+
+    # Momentum and trend.
     df["return_1d"] = g["close"].pct_change()
     df["return_5d"] = g["close"].pct_change(5)
     df["return_20d"] = g["close"].pct_change(20)
@@ -121,8 +124,49 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
     df["ema20"] = g["close"].transform(lambda x: x.ewm(span=20, adjust=False).mean())
     df["ema50"] = g["close"].transform(lambda x: x.ewm(span=50, adjust=False).mean())
     df["rsi14"] = g["close"].transform(rsi)
+
+    # Volatility/range: all values are calculated using current and prior bars only.
+    prev_close = g["close"].shift(1)
+    true_range = pd.concat(
+        [
+            df["high"] - df["low"],
+            (df["high"] - prev_close).abs(),
+            (df["low"] - prev_close).abs(),
+        ],
+        axis=1,
+    ).max(axis=1)
+    df["atr14_pct"] = (
+        true_range.groupby(df["symbol"], group_keys=False)
+        .transform(lambda x: x.rolling(14).mean())
+        / df["close"].replace(0, np.nan)
+    )
+    df["range_pct"] = (df["high"] - df["low"]) / df["close"].replace(0, np.nan)
+    df["volatility20"] = g["return_1d"].transform(lambda x: x.rolling(20).std())
+
+    # MACD trend strength.
+    ema12 = g["close"].transform(lambda x: x.ewm(span=12, adjust=False).mean())
+    ema26 = g["close"].transform(lambda x: x.ewm(span=26, adjust=False).mean())
+    df["macd"] = ema12 - ema26
+    df["macd_signal"] = df.groupby("symbol")["macd"].transform(
+        lambda x: x.ewm(span=9, adjust=False).mean()
+    )
+
+    # Position inside the 20-day Bollinger band.
+    rolling_std20 = g["close"].transform(lambda x: x.rolling(20).std())
+    df["bb_position"] = (df["close"] - df["sma20"]) / (
+        2.0 * rolling_std20.replace(0, np.nan)
+    )
+
+    # Relative price/trend features.
+    df["close_sma20_gap"] = df["close"] / df["sma20"].replace(0, np.nan) - 1.0
+    df["close_sma50_gap"] = df["close"] / df["sma50"].replace(0, np.nan) - 1.0
+
+    # Volume regime.
     df["volume_ma20"] = g["volume"].transform(lambda x: x.rolling(20).mean())
     df["volume_ratio"] = df["volume"] / df["volume_ma20"].replace(0, np.nan)
+    df["volume_ma5"] = g["volume"].transform(lambda x: x.rolling(5).mean())
+    df["volume_trend5"] = df["volume_ma5"] / df["volume_ma20"].replace(0, np.nan)
+
     return df
 
 

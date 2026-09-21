@@ -393,7 +393,15 @@ def run_evening() -> None:
     evals = evals[keep]
     if EVALUATIONS_FILE.exists():
         old = pd.read_csv(EVALUATIONS_FILE)
+        # CSV dates come back as strings; normalize both sides before concat/sort.
+        if "target_date" in old.columns:
+            old["target_date"] = pd.to_datetime(old["target_date"], errors="coerce").dt.normalize()
+        if "prediction_date" in old.columns:
+            old["prediction_date"] = pd.to_datetime(old["prediction_date"], errors="coerce").dt.normalize()
         evals = pd.concat([old, evals], ignore_index=True)
+    evals["target_date"] = pd.to_datetime(evals["target_date"], errors="coerce").dt.normalize()
+    evals["prediction_date"] = pd.to_datetime(evals["prediction_date"], errors="coerce").dt.normalize()
+    evals = evals.dropna(subset=["target_date", "symbol"])
     evals = evals.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank"])
     evals.to_csv(EVALUATIONS_FILE, index=False)
     train(hist)

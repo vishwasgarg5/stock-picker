@@ -297,7 +297,23 @@ def train(df: pd.DataFrame) -> None:
 
 
 def models_ready() -> bool:
-    return all((MODELS / f"{name}.joblib").exists() for name in TARGETS)
+    """Return True only when all stored models match the current feature set."""
+    if not all((MODELS / f"{name}.joblib").exists() for name in TARGETS):
+        return False
+    try:
+        expected = len(FEATURE_COLUMNS)
+        for name in TARGETS:
+            model = joblib.load(MODELS / f"{name}.joblib")
+            if getattr(model, "n_features_in_", None) != expected:
+                print(
+                    f"Model {name} has {getattr(model, 'n_features_in_', 'unknown')} "
+                    f"features; current pipeline requires {expected}. Retraining."
+                )
+                return False
+        return True
+    except Exception as exc:
+        print(f"Stored model validation failed; retraining: {exc}")
+        return False
 
 
 def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.Timestamp:

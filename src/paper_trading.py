@@ -26,6 +26,7 @@ FEATURES = [
     "predicted_return",
     "predicted_upside",
     "predicted_downside",
+    "prediction_spread",
     "rank",
     "score",
 ]
@@ -48,6 +49,9 @@ def _build_training_rows(predictions: pd.DataFrame, history: pd.DataFrame) -> pd
     rows["predicted_return"] = rows["predicted_close"] / rows["base_close"] - 1
     rows["predicted_upside"] = rows["predicted_high"] / rows["base_close"] - 1
     rows["predicted_downside"] = rows["predicted_low"] / rows["base_close"] - 1
+    if "prediction_spread" not in rows.columns:
+        rows["prediction_spread"] = 0.0
+    rows["prediction_spread"] = pd.to_numeric(rows["prediction_spread"], errors="coerce").fillna(0.0)
     rows["mfe"] = rows["actual_high"] / rows["actual_open"] - 1
     rows["mae"] = rows["actual_low"] / rows["actual_open"] - 1
     rows["close_return"] = rows["actual_close"] / rows["actual_open"] - 1

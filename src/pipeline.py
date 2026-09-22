@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pandas_market_calendars as mcal
 import yfinance as yf
-from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -293,35 +293,57 @@ def add_targets(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _fit_ensemble(x: pd.DataFrame, y: pd.Series) -> dict:
+    """Fit a small heterogeneous ensemble to reduce single-model variance."""
+    hist = HistGradientBoostingRegressor(
+        loss="absolute_error", max_iter=300, learning_rate=0.05,
+        max_leaf_nodes=31, l2_regularization=1.0, random_state=42,
+    )
+    extra = ExtraTreesRegressor(
+        n_estimators=200, max_depth=14, min_samples_leaf=4,
+        max_features=0.8, n_jobs=-1, random_state=42,
+    )
+    hist.fit(x, y)
+    extra.fit(x, y)
+    return {"models": [hist, extra], "weights": [0.70, 0.30], "version": "ensemble_v1"}
+
+
+def _ensemble_predict(bundle: dict, x: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
+    models = bundle["models"]
+    weights = np.asarray(bundle.get("weights", [1.0 / len(models)] * len(models)), dtype=float)
+    weights = weights / weights.sum()
+    preds = np.column_stack([m.predict(x) for m in models])
+    return preds @ weights, preds.std(axis=1)
+
+
 def train(df: pd.DataFrame) -> None:
     work = add_targets(features(df)).dropna(subset=FEATURE_COLUMNS + list(TARGETS.values()))
     if len(work) < 500:
         raise RuntimeError(f"Not enough training rows: {len(work)}")
     for name, target in TARGETS.items():
-        model = HistGradientBoostingRegressor(loss="absolute_error", max_iter=300, learning_rate=0.05, max_leaf_nodes=31, l2_regularization=1.0, random_state=42)
-        model.fit(work[FEATURE_COLUMNS], work[target])
-        joblib.dump(model, MODELS / f"{name}.joblib")
+        bundle = _fit_ensemble(work[FEATURE_COLUMNS], work[target])
+        joblib.dump(bundle, MODELS / f"{name}.joblib")
 
 
 def models_ready() -> bool:
-    """Return True only when all stored models match the current feature set."""
+    """Return True only when all stored ensemble models match the feature set."""
     if not all((MODELS / f"{name}.joblib").exists() for name in TARGETS):
         return False
     try:
         expected = len(FEATURE_COLUMNS)
         for name in TARGETS:
-            model = joblib.load(MODELS / f"{name}.joblib")
-            if getattr(model, "n_features_in_", None) != expected:
-                print(
-                    f"Model {name} has {getattr(model, 'n_features_in_', 'unknown')} "
-                    f"features; current pipeline requires {expected}. Retraining."
-                )
+            bundle = joblib.load(MODELS / f"{name}.joblib")
+            if not isinstance(bundle, dict) or bundle.get("version") != "ensemble_v1":
+                print(f"Model {name} is legacy/non-ensemble; retraining.")
+                return False
+            models = bundle.get("models", [])
+            if len(models) != 2 or any(getattr(m, "n_features_in_", None) != expected for m in models):
+                print(f"Model {name} does not match the current feature set; retraining.")
                 return False
         return True
     except Exception as exc:
         print(f"Stored model validation failed; retraining: {exc}")
         return False
-
 
 def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.Timestamp:
     """Return the next NSE session, including exchange holidays rather than only skipping weekends."""
@@ -342,12 +364,16 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         raise RuntimeError(f"Expected features for 10 top stocks, found {len(latest)}")
     if not models_ready():
         raise RuntimeError("Prediction models are missing")
+    spreads = []
     for name in TARGETS:
-        model = joblib.load(MODELS / f"{name}.joblib")
-        latest[f"predicted_{name}"] = latest["close"] * (1 + model.predict(latest[FEATURE_COLUMNS]))
+        bundle = joblib.load(MODELS / f"{name}.joblib")
+        pred, spread = _ensemble_predict(bundle, latest[FEATURE_COLUMNS])
+        latest[f"predicted_{name}"] = latest["close"] * (1 + pred)
+        spreads.append(spread)
+    latest["prediction_spread"] = np.mean(np.column_stack(spreads), axis=1)
     latest["predicted_high"] = latest[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
     latest["predicted_low"] = latest[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
-    out = latest[["date", "symbol", "close", "predicted_open", "predicted_high", "predicted_low", "predicted_close"]].copy().rename(columns={"date": "prediction_date", "close": "base_close"})
+    out = latest[["date", "symbol", "close", "predicted_open", "predicted_high", "predicted_low", "predicted_close", "prediction_spread"]].copy().rename(columns={"date": "prediction_date", "close": "base_close"})
     lookup = ranked.set_index("symbol")
     out["rank"] = out["symbol"].map(lookup["rank"]).astype(int)
     out["score"] = out["symbol"].map(lookup["total_score"])

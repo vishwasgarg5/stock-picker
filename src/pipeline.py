@@ -388,8 +388,31 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     out["target_date"] = pd.Timestamp(target_date).normalize()
     out["created_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     candidates = out.sort_values("rank").copy()
-    candidates["selection_method"] = "ranking_top10"
-    candidates["selected"] = (candidates["rank"] <= 10).astype(int)
+    # Confidence-aware selection is enabled only after the historical
+    # validation gate is passed. Until then, preserve deterministic Top-10.
+    selection_method = "ranking_top10"
+    selected_symbols = set(candidates.head(10)["symbol"])
+    try:
+        analysis = pd.read_csv(CONFIDENCE_ANALYSIS_FILE)
+        validated = (
+            not analysis.empty
+            and (analysis["validation_status"] == "validated_sample").any()
+        )
+        if validated:
+            # Use confidence only as a tie-breaker within a narrow ranking
+            # band; this limits disruption to the established ranking signal.
+            candidates["selection_priority"] = candidates["rank"] + (
+                (100.0 - candidates["confidence_score"]) / 100.0
+            )
+            selected_symbols = set(
+                candidates.sort_values(["selection_priority", "rank"])
+                .head(10)["symbol"]
+            )
+            selection_method = "validated_confidence_tiebreak"
+    except Exception as exc:
+        print(f"Confidence selector unavailable; retaining Top-10 ranking: {exc}")
+    candidates["selection_method"] = selection_method
+    candidates["selected"] = candidates["symbol"].isin(selected_symbols).astype(int)
     candidates.to_csv(CANDIDATES_FILE, index=False)
     existing_candidates = pd.read_csv(CANDIDATE_HISTORY_FILE) if CANDIDATE_HISTORY_FILE.exists() else pd.DataFrame()
     history_candidates = pd.concat([existing_candidates, candidates], ignore_index=True)

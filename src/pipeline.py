@@ -492,6 +492,14 @@ def run_morning() -> None:
             if len(same_target) != 10:
                 raise RuntimeError(f"Prediction session {target_date.date()} exists but has {len(same_target)} rows; refusing partial session")
             print(f"Predictions already exist for {target_date.date()}; keeping existing output unchanged.")
+            # Even when the prediction session already exists, refresh the
+            # candidate-history record for confidence validation. This does
+            # not alter predictions.csv or the selected Top-10 session.
+            try:
+                predict_top10(hist, ranking, target_date)
+                print(f"Candidate history refreshed for {target_date.date()} without changing predictions.")
+            except Exception as exc:
+                print(f"Candidate-history refresh skipped: {exc}")
             return
     predictions = predict_top10(hist, ranking, target_date)
     combined = pd.concat([existing, predictions], ignore_index=True) if not existing.empty else predictions

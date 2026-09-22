@@ -105,25 +105,29 @@ def run_walk_forward() -> pd.DataFrame:
     dates = pd.Series(pd.to_datetime(feat["date"], errors="coerce").dropna().dt.normalize().unique())
     checkpoints = _checkpoints(dates)
     rows: list[dict] = []
+    regime_comparison_rows: list[dict] = []
 
     for checkpoint in checkpoints:
         train_rows = work[work["date"] < checkpoint]
         if len(train_rows) < MIN_TRAIN_ROWS:
             continue
 
-        session = feat[feat["date"] == checkpoint].dropna(subset=FEATURE_COLUMNS).copy()
-        if session.empty:
+        session_all = feat[feat["date"] == checkpoint].dropna(subset=FEATURE_COLUMNS).copy()
+        if session_all.empty:
             continue
 
-        # Rank using only technical information available at the checkpoint.
+        # Rank using only information available at the checkpoint.
         ranking = rank_stocks(feat[feat["date"] <= checkpoint], None, use_market_regime=True)
         baseline_ranking = rank_stocks(feat[feat["date"] <= checkpoint], None, use_market_regime=False)
-        top = ranking.head(10)[["symbol", "rank", "total_score", "market_regime"]]
+        top = ranking.head(10)[["symbol", "rank", "total_score", "market_regime"]].copy()
+        top["regime_selected"] = 1
         baseline_top = baseline_ranking.head(10)[["symbol"]].copy()
         baseline_top["baseline_selected"] = 1
-        session = session.merge(top, on="symbol", how="inner")
-        session = session.merge(baseline_top, on="symbol", how="left")
-        session["baseline_selected"] = session["baseline_selected"].fillna(0).astype(int)
+        session_all = session_all.merge(top, on="symbol", how="left")
+        session_all = session_all.merge(baseline_top, on="symbol", how="left")
+        session_all["regime_selected"] = session_all["regime_selected"].fillna(0).astype(int)
+        session_all["baseline_selected"] = session_all["baseline_selected"].fillna(0).astype(int)
+        session = session_all[session_all["regime_selected"] == 1].copy()
         if len(session) < 10:
             continue
 
@@ -132,7 +136,9 @@ def run_walk_forward() -> pd.DataFrame:
             continue
         target_date = next_dates.min()
         actual = hist[hist["date"] == target_date][["symbol", "open", "high", "low", "close"]]
-        session = session.merge(actual, on="symbol", how="inner", suffixes=("", "_actual"))
+        session_all = session_all.merge(actual, on="symbol", how="inner", suffixes=("", "_actual"))
+        session = session_all[session_all["regime_selected"] == 1].copy()
+        baseline_session = session_all[session_all["baseline_selected"] == 1].copy()
         if len(session) < 10:
             continue
 
@@ -148,13 +154,19 @@ def run_walk_forward() -> pd.DataFrame:
             for name, target in TARGETS.items()
         }
         for name, model in models.items():
-            session[f"predicted_{name}"] = session["close"] * (1 + _predict(model, session[FEATURE_COLUMNS]))
-            session[f"challenger_predicted_{name}"] = session["close"] * (
-                1 + challenger_models[name].predict(session[FEATURE_COLUMNS])
+            session_all[f"predicted_{name}"] = session_all["close"] * (1 + _predict(model, session_all[FEATURE_COLUMNS]))
+            session_all[f"challenger_predicted_{name}"] = session_all["close"] * (
+                1 + challenger_models[name].predict(session_all[FEATURE_COLUMNS])
             )
+        session = session_all[session_all["regime_selected"] == 1].copy()
+        baseline_session = session_all[session_all["baseline_selected"] == 1].copy()
 
         session["predicted_high"] = session[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
         session["predicted_low"] = session[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
+
+        regime_mape = (abs(session["actual_close"] - session["predicted_close"]) / session["actual_close"].abs()).mean()
+        baseline_mape = (abs(baseline_session["actual_close"] - baseline_session["predicted_close"]) / baseline_session["actual_close"].abs()).mean()
+        regime_comparison_rows.append({"prediction_date": checkpoint, "target_date": target_date, "regime": session["market_regime"].iloc[0], "regime_selection_close_mape_pct": regime_mape * 100, "baseline_selection_close_mape_pct": baseline_mape * 100, "relative_improvement_pct": (baseline_mape - regime_mape) / max(baseline_mape, 1e-12) * 100})
 
         for _, row in session.iterrows():
             result = {
@@ -229,24 +241,13 @@ def run_walk_forward() -> pd.DataFrame:
         - summary["baseline_close_direction_accuracy_pct"]
     )
     summary.to_csv(SUMMARY_FILE, index=False)
-    regime_rows = output.copy()
-    regime_sessions = int(regime_rows["target_date"].nunique())
-    regime_selected = regime_rows[regime_rows["regime_selected"] == 1]
-    baseline_selected = regime_rows[regime_rows["regime_selected"] == 0]
-    regime_mape = float(regime_selected["close_abs_pct_error"].mean()) if not regime_selected.empty else np.nan
-    baseline_mape = float(baseline_selected["close_abs_pct_error"].mean()) if not baseline_selected.empty else np.nan
-    regime_improvement = ((baseline_mape - regime_mape) / max(baseline_mape, 1e-12)) if np.isfinite(regime_mape) and np.isfinite(baseline_mape) else np.nan
+    regime_validation = pd.DataFrame(regime_comparison_rows)
+    if not regime_validation.empty:
+        regime_validation.to_csv(DATA / "regime_validation.csv", index=False)
     regime_summary = _select_model(output)
-    regime_summary["regime_sessions"] = regime_sessions
-    regime_summary["regime_selected_rows"] = len(regime_selected)
-    regime_summary["regime_close_mape_pct"] = regime_mape * 100 if np.isfinite(regime_mape) else np.nan
-    regime_summary["baseline_selection_close_mape_pct"] = baseline_mape * 100 if np.isfinite(baseline_mape) else np.nan
-    regime_summary["regime_relative_improvement_pct"] = regime_improvement * 100 if np.isfinite(regime_improvement) else np.nan
-    regime_summary["regime_promotion_gate_passed"] = bool(
-        regime_sessions >= MIN_SELECTION_SESSIONS
-        and np.isfinite(regime_improvement)
-        and regime_improvement >= MIN_REGIME_RELATIVE_IMPROVEMENT
-    )
+    regime_summary["regime_validation_sessions"] = len(regime_validation)
+    regime_summary["regime_avg_relative_improvement_pct"] = float(regime_validation["relative_improvement_pct"].mean()) if not regime_validation.empty else np.nan
+    regime_summary["regime_promotion_gate_passed"] = bool(len(regime_validation) >= MIN_SELECTION_SESSIONS and regime_summary["regime_avg_relative_improvement_pct"].iloc[0] >= MIN_REGIME_RELATIVE_IMPROVEMENT * 100) if not regime_validation.empty else False
     regime_summary.to_csv(SELECTION_FILE, index=False)
     return output
 

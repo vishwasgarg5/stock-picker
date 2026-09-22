@@ -127,9 +127,9 @@ def run_walk_forward() -> pd.DataFrame:
             baseline_return = 0.0
             actual_return = result["actual_close"] / result["base_close"] - 1
             result["close_direction_correct"] = int(np.sign(predicted_return) == np.sign(actual_return))
-            result["baseline_close_direction_correct"] = int(
-                np.sign(baseline_return) == np.sign(actual_return)
-            )
+            # Previous-close predicts 0% return, so it has no directional call.
+            # Do not score it as wrong on every non-zero market move.
+            result["baseline_close_direction_correct"] = np.nan
             rows.append(result)
 
     output = pd.DataFrame(rows)
@@ -158,9 +158,8 @@ def run_walk_forward() -> pd.DataFrame:
         summary[f"baseline_{field}_mape_pct"] = summary[f"baseline_{field}_mape"] * 100
 
     summary["close_direction_accuracy_pct"] = summary["close_direction_accuracy"] * 100
-    summary["baseline_close_direction_accuracy_pct"] = (
-        summary["baseline_close_direction_accuracy"] * 100
-    )
+    # Previous-close has no directional call; report direction accuracy as N/A.
+    summary["baseline_close_direction_accuracy_pct"] = np.nan
     summary["close_mape_delta_pct"] = (
         summary["close_mape_pct"] - summary["baseline_close_mape_pct"]
     )
@@ -180,5 +179,5 @@ if __name__ == "__main__":
         f"model close MAPE={result['close_abs_pct_error'].mean() * 100:.2f}%, "
         f"baseline close MAPE={result['baseline_close_abs_pct_error'].mean() * 100:.2f}%, "
         f"model direction accuracy={result['close_direction_correct'].mean() * 100:.2f}%, "
-        f"baseline direction accuracy={result['baseline_close_direction_correct'].mean() * 100:.2f}%"
+        f"baseline direction accuracy=N/A (previous-close baseline has no direction)"
     )

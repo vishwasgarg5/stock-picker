@@ -24,6 +24,7 @@ PREDICTIONS_FILE = DATA / "predictions.csv"
 CANDIDATES_FILE = DATA / "prediction_candidates.csv"
 CANDIDATE_HISTORY_FILE = DATA / "prediction_candidates_history.csv"
 CONFIDENCE_ANALYSIS_FILE = DATA / "confidence_analysis.csv"
+SELECTION_VALIDATION_FILE = DATA / "selection_validation.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 
 FEATURE_COLUMNS = [
@@ -393,7 +394,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     selection_method = "ranking_top10"
     selected_symbols = set(candidates.head(10)["symbol"])
     try:
-        analysis = pd.read_csv(CONFIDENCE_ANALYSIS_FILE)
+        analysis = pd.read_csv(SELECTION_VALIDATION_FILE)
         validated = (
             not analysis.empty
             and "promotion_evidence" in analysis.columns

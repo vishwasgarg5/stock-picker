@@ -21,7 +21,7 @@ MIN_REGIME_RELATIVE_IMPROVEMENT = 0.01
 
 MIN_TRAIN_ROWS = 500
 LOOKBACK_MONTHS = 24
-CHECKPOINTS = 12
+CHECKPOINTS = 24
 
 
 def _fit_models(train_rows: pd.DataFrame) -> dict[str, dict]:

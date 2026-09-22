@@ -396,7 +396,8 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         analysis = pd.read_csv(CONFIDENCE_ANALYSIS_FILE)
         validated = (
             not analysis.empty
-            and (analysis["validation_status"] == "validated_sample").any()
+            and "promotion_evidence" in analysis.columns
+            and analysis["promotion_evidence"].fillna(False).astype(bool).any()
         )
         if validated:
             # Use confidence only as a tie-breaker within a narrow ranking

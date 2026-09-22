@@ -296,7 +296,7 @@ def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
     return scored.clip(0, 20)
 
 
-def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_market_regime: bool = True) -> pd.DataFrame:
+def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_market_regime: bool = False) -> pd.DataFrame:
     work = df.copy()
     work["date"] = pd.to_datetime(work["date"], errors="coerce").dt.normalize()
     latest_date = work["date"].max()

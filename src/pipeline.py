@@ -355,13 +355,13 @@ def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.
 
 
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:
-    ranked = ranking.head(10)[["symbol", "date", "close", "rank", "total_score"]].copy()
-    if len(ranked) != 10:
-        raise RuntimeError(f"Expected 10 ranked stocks, found {len(ranked)}")
+    ranked = ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score"]].copy()
+    if len(ranked) < 10:
+        raise RuntimeError(f"Expected at least 10 ranked stocks, found {len(ranked)}")
     latest = features(df).sort_values("date").groupby("symbol", as_index=False).tail(1)
     latest = latest[latest["symbol"].isin(ranked["symbol"])].dropna(subset=FEATURE_COLUMNS)
-    if len(latest) != 10:
-        raise RuntimeError(f"Expected features for 10 top stocks, found {len(latest)}")
+    if len(latest) < 10:
+        raise RuntimeError(f"Expected features for at least 10 candidates, found {len(latest)}")
     if not models_ready():
         raise RuntimeError("Prediction models are missing")
     spreads = []
@@ -377,6 +377,11 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     lookup = ranked.set_index("symbol")
     out["rank"] = out["symbol"].map(lookup["rank"]).astype(int)
     out["score"] = out["symbol"].map(lookup["total_score"])
+    out["technical_score"] = out["symbol"].map(lookup["technical_score"])
+    out["fundamental_score"] = out["symbol"].map(lookup["fundamental_score"])
+    expected_move = (out["predicted_close"] / out["base_close"] - 1).abs()
+    uncertainty_ratio = out["prediction_spread"] / expected_move.replace(0, np.nan)
+    out["confidence_score"] = (100 / (1 + uncertainty_ratio)).clip(0, 100).fillna(0)
     out["target_date"] = pd.Timestamp(target_date).normalize()
     out["created_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     return out.sort_values("rank")

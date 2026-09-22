@@ -40,6 +40,9 @@ jobs:
       - name: Update 3M 6M 9M 12M prediction outcomes
         run: python jobs/outcomes.py
 
+      - name: Validate prediction confidence
+        run: python jobs/confidence.py
+
       - name: Send evening accuracy report to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

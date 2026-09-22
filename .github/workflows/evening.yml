@@ -19,6 +19,7 @@ env:
 jobs:
   evening:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,6 +38,9 @@ jobs:
       - name: Run evening evaluation and retraining
         run: python jobs/evening.py
 
+      - name: Run walk-forward validation
+        run: python jobs/walk_forward.py
+
       - name: Update 3M 6M 9M 12M prediction outcomes
         run: python jobs/outcomes.py
 
@@ -49,7 +53,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python jobs/evening_telegram.py
 
-      - name: Commit generated data, models and Telegram state
+      - name: Commit generated data and models
         if: always()
         run: |
           git config user.name 'github-actions[bot]'

@@ -181,6 +181,34 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def market_regime(df: pd.DataFrame) -> str:
+    """Classify the broad market regime using only completed historical bars."""
+    x = df.copy()
+    x["date"] = pd.to_datetime(x["date"], errors="coerce").dt.normalize()
+    daily = x.groupby("date")["close"].median().sort_index().dropna()
+    if len(daily) < 50:
+        return "NEUTRAL"
+    sma20 = daily.rolling(20).mean().iloc[-1]
+    sma50 = daily.rolling(50).mean().iloc[-1]
+    ret20 = daily.iloc[-1] / daily.iloc[-21] - 1.0
+    if daily.iloc[-1] > sma20 > sma50 and ret20 >= 0.03:
+        return "BULL"
+    if daily.iloc[-1] < sma20 < sma50 and ret20 <= -0.03:
+        return "BEAR"
+    return "NEUTRAL"
+
+
+def market_regime_score(latest: pd.DataFrame, regime: str) -> pd.Series:
+    """Small regime-aware adjustment; ranking remains primarily technical+fundamental."""
+    score = pd.Series(0.0, index=latest.index)
+    momentum = latest["return_20d"].rank(pct=True)
+    if regime == "BULL":
+        score = momentum * 2.0
+    elif regime == "BEAR":
+        score = (1.0 - momentum) * 2.0
+    return score
+
+
 def technical_score(latest: pd.DataFrame) -> pd.Series:
     score = pd.Series(0.0, index=latest.index)
     score += latest["return_20d"].rank(pct=True) * 25

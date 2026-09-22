@@ -136,7 +136,9 @@ def run_walk_forward() -> pd.DataFrame:
             continue
         target_date = next_dates.min()
         actual = hist[hist["date"] == target_date][["symbol", "open", "high", "low", "close"]]
-        session_all = session_all.merge(actual, on="symbol", how="inner", suffixes=("", "_actual"))
+        # Merge actual next-session OHLC explicitly so feature columns keep their names.
+        actual = actual.rename(columns={"open": "actual_open", "high": "actual_high", "low": "actual_low", "close": "actual_close"})
+        session_all = session_all.merge(actual, on="symbol", how="inner")
         session = session_all[session_all["regime_selected"] == 1].copy()
         baseline_session = session_all[session_all["baseline_selected"] == 1].copy()
         if len(session) < 10:
@@ -165,7 +167,7 @@ def run_walk_forward() -> pd.DataFrame:
         session["predicted_low"] = session[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
 
         regime_mape = (abs(session["actual_close"] - session["predicted_close"]) / session["actual_close"].abs()).mean()
-        baseline_mape = (abs(baseline_session["actual_close"] - baseline_session["predicted_close"]) / baseline_session["actual_close"].abs()).mean()
+        baseline_mape = (abs(baseline_session["actual_close"] - baseline_session["close"]) / baseline_session["actual_close"].abs()).mean()
         regime_comparison_rows.append({"prediction_date": checkpoint, "target_date": target_date, "regime": session["market_regime"].iloc[0], "regime_selection_close_mape_pct": regime_mape * 100, "baseline_selection_close_mape_pct": baseline_mape * 100, "relative_improvement_pct": (baseline_mape - regime_mape) / max(baseline_mape, 1e-12) * 100})
 
         for _, row in session.iterrows():
@@ -177,7 +179,7 @@ def run_walk_forward() -> pd.DataFrame:
                 "score": float(row["total_score"]),
                 "base_close": float(row["close"]),
                 "market_regime": row.get("market_regime", "NEUTRAL"),
-                "regime_selected": int(row.get("baseline_selected", 0) == 0),
+                "regime_selected": int(row.get("regime_selected", 0)),
             }
             for field in ["open", "high", "low", "close"]:
                 actual_value = float(row[f"{field}_actual"])

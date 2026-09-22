@@ -205,7 +205,10 @@ def market_regime_score(latest: pd.DataFrame, regime: str) -> pd.Series:
     if regime == "BULL":
         score = momentum * 2.0
     elif regime == "BEAR":
-        score = (1.0 - momentum) * 2.0
+        # Do not reward falling stocks when the market is bearish.
+        # No point-in-time defensive factor is available here, so keep
+        # the regime adjustment neutral rather than rewarding weak momentum.
+        score = 0.0
     return score
 
 

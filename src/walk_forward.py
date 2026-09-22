@@ -182,7 +182,7 @@ def run_walk_forward() -> pd.DataFrame:
                 "regime_selected": int(row.get("regime_selected", 0)),
             }
             for field in ["open", "high", "low", "close"]:
-                actual_value = float(row[f"{field}_actual"])
+                actual_value = float(row[f"actual_{field}"])
                 pred = float(row[f"predicted_{field}"])
                 challenger = float(row[f"challenger_predicted_{field}"])
                 baseline = float(row[f"baseline_{field}"])

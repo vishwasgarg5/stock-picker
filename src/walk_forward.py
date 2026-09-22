@@ -14,6 +14,9 @@ DATA = ROOT / "data"
 HISTORY_FILE = DATA / "ohlcv.csv"
 OUTPUT_FILE = DATA / "walk_forward_evaluations.csv"
 SUMMARY_FILE = DATA / "walk_forward_summary.csv"
+SELECTION_FILE = DATA / "model_selection.csv"
+MIN_SELECTION_SESSIONS = 12
+MIN_RELATIVE_IMPROVEMENT = 0.01
 
 MIN_TRAIN_ROWS = 500
 LOOKBACK_MONTHS = 24
@@ -45,6 +48,34 @@ def _predict(bundle: dict, x: pd.DataFrame) -> np.ndarray:
     weights = weights / weights.sum()
     preds = np.column_stack([m.predict(x) for m in models])
     return preds @ weights
+
+def _fit_challenger(x: pd.DataFrame, y: pd.Series) -> HistGradientBoostingRegressor:
+    model = HistGradientBoostingRegressor(
+        loss="absolute_error", max_iter=300, learning_rate=0.05,
+        max_leaf_nodes=31, l2_regularization=1.0, random_state=42,
+    )
+    model.fit(x, y)
+    return model
+
+def _select_model(output: pd.DataFrame) -> pd.DataFrame:
+    sessions = int(output["target_date"].nunique())
+    ensemble_mape = float(output["close_abs_pct_error"].mean())
+    challenger_mape = float(output["challenger_close_abs_pct_error"].mean())
+    improvement = (challenger_mape - ensemble_mape) / max(challenger_mape, 1e-12)
+    eligible = sessions >= MIN_SELECTION_SESSIONS
+    passed = bool(eligible and improvement >= MIN_RELATIVE_IMPROVEMENT)
+    return pd.DataFrame([{
+        "as_of": output["target_date"].max(),
+        "sessions": sessions,
+        "ensemble_close_mape_pct": ensemble_mape * 100,
+        "challenger_close_mape_pct": challenger_mape * 100,
+        "ensemble_relative_improvement_vs_challenger_pct": improvement * 100,
+        "minimum_sessions_required": MIN_SELECTION_SESSIONS,
+        "minimum_relative_improvement_pct": MIN_RELATIVE_IMPROVEMENT * 100,
+        "selected_model": "ensemble_v1",
+        "promotion_gate_passed": passed,
+        "decision": "Ensemble passed promotion gate." if passed else "Ensemble retained; promotion gate not yet passed."
+    }])
 
 
 def _checkpoints(dates: pd.Series) -> list[pd.Timestamp]:
@@ -106,8 +137,15 @@ def run_walk_forward() -> pd.DataFrame:
         session["baseline_close"] = session["close"]
 
         models = _fit_models(train_rows)
+        challenger_models = {
+            name: _fit_challenger(train_rows[FEATURE_COLUMNS], train_rows[target])
+            for name, target in TARGETS.items()
+        }
         for name, model in models.items():
             session[f"predicted_{name}"] = session["close"] * (1 + _predict(model, session[FEATURE_COLUMNS]))
+            session[f"challenger_predicted_{name}"] = session["close"] * (
+                1 + challenger_models[name].predict(session[FEATURE_COLUMNS])
+            )
 
         session["predicted_high"] = session[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
         session["predicted_low"] = session[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
@@ -124,11 +162,15 @@ def run_walk_forward() -> pd.DataFrame:
             for field in ["open", "high", "low", "close"]:
                 actual_value = float(row[f"{field}_actual"])
                 pred = float(row[f"predicted_{field}"])
+                challenger = float(row[f"challenger_predicted_{field}"])
                 baseline = float(row[f"baseline_{field}"])
                 result[f"predicted_{field}"] = pred
                 result[f"actual_{field}"] = actual_value
                 result[f"{field}_abs_pct_error"] = (
                     abs(actual_value - pred) / abs(actual_value) if actual_value else np.nan
+                )
+                result[f"challenger_{field}_abs_pct_error"] = (
+                    abs(actual_value - challenger) / abs(actual_value) if actual_value else np.nan
                 )
                 result[f"baseline_{field}_abs_pct_error"] = (
                     abs(actual_value - baseline) / abs(actual_value) if actual_value else np.nan
@@ -179,6 +221,7 @@ def run_walk_forward() -> pd.DataFrame:
         - summary["baseline_close_direction_accuracy_pct"]
     )
     summary.to_csv(SUMMARY_FILE, index=False)
+    _select_model(output).to_csv(SELECTION_FILE, index=False)
     return output
 
 

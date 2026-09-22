@@ -15,6 +15,9 @@ MIN_RELATIVE_IMPROVEMENT = 0.01
 
 def run_confidence_analysis() -> pd.DataFrame:
     if not CANDIDATES.exists() or not HISTORY.exists():
+        summary = pd.DataFrame([{"as_of": pd.NaT, "candidate_rows": 0, "sessions": 0, "baseline_close_mape_pct": np.nan, "confidence_close_mape_pct": np.nan, "relative_mape_improvement": np.nan, "baseline_direction_accuracy_pct": np.nan, "confidence_direction_accuracy_pct": np.nan, "baseline_profitable_close_pct": np.nan, "confidence_profitable_close_pct": np.nan, "minimum_rows_required": MIN_ROWS, "minimum_sessions_required": MIN_SESSIONS, "minimum_relative_mape_improvement": MIN_RELATIVE_IMPROVEMENT, "promotion_evidence": False, "validation_status": "collecting"}])
+        summary.to_csv(SELECTION_OUTPUT, index=False)
+        pd.DataFrame().to_csv(OUTPUT, index=False)
         return pd.DataFrame()
     c = pd.read_csv(CANDIDATES)
     h = pd.read_csv(HISTORY, parse_dates=["date"])
@@ -24,6 +27,9 @@ def run_confidence_analysis() -> pd.DataFrame:
     actual = h.rename(columns={"date":"target_date","open":"actual_open","high":"actual_high","low":"actual_low","close":"actual_close"})
     x = c.merge(actual[["symbol","target_date","actual_open","actual_high","actual_low","actual_close"]], on=["symbol","target_date"], how="inner")
     if x.empty:
+        summary = pd.DataFrame([{"as_of": pd.NaT, "candidate_rows": 0, "sessions": 0, "baseline_close_mape_pct": np.nan, "confidence_close_mape_pct": np.nan, "relative_mape_improvement": np.nan, "baseline_direction_accuracy_pct": np.nan, "confidence_direction_accuracy_pct": np.nan, "baseline_profitable_close_pct": np.nan, "confidence_profitable_close_pct": np.nan, "minimum_rows_required": MIN_ROWS, "minimum_sessions_required": MIN_SESSIONS, "minimum_relative_mape_improvement": MIN_RELATIVE_IMPROVEMENT, "promotion_evidence": False, "validation_status": "collecting"}])
+        summary.to_csv(SELECTION_OUTPUT, index=False)
+        pd.DataFrame().to_csv(OUTPUT, index=False)
         return pd.DataFrame()
     x["close_error_pct"] = (x["actual_close"]-x["predicted_close"]).abs()/x["actual_close"].abs()
     predicted_return = x["predicted_close"]/x["base_close"]-1

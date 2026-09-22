@@ -18,6 +18,7 @@ STRATEGY_FILE = DATA / "trading_strategy_metrics.csv"
 ENTRY_MODEL = MODELS / "entry_model.joblib"
 MFE_MODEL = MODELS / "mfe_model.joblib"
 MAE_MODEL = MODELS / "mae_model.joblib"
+LEARNING_FILE = DATA / "paper_trading_learning.csv"
 
 STARTING_CAPITAL = 100_000.0
 ROUND_TRIP_COST_PCT = 0.001  # 0.10% of allocated capital per completed trade.
@@ -56,11 +57,27 @@ def _build_training_rows(predictions: pd.DataFrame, history: pd.DataFrame) -> pd
     rows["mae"] = rows["actual_low"] / rows["actual_open"] - 1
     rows["close_return"] = rows["actual_close"] / rows["actual_open"] - 1
     rows["profitable_close"] = (rows["close_return"] > 0).astype(int)
-    return rows.sort_values(["target_date", "rank", "symbol"]).reset_index(drop=True)
+    rows = rows.sort_values(["target_date", "rank", "symbol"]).reset_index(drop=True)
+    learning_cols = ["prediction_date","target_date","symbol","rank","score","base_close",
+        "predicted_return","predicted_upside","predicted_downside","prediction_spread",
+        "actual_open","actual_high","actual_low","actual_close","mfe","mae","close_return",
+        "profitable_close"]
+    existing = pd.read_csv(LEARNING_FILE) if LEARNING_FILE.exists() else pd.DataFrame()
+    learning = rows[[x for x in learning_cols if x in rows.columns]].copy()
+    if not existing.empty:
+        learning = pd.concat([existing, learning], ignore_index=True)
+    if not learning.empty:
+        for col in ["prediction_date","target_date"]:
+            if col in learning.columns:
+                learning[col] = pd.to_datetime(learning[col], errors="coerce").dt.normalize()
+        learning = learning.drop_duplicates(["target_date","symbol"], keep="first")
+        learning = learning.sort_values(["target_date","rank","symbol"])
+        learning.to_csv(LEARNING_FILE, index=False)
+    return rows
 
 
 def _train_models(history_rows: pd.DataFrame) -> None:
-    if len(history_rows) < 100:
+    if len(history_rows) < 100 or history_rows["profitable_close"].nunique() < 2:
         return
     x = history_rows[FEATURES].astype(float)
     entry = HistGradientBoostingClassifier(max_iter=150, learning_rate=0.05, max_leaf_nodes=15, l2_regularization=1.0, random_state=42)
@@ -224,7 +241,7 @@ def run_paper_trading() -> pd.DataFrame:
     # strictly before that session. This prevents future information leakage.
     for target_date in completed_dates:
         prior = rows[rows["target_date"] < target_date]
-        learned = len(prior) >= 100
+        learned = len(prior) >= 100 and prior["profitable_close"].nunique() >= 2
         if learned:
             _train_models(prior)
             entry_model = joblib.load(ENTRY_MODEL)
@@ -280,6 +297,8 @@ def run_paper_trading() -> pd.DataFrame:
         "starting_capital": STARTING_CAPITAL,
         "ending_capital": float(final["portfolio_value"]),
         "round_trip_cost_pct": ROUND_TRIP_COST_PCT * 100,
+        "learning_rows": int(len(rows)),
+        "learned_model_active": bool(len(rows) >= 100 and rows["profitable_close"].nunique() >= 2),
     }])
     metrics.to_csv(STRATEGY_FILE, index=False)
     print(

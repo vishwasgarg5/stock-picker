@@ -17,6 +17,7 @@ SUMMARY_FILE = DATA / "walk_forward_summary.csv"
 SELECTION_FILE = DATA / "model_selection.csv"
 MIN_SELECTION_SESSIONS = 12
 MIN_RELATIVE_IMPROVEMENT = 0.01
+MIN_REGIME_RELATIVE_IMPROVEMENT = 0.01
 
 MIN_TRAIN_ROWS = 500
 LOOKBACK_MONTHS = 24
@@ -115,9 +116,14 @@ def run_walk_forward() -> pd.DataFrame:
             continue
 
         # Rank using only technical information available at the checkpoint.
-        ranking = rank_stocks(feat[feat["date"] <= checkpoint], None)
-        top = ranking.head(10)[["symbol", "rank", "total_score"]]
+        ranking = rank_stocks(feat[feat["date"] <= checkpoint], None, use_market_regime=True)
+        baseline_ranking = rank_stocks(feat[feat["date"] <= checkpoint], None, use_market_regime=False)
+        top = ranking.head(10)[["symbol", "rank", "total_score", "market_regime"]]
+        baseline_top = baseline_ranking.head(10)[["symbol"]].copy()
+        baseline_top["baseline_selected"] = 1
         session = session.merge(top, on="symbol", how="inner")
+        session = session.merge(baseline_top, on="symbol", how="left")
+        session["baseline_selected"] = session["baseline_selected"].fillna(0).astype(int)
         if len(session) < 10:
             continue
 
@@ -158,6 +164,8 @@ def run_walk_forward() -> pd.DataFrame:
                 "rank": int(row["rank"]),
                 "score": float(row["total_score"]),
                 "base_close": float(row["close"]),
+                "market_regime": row.get("market_regime", "NEUTRAL"),
+                "regime_selected": int(row.get("baseline_selected", 0) == 0),
             }
             for field in ["open", "high", "low", "close"]:
                 actual_value = float(row[f"{field}_actual"])
@@ -221,7 +229,25 @@ def run_walk_forward() -> pd.DataFrame:
         - summary["baseline_close_direction_accuracy_pct"]
     )
     summary.to_csv(SUMMARY_FILE, index=False)
-    _select_model(output).to_csv(SELECTION_FILE, index=False)
+    regime_rows = output.copy()
+    regime_sessions = int(regime_rows["target_date"].nunique())
+    regime_selected = regime_rows[regime_rows["regime_selected"] == 1]
+    baseline_selected = regime_rows[regime_rows["regime_selected"] == 0]
+    regime_mape = float(regime_selected["close_abs_pct_error"].mean()) if not regime_selected.empty else np.nan
+    baseline_mape = float(baseline_selected["close_abs_pct_error"].mean()) if not baseline_selected.empty else np.nan
+    regime_improvement = ((baseline_mape - regime_mape) / max(baseline_mape, 1e-12)) if np.isfinite(regime_mape) and np.isfinite(baseline_mape) else np.nan
+    regime_summary = _select_model(output)
+    regime_summary["regime_sessions"] = regime_sessions
+    regime_summary["regime_selected_rows"] = len(regime_selected)
+    regime_summary["regime_close_mape_pct"] = regime_mape * 100 if np.isfinite(regime_mape) else np.nan
+    regime_summary["baseline_selection_close_mape_pct"] = baseline_mape * 100 if np.isfinite(baseline_mape) else np.nan
+    regime_summary["regime_relative_improvement_pct"] = regime_improvement * 100 if np.isfinite(regime_improvement) else np.nan
+    regime_summary["regime_promotion_gate_passed"] = bool(
+        regime_sessions >= MIN_SELECTION_SESSIONS
+        and np.isfinite(regime_improvement)
+        and regime_improvement >= MIN_REGIME_RELATIVE_IMPROVEMENT
+    )
+    regime_summary.to_csv(SELECTION_FILE, index=False)
     return output
 
 

@@ -418,7 +418,10 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     history_candidates = pd.concat([existing_candidates, candidates], ignore_index=True)
     history_candidates = history_candidates.drop_duplicates(["target_date", "symbol"], keep="first")
     history_candidates.to_csv(CANDIDATE_HISTORY_FILE, index=False)
-    return candidates.head(10)
+    selected = candidates[candidates["selected"] == 1].copy()
+    if len(selected) != 10:
+        raise RuntimeError(f"Confidence selector produced {len(selected)} stocks; expected 10")
+    return selected.sort_values("rank")
 
 
 def _save_next_session_prediction(hist: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp, existing: pd.DataFrame) -> None:

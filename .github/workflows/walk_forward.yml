@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'src/walk_forward.py'
+      - 'src/pipeline.py'
       - 'jobs/walk_forward.py'
       - '.github/workflows/walk_forward.yml'
 

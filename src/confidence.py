@@ -43,6 +43,18 @@ def run_confidence_analysis() -> pd.DataFrame:
     out["minimum_rows_required"] = MIN_ROWS
     out["minimum_sessions_required"] = MIN_SESSIONS
     out["validation_status"] = np.where((out["rows"]>=MIN_ROWS)&(out["sessions"]>=MIN_SESSIONS),"validated_sample","collecting")
+    # Promotion evidence must show a useful confidence gradient, not merely
+    # a large sample. Require both low- and high-confidence buckets to have
+    # sufficient data and the high-confidence bucket to have lower error.
+    low = out[out["confidence_bucket"] == "0-25"]
+    high = out[out["confidence_bucket"] == "75-100"]
+    evidence = bool(
+        not low.empty and not high.empty
+        and low.iloc[0]["validation_status"] == "validated_sample"
+        and high.iloc[0]["validation_status"] == "validated_sample"
+        and high.iloc[0]["close_mape_pct"] < low.iloc[0]["close_mape_pct"]
+    )
+    out["promotion_evidence"] = evidence
     out.to_csv(OUTPUT,index=False)
     return out
 

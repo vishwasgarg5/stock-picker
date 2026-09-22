@@ -41,6 +41,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FORCE_TELEGRAM: ${{ github.event_name == 'workflow_dispatch' }}
         run: python -m src.telegram
 
       - name: Commit generated data and models

@@ -22,6 +22,8 @@ RANKING_FILE = DATA / "rankings.csv"
 FUNDAMENTALS_FILE = DATA / "fundamentals.csv"
 PREDICTIONS_FILE = DATA / "predictions.csv"
 CANDIDATES_FILE = DATA / "prediction_candidates.csv"
+CANDIDATE_HISTORY_FILE = DATA / "prediction_candidates_history.csv"
+CONFIDENCE_ANALYSIS_FILE = DATA / "confidence_analysis.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 
 FEATURE_COLUMNS = [
@@ -389,6 +391,10 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     candidates["selection_method"] = "ranking_top10"
     candidates["selected"] = (candidates["rank"] <= 10).astype(int)
     candidates.to_csv(CANDIDATES_FILE, index=False)
+    existing_candidates = pd.read_csv(CANDIDATE_HISTORY_FILE) if CANDIDATE_HISTORY_FILE.exists() else pd.DataFrame()
+    history_candidates = pd.concat([existing_candidates, candidates], ignore_index=True)
+    history_candidates = history_candidates.drop_duplicates(["target_date", "symbol"], keep="first")
+    history_candidates.to_csv(CANDIDATE_HISTORY_FILE, index=False)
     return candidates.head(10)
 
 

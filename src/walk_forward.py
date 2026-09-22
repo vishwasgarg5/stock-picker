@@ -145,10 +145,10 @@ def run_walk_forward() -> pd.DataFrame:
             continue
 
         # The baseline is the previous close: a simple no-change prediction for every OHLC field.
-        session["baseline_open"] = session["close"]
-        session["baseline_high"] = session["close"]
-        session["baseline_low"] = session["close"]
-        session["baseline_close"] = session["close"]
+        # Add it to the full merged frame so both the regime-selected and baseline-selected
+        # subsets carry the same baseline columns.
+        for field in ["open", "high", "low", "close"]:
+            session_all[f"baseline_{field}"] = session_all["close"]
 
         models = _fit_models(train_rows)
         challenger_models = {

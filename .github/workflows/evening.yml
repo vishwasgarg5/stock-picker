@@ -37,6 +37,9 @@ jobs:
       - name: Run evening evaluation and retraining
         run: python jobs/evening.py
 
+      - name: Update 3M 6M 9M 12M prediction outcomes
+        run: python jobs/outcomes.py
+
       - name: Send evening accuracy report to Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

@@ -302,6 +302,10 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None) -> p
     latest_date = work["date"].max()
     latest = work[work["date"] == latest_date].dropna(subset=FEATURE_COLUMNS).copy()
     latest["technical_score"] = technical_score(latest)
+    regime = market_regime(df)
+    latest["market_regime"] = regime
+    latest["market_regime_score"] = market_regime_score(latest, regime)
+    latest["technical_score"] = (latest["technical_score"] + latest["market_regime_score"]).clip(0, 80)
     if fundamentals is None:
         fundamentals = pd.DataFrame({"symbol": latest["symbol"]})
     fundamental_cols = ["symbol"] + list(FUNDAMENTAL_FIELDS)
@@ -387,7 +391,7 @@ def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.
 
 
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:
-    ranked = ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score"]].copy()
+    ranked = ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score", "market_regime"]].copy()
     if len(ranked) < 10:
         raise RuntimeError(f"Expected at least 10 ranked stocks, found {len(ranked)}")
     latest = features(df).sort_values("date").groupby("symbol", as_index=False).tail(1)

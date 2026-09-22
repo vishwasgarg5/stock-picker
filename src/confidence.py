@@ -8,8 +8,10 @@ DATA = ROOT / "data"
 CANDIDATES = DATA / "prediction_candidates_history.csv"
 HISTORY = DATA / "ohlcv.csv"
 OUTPUT = DATA / "confidence_analysis.csv"
+SELECTION_OUTPUT = DATA / "selection_validation.csv"
 MIN_ROWS = 100
 MIN_SESSIONS = 12
+MIN_RELATIVE_IMPROVEMENT = 0.01
 
 def run_confidence_analysis() -> pd.DataFrame:
     if not CANDIDATES.exists() or not HISTORY.exists():
@@ -56,6 +58,96 @@ def run_confidence_analysis() -> pd.DataFrame:
     )
     out["promotion_evidence"] = evidence
     out.to_csv(OUTPUT,index=False)
+
+    # Directly backtest the production decision rule against the existing
+    # ranking Top-10 baseline, session by session. This is deliberately
+    # based only on information available at prediction time.
+    session_rows = []
+    for target_date, g in x.groupby("target_date"):
+        g = g.dropna(subset=["rank", "confidence_score", "close_error_pct"]).copy()
+        if len(g) < 10:
+            continue
+        baseline = g.sort_values(["rank", "symbol"]).head(10).copy()
+        g["selection_priority"] = g["rank"] + ((100.0 - g["confidence_score"]) / 100.0)
+        challenger = g.sort_values(["selection_priority", "rank", "symbol"]).head(10).copy()
+
+        def metrics(z):
+            return {
+                "mape": z["close_error_pct"].mean() * 100.0,
+                "direction": z["direction_correct"].mean() * 100.0,
+                "profitable": z["profitable_close"].mean() * 100.0,
+                "close_return": (z["actual_close"] / z["actual_open"] - 1.0).mean() * 100.0,
+            }
+
+        b = metrics(baseline)
+        q = metrics(challenger)
+        session_rows.append({
+            "target_date": target_date,
+            "baseline_mape_pct": b["mape"],
+            "confidence_mape_pct": q["mape"],
+            "baseline_direction_accuracy_pct": b["direction"],
+            "confidence_direction_accuracy_pct": q["direction"],
+            "baseline_profitable_close_pct": b["profitable"],
+            "confidence_profitable_close_pct": q["profitable"],
+            "baseline_equal_weight_close_return_pct": b["close_return"],
+            "confidence_equal_weight_close_return_pct": q["close_return"],
+            "confidence_improved_mape": int(q["mape"] < b["mape"]),
+        })
+
+    validation = pd.DataFrame(session_rows)
+    if validation.empty:
+        validation = pd.DataFrame(columns=[
+            "target_date","baseline_mape_pct","confidence_mape_pct",
+            "baseline_direction_accuracy_pct","confidence_direction_accuracy_pct",
+            "baseline_profitable_close_pct","confidence_profitable_close_pct",
+            "baseline_equal_weight_close_return_pct",
+            "confidence_equal_weight_close_return_pct","confidence_improved_mape",
+        ])
+
+    sessions = len(validation)
+    rows = len(x)
+    if sessions:
+        baseline_mape = validation["baseline_mape_pct"].mean()
+        confidence_mape = validation["confidence_mape_pct"].mean()
+        relative_improvement = (
+            (baseline_mape - confidence_mape) / baseline_mape
+            if baseline_mape and np.isfinite(baseline_mape) else np.nan
+        )
+        baseline_direction = validation["baseline_direction_accuracy_pct"].mean()
+        confidence_direction = validation["confidence_direction_accuracy_pct"].mean()
+        baseline_profit = validation["baseline_profitable_close_pct"].mean()
+        confidence_profit = validation["confidence_profitable_close_pct"].mean()
+        gate = bool(
+            rows >= MIN_ROWS and sessions >= MIN_SESSIONS
+            and np.isfinite(relative_improvement)
+            and relative_improvement >= MIN_RELATIVE_IMPROVEMENT
+            and confidence_direction >= baseline_direction
+            and confidence_profit >= baseline_profit
+        )
+    else:
+        baseline_mape = confidence_mape = relative_improvement = np.nan
+        baseline_direction = confidence_direction = np.nan
+        baseline_profit = confidence_profit = np.nan
+        gate = False
+
+    summary = pd.DataFrame([{
+        "as_of": x["target_date"].max(),
+        "candidate_rows": rows,
+        "sessions": sessions,
+        "baseline_close_mape_pct": baseline_mape,
+        "confidence_close_mape_pct": confidence_mape,
+        "relative_mape_improvement": relative_improvement,
+        "baseline_direction_accuracy_pct": baseline_direction,
+        "confidence_direction_accuracy_pct": confidence_direction,
+        "baseline_profitable_close_pct": baseline_profit,
+        "confidence_profitable_close_pct": confidence_profit,
+        "minimum_rows_required": MIN_ROWS,
+        "minimum_sessions_required": MIN_SESSIONS,
+        "minimum_relative_mape_improvement": MIN_RELATIVE_IMPROVEMENT,
+        "promotion_evidence": gate,
+        "validation_status": "validated" if gate else ("collecting" if rows < MIN_ROWS or sessions < MIN_SESSIONS else "not_validated"),
+    }])
+    summary.to_csv(SELECTION_OUTPUT, index=False)
     return out
 
 if __name__ == "__main__":

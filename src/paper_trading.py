@@ -30,6 +30,8 @@ FEATURES = [
     "prediction_spread",
     "rank",
     "score",
+    "technical_score",
+    "fundamental_score",
 ]
 
 
@@ -79,7 +81,11 @@ def _build_training_rows(predictions: pd.DataFrame, history: pd.DataFrame) -> pd
 def _train_models(history_rows: pd.DataFrame) -> None:
     if len(history_rows) < 100 or history_rows["profitable_close"].nunique() < 2:
         return
-    x = history_rows[FEATURES].astype(float)
+    x = history_rows[FEATURES].copy()
+    for col in ["technical_score", "fundamental_score"]:
+        if col not in x.columns:
+            x[col] = 0.0
+    x = x.astype(float)
     entry = HistGradientBoostingClassifier(max_iter=150, learning_rate=0.05, max_leaf_nodes=15, l2_regularization=1.0, random_state=42)
     entry.fit(x, history_rows["profitable_close"])
     mfe = HistGradientBoostingRegressor(max_iter=150, learning_rate=0.05, max_leaf_nodes=15, l2_regularization=1.0, random_state=42)
@@ -97,7 +103,8 @@ def _simulate_day(row: pd.Series, entry_model, mfe_model, mae_model, learned: bo
     actual_high = float(row["actual_high"])
     actual_low = float(row["actual_low"])
     actual_close = float(row["actual_close"])
-    x = pd.DataFrame([{f: float(row[f]) for f in FEATURES}])
+    values = {f: (float(row[f]) if f in row.index and pd.notna(row[f]) else 0.0) for f in FEATURES}
+    x = pd.DataFrame([values])
     probability = float(entry_model.predict_proba(x)[0, 1]) if entry_model is not None else 1.0
 
     # Do not force a trade when history is too short. Once trained, the model

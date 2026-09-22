@@ -142,7 +142,6 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
             f"{_fmt(row['predicted_low']):>9} | {_fmt(row['predicted_close']):>9} | {_fmt_pct(gap_pct):>7}"
         )
     lines.append("</pre>")
-    lines.append("O→PC % = Predicted Open vs Previous Close")
     return "\n".join(lines)
 
 
@@ -215,9 +214,6 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
     lines += [
         "</pre>",
         "",
-        "+% = Actual lower than Predicted",
-        "-% = Actual higher than Predicted",
-        "",
         "<b>MODEL PRICE ERROR (MAPE)</b>",
         f"Open     {_fmt(metrics['open'])}%",
         f"High     {_fmt(metrics['high'])}%",
@@ -268,7 +264,7 @@ def build_paper_trading_message(trades: pd.DataFrame, target_date: pd.Timestamp)
     portfolio = pd.read_csv(PORTFOLIO_FILE) if PORTFOLIO_FILE.exists() else pd.DataFrame()
     latest_value = float(portfolio.iloc[-1]["portfolio_value"]) if not portfolio.empty else 100000 + total_pnl * 10
     lines = [
-        "<b>PAPER TRADING</b>", f"{target_date:%d-%b-%Y} | LEARNED ENTRY/EXIT", "",
+        "<b>PAPER TRADING</b>", f"{target_date:%d-%b-%Y} | PAPER TRADING", "",
         "<pre>", "Stock     | Buy       | Sell      | P/L       | P/L%",
         "------------------------------------------------------",
     ]

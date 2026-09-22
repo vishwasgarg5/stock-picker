@@ -47,7 +47,9 @@ def _send(message: str) -> None:
         raise RuntimeError(f"Telegram API error: {result}")
 
 
-def _already_sent(path: Path, target_date: pd.Timestamp, message: str) -> bool:
+def _already_sent(path: Path, target_date: pd.Timestamp, message: str, force: bool = False) -> bool:
+    if force:
+        return False
     if not path.exists():
         return False
     sent = pd.read_csv(path)
@@ -145,6 +147,10 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
     return "\n".join(lines)
 
 
+def _force_telegram() -> bool:
+    return os.environ.get("FORCE_TELEGRAM", "").strip().lower() in {"1", "true", "yes"}
+
+
 def send_morning() -> None:
     if not PREDICTIONS_FILE.exists():
         raise RuntimeError("Predictions file does not exist")
@@ -153,7 +159,7 @@ def send_morning() -> None:
     if pd.isna(target_date):
         raise RuntimeError("No target dates found in predictions.csv")
     message = build_morning_message(predictions, target_date)
-    if _already_sent(SENT_FILE, target_date, message):
+    if _already_sent(SENT_FILE, target_date, message, force=_force_telegram()):
         print(f"Morning Telegram already sent for {target_date.date()} with this exact message; skipping duplicate.")
         return
     _send(message)
@@ -244,7 +250,7 @@ def send_evening() -> None:
         print("No valid evaluation date; skipping evening Telegram report.")
         return
     message = build_evening_message(evals, target_date)
-    if _already_sent(EVENING_SENT_FILE, target_date, message):
+    if _already_sent(EVENING_SENT_FILE, target_date, message, force=_force_telegram()):
         print(f"Evening Telegram already sent for {target_date.date()} with this exact message; skipping duplicate.")
         return
     _send(message)
@@ -290,7 +296,7 @@ def send_paper_trading() -> None:
         print("No valid paper trading date; skipping paper trading Telegram report.")
         return
     message = build_paper_trading_message(trades, target_date)
-    if _already_sent(PAPER_SENT_FILE, target_date, message):
+    if _already_sent(PAPER_SENT_FILE, target_date, message, force=_force_telegram()):
         print(f"Paper trading Telegram already sent for {target_date.date()}; skipping duplicate.")
         return
     _send(message)

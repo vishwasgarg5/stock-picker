@@ -23,7 +23,14 @@ FUNDAMENTALS_FILE = DATA / "fundamentals.csv"
 PREDICTIONS_FILE = DATA / "predictions.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 
-FEATURE_COLUMNS = [\n    "return_1d", "return_5d", "return_20d",\n    "sma20", "sma50", "ema20", "ema50",\n    "rsi14", "volume_ratio",\n    "atr14_pct", "macd", "macd_signal",\n    "bb_position", "range_pct", "close_sma20_gap",\n    "close_sma50_gap", "volatility20", "volume_trend5",\n]
+FEATURE_COLUMNS = [
+    "return_1d", "return_5d", "return_20d",
+    "sma20", "sma50", "ema20", "ema50",
+    "rsi14", "volume_ratio",
+    "atr14_pct", "macd", "macd_signal",
+    "bb_position", "range_pct", "close_sma20_gap",
+    "close_sma50_gap", "volatility20", "volume_trend5",
+]
 TARGETS = {"open": "target_open_return", "high": "target_high_return", "low": "target_low_return", "close": "target_close_return"}
 EMPTY_HISTORY = ["date", "symbol", "open", "high", "low", "close", "volume"]
 

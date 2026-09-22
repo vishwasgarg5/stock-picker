@@ -385,7 +385,11 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     out["confidence_score"] = (100 / (1 + uncertainty_ratio)).clip(0, 100).fillna(0)
     out["target_date"] = pd.Timestamp(target_date).normalize()
     out["created_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    return out.sort_values("rank")
+    candidates = out.sort_values("rank").copy()
+    candidates["selection_method"] = "ranking_top10"
+    candidates["selected"] = (candidates["rank"] <= 10).astype(int)
+    candidates.to_csv(CANDIDATES_FILE, index=False)
+    return candidates.head(10)
 
 
 def _save_next_session_prediction(hist: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp, existing: pd.DataFrame) -> None:

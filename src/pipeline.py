@@ -296,7 +296,7 @@ def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
     return scored.clip(0, 20)
 
 
-def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None) -> pd.DataFrame:
+def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_market_regime: bool = True) -> pd.DataFrame:
     work = df.copy()
     work["date"] = pd.to_datetime(work["date"], errors="coerce").dt.normalize()
     latest_date = work["date"].max()
@@ -304,7 +304,7 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None) -> p
     latest["technical_score"] = technical_score(latest)
     regime = market_regime(df)
     latest["market_regime"] = regime
-    latest["market_regime_score"] = market_regime_score(latest, regime)
+    latest["market_regime_score"] = market_regime_score(latest, regime) if use_market_regime else 0.0
     latest["technical_score"] = (latest["technical_score"] + latest["market_regime_score"]).clip(0, 80)
     if fundamentals is None:
         fundamentals = pd.DataFrame({"symbol": latest["symbol"]})

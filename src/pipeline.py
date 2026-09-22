@@ -21,6 +21,7 @@ HISTORY_FILE = DATA / "ohlcv.csv"
 RANKING_FILE = DATA / "rankings.csv"
 FUNDAMENTALS_FILE = DATA / "fundamentals.csv"
 PREDICTIONS_FILE = DATA / "predictions.csv"
+CANDIDATES_FILE = DATA / "prediction_candidates.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 
 FEATURE_COLUMNS = [

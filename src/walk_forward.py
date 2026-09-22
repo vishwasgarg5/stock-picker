@@ -5,7 +5,7 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor
 
 from src.pipeline import FEATURE_COLUMNS, TARGETS, features, add_targets, rank_stocks
 
@@ -20,20 +20,31 @@ LOOKBACK_MONTHS = 24
 CHECKPOINTS = 24
 
 
-def _fit_models(train_rows: pd.DataFrame) -> dict[str, HistGradientBoostingRegressor]:
+def _fit_models(train_rows: pd.DataFrame) -> dict[str, dict]:
     models = {}
+    x = train_rows[FEATURE_COLUMNS]
     for name, target in TARGETS.items():
-        model = HistGradientBoostingRegressor(
-            loss="absolute_error",
-            max_iter=300,
-            learning_rate=0.05,
-            max_leaf_nodes=31,
-            l2_regularization=1.0,
-            random_state=42,
+        hist = HistGradientBoostingRegressor(
+            loss="absolute_error", max_iter=300, learning_rate=0.05,
+            max_leaf_nodes=31, l2_regularization=1.0, random_state=42,
         )
-        model.fit(train_rows[FEATURE_COLUMNS], train_rows[target])
-        models[name] = model
+        extra = ExtraTreesRegressor(
+            n_estimators=200, max_depth=14, min_samples_leaf=4,
+            max_features=0.8, n_jobs=-1, random_state=42,
+        )
+        y = train_rows[target]
+        hist.fit(x, y)
+        extra.fit(x, y)
+        models[name] = {"models": [hist, extra], "weights": [0.70, 0.30]}
     return models
+
+
+def _predict(bundle: dict, x: pd.DataFrame) -> np.ndarray:
+    models = bundle["models"]
+    weights = np.asarray(bundle["weights"], dtype=float)
+    weights = weights / weights.sum()
+    preds = np.column_stack([m.predict(x) for m in models])
+    return preds @ weights
 
 
 def _checkpoints(dates: pd.Series) -> list[pd.Timestamp]:
@@ -96,7 +107,7 @@ def run_walk_forward() -> pd.DataFrame:
 
         models = _fit_models(train_rows)
         for name, model in models.items():
-            session[f"predicted_{name}"] = session["close"] * (1 + model.predict(session[FEATURE_COLUMNS]))
+            session[f"predicted_{name}"] = session["close"] * (1 + _predict(model, session[FEATURE_COLUMNS]))
 
         session["predicted_high"] = session[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
         session["predicted_low"] = session[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)

@@ -47,6 +47,9 @@ jobs:
       - name: Validate prediction confidence
         run: python jobs/confidence.py
 
+      - name: Update session performance history
+        run: python jobs/performance_history.py
+
       - name: Send evening accuracy report to Telegram
         if: always()
         env:

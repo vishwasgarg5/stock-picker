@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 PAPER_METRICS_FILE = DATA / "trading_strategy_metrics.csv"
+PAPER_DAILY_FILE = DATA / "portfolio_daily.csv"
 PERFORMANCE_FILE = DATA / "performance_history.csv"
 
 
@@ -76,22 +77,30 @@ def _session_metrics(evals: pd.DataFrame) -> pd.DataFrame:
 
 
 def _attach_paper_metrics(history: pd.DataFrame) -> pd.DataFrame:
-    if not PAPER_METRICS_FILE.exists():
-        return history
+    result = history.copy()
 
-    paper = pd.read_csv(PAPER_METRICS_FILE)
-    if paper.empty or "as_of" not in paper:
-        return history
+    # Daily paper-trading series provides session-level P/L, cumulative return,
+    # drawdown and win rate for historical sessions.
+    if PAPER_DAILY_FILE.exists():
+        daily = pd.read_csv(PAPER_DAILY_FILE)
+        if not daily.empty and "target_date" in daily:
+            daily["target_date"] = pd.to_datetime(daily["target_date"], errors="coerce").dt.normalize()
+            daily_cols = ["target_date", "net_pnl", "daily_return_pct", "portfolio_value",
+                          "cumulative_return_pct", "drawdown_pct", "win_rate_pct", "trades"]
+            daily = daily[[c for c in daily_cols if c in daily.columns]]
+            result = result.merge(daily, on="target_date", how="left")
 
-    paper["as_of"] = pd.to_datetime(paper["as_of"], errors="coerce").dt.normalize()
-    cols = [
-        "as_of", "sessions", "trades", "win_rate_pct", "total_return_pct",
-        "max_drawdown_pct", "avg_trade_return_pct", "profit_factor",
-        "learning_rows", "learned_model_active",
-    ]
-    paper = paper[[c for c in cols if c in paper.columns]].rename(columns={"as_of": "target_date"})
-    return history.merge(paper, on="target_date", how="left")
+    # Cumulative strategy/learning status from the latest metrics file.
+    if PAPER_METRICS_FILE.exists():
+        paper = pd.read_csv(PAPER_METRICS_FILE)
+        if not paper.empty and "as_of" in paper:
+            cols = ["as_of", "sessions", "total_return_pct", "max_drawdown_pct",
+                    "avg_trade_return_pct", "profit_factor", "learning_rows",
+                    "learned_model_active"]
+            paper = paper[[c for c in cols if c in paper.columns]].rename(columns={"as_of": "target_date"})
+            result = result.merge(paper, on="target_date", how="left", suffixes=("", "_summary"))
 
+    return result
 
 def update_performance_history() -> pd.DataFrame:
     if not EVALUATIONS_FILE.exists():

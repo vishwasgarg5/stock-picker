@@ -515,6 +515,8 @@ def _save_next_session_prediction(hist: pd.DataFrame, ranking: pd.DataFrame, tar
     if not existing.empty and "target_date" in existing.columns:
         existing_dates = pd.to_datetime(existing["target_date"], errors="coerce").dt.normalize()
         if (existing_dates == target_date.normalize()).any():
+            same_target = existing[existing_dates == target_date.normalize()].copy()
+            _validate_prediction_session(same_target, target_date)
             return
     prediction = predict_top10(hist, ranking, target_date)
     combined = pd.concat([existing, prediction], ignore_index=True) if not existing.empty else prediction
@@ -540,8 +542,7 @@ def run_morning() -> None:
         existing["target_date"] = pd.to_datetime(existing["target_date"], errors="coerce").dt.normalize()
         same_target = existing[existing["target_date"] == target_date]
         if not same_target.empty:
-            if len(same_target) != 10:
-                raise RuntimeError(f"Prediction session {target_date.date()} exists but has {len(same_target)} rows; refusing partial session")
+            _validate_prediction_session(same_target, target_date)
             print(f"Predictions already exist for {target_date.date()}; keeping existing output unchanged.")
             return
     predictions = predict_top10(hist, ranking, target_date)

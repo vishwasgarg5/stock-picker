@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import time
 
 import joblib
 import numpy as np
@@ -59,14 +60,56 @@ def _normalise_history(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     return df[EMPTY_HISTORY].dropna(subset=["date", "close"])
 
 
+def _download_yahoo_batch(batch: list[str], start: str) -> pd.DataFrame:
+    """Download one batch with retries and no yfinance worker threads.
+
+    yfinance can use a local sqlite-backed cookie/crumb cache. Concurrent
+    downloads occasionally collide on that database and raise
+    'database is locked'. Serialising the request inside each batch avoids
+    that failure mode while retries handle transient network/rate-limit errors.
+    """
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            return yf.download(
+                [f"{s}.NS" for s in batch],
+                start=start,
+                interval="1d",
+                auto_adjust=False,
+                group_by="ticker",
+                progress=False,
+                threads=False,
+            )
+        except Exception as exc:
+            last_error = exc
+            print(f"Yahoo batch {batch[0]}..{batch[-1]} attempt {attempt + 1}/3 failed: {exc}")
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+    raise RuntimeError(f"Yahoo batch failed after 3 attempts: {last_error}")
+
+
 def download_history(symbols: list[str], start: str) -> pd.DataFrame:
     rows = []
-    for batch_start in range(0, len(symbols), 25):
-        batch = symbols[batch_start:batch_start + 25]
+    # Smaller batches reduce the amount of work lost when Yahoo has a transient
+    # failure and reduce pressure on yfinance's local cache.
+    batch_size = 15
+    for batch_start in range(0, len(symbols), batch_size):
+        batch = symbols[batch_start:batch_start + batch_size]
         try:
-            raw = yf.download([f"{s}.NS" for s in batch], start=start, interval="1d", auto_adjust=False, group_by="ticker", progress=False, threads=True)
+            raw = _download_yahoo_batch(batch, start)
         except Exception as exc:
-            print(f"Download batch failed: {exc}")
+            print(f"Download batch failed after retries; isolating symbols: {exc}")
+            # A failed batch must not discard good data for the other symbols.
+            for symbol in batch:
+                try:
+                    raw = _download_yahoo_batch([symbol], start)
+                    if raw.empty:
+                        continue
+                    x = _normalise_history(raw, symbol)
+                    if not x.empty:
+                        rows.append(x)
+                except Exception as symbol_exc:
+                    print(f"Skipping {symbol} after isolated retries: {symbol_exc}")
             continue
         if raw.empty:
             continue
@@ -125,8 +168,6 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
     """Build strictly historical, next-day-safe features for each stock."""
     df = df.sort_values(["symbol", "date"]).copy()
     g = df.groupby("symbol", group_keys=False)
-
-    # Momentum and trend.
     df["return_1d"] = g["close"].pct_change()
     df["return_5d"] = g["close"].pct_change(5)
     df["return_20d"] = g["close"].pct_change(20)
@@ -135,49 +176,23 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
     df["ema20"] = g["close"].transform(lambda x: x.ewm(span=20, adjust=False).mean())
     df["ema50"] = g["close"].transform(lambda x: x.ewm(span=50, adjust=False).mean())
     df["rsi14"] = g["close"].transform(rsi)
-
-    # Volatility/range: all values are calculated using current and prior bars only.
     prev_close = g["close"].shift(1)
-    true_range = pd.concat(
-        [
-            df["high"] - df["low"],
-            (df["high"] - prev_close).abs(),
-            (df["low"] - prev_close).abs(),
-        ],
-        axis=1,
-    ).max(axis=1)
-    df["atr14_pct"] = (
-        true_range.groupby(df["symbol"], group_keys=False)
-        .transform(lambda x: x.rolling(14).mean())
-        / df["close"].replace(0, np.nan)
-    )
+    true_range = pd.concat([df["high"] - df["low"], (df["high"] - prev_close).abs(), (df["low"] - prev_close).abs()], axis=1).max(axis=1)
+    df["atr14_pct"] = true_range.groupby(df["symbol"], group_keys=False).transform(lambda x: x.rolling(14).mean()) / df["close"].replace(0, np.nan)
     df["range_pct"] = (df["high"] - df["low"]) / df["close"].replace(0, np.nan)
     df["volatility20"] = g["return_1d"].transform(lambda x: x.rolling(20).std())
-
-    # MACD trend strength.
     ema12 = g["close"].transform(lambda x: x.ewm(span=12, adjust=False).mean())
     ema26 = g["close"].transform(lambda x: x.ewm(span=26, adjust=False).mean())
     df["macd"] = ema12 - ema26
-    df["macd_signal"] = df.groupby("symbol")["macd"].transform(
-        lambda x: x.ewm(span=9, adjust=False).mean()
-    )
-
-    # Position inside the 20-day Bollinger band.
+    df["macd_signal"] = df.groupby("symbol")["macd"].transform(lambda x: x.ewm(span=9, adjust=False).mean())
     rolling_std20 = g["close"].transform(lambda x: x.rolling(20).std())
-    df["bb_position"] = (df["close"] - df["sma20"]) / (
-        2.0 * rolling_std20.replace(0, np.nan)
-    )
-
-    # Relative price/trend features.
+    df["bb_position"] = (df["close"] - df["sma20"]) / (2.0 * rolling_std20.replace(0, np.nan))
     df["close_sma20_gap"] = df["close"] / df["sma20"].replace(0, np.nan) - 1.0
     df["close_sma50_gap"] = df["close"] / df["sma50"].replace(0, np.nan) - 1.0
-
-    # Volume regime.
     df["volume_ma20"] = g["volume"].transform(lambda x: x.rolling(20).mean())
     df["volume_ratio"] = df["volume"] / df["volume_ma20"].replace(0, np.nan)
     df["volume_ma5"] = g["volume"].transform(lambda x: x.rolling(5).mean())
     df["volume_trend5"] = df["volume_ma5"] / df["volume_ma20"].replace(0, np.nan)
-
     return df
 
 
@@ -205,9 +220,6 @@ def market_regime_score(latest: pd.DataFrame, regime: str) -> pd.Series:
     if regime == "BULL":
         score = momentum * 2.0
     elif regime == "BEAR":
-        # Do not reward falling stocks when the market is bearish.
-        # No point-in-time defensive factor is available here, so keep
-        # the regime adjustment neutral rather than rewarding weak momentum.
         score = 0.0
     return score
 
@@ -333,15 +345,8 @@ def add_targets(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _fit_ensemble(x: pd.DataFrame, y: pd.Series) -> dict:
-    """Fit a small heterogeneous ensemble to reduce single-model variance."""
-    hist = HistGradientBoostingRegressor(
-        loss="absolute_error", max_iter=300, learning_rate=0.05,
-        max_leaf_nodes=31, l2_regularization=1.0, random_state=42,
-    )
-    extra = ExtraTreesRegressor(
-        n_estimators=200, max_depth=14, min_samples_leaf=4,
-        max_features=0.8, n_jobs=-1, random_state=42,
-    )
+    hist = HistGradientBoostingRegressor(loss="absolute_error", max_iter=300, learning_rate=0.05, max_leaf_nodes=31, l2_regularization=1.0, random_state=42)
+    extra = ExtraTreesRegressor(n_estimators=200, max_depth=14, min_samples_leaf=4, max_features=0.8, n_jobs=-1, random_state=42)
     hist.fit(x, y)
     extra.fit(x, y)
     return {"models": [hist, extra], "weights": [0.70, 0.30], "version": "ensemble_v1"}
@@ -365,7 +370,6 @@ def train(df: pd.DataFrame) -> None:
 
 
 def models_ready() -> bool:
-    """Return True only when all stored ensemble models match the feature set."""
     if not all((MODELS / f"{name}.joblib").exists() for name in TARGETS):
         return False
     try:
@@ -384,8 +388,8 @@ def models_ready() -> bool:
         print(f"Stored model validation failed; retraining: {exc}")
         return False
 
+
 def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.Timestamp:
-    """Return the next NSE session, including exchange holidays rather than only skipping weekends."""
     last = pd.Timestamp(last_date).normalize()
     schedule = mcal.get_calendar("XNSE").schedule(start_date=last + pd.Timedelta(days=1), end_date=last + pd.Timedelta(days=14))
     if schedule.empty:
@@ -424,27 +428,14 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     out["target_date"] = pd.Timestamp(target_date).normalize()
     out["created_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     candidates = out.sort_values("rank").copy()
-    # Confidence-aware selection is enabled only after the historical
-    # validation gate is passed. Until then, preserve deterministic Top-10.
     selection_method = "ranking_top10"
     selected_symbols = set(candidates.head(10)["symbol"])
     try:
         analysis = pd.read_csv(SELECTION_VALIDATION_FILE)
-        validated = (
-            not analysis.empty
-            and "promotion_evidence" in analysis.columns
-            and analysis["promotion_evidence"].fillna(False).astype(bool).any()
-        )
+        validated = not analysis.empty and "promotion_evidence" in analysis.columns and analysis["promotion_evidence"].fillna(False).astype(bool).any()
         if validated:
-            # Use confidence only as a tie-breaker within a narrow ranking
-            # band; this limits disruption to the established ranking signal.
-            candidates["selection_priority"] = candidates["rank"] + (
-                (100.0 - candidates["confidence_score"]) / 100.0
-            )
-            selected_symbols = set(
-                candidates.sort_values(["selection_priority", "rank"])
-                .head(10)["symbol"]
-            )
+            candidates["selection_priority"] = candidates["rank"] + ((100.0 - candidates["confidence_score"]) / 100.0)
+            selected_symbols = set(candidates.sort_values(["selection_priority", "rank"]).head(10)["symbol"])
             selection_method = "validated_confidence_tiebreak"
     except Exception as exc:
         print(f"Confidence selector unavailable; retaining Top-10 ranking: {exc}")
@@ -565,7 +556,6 @@ def run_evening() -> None:
     evals = evals[keep]
     if EVALUATIONS_FILE.exists():
         old = pd.read_csv(EVALUATIONS_FILE)
-        # CSV dates come back as strings; normalize both sides before concat/sort.
         if "target_date" in old.columns:
             old["target_date"] = pd.to_datetime(old["target_date"], errors="coerce").dt.normalize()
         if "prediction_date" in old.columns:

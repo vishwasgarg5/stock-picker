@@ -98,6 +98,8 @@ def _attach_paper_metrics(history: pd.DataFrame) -> pd.DataFrame:
                     "avg_trade_return_pct", "profit_factor", "learning_rows",
                     "learned_model_active"]
             paper = paper[[c for c in cols if c in paper.columns]].rename(columns={"as_of": "target_date"})
+            # Normalize the summary date before merging with the datetime session key.
+            paper["target_date"] = pd.to_datetime(paper["target_date"], errors="coerce").dt.normalize()
             result = result.merge(paper, on="target_date", how="left", suffixes=("", "_summary"))
 
     return result

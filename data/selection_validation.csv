@@ -1,2 +1,2 @@
 as_of,candidate_rows,sessions,baseline_close_mape_pct,confidence_close_mape_pct,relative_mape_improvement,baseline_direction_accuracy_pct,confidence_direction_accuracy_pct,baseline_profitable_close_pct,confidence_profitable_close_pct,minimum_rows_required,minimum_sessions_required,minimum_relative_mape_improvement,promotion_evidence,validation_status
-,0,0,,,,,,,,100,12,0.01,False,collecting
+2026-09-24,20,1,1.3144041347579027,1.3144041347579027,0.0,50.0,50.0,30.0,30.0,100,12,0.01,False,collecting

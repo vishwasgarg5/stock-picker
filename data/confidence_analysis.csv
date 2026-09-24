@@ -1,1 +1,5 @@
-
+confidence_bucket,rows,sessions,close_mape_pct,direction_accuracy_pct,mfe_pct,mae_pct,profitable_close_pct,as_of,minimum_rows_required,minimum_sessions_required,validation_status,promotion_evidence
+0-25,4,1,0.8418700345781339,50.0,1.1229899365550133,-1.307078373447332,0.0,2026-09-24,100,12,collecting,False
+25-50,15,1,5.305122248079623,33.33333333333333,1.3142461142538662,-3.109947267650322,33.33333333333333,2026-09-24,100,12,collecting,False
+50-75,1,1,1.9314885315230839,0.0,0.0,-2.461780338954511,0.0,2026-09-24,100,12,collecting,False
+75-100,0,0,,,,,,2026-09-24,100,12,collecting,False

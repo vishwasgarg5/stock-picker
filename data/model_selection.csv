@@ -1,2 +1,2 @@
 as_of,sessions,ensemble_close_mape_pct,challenger_close_mape_pct,ensemble_relative_improvement_vs_challenger_pct,minimum_sessions_required,minimum_relative_improvement_pct,selected_model,promotion_gate_passed,decision,regime_validation_sessions,regime_avg_relative_improvement_pct,regime_promotion_gate_passed
-2026-09-24,24,1.5970262583262027,1.5936188862129947,-0.2138134871948679,12,1.0,ensemble_v1,False,Ensemble retained; promotion gate not yet passed.,24,-2233862903.174643,False
+2026-09-25,24,1.8820157674289708,1.8769585993556004,-0.2694341833169208,12,1.0,ensemble_v1,False,Ensemble retained; promotion gate not yet passed.,24,-0.2754364222604178,False

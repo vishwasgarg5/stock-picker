@@ -43,7 +43,10 @@ jobs:
 
       - name: Update 3M 6M 9M 12M prediction outcomes
         run: python jobs/outcomes.py
-\n      - name: Run ranking and selection diagnostics\n        run: python jobs/ranking_diagnostics.py\n
+
+      - name: Run ranking and selection diagnostics
+        run: python jobs/ranking_diagnostics.py
+
       - name: Validate prediction confidence
         run: python jobs/confidence.py
 

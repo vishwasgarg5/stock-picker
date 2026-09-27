@@ -1,0 +1,179 @@
+from __future__ import annotations
+
+from pathlib import Path
+import html
+import os
+
+import pandas as pd
+import requests
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / "data"
+PERFORMANCE = DATA / "performance_history.csv"
+RANKING = DATA / "ranking_validation.csv"
+PAPER_DAILY = DATA / "portfolio_daily.csv"
+PAPER_METRICS = DATA / "trading_strategy_metrics.csv"
+WEEKLY_SENT = DATA / "telegram_weekly_sent.csv"
+
+
+def _fmt(v, suffix=""):
+    try:
+        return f"{float(v):.2f}{suffix}"
+    except (TypeError, ValueError):
+        return "-"
+
+
+def _send(message: str) -> None:
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        raise RuntimeError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be configured")
+    r = requests.post(
+        f"https://api.telegram.org/bot{token}/sendMessage",
+        data={"chat_id": chat_id, "text": message, "parse_mode": "HTML", "disable_web_page_preview": True},
+        timeout=30,
+    )
+    r.raise_for_status()
+    if not r.json().get("ok"):
+        raise RuntimeError(f"Telegram API error: {r.json()}")
+
+
+def _already_sent(week_start: pd.Timestamp) -> bool:
+    if not WEEKLY_SENT.exists():
+        return False
+    x = pd.read_csv(WEEKLY_SENT)
+    return "week_start" in x and x["week_start"].astype(str).eq(week_start.date().isoformat()).any()
+
+
+def _record_sent(week_start: pd.Timestamp) -> None:
+    old = pd.read_csv(WEEKLY_SENT) if WEEKLY_SENT.exists() else pd.DataFrame(columns=["week_start"])
+    row = pd.DataFrame({"week_start": [week_start.date().isoformat()]})
+    pd.concat([old, row], ignore_index=True).drop_duplicates("week_start").to_csv(WEEKLY_SENT, index=False)
+
+
+def build_weekly_message() -> str:
+    if not PERFORMANCE.exists():
+        raise RuntimeError("performance_history.csv does not exist yet")
+
+    perf = pd.read_csv(PERFORMANCE)
+    if perf.empty or "target_date" not in perf:
+        raise RuntimeError("No performance history available")
+
+    perf["target_date"] = pd.to_datetime(perf["target_date"], errors="coerce").dt.normalize()
+    perf = perf.dropna(subset=["target_date"]).sort_values("target_date")
+    latest = perf["target_date"].max()
+    week_start = latest - pd.Timedelta(days=latest.weekday())
+    week = perf[perf["target_date"].between(week_start, latest)].copy()
+
+    latest_row = week.iloc[-1] if not week.empty else perf.iloc[-1]
+    sessions = len(week)
+
+    lines = [
+        "<b>STOCK PICKER · WEEKLY MODEL STATUS</b>",
+        f"{week_start:%d-%b-%Y} → {latest:%d-%b-%Y}",
+        "",
+        "<b>MODEL STATUS</b>",
+        f"Evaluated sessions   {sessions}",
+        f"Total sessions       {int(latest_row.get('sessions', len(perf)))}",
+        f"Latest Close MAPE    {_fmt(latest_row.get('close_mape_pct'), '%')}",
+        f"Baseline Close MAPE  {_fmt(latest_row.get('baseline_close_mape_pct'), '%')}",
+        f"Close improvement    {_fmt(latest_row.get('close_improvement_vs_baseline_pct'), '%')}",
+        f"Direction accuracy   {_fmt(latest_row.get('direction_accuracy_pct'), '%')}",
+        "",
+        "<b>DAY-WISE PROGRESS</b>",
+        "<pre>",
+        "Date       | Sessions | Close MAPE | Baseline | Direction",
+        "---------------------------------------------------------",
+    ]
+
+    for _, r in week.iterrows():
+        lines.append(
+            f"{r['target_date']:%d-%b}    | "
+            f"{int(r.get('predictions_evaluated', 0)):>8} | "
+            f"{_fmt(r.get('close_mape_pct'), '%'):>10} | "
+            f"{_fmt(r.get('baseline_close_mape_pct'), '%'):>8} | "
+            f"{_fmt(r.get('direction_accuracy_pct'), '%'):>9}"
+        )
+    lines.append("</pre>")
+
+    if RANKING.exists():
+        rank = pd.read_csv(RANKING)
+        if not rank.empty and "target_date" in rank:
+            rank["target_date"] = pd.to_datetime(rank["target_date"], errors="coerce").dt.normalize()
+            rw = rank[rank["target_date"].between(week_start, latest)]
+            comparisons = rw[rw["rank_bucket"].astype(str).eq("TOP10_VS_11_20")]
+            if not comparisons.empty:
+                avg_diff = pd.to_numeric(comparisons["top10_vs_next10_return_diff_pct"], errors="coerce").mean()
+                wins = pd.to_numeric(comparisons["top10_outperformed_next10"], errors="coerce").sum()
+                n = comparisons["top10_outperformed_next10"].notna().sum()
+                lines += [
+                    "",
+                    "<b>RANKING PROGRESS</b>",
+                    f"Top-10 vs 11-20 return gap  {_fmt(avg_diff, '%')}",
+                    f"Top-10 outperformed       {int(wins)}/{int(n)} sessions",
+                ]
+
+    if PAPER_DAILY.exists():
+        daily = pd.read_csv(PAPER_DAILY)
+        if not daily.empty and "target_date" in daily:
+            daily["target_date"] = pd.to_datetime(daily["target_date"], errors="coerce").dt.normalize()
+            dw = daily[daily["target_date"].between(week_start, latest)]
+            if not dw.empty:
+                pnl = pd.to_numeric(dw.get("net_pnl"), errors="coerce").sum()
+                ret = pd.to_numeric(dw.get("daily_return_pct"), errors="coerce").sum()
+                lines += [
+                    "",
+                    "<b>PAPER TRADING PROGRESS</b>",
+                    f"Week net P/L             ₹{_fmt(pnl)}",
+                    f"Sum of daily returns      {_fmt(ret, '%')}",
+                    f"Latest portfolio value    ₹{_fmt(dw.iloc[-1].get('portfolio_value'))}",
+                    f"Latest drawdown            {_fmt(dw.iloc[-1].get('drawdown_pct'), '%')}",
+                ]
+
+    if PAPER_METRICS.exists():
+        pm = pd.read_csv(PAPER_METRICS)
+        if not pm.empty:
+            r = pm.iloc[-1]
+            lines += [
+                "",
+                "<b>LEARNING STATUS</b>",
+                f"Learning rows             {r.get('learning_rows', '-')}",
+                f"Learned model active      {r.get('learned_model_active', '-')}",
+            ]
+
+    lines += [
+        "",
+        "<b>NEXT VALIDATION FOCUS</b>",
+        "• Continue collecting genuine out-of-sample sessions.",
+        "• Monitor Close vs previous-close baseline.",
+        "• Monitor Top-10 vs ranks 11-20.",
+        "• Do not promote confidence/learning changes without validation evidence.",
+    ]
+    return "\n".join(lines)
+
+
+def send_weekly_status() -> None:
+    if not PERFORMANCE.exists():
+        print("No performance history; weekly status skipped.")
+        return
+    perf = pd.read_csv(PERFORMANCE)
+    if perf.empty:
+        print("No performance sessions; weekly status skipped.")
+        return
+    perf["target_date"] = pd.to_datetime(perf["target_date"], errors="coerce").dt.normalize()
+    latest = perf["target_date"].dropna().max()
+    if pd.isna(latest):
+        print("No valid performance date; weekly status skipped.")
+        return
+    week_start = latest - pd.Timedelta(days=latest.weekday())
+    if os.environ.get("FORCE_TELEGRAM", "").lower() not in {"1", "true", "yes"} and _already_sent(week_start):
+        print(f"Weekly Telegram already sent for week starting {week_start.date()}; skipping.")
+        return
+    message = build_weekly_message()
+    _send(message)
+    _record_sent(week_start)
+    print(f"Weekly model status sent for week starting {week_start.date()}")
+
+
+if __name__ == "__main__":
+    send_weekly_status()

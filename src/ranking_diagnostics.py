@@ -6,49 +6,67 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
-EVALUATIONS = DATA / "evaluations.csv"
+CANDIDATES = DATA / "prediction_candidates_history.csv"
+HISTORY = DATA / "ohlcv.csv"
 OUTPUT = DATA / "ranking_validation.csv"
 
-RANK_BUCKETS = [0, 10, 20, 30, 50, 75, 100, 125, 150]
-RANK_LABELS = ["1-10", "11-20", "21-30", "31-50", "51-75", "76-100", "101-125", "126-150"]
+RANK_BUCKETS = [0, 10, 20]
+RANK_LABELS = ["1-10", "11-20"]
 
 
 def _empty() -> pd.DataFrame:
     return pd.DataFrame(columns=[
         "target_date", "rank_bucket", "rows", "symbols", "mean_rank",
         "mean_score", "mean_close_return_pct", "median_close_return_pct",
-        "profitable_close_pct", "close_mape_pct", "baseline_close_mape_pct",
-        "mape_improvement_pct", "direction_accuracy_pct", "top10",
+        "profitable_close_pct", "top10", "top10_vs_next10_return_diff_pct",
+        "top10_vs_next10_profitable_diff_pct", "top10_outperformed_next10",
     ])
 
 
+def _next_session_actuals(history: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:
+    h = history[history["date"] >= target_date].sort_values(["symbol", "date"])
+    return h.groupby("symbol", as_index=False).first()[["symbol", "date", "open", "close"]].rename(
+        columns={"date": "actual_date", "open": "actual_open", "close": "actual_close"}
+    )
+
+
 def run_ranking_diagnostics() -> pd.DataFrame:
-    if not EVALUATIONS.exists():
+    if not CANDIDATES.exists() or not HISTORY.exists():
         out = _empty()
         out.to_csv(OUTPUT, index=False)
-        print("Ranking diagnostics skipped: evaluations.csv missing.")
+        print("Ranking diagnostics skipped: candidate history or OHLCV history missing.")
         return out
 
-    x = pd.read_csv(EVALUATIONS)
-    required = {
-        "target_date", "symbol", "rank", "score", "base_close",
-        "actual_open", "actual_close", "close_abs_pct_error",
-        "baseline_close_abs_pct_error", "close_direction_correct",
-    }
-    if not required.issubset(x.columns):
-        missing = sorted(required - set(x.columns))
-        raise RuntimeError(f"Ranking diagnostics missing evaluation columns: {missing}")
+    c = pd.read_csv(CANDIDATES)
+    h = pd.read_csv(HISTORY, parse_dates=["date"])
+    c["target_date"] = pd.to_datetime(c["target_date"], errors="coerce").dt.normalize()
+    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    c["symbol"] = c["symbol"].astype(str).str.strip()
+    h["symbol"] = h["symbol"].astype(str).str.strip()
 
-    x["target_date"] = pd.to_datetime(x["target_date"], errors="coerce").dt.normalize()
-    for col in ["rank", "score", "base_close", "actual_open", "actual_close",
-                "close_abs_pct_error", "baseline_close_abs_pct_error",
-                "close_direction_correct"]:
-        x[col] = pd.to_numeric(x[col], errors="coerce")
-    x = x.dropna(subset=["target_date", "symbol", "rank", "score", "base_close", "actual_open", "actual_close"])
+    for col in ["rank", "score"]:
+        c[col] = pd.to_numeric(c[col], errors="coerce")
+    c = c.dropna(subset=["target_date", "symbol", "rank", "score"])
+    c = c[c["rank"].between(1, 20)].copy()
+    if c.empty:
+        out = _empty()
+        out.to_csv(OUTPUT, index=False)
+        print("Ranking diagnostics skipped: no usable Top-20 candidates.")
+        return out
+
+    actual_parts = []
+    for target_date in sorted(c["target_date"].dropna().unique()):
+        actual = _next_session_actuals(h, pd.Timestamp(target_date))
+        actual["target_date"] = pd.Timestamp(target_date)
+        actual_parts.append(actual)
+    actuals = pd.concat(actual_parts, ignore_index=True) if actual_parts else pd.DataFrame()
+
+    x = c.merge(actuals, on=["target_date", "symbol"], how="left")
+    x = x.dropna(subset=["actual_open", "actual_close"])
     if x.empty:
         out = _empty()
         out.to_csv(OUTPUT, index=False)
-        print("Ranking diagnostics skipped: no usable evaluations.")
+        print("Ranking diagnostics skipped: no matching next-session OHLC data.")
         return out
 
     x["close_return_pct"] = (x["actual_close"] / x["actual_open"] - 1.0) * 100.0
@@ -59,7 +77,7 @@ def run_ranking_diagnostics() -> pd.DataFrame:
     )
     x["top10"] = (x["rank"] <= 10).astype(int)
 
-    out = (
+    bucket = (
         x.groupby(["target_date", "rank_bucket"], observed=False)
         .agg(
             rows=("symbol", "count"),
@@ -68,77 +86,58 @@ def run_ranking_diagnostics() -> pd.DataFrame:
             mean_score=("score", "mean"),
             mean_close_return_pct=("close_return_pct", "mean"),
             median_close_return_pct=("close_return_pct", "median"),
-            profitable_close_pct=("profitable_close", "mean"),
-            close_mape_pct=("close_abs_pct_error", "mean"),
-            baseline_close_mape_pct=("baseline_close_abs_pct_error", "mean"),
-            direction_accuracy_pct=("close_direction_correct", "mean"),
+            profitable_close_pct=("profitable_close", lambda s: s.mean() * 100.0),
             top10=("top10", "max"),
         )
         .reset_index()
     )
-    out["profitable_close_pct"] *= 100.0
-    out["close_mape_pct"] *= 100.0
-    out["baseline_close_mape_pct"] *= 100.0
-    out["direction_accuracy_pct"] *= 100.0
-    out["mape_improvement_pct"] = np.where(
-        out["baseline_close_mape_pct"].abs() > 1e-12,
-        (out["baseline_close_mape_pct"] - out["close_mape_pct"]) / out["baseline_close_mape_pct"] * 100.0,
-        np.nan,
-    )
 
-    # Add a compact session-level comparison of production Top-10 against ranks 11-20.
-    top = x[x["rank"] <= 10].groupby("target_date").agg(
-        top10_rows=("symbol", "count"),
-        top10_score=("score", "mean"),
-        top10_return_pct=("close_return_pct", "mean"),
-        top10_profitable_pct=("profitable_close", lambda s: s.mean() * 100.0),
-        top10_mape_pct=("close_abs_pct_error", lambda s: s.mean() * 100.0),
-    )
-    next10 = x[(x["rank"] >= 11) & (x["rank"] <= 20)].groupby("target_date").agg(
-        next10_rows=("symbol", "count"),
-        next10_score=("score", "mean"),
-        next10_return_pct=("close_return_pct", "mean"),
-        next10_profitable_pct=("profitable_close", lambda s: s.mean() * 100.0),
-        next10_mape_pct=("close_abs_pct_error", lambda s: s.mean() * 100.0),
-    )
-    session = top.join(next10, how="outer").reset_index()
-    session["top10_vs_next10_return_diff_pct"] = session["top10_return_pct"] - session["next10_return_pct"]
-    session["top10_vs_next10_mape_diff_pct"] = session["top10_mape_pct"] - session["next10_mape_pct"]
-    session["top10_outperformed_next10"] = (
-        session["top10_return_pct"] > session["next10_return_pct"]
-    ).astype("Int64")
+    comparisons = []
+    for target_date, g in x.groupby("target_date"):
+        top = g[g["rank"] <= 10]
+        nxt = g[g["rank"].between(11, 20)]
+        if top.empty or nxt.empty:
+            continue
+        top_ret = top["close_return_pct"].mean()
+        next_ret = nxt["close_return_pct"].mean()
+        top_prof = top["profitable_close"].mean() * 100.0
+        next_prof = nxt["profitable_close"].mean() * 100.0
+        comparisons.append({
+            "target_date": target_date,
+            "rank_bucket": "TOP10_VS_11_20",
+            "rows": len(top),
+            "symbols": top["symbol"].nunique(),
+            "mean_rank": top["rank"].mean(),
+            "mean_score": top["score"].mean(),
+            "mean_close_return_pct": top_ret,
+            "median_close_return_pct": top["close_return_pct"].median(),
+            "profitable_close_pct": top_prof,
+            "top10": 1,
+            "top10_vs_next10_return_diff_pct": top_ret - next_ret,
+            "top10_vs_next10_profitable_diff_pct": top_prof - next_prof,
+            "top10_outperformed_next10": int(top_ret > next_ret),
+        })
 
-    # Keep both bucket-level diagnostics and session Top-10/11-20 diagnostics
-    # in one CSV; rows with rank_bucket identify the bucket records.
-    session["rank_bucket"] = "TOP10_VS_11_20"
-    session["rows"] = session["top10_rows"]
-    session["symbols"] = session["top10_rows"]
-    session["mean_rank"] = np.nan
-    session["mean_score"] = session["top10_score"]
-    session["mean_close_return_pct"] = session["top10_return_pct"]
-    session["median_close_return_pct"] = np.nan
-    session["profitable_close_pct"] = session["top10_profitable_pct"]
-    session["close_mape_pct"] = session["top10_mape_pct"]
-    session["baseline_close_mape_pct"] = np.nan
-    session["mape_improvement_pct"] = np.nan
-    session["direction_accuracy_pct"] = np.nan
-    session["top10"] = 1
-    session["target_date"] = pd.to_datetime(session["target_date"]).dt.normalize()
-    session = session[out.columns.tolist()]
-
-    out = pd.concat([out, session], ignore_index=True)
+    out = bucket.copy()
+    for col in [
+        "top10_vs_next10_return_diff_pct",
+        "top10_vs_next10_profitable_diff_pct",
+        "top10_outperformed_next10",
+    ]:
+        out[col] = np.nan
+    out = pd.concat([out, pd.DataFrame(comparisons)], ignore_index=True)
     out = out.sort_values(["target_date", "rank_bucket"]).reset_index(drop=True)
     out.to_csv(OUTPUT, index=False)
 
-    latest = x["target_date"].max().date()
-    latest_top = x[x["target_date"] == pd.Timestamp(latest)]
-    latest_top10 = latest_top[latest_top["rank"] <= 10]
-    latest_next10 = latest_top[(latest_top["rank"] >= 11) & (latest_top["rank"] <= 20)]
+    sessions = x["target_date"].nunique()
+    top = x[x["rank"] <= 10]
+    nxt = x[x["rank"].between(11, 20)]
     print(
-        f"Ranking diagnostics complete: sessions={x['target_date'].nunique()}, "
-        f"evaluated_rows={len(x)}, latest={latest}, "
-        f"top10_return={latest_top10['close_return_pct'].mean() * 100 / 100:.3f}%, "
-        f"11-20_return={latest_next10['close_return_pct'].mean() * 100 / 100:.3f}%"
+        f"Ranking diagnostics complete: sessions={sessions}, evaluated_candidates={len(x)}, "
+        f"top10_return={top['close_return_pct'].mean():.3f}%, "
+        f"11-20_return={nxt['close_return_pct'].mean():.3f}%, "
+        f"top10_profitable={top['profitable_close'].mean()*100:.1f}%, "
+        f"11-20_profitable={nxt['profitable_close'].mean()*100:.1f}%"
     )
     return out
 

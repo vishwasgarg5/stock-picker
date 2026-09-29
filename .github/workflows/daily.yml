@@ -3,8 +3,8 @@ name: Daily stock prediction and self-retraining
 on:
   workflow_dispatch:
   schedule:
-    # 16:30 IST = 11:00 UTC, Monday-Friday.
-    - cron: '0 11 * * 1-5'
+    # 15:15 IST = 09:45 UTC, Monday-Friday.
+    - cron: '45 9 * * 1-5'
 
 permissions:
   contents: write

@@ -19,6 +19,8 @@ OHLCV_FILE = DATA / "ohlcv.csv"
 SENT_FILE = DATA / "telegram_sent.csv"
 EVENING_SENT_FILE = DATA / "telegram_evening_sent.csv"
 PAPER_SENT_FILE = DATA / "telegram_paper_sent.csv"
+PAPER_CAPITAL = 100000.0
+PAPER_TRADE_TOP_N = 5
 
 
 def _fmt(value: object) -> str:
@@ -283,7 +285,12 @@ def build_paper_trading_message(trades: pd.DataFrame, target_date: pd.Timestamp)
         "---------------------------------------------------------",
     ]
     for _, row in traded.iterrows():
-        qty = int(row["position_value"] // row["entry_price"]) if pd.notna(row["entry_price"]) and float(row["entry_price"]) > 0 else 0
+        if "quantity" in row.index and pd.notna(row["quantity"]):
+            qty = int(row["quantity"])
+        elif pd.notna(row["entry_price"]) and float(row["entry_price"]) > 0:
+            qty = int(row["position_value"] // row["entry_price"])
+        else:
+            qty = 0
         lines.append(
             f"{str(row['symbol'])[:9]:<9} | {qty:>3} | {_fmt(row['entry_price']):>9} | "
             f"{_fmt(row['exit_price']):>9} | {_fmt(row['profit_loss']):>9} | {_fmt(row['return_pct']):>6}%"

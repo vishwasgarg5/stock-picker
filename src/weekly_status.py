@@ -157,6 +157,22 @@ def build_weekly_message() -> str:
                     "Mean rank movement      {}".format(_fmt(r.get("mean_abs_rank_change"))),
                 ]
 
+    turnover_path = DATA / "ranking_validation_turnover.csv"
+    if turnover_path.exists():
+        turnover = pd.read_csv(turnover_path)
+        if not turnover.empty and "prediction_date" in turnover:
+            turnover["prediction_date"] = pd.to_datetime(turnover["prediction_date"], errors="coerce").dt.normalize()
+            tw = turnover[turnover["prediction_date"].between(week_start, latest)]
+            if not tw.empty:
+                r = tw.iloc[-1]
+                lines += [
+                    "",
+                    "<b>RANKING TURNOVER</b>",
+                    "Latest Top-5 turnover   {}".format(_fmt(r.get("top5_turnover_pct"), "%")),
+                    "Latest Top-10 turnover  {}".format(_fmt(r.get("top10_turnover_pct"), "%")),
+                    "Latest Top-20 turnover  {}".format(_fmt(r.get("top20_turnover_pct"), "%")),
+                ]
+
     if PAPER_DAILY.exists():
         daily = pd.read_csv(PAPER_DAILY)
         if not daily.empty and "target_date" in daily:

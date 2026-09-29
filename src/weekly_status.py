@@ -118,6 +118,29 @@ def build_weekly_message() -> str:
                 )
 
 
+    mfe_path = DATA / "ranking_validation_mfe_mae.csv"
+    if mfe_path.exists():
+        mfe = pd.read_csv(mfe_path)
+        if not mfe.empty and "prediction_date" in mfe:
+            mfe["prediction_date"] = pd.to_datetime(mfe["prediction_date"], errors="coerce").dt.normalize()
+            mw = mfe[mfe["prediction_date"].between(week_start, latest)]
+            top10 = mw[mw["group"].eq("TOP10")]
+            if not top10.empty:
+                lines += ["", "<b>MFE / MAE</b>"]
+                for horizon in (5, 10):
+                    mh = top10[top10["horizon_sessions"].eq(horizon)]
+                    if mh.empty:
+                        continue
+                    r = mh.iloc[-1]
+                    lines.append(
+                        "Top-10 {:>2}D | Return {} | MFE {} | MAE {}".format(
+                            horizon,
+                            _fmt(r.get("mean_final_return_pct"), "%"),
+                            _fmt(r.get("mean_mfe_pct"), "%"),
+                            _fmt(r.get("mean_mae_pct"), "%"),
+                        )
+                    )
+
     if PAPER_DAILY.exists():
         daily = pd.read_csv(PAPER_DAILY)
         if not daily.empty and "target_date" in daily:

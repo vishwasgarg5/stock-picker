@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 PERFORMANCE = DATA / "performance_history.csv"
 RANKING = DATA / "ranking_validation.csv"
+RANKING_HORIZONS = DATA / "ranking_validation_horizons.csv"
 PAPER_DAILY = DATA / "portfolio_daily.csv"
 PAPER_METRICS = DATA / "trading_strategy_metrics.csv"
 WEEKLY_SENT = DATA / "telegram_weekly_sent.csv"
@@ -96,22 +97,26 @@ def build_weekly_message() -> str:
         )
     lines.append("</pre>")
 
-    if RANKING.exists():
-        rank = pd.read_csv(RANKING)
-        if not rank.empty and "target_date" in rank:
-            rank["target_date"] = pd.to_datetime(rank["target_date"], errors="coerce").dt.normalize()
-            rw = rank[rank["target_date"].between(week_start, latest)]
-            comparisons = rw[rw["rank_bucket"].astype(str).eq("TOP10_VS_11_20")]
-            if not comparisons.empty:
-                avg_diff = pd.to_numeric(comparisons["top10_vs_next10_return_diff_pct"], errors="coerce").mean()
-                wins = pd.to_numeric(comparisons["top10_outperformed_next10"], errors="coerce").sum()
-                n = comparisons["top10_outperformed_next10"].notna().sum()
-                lines += [
-                    "",
-                    "<b>RANKING PROGRESS</b>",
-                    f"Top-10 vs 11-20 return gap  {_fmt(avg_diff, '%')}",
-                    f"Top-10 outperformed       {int(wins)}/{int(n)} sessions",
-                ]
+    if RANKING_HORIZONS.exists():
+        rank = pd.read_csv(RANKING_HORIZONS)
+        if not rank.empty and "prediction_date" in rank:
+            rank["prediction_date"] = pd.to_datetime(rank["prediction_date"], errors="coerce").dt.normalize()
+            rw = rank[rank["prediction_date"].between(week_start, latest)]
+            lines += ["", "<b>RANKING PROGRESS</b>"]
+            for horizon in (1, 5, 10, 20):
+                h = rw[rw["horizon_sessions"].eq(horizon)]
+                top10 = h[h["group"].eq("TOP10")]
+                if top10.empty:
+                    continue
+                r = top10.iloc[-1]
+                gap = r.get("lift_vs_comparator_pct")
+                universe_lift = r.get("lift_vs_universe_pct")
+                lines.append(
+                    "Top-10 {:>2}D | vs 11-20 {} | vs universe {}".format(
+                        horizon, _fmt(gap, "%"), _fmt(universe_lift, "%")
+                    )
+                )
+
 
     if PAPER_DAILY.exists():
         daily = pd.read_csv(PAPER_DAILY)

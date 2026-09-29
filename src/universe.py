@@ -11,7 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 UNIVERSE_FILE = DATA / "universe.csv"
 
-NSE_URL = "https://nsearchives.nseindia.com/content/indices/ind_niftymidcap150list.csv"
+# Official NSE Nifty 500 constituent file.
+NSE_URL = "https://nsearchives.nseindia.com/content/indices/ind_nifty500list.csv"
 NSE_HOME = "https://www.nseindia.com/"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0 Safari/537.36",
@@ -19,6 +20,9 @@ HEADERS = {
     "Referer": NSE_HOME,
     "Connection": "keep-alive",
 }
+
+MIN_CONSTITUENTS = 450
+MAX_CONSTITUENTS = 550
 
 
 def fetch_universe() -> pd.DataFrame:
@@ -28,7 +32,6 @@ def fetch_universe() -> pd.DataFrame:
 
     for attempt in range(3):
         try:
-            # Warm up the NSE session first; this materially reduces intermittent 403s.
             session.get(NSE_HOME, timeout=20)
             time.sleep(1)
             response = session.get(NSE_URL, timeout=30)
@@ -49,15 +52,18 @@ def fetch_universe() -> pd.DataFrame:
             out = out[out["symbol"].ne("") & out["symbol"].ne("NAN")]
             out = out.drop_duplicates("symbol").sort_values("symbol").reset_index(drop=True)
 
-            if not 140 <= len(out) <= 160:
-                raise ValueError(f"Expected about 150 constituents, received {len(out)}")
+            if not MIN_CONSTITUENTS <= len(out) <= MAX_CONSTITUENTS:
+                raise ValueError(
+                    f"Expected Nifty 500 universe ({MIN_CONSTITUENTS}-{MAX_CONSTITUENTS} stocks), "
+                    f"received {len(out)}"
+                )
             return out
         except Exception as exc:
             last_error = exc
             if attempt < 2:
                 time.sleep(2 ** attempt)
 
-    raise RuntimeError(f"Unable to download Nifty Midcap 150 from NSE after 3 attempts: {last_error}")
+    raise RuntimeError(f"Unable to download Nifty 500 from NSE after 3 attempts: {last_error}")
 
 
 def update_universe() -> pd.DataFrame:
@@ -65,13 +71,13 @@ def update_universe() -> pd.DataFrame:
     try:
         df = fetch_universe()
         df.to_csv(UNIVERSE_FILE, index=False)
-        print(f"Updated Nifty Midcap 150 universe: {len(df)} stocks")
+        print(f"Updated Nifty 500 universe: {len(df)} stocks")
         return df
     except Exception as exc:
         # Never destroy a previously valid universe because NSE is temporarily unavailable.
         if UNIVERSE_FILE.exists():
             existing = pd.read_csv(UNIVERSE_FILE)
-            if "symbol" in existing.columns and len(existing) >= 140:
+            if "symbol" in existing.columns and MIN_CONSTITUENTS <= len(existing) <= MAX_CONSTITUENTS:
                 print(f"NSE universe refresh failed ({exc}); using existing {len(existing)}-stock universe")
                 return existing
         raise

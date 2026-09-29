@@ -79,7 +79,7 @@ def _select_model(output: pd.DataFrame) -> pd.DataFrame:
         "sessions": sessions,
         "ensemble_close_mape_pct": ensemble_mape * 100,
         "challenger_close_mape_pct": challenger_mape * 100,
-        "ensemble_relative_improvement_vs_challenger_pct": improvement * 100,
+        "ensemble_relative_improvement_vs_challenger_pct": improvement,
         "minimum_sessions_required": MIN_SELECTION_SESSIONS,
         "minimum_relative_improvement_pct": MIN_RELATIVE_IMPROVEMENT * 100,
         "selected_model": "ensemble_v1",

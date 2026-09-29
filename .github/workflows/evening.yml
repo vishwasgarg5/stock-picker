@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   schedule:
     # 16:30 IST = 11:00 UTC on weekdays.
-    - cron: '0 11 * * 1-5'
+    - cron: '17 11 * * 1-5'
 
 permissions:
   contents: write
@@ -60,6 +60,11 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           FORCE_TELEGRAM: ${{ github.event_name == 'workflow_dispatch' }}
         run: python jobs/evening_telegram.py
+
+      - name: Mark evening completion
+        run: |
+          mkdir -p data
+          printf '%s\n' "$(date -u +%FT%TZ)" > data/evening_last_success.txt
 
       - name: Commit generated data and models
         if: always()

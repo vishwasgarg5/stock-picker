@@ -708,24 +708,34 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
     if not existing_portfolio.empty:
         existing_portfolio["target_date"] = pd.to_datetime(existing_portfolio["target_date"], errors="coerce").dt.normalize()
 
-    base = existing_portfolio.iloc[0]["portfolio_value"] if not existing_portfolio.empty else PAPER_CAPITAL
     history = daily.copy()
     history["portfolio_value"] = np.nan
     history["cumulative_return_pct"] = np.nan
-    current_value = float(base)
     prior_dates = set(existing_portfolio["target_date"].dropna()) if not existing_portfolio.empty else set()
 
-    for idx, row in history.iterrows():
-        date = row["target_date"]
-        if date in prior_dates:
-            old_row = existing_portfolio.loc[existing_portfolio["target_date"] == date].iloc[-1]
-            current_value = float(old_row["portfolio_value"])
-            history.loc[idx, "portfolio_value"] = current_value
-            history.loc[idx, "cumulative_return_pct"] = (current_value / PAPER_CAPITAL - 1.0) * 100.0
-            continue
-        current_value *= 1.0 + float(row["daily_return_pct"]) / 100.0
-        history.loc[idx, "portfolio_value"] = current_value
-        history.loc[idx, "cumulative_return_pct"] = (current_value / PAPER_CAPITAL - 1.0) * 100.0
+    # Position sizing is fixed from the original ₹100,000 paper capital, so
+    # portfolio P&L is additive rather than compounded. Recompute the
+    # cumulative value from the fixed starting capital for all known sessions.
+    combined_daily = pd.concat(
+        [
+            existing_portfolio[["target_date", "daily_profit_loss"]]
+            if not existing_portfolio.empty and "daily_profit_loss" in existing_portfolio.columns
+            else pd.DataFrame(columns=["target_date", "daily_profit_loss"]),
+            history[["target_date", "daily_profit_loss"]],
+        ],
+        ignore_index=True,
+    )
+    combined_daily["target_date"] = pd.to_datetime(combined_daily["target_date"], errors="coerce").dt.normalize()
+    combined_daily["daily_profit_loss"] = pd.to_numeric(combined_daily["daily_profit_loss"], errors="coerce").fillna(0.0)
+    combined_daily = combined_daily.dropna(subset=["target_date"]).drop_duplicates("target_date", keep="last").sort_values("target_date")
+    combined_daily["portfolio_value"] = PAPER_CAPITAL + combined_daily["daily_profit_loss"].cumsum()
+    combined_daily["cumulative_return_pct"] = (combined_daily["portfolio_value"] / PAPER_CAPITAL - 1.0) * 100.0
+
+    history = history.drop(columns=["portfolio_value", "cumulative_return_pct"], errors="ignore").merge(
+        combined_daily[["target_date", "portfolio_value", "cumulative_return_pct"]],
+        on="target_date",
+        how="left",
+    )
 
     history["target_date"] = pd.to_datetime(history["target_date"]).dt.normalize()
     history = pd.concat([existing_portfolio, history], ignore_index=True)

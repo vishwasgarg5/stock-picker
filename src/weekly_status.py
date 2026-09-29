@@ -173,6 +173,23 @@ def build_weekly_message() -> str:
                     "Latest Top-20 turnover  {}".format(_fmt(r.get("top20_turnover_pct"), "%")),
                 ]
 
+    cost_path = DATA / "ranking_validation_costs.csv"
+    if cost_path.exists():
+        costs = pd.read_csv(cost_path)
+        if not costs.empty and "prediction_date" in costs:
+            costs["prediction_date"] = pd.to_datetime(costs["prediction_date"], errors="coerce").dt.normalize()
+            cw = costs[costs["prediction_date"].between(week_start, latest)]
+            c10 = cw[(cw["group"].eq("TOP10")) & (cw["cost_bps_per_side"].eq(10.0))]
+            if not c10.empty:
+                r = c10.iloc[-1]
+                lines += [
+                    "",
+                    "<b>TRANSACTION COSTS</b>",
+                    "Top-10 gross return     {}".format(_fmt(r.get("gross_return_pct"), "%")),
+                    "Top-10 turnover          {}".format(_fmt(r.get("turnover_pct"), "%")),
+                    "Net @ 10 bps/side       {}".format(_fmt(r.get("net_return_pct"), "%")),
+                ]
+
     if PAPER_DAILY.exists():
         daily = pd.read_csv(PAPER_DAILY)
         if not daily.empty and "target_date" in daily:

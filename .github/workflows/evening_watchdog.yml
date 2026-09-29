@@ -1,0 +1,46 @@
+name: Evening workflow watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 17:30 IST = 12:00 UTC on weekdays.
+    - cron: '0 12 * * 1-5'
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check evening completion
+        id: check
+        shell: bash
+        run: |
+          TODAY_UTC="$(date -u +%F)"
+          if [ -f data/evening_last_success.txt ] && grep -q "^${TODAY_UTC}T" data/evening_last_success.txt; then
+            echo "completed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "completed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Dispatch evening workflow if missing
+        if: steps.check.outputs.completed == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run evening.yml --ref main
+
+      - name: Report watchdog result
+        run: |
+          if [ "${{ steps.check.outputs.completed }}" = "true" ]; then
+            echo "Evening workflow already completed for today."
+          else
+            echo "Evening workflow was not recorded; a replacement run was dispatched."
+          fi

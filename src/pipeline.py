@@ -21,6 +21,7 @@ UNIVERSE_FILE = DATA / "universe.csv"
 HISTORY_FILE = DATA / "ohlcv.csv"
 RANKING_FILE = DATA / "rankings.csv"
 FUNDAMENTALS_FILE = DATA / "fundamentals.csv"
+FUNDAMENTALS_HISTORY_FILE = DATA / "fundamentals_history.csv"
 PREDICTIONS_FILE = DATA / "predictions.csv"
 CANDIDATES_FILE = DATA / "prediction_candidates.csv"
 CANDIDATE_HISTORY_FILE = DATA / "prediction_candidates_history.csv"
@@ -345,6 +346,27 @@ def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFra
     return result
 
 
+def record_fundamentals_snapshot(fundamentals: pd.DataFrame, as_of_date: pd.Timestamp) -> None:
+    """Persist the fundamentals actually used for a market-date ranking."""
+    if fundamentals is None or fundamentals.empty:
+        return
+    columns = ["as_of_date", "symbol"] + list(FUNDAMENTAL_FIELDS)
+    snapshot = fundamentals.copy()
+    snapshot["as_of_date"] = pd.Timestamp(as_of_date).normalize()
+    for field in FUNDAMENTAL_FIELDS:
+        if field not in snapshot.columns:
+            snapshot[field] = np.nan
+    snapshot = snapshot[columns]
+    old = pd.read_csv(FUNDAMENTALS_HISTORY_FILE) if FUNDAMENTALS_HISTORY_FILE.exists() else pd.DataFrame(columns=columns)
+    combined = pd.concat([old, snapshot], ignore_index=True)
+    combined["as_of_date"] = pd.to_datetime(combined["as_of_date"], errors="coerce").dt.normalize()
+    combined["symbol"] = combined["symbol"].astype(str).str.upper().str.strip()
+    combined = combined.dropna(subset=["as_of_date", "symbol"]).drop_duplicates(
+        ["as_of_date", "symbol"], keep="last"
+    ).sort_values(["as_of_date", "symbol"])
+    combined.to_csv(FUNDAMENTALS_HISTORY_FILE, index=False)
+
+
 def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
     """Score fundamentals while shrinking incomplete records toward neutral.
 
@@ -547,6 +569,7 @@ def run_morning() -> None:
     hist = update_history(symbols)
     validate_data_quality(hist, symbols, "morning")
     fundamentals = update_fundamentals(symbols)
+    record_fundamentals_snapshot(fundamentals, pd.to_datetime(hist["date"]).max())
     ranking = rank_stocks(features(hist), fundamentals)
     ranking.to_csv(RANKING_FILE, index=False)
     if not models_ready():

@@ -18,7 +18,7 @@ def test_confidence_bucket_calibration_is_monotonic(tmp_path, monkeypatch):
                 "rank": j + 1,
                 "score": float(j),
                 "confidence_score": float(score),
-                "predicted_close": 100.0,
+                "predicted_close": 101.0,
                 "base_close": 100.0,
             })
     candidates = pd.DataFrame(rows)

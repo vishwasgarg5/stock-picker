@@ -140,6 +140,126 @@ def run_multi_horizon_validation(candidates: pd.DataFrame, history: pd.DataFrame
     return pd.DataFrame(rows).sort_values(["prediction_date", "horizon_sessions", "group"]).reset_index(drop=True)
 
 
+
+def _empty_mfe_mae() -> pd.DataFrame:
+    return pd.DataFrame(columns=[
+        "prediction_date", "horizon_sessions", "group", "rows", "symbols",
+        "mean_mfe_pct", "median_mfe_pct", "mean_mae_pct", "median_mae_pct",
+        "positive_mfe_pct", "mean_final_return_pct", "median_final_return_pct",
+    ])
+
+
+def _future_path(history: pd.DataFrame, prediction_date: pd.Timestamp, horizon: int) -> pd.DataFrame:
+    """Return high/low/close for the next H trading sessions, excluding prediction_date."""
+    h = history.sort_values(["symbol", "date"]).copy()
+    h = h[h["date"] > prediction_date]
+    h["session_no"] = h.groupby("symbol").cumcount() + 1
+    return h[h["session_no"] <= horizon][["symbol", "date", "high", "low", "close"]].copy()
+
+
+def _mfe_mae_returns(
+    history: pd.DataFrame,
+    symbols: pd.Series,
+    prediction_date: pd.Timestamp,
+    horizon: int,
+) -> pd.DataFrame:
+    """Calculate path MFE/MAE from prediction-date close through the next H sessions."""
+    wanted = set(symbols.astype(str))
+    base = history[
+        (history["date"] == prediction_date) & history["symbol"].isin(wanted)
+    ][["symbol", "close"]].rename(columns={"close": "base_close"})
+    future = _future_path(history, prediction_date, horizon)
+    if future.empty:
+        return pd.DataFrame()
+
+    x = base.merge(future, on="symbol", how="inner")
+    if x.empty:
+        return x
+
+    for col in ["high", "low", "close"]:
+        x[col] = pd.to_numeric(x[col], errors="coerce")
+    x["base_close"] = pd.to_numeric(x["base_close"], errors="coerce")
+    x = x.replace([np.inf, -np.inf], np.nan).dropna(subset=["base_close", "high", "low", "close"])
+    if x.empty:
+        return x
+
+    x["mfe_pct"] = (x["high"] / x["base_close"] - 1.0) * 100.0
+    x["mae_pct"] = (x["low"] / x["base_close"] - 1.0) * 100.0
+    final = (
+        x.sort_values(["symbol", "date"])
+        .groupby("symbol", as_index=False)
+        .tail(1)[["symbol", "close"]]
+        .rename(columns={"close": "final_close"})
+    )
+    x = x.merge(final, on="symbol", how="inner")
+    x["final_return_pct"] = (x["final_close"] / x["base_close"] - 1.0) * 100.0
+    return (
+        x.groupby("symbol", as_index=False)
+        .agg(
+            mfe_pct=("mfe_pct", "max"),
+            mae_pct=("mae_pct", "min"),
+            final_return_pct=("final_return_pct", "last"),
+        )
+    )
+
+
+def run_mfe_mae_validation(candidates: pd.DataFrame, history: pd.DataFrame) -> pd.DataFrame:
+    """Validate maximum favorable/adverse movement for ranking groups at each horizon."""
+    if candidates.empty or history.empty:
+        return _empty_mfe_mae()
+
+    c = candidates.copy()
+    h = history.copy()
+    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    c["symbol"] = c["symbol"].astype(str).str.strip()
+    h["symbol"] = h["symbol"].astype(str).str.strip()
+    c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
+    c = c.dropna(subset=["prediction_date", "symbol", "rank"])
+    c = c[c["rank"].between(1, 20)].copy()
+    h = h.dropna(subset=["date", "symbol", "close", "high", "low"])
+
+    rows = []
+    for prediction_date in sorted(c["prediction_date"].unique()):
+        d = pd.Timestamp(prediction_date)
+        session_candidates = c[c["prediction_date"] == d]
+        universe_symbols = h.loc[h["date"] == d, "symbol"].dropna().unique()
+        groups = {
+            "TOP5": session_candidates[session_candidates["rank"] <= 5],
+            "TOP10": session_candidates[session_candidates["rank"] <= 10],
+            "11-20": session_candidates[session_candidates["rank"].between(11, 20)],
+            "TOP20": session_candidates[session_candidates["rank"] <= 20],
+            "UNIVERSE": pd.DataFrame({"symbol": universe_symbols}),
+        }
+        for horizon in HORIZONS:
+            for group, g in groups.items():
+                if g.empty:
+                    continue
+                r = _mfe_mae_returns(h, g["symbol"], d, horizon)
+                if r.empty:
+                    continue
+                rows.append({
+                    "prediction_date": d,
+                    "horizon_sessions": horizon,
+                    "group": group,
+                    "rows": len(r),
+                    "symbols": r["symbol"].nunique(),
+                    "mean_mfe_pct": r["mfe_pct"].mean(),
+                    "median_mfe_pct": r["mfe_pct"].median(),
+                    "mean_mae_pct": r["mae_pct"].mean(),
+                    "median_mae_pct": r["mae_pct"].median(),
+                    "positive_mfe_pct": (r["mfe_pct"] > 0).mean() * 100.0,
+                    "mean_final_return_pct": r["final_return_pct"].mean(),
+                    "median_final_return_pct": r["final_return_pct"].median(),
+                })
+
+    if not rows:
+        return _empty_mfe_mae()
+    return pd.DataFrame(rows).sort_values(
+        ["prediction_date", "horizon_sessions", "group"]
+    ).reset_index(drop=True)
+
+
 def run_ranking_diagnostics() -> pd.DataFrame:
     if not CANDIDATES.exists() or not HISTORY.exists():
         out = _empty()
@@ -244,6 +364,8 @@ def run_ranking_diagnostics() -> pd.DataFrame:
     out.to_csv(OUTPUT, index=False)
     horizons = run_multi_horizon_validation(c, h)
     horizons.to_csv(HORIZON_OUTPUT, index=False)
+    mfe_mae = run_mfe_mae_validation(c, h)
+    mfe_mae.to_csv(DATA / "ranking_validation_mfe_mae.csv", index=False)
 
     sessions = x["target_date"].nunique()
     top = x[x["rank"] <= 10]

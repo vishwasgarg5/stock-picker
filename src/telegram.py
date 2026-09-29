@@ -212,16 +212,21 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
         f"{target_date:%d-%b-%Y} | EVENING",
         f"{len(rows)} predictions evaluated",
         "",
-        "<b>OHLC DIFFERENCE %</b>",
+        "<b>OHLC PREDICTED vs ACTUAL</b>",
         "<pre>",
-        "Index   | Open      | High      | Low       | Close",
-        "-----------------------------------------------------",
+        "Stock    | Open P/A/Δ | High P/A/Δ | Low P/A/Δ | Close P/A/Δ",
+        "-------------------------------------------------------------------",
     ]
     for _, row in rows.head(10).iterrows():
-        values = [_fmt_pct(_pct_diff(row[f"predicted_{field}"], row[f"actual_{field}"])) for field in ["open", "high", "low", "close"]]
-        lines.append(f"{int(row['rank']):>2} {str(row['symbol'])[:7]:<7} | {values[0]:>9} | {values[1]:>9} | {values[2]:>9} | {values[3]:>9}")
-    lines += [
-        "</pre>",
+        symbol = str(row["symbol"])[:8]
+        cells = []
+        for field in ["open", "high", "low", "close"]:
+            pred = float(row[f"predicted_{field}"])
+            actual = float(row[f"actual_{field}"])
+            delta = actual - pred
+            cells.append(f"{pred:.0f}/{actual:.0f}/{delta:+.0f}")
+        lines.append(f"{symbol:<8} | {cells[0]:>11} | {cells[1]:>11} | {cells[2]:>11} | {cells[3]:>11}")
+
         "",
         "<b>MODEL PRICE ERROR (MAPE)</b>",
         f"Open     {_fmt(metrics['open'])}%",

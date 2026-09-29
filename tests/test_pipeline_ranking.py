@@ -119,3 +119,36 @@ def test_ranking_turnover_measures_entries_and_exits():
     assert out["top5_turnover_pct"] == pytest.approx(40.0)
     assert out["top5_entries"] == 2
     assert out["top5_exits"] == 2
+
+
+def test_transaction_cost_validation_applies_entry_exit_cost():
+    from src.ranking_diagnostics import run_transaction_cost_validation
+
+    dates = pd.bdate_range("2026-01-01", periods=3)
+    rows = []
+    for symbol, closes in {
+        "AAA": [100.0, 101.0, 102.0],
+        "BBB": [100.0, 101.0, 102.0],
+        "CCC": [100.0, 101.0, 102.0],
+        "DDD": [100.0, 101.0, 102.0],
+        "EEE": [100.0, 101.0, 102.0],
+        "FFF": [100.0, 101.0, 102.0],
+    }.items():
+        for i, date in enumerate(dates):
+            rows.append({
+                "date": date, "symbol": symbol, "close": closes[i],
+            })
+    history = pd.DataFrame(rows)
+    candidates = pd.DataFrame({
+        "prediction_date": [dates[0]] * 5 + [dates[1]] * 5,
+        "symbol": ["AAA", "BBB", "CCC", "DDD", "EEE", "AAA", "BBB", "CCC", "FFF", "FFF"],
+        "rank": [1, 2, 3, 4, 5, 1, 2, 3, 4, 5],
+    }).drop_duplicates(["prediction_date", "symbol"])
+
+    out = run_transaction_cost_validation(candidates, history, (10.0,))
+    row = out[(out["prediction_date"] == dates[1]) & (out["group"] == "TOP5")].iloc[0]
+
+    assert row["gross_return_pct"] == pytest.approx(1.0)
+    assert row["turnover_pct"] == pytest.approx(20.0)
+    assert row["transaction_cost_pct"] == pytest.approx(0.04)
+    assert row["net_return_pct"] == pytest.approx(0.96)

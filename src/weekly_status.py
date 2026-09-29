@@ -141,6 +141,22 @@ def build_weekly_message() -> str:
                         )
                     )
 
+    stability_path = DATA / "ranking_validation_stability.csv"
+    if stability_path.exists():
+        stability = pd.read_csv(stability_path)
+        if not stability.empty and "prediction_date" in stability:
+            stability["prediction_date"] = pd.to_datetime(stability["prediction_date"], errors="coerce").dt.normalize()
+            sw = stability[stability["prediction_date"].between(week_start, latest)]
+            if not sw.empty:
+                r = sw.iloc[-1]
+                lines += [
+                    "",
+                    "<b>RANKING STABILITY</b>",
+                    "Latest Top-5 overlap   {}".format(_fmt(r.get("top5_overlap_pct"), "%")),
+                    "Latest Top-10 overlap  {}".format(_fmt(r.get("top10_overlap_pct"), "%")),
+                    "Mean rank movement      {}".format(_fmt(r.get("mean_abs_rank_change"))),
+                ]
+
     if PAPER_DAILY.exists():
         daily = pd.read_csv(PAPER_DAILY)
         if not daily.empty and "target_date" in daily:

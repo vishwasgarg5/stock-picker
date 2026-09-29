@@ -320,6 +320,56 @@ def run_ranking_stability(candidates: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values("prediction_date").reset_index(drop=True)
 
 
+
+TURNOVER_OUTPUT = DATA / "ranking_validation_turnover.csv"
+
+
+def _empty_turnover() -> pd.DataFrame:
+    return pd.DataFrame(columns=[
+        "prediction_date", "previous_prediction_date",
+        "top5_turnover_pct", "top10_turnover_pct", "top20_turnover_pct",
+        "top5_entries", "top5_exits", "top10_entries", "top10_exits",
+        "top20_entries", "top20_exits",
+    ])
+
+
+def run_ranking_turnover(candidates: pd.DataFrame) -> pd.DataFrame:
+    """Measure consecutive-session portfolio churn from ranking changes."""
+    if candidates.empty:
+        return _empty_turnover()
+
+    c = candidates.copy()
+    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    c["symbol"] = c["symbol"].astype(str).str.strip()
+    c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
+    c = c.dropna(subset=["prediction_date", "symbol", "rank"])
+    c = c[c["rank"].between(1, 20)].copy()
+
+    sessions = sorted(c["prediction_date"].unique())
+    rows = []
+    for previous_date, current_date in zip(sessions, sessions[1:]):
+        prev = c[c["prediction_date"] == previous_date].set_index("symbol")["rank"]
+        curr = c[c["prediction_date"] == current_date].set_index("symbol")["rank"]
+
+        row = {
+            "prediction_date": pd.Timestamp(current_date),
+            "previous_prediction_date": pd.Timestamp(previous_date),
+        }
+        for n in (5, 10, 20):
+            prev_set = set(prev[prev <= n].index)
+            curr_set = set(curr[curr <= n].index)
+            exits = len(prev_set - curr_set)
+            entries = len(curr_set - prev_set)
+            row[f"top{n}_turnover_pct"] = exits / len(prev_set) * 100.0 if prev_set else np.nan
+            row[f"top{n}_entries"] = entries
+            row[f"top{n}_exits"] = exits
+        rows.append(row)
+
+    if not rows:
+        return _empty_turnover()
+    return pd.DataFrame(rows).sort_values("prediction_date").reset_index(drop=True)
+
+
 def run_ranking_diagnostics() -> pd.DataFrame:
     if not CANDIDATES.exists() or not HISTORY.exists():
         out = _empty()
@@ -428,6 +478,8 @@ def run_ranking_diagnostics() -> pd.DataFrame:
     mfe_mae.to_csv(DATA / "ranking_validation_mfe_mae.csv", index=False)
     stability = run_ranking_stability(c)
     stability.to_csv(STABILITY_OUTPUT, index=False)
+    turnover = run_ranking_turnover(c)
+    turnover.to_csv(TURNOVER_OUTPUT, index=False)
 
     sessions = x["target_date"].nunique()
     top = x[x["rank"] <= 10]

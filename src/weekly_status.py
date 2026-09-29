@@ -173,6 +173,24 @@ def build_weekly_message() -> str:
                     "Latest Top-20 turnover  {}".format(_fmt(r.get("top20_turnover_pct"), "%")),
                 ]
 
+    sector_path = DATA / "ranking_validation_sector_risk.csv"
+    if sector_path.exists():
+        sector = pd.read_csv(sector_path)
+        if not sector.empty and "prediction_date" in sector:
+            sector["prediction_date"] = pd.to_datetime(sector["prediction_date"], errors="coerce").dt.normalize()
+            sw = sector[sector["prediction_date"].between(week_start, latest)]
+            s10 = sw[sw["group"].eq("TOP10")]
+            if not s10.empty:
+                r = s10.iloc[-1]
+                lines += [
+                    "",
+                    "<b>SECTOR RISK</b>",
+                    "Top-10 largest sector    {}".format(r.get("top_sector", "-")),
+                    "Top-10 sector weight      {}".format(_fmt(r.get("top_sector_weight_pct"), "%")),
+                    "Sector HHI                {}".format(_fmt(r.get("sector_hhi"))),
+                    "40% concentration breach {}".format(r.get("concentration_breach", "-")),
+                ]
+
     cost_path = DATA / "ranking_validation_costs.csv"
     if cost_path.exists():
         costs = pd.read_csv(cost_path)

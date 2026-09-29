@@ -99,6 +99,30 @@ def _checkpoints(dates: pd.Series) -> list[pd.Timestamp]:
     return list(eligible.iloc[np.unique(idx)])
 
 
+def _historical_production_selection(feat: pd.DataFrame, checkpoint: pd.Timestamp) -> pd.DataFrame | None:
+    if CANDIDATE_HISTORY_FILE.exists():
+        h = pd.read_csv(CANDIDATE_HISTORY_FILE)
+        h["prediction_date"] = pd.to_datetime(h["prediction_date"], errors="coerce").dt.normalize()
+        selected = pd.to_numeric(h.get("selected", 0), errors="coerce").fillna(0)
+        rows = h[(h["prediction_date"] == pd.Timestamp(checkpoint).normalize()) & (selected == 1)].copy()
+        if len(rows) >= 10:
+            rows = rows.sort_values(["rank", "symbol"]).head(10)
+            rows["market_regime"] = "RECORDED"
+            return rows[["symbol", "rank", "score", "market_regime"]]
+    if not FUNDAMENTALS_HISTORY_FILE.exists():
+        return None
+    h = pd.read_csv(FUNDAMENTALS_HISTORY_FILE)
+    h["as_of_date"] = pd.to_datetime(h["as_of_date"], errors="coerce").dt.normalize()
+    cp = pd.Timestamp(checkpoint).normalize()
+    h = h[(h["as_of_date"] <= cp) & (h["as_of_date"] >= cp - pd.Timedelta(days=7))]
+    if h.empty:
+        return None
+    snap = h[h["as_of_date"] == h["as_of_date"].max()].drop(columns=["as_of_date"])
+    r = rank_stocks(feat[feat["date"] <= cp], snap, use_market_regime=False)
+    if len(r) < 10:
+        return None
+    return r.head(10)[["symbol","rank","total_score","market_regime"]].rename(columns={"total_score":"score"})
+
 def run_walk_forward() -> pd.DataFrame:
     if not HISTORY_FILE.exists():
         raise RuntimeError("ohlcv.csv is missing")
@@ -128,15 +152,13 @@ def run_walk_forward() -> pd.DataFrame:
         # Production currently ranks with use_market_regime=False. Keep the
         # primary walk-forward evaluation on that exact ranking path so model
         # evidence is not based on a feature that production does not use.
-        production_ranking = rank_stocks(
-            feat[feat["date"] <= checkpoint], None, use_market_regime=False
-        )
+        production_ranking = _historical_production_selection(feat, checkpoint)
+        if production_ranking is None:
+            continue
         regime_ranking = rank_stocks(
             feat[feat["date"] <= checkpoint], None, use_market_regime=True
         )
-        top = production_ranking.head(10)[
-            ["symbol", "rank", "total_score", "market_regime"]
-        ].copy()
+        top = production_ranking.head(10).copy()
         top["production_selected"] = 1
         regime_top = regime_ranking.head(10)[["symbol"]].copy()
         regime_top["regime_selected"] = 1
@@ -211,7 +233,7 @@ def run_walk_forward() -> pd.DataFrame:
                 "target_date": target_date,
                 "symbol": row["symbol"],
                 "rank": int(row["rank"]),
-                "score": float(row["total_score"]),
+                "score": float(row["score"]),
                 "base_close": float(row["close"]),
                 "market_regime": row.get("market_regime", "NEUTRAL"),
                 "regime_selected": int(row.get("regime_selected", 0)),

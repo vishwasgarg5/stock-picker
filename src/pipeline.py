@@ -346,8 +346,15 @@ def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFra
 
 
 def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
-    result = pd.Series(0.0, index=fundamentals.index)
-    weight_used = pd.Series(0.0, index=fundamentals.index)
+    """Score fundamentals while shrinking incomplete records toward neutral.
+
+    Missing/invalid fields must not be renormalized into a full 20-point score:
+    otherwise one available metric can dominate the entire fundamental block.
+    """
+    total_weight = float(sum(weight for weight, _ in FUNDAMENTAL_FIELDS.values()))
+    result = pd.Series(0.0, index=fundamentals.index, dtype=float)
+    weight_used = pd.Series(0.0, index=fundamentals.index, dtype=float)
+
     for field, (weight, higher_is_better) in FUNDAMENTAL_FIELDS.items():
         if field not in fundamentals.columns:
             continue
@@ -357,14 +364,18 @@ def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
             valid &= values > 0
         if valid.sum() < 2:
             continue
+
         ranks = values[valid].rank(pct=True)
         if not higher_is_better:
             ranks = 1.0 - ranks + (1.0 / valid.sum())
         result.loc[valid] += ranks * weight
         weight_used.loc[valid] += weight
-    scored = pd.Series(10.0, index=fundamentals.index)
-    usable = weight_used > 0
-    scored.loc[usable] = (result.loc[usable] / weight_used.loc[usable]) * 20.0
+
+    # Full coverage maps to 0-20. Partial coverage shrinks the deviation
+    # from neutral (10) in proportion to usable fundamental weight.
+    raw = (result / total_weight) * 20.0
+    coverage = (weight_used / total_weight).clip(0.0, 1.0)
+    scored = 10.0 + (raw - 10.0) * coverage
     return scored.clip(0, 20)
 
 
@@ -384,6 +395,12 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_
     available = fundamentals[[c for c in fundamental_cols if c in fundamentals.columns]].copy()
     latest = latest.merge(available, on="symbol", how="left")
     latest["fundamental_score"] = fundamental_score(latest)
+    total_weight = float(sum(weight for weight, _ in FUNDAMENTAL_FIELDS.values()))
+    latest["fundamental_coverage_pct"] = (
+        latest[list(FUNDAMENTAL_FIELDS)].notna().mul(
+            pd.Series({k: v[0] for k, v in FUNDAMENTAL_FIELDS.items()})
+        ).sum(axis=1) / total_weight * 100.0
+    ).clip(0, 100)
     latest["total_score"] = latest["technical_score"] + latest["fundamental_score"]
     latest = latest.sort_values(["total_score", "symbol"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
     latest["rank"] = np.arange(1, len(latest) + 1, dtype=int)

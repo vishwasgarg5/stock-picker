@@ -158,8 +158,13 @@ def run_walk_forward() -> pd.DataFrame:
         session_all = session_all.merge(actual, on="symbol", how="inner")
         session = session_all[session_all["production_selected"] == 1].copy()
         regime_session = session_all[session_all["regime_selected"] == 1].copy()
-        if len(session) < 10:
+        if len(session) < 10 or len(regime_session) < 10:
             continue
+
+        # Previous-close baseline is evaluated on the same production-selected
+        # basket, so model-vs-baseline comparisons use identical stocks.
+        for field in ["open", "high", "low", "close"]:
+            session_all[f"baseline_{field}"] = session_all["close"]
 
         models = _fit_models(train_rows)
         challenger_models = {
@@ -173,6 +178,8 @@ def run_walk_forward() -> pd.DataFrame:
             )
         session = session_all[session_all["production_selected"] == 1].copy()
         regime_session = session_all[session_all["regime_selected"] == 1].copy()
+        if len(session) < 10 or len(regime_session) < 10:
+            continue
 
         session["predicted_high"] = session[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
         session["predicted_low"] = session[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
@@ -228,7 +235,6 @@ def run_walk_forward() -> pd.DataFrame:
                 )
 
             predicted_return = result["predicted_close"] / result["base_close"] - 1
-            baseline_return = 0.0
             actual_return = result["actual_close"] / result["base_close"] - 1
             result["close_direction_correct"] = int(np.sign(predicted_return) == np.sign(actual_return))
             # Previous-close predicts 0% return, so it has no directional call.

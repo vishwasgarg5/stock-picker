@@ -103,3 +103,19 @@ def test_ranking_stability_measures_consecutive_overlap():
     assert out["top10_overlap_pct"] == pytest.approx(66.6666667)
     assert out["top10_retention_pct"] == pytest.approx(66.6666667)
     assert out["mean_abs_rank_change"] == pytest.approx(1.0)
+
+
+def test_ranking_turnover_measures_entries_and_exits():
+    from src.ranking_diagnostics import run_ranking_turnover
+
+    candidates = pd.DataFrame({
+        "prediction_date": [pd.Timestamp("2026-01-01")] * 5 + [pd.Timestamp("2026-01-02")] * 5,
+        "symbol": ["AAA", "BBB", "CCC", "DDD", "EEE", "AAA", "BBB", "CCC", "FFF", "GGG"],
+        "rank": [1, 2, 3, 4, 5, 1, 2, 3, 4, 5],
+    })
+
+    out = run_ranking_turnover(candidates).iloc[0]
+
+    assert out["top5_turnover_pct"] == pytest.approx(40.0)
+    assert out["top5_entries"] == 2
+    assert out["top5_exits"] == 2

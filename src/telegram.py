@@ -281,7 +281,9 @@ def build_paper_trading_message(trades: pd.DataFrame, target_date: pd.Timestamp)
     total_invested = pd.to_numeric(traded["position_value"], errors="coerce").fillna(0).sum()
     portfolio = pd.read_csv(PORTFOLIO_FILE) if PORTFOLIO_FILE.exists() else pd.DataFrame()
     latest_value = float(portfolio.iloc[-1]["portfolio_value"]) if not portfolio.empty else PAPER_CAPITAL + total_pnl
-    actual_return = (total_pnl / total_invested * 100.0) if total_invested else 0.0
+    # Return is measured against the fixed ₹100,000 paper portfolio,
+    # including cash left unused by integer-share sizing.
+    actual_return = (total_pnl / PAPER_CAPITAL * 100.0) if PAPER_CAPITAL else 0.0
 
     lines = [
         "<b>📊 PAPER TRADING — ACTUAL RESULT</b>",

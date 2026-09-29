@@ -370,6 +370,90 @@ def run_ranking_turnover(candidates: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values("prediction_date").reset_index(drop=True)
 
 
+
+COST_OUTPUT = DATA / "ranking_validation_costs.csv"
+TRANSACTION_COST_BPS = (5.0, 10.0, 20.0)
+
+
+def _empty_costs() -> pd.DataFrame:
+    return pd.DataFrame(columns=[
+        "prediction_date", "group", "cost_bps_per_side", "rows",
+        "gross_return_pct", "turnover_pct", "transaction_cost_pct",
+        "net_return_pct",
+    ])
+
+
+def run_transaction_cost_validation(
+    candidates: pd.DataFrame,
+    history: pd.DataFrame,
+    cost_bps_per_side: tuple[float, ...] = TRANSACTION_COST_BPS,
+) -> pd.DataFrame:
+    """Estimate daily equal-weight ranking returns after membership-change trading costs."""
+    if candidates.empty or history.empty:
+        return _empty_costs()
+
+    c = candidates.copy()
+    h = history.copy()
+    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    c["symbol"] = c["symbol"].astype(str).str.strip()
+    h["symbol"] = h["symbol"].astype(str).str.strip()
+    c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
+    c = c.dropna(subset=["prediction_date", "symbol", "rank"])
+    c = c[c["rank"].between(1, 20)].copy()
+    h = h.dropna(subset=["date", "symbol", "close"])
+
+    sessions = sorted(c["prediction_date"].unique())
+    rows = []
+    previous_sets = {}
+    for prediction_date in sessions:
+        d = pd.Timestamp(prediction_date)
+        day = c[c["prediction_date"] == d]
+        future = _future_close(h, d, 1)
+        base = h[h["date"].eq(d)][["symbol", "close"]].rename(columns={"close": "base_close"})
+        actual = base.merge(future, on="symbol", how="inner")
+        if actual.empty:
+            continue
+        actual["return_pct"] = (actual["future_close"] / actual["base_close"] - 1.0) * 100.0
+
+        groups = {
+            "TOP5": day[day["rank"] <= 5],
+            "TOP10": day[day["rank"] <= 10],
+            "TOP20": day[day["rank"] <= 20],
+        }
+        for group, g in groups.items():
+            symbols = set(g["symbol"])
+            r = actual[actual["symbol"].isin(symbols)]
+            if r.empty:
+                continue
+            previous = previous_sets.get(group)
+            turnover_pct = (
+                len(previous - symbols) / len(previous) * 100.0
+                if previous else 0.0
+            )
+            for bps in cost_bps_per_side:
+                # One exit plus one entry for each replacement; cost is charged per side.
+                transaction_cost_pct = (2.0 * turnover_pct / 100.0) * (float(bps) / 100.0)
+                gross = r["return_pct"].mean()
+                rows.append({
+                    "prediction_date": d,
+                    "group": group,
+                    "cost_bps_per_side": float(bps),
+                    "rows": len(r),
+                    "gross_return_pct": gross,
+                    "turnover_pct": turnover_pct,
+                    "transaction_cost_pct": transaction_cost_pct,
+                    "net_return_pct": gross - transaction_cost_pct,
+                })
+            previous_sets[group] = symbols
+
+    if not rows:
+        return _empty_costs()
+    return pd.DataFrame(rows).sort_values(
+        ["prediction_date", "group", "cost_bps_per_side"]
+    ).reset_index(drop=True)
+
+
 def run_ranking_diagnostics() -> pd.DataFrame:
     if not CANDIDATES.exists() or not HISTORY.exists():
         out = _empty()
@@ -480,6 +564,8 @@ def run_ranking_diagnostics() -> pd.DataFrame:
     stability.to_csv(STABILITY_OUTPUT, index=False)
     turnover = run_ranking_turnover(c)
     turnover.to_csv(TURNOVER_OUTPUT, index=False)
+    costs = run_transaction_cost_validation(c, h)
+    costs.to_csv(COST_OUTPUT, index=False)
 
     sessions = x["target_date"].nunique()
     top = x[x["rank"] <= 10]

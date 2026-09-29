@@ -10,6 +10,8 @@ CANDIDATES = DATA / "prediction_candidates_history.csv"
 HISTORY = DATA / "ohlcv.csv"
 OUTPUT = DATA / "ranking_validation.csv"
 HORIZON_OUTPUT = DATA / "ranking_validation_horizons.csv"
+FUNDAMENTALS_HISTORY = DATA / "fundamentals_history.csv"
+SECTOR_OUTPUT = DATA / "ranking_validation_sector_risk.csv"
 
 RANK_BUCKETS = [0, 10, 20]
 RANK_LABELS = ["1-10", "11-20"]
@@ -454,6 +456,73 @@ def run_transaction_cost_validation(
     ).reset_index(drop=True)
 
 
+
+def _empty_sector_risk() -> pd.DataFrame:
+    return pd.DataFrame(columns=[
+        "prediction_date", "group", "rows", "sectors",
+        "top_sector", "top_sector_weight_pct", "sector_hhi",
+        "max_sector_limit_pct", "concentration_breach",
+    ])
+
+
+def run_sector_risk_validation(
+    candidates: pd.DataFrame,
+    fundamentals_history: pd.DataFrame,
+    max_sector_limit_pct: float = 40.0,
+) -> pd.DataFrame:
+    """Measure sector concentration of ranked baskets using point-in-time snapshots."""
+    if candidates.empty or fundamentals_history.empty or "sector" not in fundamentals_history.columns:
+        return _empty_sector_risk()
+
+    c = candidates.copy()
+    f = fundamentals_history.copy()
+    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    f["as_of_date"] = pd.to_datetime(f["as_of_date"], errors="coerce").dt.normalize()
+    c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
+    f["symbol"] = f["symbol"].astype(str).str.upper().str.strip()
+    c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
+    f["sector"] = f["sector"].astype(str).str.strip()
+    f = f[~f["sector"].isin({"", "NAN", "NONE", "NA"})]
+    c = c.dropna(subset=["prediction_date", "symbol", "rank"])
+    c = c[c["rank"].between(1, 20)].copy()
+
+    rows = []
+    for d in sorted(c["prediction_date"].unique()):
+        date = pd.Timestamp(d)
+        eligible = f[f["as_of_date"].le(date)]
+        if eligible.empty:
+            continue
+        snapshot_date = eligible["as_of_date"].max()
+        sectors = eligible[eligible["as_of_date"].eq(snapshot_date)][["symbol", "sector"]].drop_duplicates("symbol")
+        day = c[c["prediction_date"].eq(date)]
+        for group, g in {
+            "TOP5": day[day["rank"] <= 5],
+            "TOP10": day[day["rank"] <= 10],
+            "TOP20": day[day["rank"] <= 20],
+        }.items():
+            x = g[["symbol"]].drop_duplicates().merge(sectors, on="symbol", how="inner")
+            if x.empty:
+                continue
+            weights = x.groupby("sector").size().div(len(x))
+            top_sector = weights.idxmax()
+            top_weight = float(weights.max() * 100.0)
+            hhi = float((weights.pow(2)).sum() * 10000.0)
+            rows.append({
+                "prediction_date": date,
+                "group": group,
+                "rows": len(x),
+                "sectors": int(weights.size),
+                "top_sector": top_sector,
+                "top_sector_weight_pct": top_weight,
+                "sector_hhi": hhi,
+                "max_sector_limit_pct": float(max_sector_limit_pct),
+                "concentration_breach": bool(top_weight > max_sector_limit_pct),
+            })
+    if not rows:
+        return _empty_sector_risk()
+    return pd.DataFrame(rows).sort_values(["prediction_date", "group"]).reset_index(drop=True)
+
+
 def run_ranking_diagnostics() -> pd.DataFrame:
     if not CANDIDATES.exists() or not HISTORY.exists():
         out = _empty()
@@ -566,6 +635,12 @@ def run_ranking_diagnostics() -> pd.DataFrame:
     turnover.to_csv(TURNOVER_OUTPUT, index=False)
     costs = run_transaction_cost_validation(c, h)
     costs.to_csv(COST_OUTPUT, index=False)
+    if FUNDAMENTALS_HISTORY.exists():
+        fh = pd.read_csv(FUNDAMENTALS_HISTORY)
+        sector = run_sector_risk_validation(c, fh)
+    else:
+        sector = _empty_sector_risk()
+    sector.to_csv(SECTOR_OUTPUT, index=False)
 
     sessions = x["target_date"].nunique()
     top = x[x["rank"] <= 10]

@@ -9,9 +9,11 @@ DATA = ROOT / "data"
 CANDIDATES = DATA / "prediction_candidates_history.csv"
 HISTORY = DATA / "ohlcv.csv"
 OUTPUT = DATA / "ranking_validation.csv"
+HORIZON_OUTPUT = DATA / "ranking_validation_horizons.csv"
 
 RANK_BUCKETS = [0, 10, 20]
 RANK_LABELS = ["1-10", "11-20"]
+HORIZONS = (1, 5, 10, 20)
 
 
 def _empty() -> pd.DataFrame:
@@ -30,27 +32,138 @@ def _next_session_actuals(history: pd.DataFrame, target_date: pd.Timestamp) -> p
     )
 
 
+def _empty_horizons() -> pd.DataFrame:
+    return pd.DataFrame(columns=[
+        "prediction_date", "horizon_sessions", "group", "rows", "symbols",
+        "mean_return_pct", "median_return_pct", "hit_rate_pct",
+        "universe_mean_return_pct", "lift_vs_universe_pct",
+        "comparator_group", "comparator_mean_return_pct",
+        "lift_vs_comparator_pct",
+    ])
+
+
+def _future_close(history: pd.DataFrame, prediction_date: pd.Timestamp, horizon: int) -> pd.DataFrame:
+    """Return the close exactly horizon trading sessions after prediction_date."""
+    h = history.sort_values(["symbol", "date"]).copy()
+    h = h[h["date"] >= prediction_date]
+    h["session_no"] = h.groupby("symbol").cumcount()
+    out = h[h["session_no"] == horizon][["symbol", "date", "close"]].copy()
+    return out.rename(columns={"date": "future_date", "close": "future_close"})
+
+
+def _session_returns(history: pd.DataFrame, symbols: pd.Series, prediction_date: pd.Timestamp, horizon: int) -> pd.DataFrame:
+    """Calculate close-to-close forward return using trading sessions."""
+    wanted = set(symbols.astype(str))
+    base = history[(history["date"] == prediction_date) & (history["symbol"].isin(wanted))][["symbol", "close"]].rename(columns={"close": "base_close"})
+    future = _future_close(history, prediction_date, horizon)
+    x = base.merge(future, on="symbol", how="inner")
+    x["return_pct"] = (x["future_close"] / x["base_close"] - 1.0) * 100.0
+    return x.replace([np.inf, -np.inf], np.nan).dropna(subset=["return_pct"])
+
+
+def run_multi_horizon_validation(candidates: pd.DataFrame, history: pd.DataFrame) -> pd.DataFrame:
+    """Validate ranking quality at 1/5/10/20 trading-session horizons."""
+    rows = []
+    if candidates.empty or history.empty:
+        return _empty_horizons()
+    c = candidates.copy()
+    h = history.copy()
+    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    c["symbol"] = c["symbol"].astype(str).str.strip()
+    h["symbol"] = h["symbol"].astype(str).str.strip()
+    c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
+    c = c.dropna(subset=["prediction_date", "symbol", "rank"])
+    c = c[c["rank"].between(1, 20)].copy()
+    h = h.dropna(subset=["date", "symbol", "close"])
+
+    for prediction_date in sorted(c["prediction_date"].unique()):
+        d = pd.Timestamp(prediction_date)
+        session_candidates = c[c["prediction_date"] == d]
+        universe_symbols = h.loc[h["date"] == d, "symbol"].dropna().unique()
+        if len(universe_symbols) == 0:
+            continue
+        for horizon in HORIZONS:
+            universe = _session_returns(h, pd.Series(universe_symbols), d, horizon)
+            if universe.empty:
+                continue
+            universe_mean = universe["return_pct"].mean()
+            group_map = {
+                "TOP5": session_candidates[session_candidates["rank"] <= 5],
+                "TOP10": session_candidates[session_candidates["rank"] <= 10],
+                "11-20": session_candidates[session_candidates["rank"].between(11, 20)],
+                "TOP20": session_candidates[session_candidates["rank"] <= 20],
+            }
+            group_returns = {}
+            for group, g in group_map.items():
+                if g.empty:
+                    continue
+                r = _session_returns(h, g["symbol"], d, horizon)
+                if not r.empty:
+                    group_returns[group] = r
+            comparator = group_returns.get("11-20")
+            comparator_mean = comparator["return_pct"].mean() if comparator is not None else np.nan
+            for group, r in group_returns.items():
+                mean_ret = r["return_pct"].mean()
+                rows.append({
+                    "prediction_date": d,
+                    "horizon_sessions": horizon,
+                    "group": group,
+                    "rows": len(r),
+                    "symbols": r["symbol"].nunique(),
+                    "mean_return_pct": mean_ret,
+                    "median_return_pct": r["return_pct"].median(),
+                    "hit_rate_pct": (r["return_pct"] > 0).mean() * 100.0,
+                    "universe_mean_return_pct": universe_mean,
+                    "lift_vs_universe_pct": mean_ret - universe_mean,
+                    "comparator_group": "11-20" if group in {"TOP5", "TOP10"} else "",
+                    "comparator_mean_return_pct": comparator_mean if group in {"TOP5", "TOP10"} else np.nan,
+                    "lift_vs_comparator_pct": mean_ret - comparator_mean if group in {"TOP5", "TOP10"} and pd.notna(comparator_mean) else np.nan,
+                })
+            rows.append({
+                "prediction_date": d,
+                "horizon_sessions": horizon,
+                "group": "UNIVERSE",
+                "rows": len(universe),
+                "symbols": universe["symbol"].nunique(),
+                "mean_return_pct": universe_mean,
+                "median_return_pct": universe["return_pct"].median(),
+                "hit_rate_pct": (universe["return_pct"] > 0).mean() * 100.0,
+                "universe_mean_return_pct": universe_mean,
+                "lift_vs_universe_pct": 0.0,
+                "comparator_group": "",
+                "comparator_mean_return_pct": np.nan,
+                "lift_vs_comparator_pct": np.nan,
+            })
+    if not rows:
+        return _empty_horizons()
+    return pd.DataFrame(rows).sort_values(["prediction_date", "horizon_sessions", "group"]).reset_index(drop=True)
+
+
 def run_ranking_diagnostics() -> pd.DataFrame:
     if not CANDIDATES.exists() or not HISTORY.exists():
         out = _empty()
         out.to_csv(OUTPUT, index=False)
+        _empty_horizons().to_csv(HORIZON_OUTPUT, index=False)
         print("Ranking diagnostics skipped: candidate history or OHLCV history missing.")
         return out
 
     c = pd.read_csv(CANDIDATES)
     h = pd.read_csv(HISTORY, parse_dates=["date"])
     c["target_date"] = pd.to_datetime(c["target_date"], errors="coerce").dt.normalize()
+    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
     h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.strip()
     h["symbol"] = h["symbol"].astype(str).str.strip()
 
     for col in ["rank", "score"]:
         c[col] = pd.to_numeric(c[col], errors="coerce")
-    c = c.dropna(subset=["target_date", "symbol", "rank", "score"])
+    c = c.dropna(subset=["target_date", "prediction_date", "symbol", "rank", "score"])
     c = c[c["rank"].between(1, 20)].copy()
     if c.empty:
         out = _empty()
         out.to_csv(OUTPUT, index=False)
+        _empty_horizons().to_csv(HORIZON_OUTPUT, index=False)
         print("Ranking diagnostics skipped: no usable Top-20 candidates.")
         return out
 
@@ -66,6 +179,7 @@ def run_ranking_diagnostics() -> pd.DataFrame:
     if x.empty:
         out = _empty()
         out.to_csv(OUTPUT, index=False)
+        _empty_horizons().to_csv(HORIZON_OUTPUT, index=False)
         print("Ranking diagnostics skipped: no matching next-session OHLC data.")
         return out
 
@@ -128,6 +242,8 @@ def run_ranking_diagnostics() -> pd.DataFrame:
     out = pd.concat([out, pd.DataFrame(comparisons)], ignore_index=True)
     out = out.sort_values(["target_date", "rank_bucket"]).reset_index(drop=True)
     out.to_csv(OUTPUT, index=False)
+    horizons = run_multi_horizon_validation(c, h)
+    horizons.to_csv(HORIZON_OUTPUT, index=False)
 
     sessions = x["target_date"].nunique()
     top = x[x["rank"] <= 10]

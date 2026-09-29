@@ -314,7 +314,7 @@ def _safe_number(value: object) -> float:
 
 
 def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFrame:
-    columns = ["symbol", "updated_at"] + list(FUNDAMENTAL_FIELDS)
+    columns = ["symbol", "updated_at", "sector"] + list(FUNDAMENTAL_FIELDS)
     if FUNDAMENTALS_FILE.exists():
         cached = pd.read_csv(FUNDAMENTALS_FILE)
         cached["symbol"] = cached.get("symbol", pd.Series(dtype=str)).astype(str).str.upper().str.strip()
@@ -330,9 +330,10 @@ def update_fundamentals(symbols: list[str], max_age_days: int = 7) -> pd.DataFra
         if not stale:
             refreshed.append({c: old.get(c, np.nan) for c in columns})
             continue
-        row = {"symbol": symbol, "updated_at": now.isoformat(timespec="seconds"), **{f: np.nan for f in FUNDAMENTAL_FIELDS}}
+        row = {"symbol": symbol, "updated_at": now.isoformat(timespec="seconds"), "sector": np.nan, **{f: np.nan for f in FUNDAMENTAL_FIELDS}}
         try:
             info = yf.Ticker(f"{symbol}.NS").get_info()
+            row["sector"] = info.get("sector") or np.nan
             for field in FUNDAMENTAL_FIELDS:
                 row[field] = _safe_number(info.get(field))
             print(f"Fundamentals updated: {symbol}")
@@ -350,9 +351,11 @@ def record_fundamentals_snapshot(fundamentals: pd.DataFrame, as_of_date: pd.Time
     """Persist the fundamentals actually used for a market-date ranking."""
     if fundamentals is None or fundamentals.empty:
         return
-    columns = ["as_of_date", "symbol"] + list(FUNDAMENTAL_FIELDS)
+    columns = ["as_of_date", "symbol", "sector"] + list(FUNDAMENTAL_FIELDS)
     snapshot = fundamentals.copy()
     snapshot["as_of_date"] = pd.Timestamp(as_of_date).normalize()
+    if "sector" not in snapshot.columns:
+        snapshot["sector"] = np.nan
     for field in FUNDAMENTAL_FIELDS:
         if field not in snapshot.columns:
             snapshot[field] = np.nan

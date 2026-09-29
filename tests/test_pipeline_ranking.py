@@ -86,3 +86,32 @@ def test_mfe_mae_uses_only_next_trading_sessions():
     assert top5["mean_mfe_pct"] == pytest.approx(4.0)
     assert top5["mean_mae_pct"] == pytest.approx(-5.0)
     assert top5["mean_final_return_pct"] == pytest.approx(4.0)
+
+
+def test_mfe_mae_uses_only_next_trading_sessions():
+    from src.ranking_diagnostics import run_mfe_mae_validation
+
+    dates = pd.bdate_range("2026-01-01", periods=6)
+    rows = []
+    highs = [101, 110, 103, 104, 105, 106]
+    lows = [99, 95, 98, 97, 96, 99]
+    closes = [100, 102, 103, 104, 105, 106]
+    for symbol in ["AAA", "BBB"]:
+        for i, date in enumerate(dates):
+            rows.append({
+                "date": date, "symbol": symbol,
+                "open": closes[i], "high": highs[i], "low": lows[i], "close": closes[i],
+            })
+    history = pd.DataFrame(rows)
+    candidates = pd.DataFrame({
+        "prediction_date": [dates[0], dates[0]],
+        "symbol": ["AAA", "BBB"],
+        "rank": [1, 11],
+    })
+
+    out = run_mfe_mae_validation(candidates, history)
+    top5 = out[(out["group"] == "TOP5") & (out["horizon_sessions"] == 3)].iloc[0]
+
+    assert top5["mean_mfe_pct"] == pytest.approx(4.0)
+    assert top5["mean_mae_pct"] == pytest.approx(-5.0)
+    assert top5["mean_final_return_pct"] == pytest.approx(4.0)

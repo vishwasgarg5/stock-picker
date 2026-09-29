@@ -190,6 +190,20 @@ def build_weekly_message() -> str:
                     "Net @ 10 bps/side       {}".format(_fmt(r.get("net_return_pct"), "%")),
                 ]
 
+    confidence_path = DATA / "selection_validation.csv"
+    if confidence_path.exists():
+        conf = pd.read_csv(confidence_path)
+        if not conf.empty:
+            r = conf.iloc[-1]
+            lines += [
+                "",
+                "<b>CONFIDENCE CALIBRATION</b>",
+                "Direction Spearman       {}".format(_fmt(r.get("confidence_direction_spearman"))),
+                "Profit Spearman           {}".format(_fmt(r.get("confidence_profit_spearman"))),
+                "Calibration status        {}".format(r.get("validation_status", "-")),
+                "Promotion evidence        {}".format(r.get("promotion_evidence", "-")),
+            ]
+
     if PAPER_DAILY.exists():
         daily = pd.read_csv(PAPER_DAILY)
         if not daily.empty and "target_date" in daily:

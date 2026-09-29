@@ -641,18 +641,39 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
         np.nan,
     )
 
-    # Equal-weighted INR 100,000 paper portfolio: 20% per selected stock.
+    # Fixed-share paper portfolio: determine integer quantity from the
+    # latest completed close (base_close) before the target session.
+    # This prevents hindsight from using the actual next-day open to size shares.
     allocation = PAPER_CAPITAL / PAPER_TRADE_TOP_N
-    rows["position_value"] = np.where(rows["signal"].eq("BUY"), allocation, 0.0)
+    rows["reference_price"] = pd.to_numeric(rows.get("base_close"), errors="coerce")
+    rows["quantity"] = np.where(
+        rows["signal"].eq("BUY") & rows["reference_price"].gt(0),
+        np.floor(allocation / rows["reference_price"]).astype(int),
+        0,
+    )
+    rows["planned_capital"] = np.where(
+        rows["signal"].eq("BUY"),
+        rows["quantity"] * rows["reference_price"],
+        0.0,
+    )
+    rows["position_value"] = np.where(
+        rows["signal"].eq("BUY"),
+        rows["quantity"] * pd.to_numeric(rows["entry_price"], errors="coerce"),
+        0.0,
+    )
     rows["profit_loss"] = np.where(
         rows["signal"].eq("BUY"),
-        rows["position_value"] * (pd.to_numeric(rows["return_pct"], errors="coerce") / 100.0),
+        rows["quantity"] * (
+            pd.to_numeric(rows["exit_price"], errors="coerce")
+            - pd.to_numeric(rows["entry_price"], errors="coerce")
+        ),
         0.0,
     )
 
     keep = [
         "prediction_date", "target_date", "symbol", "rank", "score",
-        "signal", "entry_price", "exit_price", "return_pct",
+        "signal", "reference_price", "quantity", "planned_capital",
+        "entry_price", "exit_price", "return_pct",
         "position_value", "profit_loss",
     ]
     rows = rows[keep]
@@ -670,13 +691,15 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
     combined = combined.sort_values(["target_date", "rank"]).reset_index(drop=True)
     combined.to_csv(PAPER_TRADES_FILE, index=False)
 
-    # Daily portfolio return is the equal-weighted mean of the Top-5 intraday returns.
+    # Daily portfolio return is actual fixed-share P&L divided by the
+    # fixed ₹100,000 paper capital. This includes the cash left unused by
+    # integer-share sizing and avoids fractional-share assumptions.
     buy = combined[combined["signal"].eq("BUY")].copy()
     daily = buy.groupby("target_date", as_index=False).agg(
         trades=("symbol", "count"),
-        daily_return_pct=("return_pct", "mean"),
         daily_profit_loss=("profit_loss", "sum"),
     )
+    daily["daily_return_pct"] = daily["daily_profit_loss"] / PAPER_CAPITAL * 100.0
     if daily.empty:
         return combined
 

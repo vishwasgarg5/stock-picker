@@ -141,7 +141,7 @@ def test_transaction_cost_validation_applies_entry_exit_cost():
     history = pd.DataFrame(rows)
     candidates = pd.DataFrame({
         "prediction_date": [dates[0]] * 5 + [dates[1]] * 5,
-        "symbol": ["AAA", "BBB", "CCC", "DDD", "EEE", "AAA", "BBB", "CCC", "FFF", "FFF"],
+        "symbol": ["AAA", "BBB", "CCC", "DDD", "EEE", "AAA", "BBB", "CCC", "FFF", "GGG"],
         "rank": [1, 2, 3, 4, 5, 1, 2, 3, 4, 5],
     }).drop_duplicates(["prediction_date", "symbol"])
 
@@ -149,6 +149,6 @@ def test_transaction_cost_validation_applies_entry_exit_cost():
     row = out[(out["prediction_date"] == dates[1]) & (out["group"] == "TOP5")].iloc[0]
 
     assert row["gross_return_pct"] == pytest.approx(1.0)
-    assert row["turnover_pct"] == pytest.approx(20.0)
-    assert row["transaction_cost_pct"] == pytest.approx(0.04)
-    assert row["net_return_pct"] == pytest.approx(0.96)
+    assert row["turnover_pct"] == pytest.approx(40.0)
+    assert row["transaction_cost_pct"] == pytest.approx(0.08)
+    assert row["net_return_pct"] == pytest.approx(0.92)

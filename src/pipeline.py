@@ -28,6 +28,10 @@ CANDIDATE_HISTORY_FILE = DATA / "prediction_candidates_history.csv"
 CONFIDENCE_ANALYSIS_FILE = DATA / "confidence_analysis.csv"
 SELECTION_VALIDATION_FILE = DATA / "selection_validation.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
+PAPER_TRADES_FILE = DATA / "paper_trades.csv"
+PORTFOLIO_FILE = DATA / "portfolio_daily.csv"
+PAPER_TRADE_TOP_N = 5
+PAPER_CAPITAL = 100000.0
 
 FEATURE_COLUMNS = [
     "return_1d", "return_5d", "return_20d",
@@ -595,6 +599,123 @@ def run_morning() -> None:
     print(f"Morning run complete: target session {target_date.date()}, {len(predictions)} predictions created")
 
 
+
+def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataFrame) -> pd.DataFrame:
+    """Evaluate the Top-5 paper portfolio for every newly completed prediction session.
+
+    The paper portfolio is deliberately separate from model training. The model
+    learns from actual OHLC targets, while paper trading measures the practical
+    result of the selected Top-5 basket.
+    """
+    if predictions.empty:
+        return pd.DataFrame()
+
+    p = predictions.copy()
+    p["prediction_date"] = pd.to_datetime(p["prediction_date"], errors="coerce").dt.normalize()
+    p["target_date"] = pd.to_datetime(p["target_date"], errors="coerce").dt.normalize()
+    p["rank"] = pd.to_numeric(p["rank"], errors="coerce")
+    p = p.dropna(subset=["target_date", "symbol", "rank"])
+
+    h = hist.copy()
+    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    actual = h.rename(columns={
+        "date": "target_date",
+        "open": "actual_open",
+        "high": "actual_high",
+        "low": "actual_low",
+        "close": "actual_close",
+    })[["symbol", "target_date", "actual_open", "actual_high", "actual_low", "actual_close"]]
+
+    rows = p.merge(actual, on=["symbol", "target_date"], how="inner")
+    rows = rows.dropna(subset=["actual_open", "actual_close"])
+    rows = rows[rows["target_date"] <= h["date"].max()].copy()
+    if rows.empty:
+        return pd.DataFrame()
+
+    rows["signal"] = np.where(rows["rank"] <= PAPER_TRADE_TOP_N, "BUY", "SKIP")
+    rows["entry_price"] = np.where(rows["signal"].eq("BUY"), rows["actual_open"], np.nan)
+    rows["exit_price"] = np.where(rows["signal"].eq("BUY"), rows["actual_close"], np.nan)
+    rows["return_pct"] = np.where(
+        rows["signal"].eq("BUY") & rows["entry_price"].ne(0),
+        (rows["exit_price"] / rows["entry_price"] - 1.0) * 100.0,
+        np.nan,
+    )
+
+    # Equal-weighted INR 100,000 paper portfolio: 20% per selected stock.
+    allocation = PAPER_CAPITAL / PAPER_TRADE_TOP_N
+    rows["position_value"] = np.where(rows["signal"].eq("BUY"), allocation, 0.0)
+    rows["profit_loss"] = np.where(
+        rows["signal"].eq("BUY"),
+        rows["position_value"] * (pd.to_numeric(rows["return_pct"], errors="coerce") / 100.0),
+        0.0,
+    )
+
+    keep = [
+        "prediction_date", "target_date", "symbol", "rank", "score",
+        "signal", "entry_price", "exit_price", "return_pct",
+        "position_value", "profit_loss",
+    ]
+    rows = rows[keep]
+
+    if PAPER_TRADES_FILE.exists():
+        old = pd.read_csv(PAPER_TRADES_FILE)
+        combined = pd.concat([old, rows], ignore_index=True)
+    else:
+        combined = rows
+
+    combined["target_date"] = pd.to_datetime(combined["target_date"], errors="coerce").dt.normalize()
+    combined["prediction_date"] = pd.to_datetime(combined["prediction_date"], errors="coerce").dt.normalize()
+    combined = combined.dropna(subset=["target_date", "symbol"])
+    combined = combined.drop_duplicates(["target_date", "symbol"], keep="first")
+    combined = combined.sort_values(["target_date", "rank"]).reset_index(drop=True)
+    combined.to_csv(PAPER_TRADES_FILE, index=False)
+
+    # Daily portfolio return is the equal-weighted mean of the Top-5 intraday returns.
+    buy = combined[combined["signal"].eq("BUY")].copy()
+    daily = buy.groupby("target_date", as_index=False).agg(
+        trades=("symbol", "count"),
+        daily_return_pct=("return_pct", "mean"),
+        daily_profit_loss=("profit_loss", "sum"),
+    )
+    if daily.empty:
+        return combined
+
+    daily = daily.sort_values("target_date")
+    existing_portfolio = pd.read_csv(PORTFOLIO_FILE) if PORTFOLIO_FILE.exists() else pd.DataFrame()
+    if not existing_portfolio.empty:
+        existing_portfolio["target_date"] = pd.to_datetime(existing_portfolio["target_date"], errors="coerce").dt.normalize()
+
+    base = existing_portfolio.iloc[0]["portfolio_value"] if not existing_portfolio.empty else PAPER_CAPITAL
+    history = daily.copy()
+    history["portfolio_value"] = np.nan
+    history["cumulative_return_pct"] = np.nan
+    current_value = float(base)
+    prior_dates = set(existing_portfolio["target_date"].dropna()) if not existing_portfolio.empty else set()
+
+    for idx, row in history.iterrows():
+        date = row["target_date"]
+        if date in prior_dates:
+            old_row = existing_portfolio.loc[existing_portfolio["target_date"] == date].iloc[-1]
+            current_value = float(old_row["portfolio_value"])
+            history.loc[idx, "portfolio_value"] = current_value
+            history.loc[idx, "cumulative_return_pct"] = (current_value / PAPER_CAPITAL - 1.0) * 100.0
+            continue
+        current_value *= 1.0 + float(row["daily_return_pct"]) / 100.0
+        history.loc[idx, "portfolio_value"] = current_value
+        history.loc[idx, "cumulative_return_pct"] = (current_value / PAPER_CAPITAL - 1.0) * 100.0
+
+    history["target_date"] = pd.to_datetime(history["target_date"]).dt.normalize()
+    history = pd.concat([existing_portfolio, history], ignore_index=True)
+    history = history.drop_duplicates(["target_date"], keep="last").sort_values("target_date")
+    history.to_csv(PORTFOLIO_FILE, index=False)
+    print(
+        f"Paper trading updated: Top-{PAPER_TRADE_TOP_N}, "
+        f"sessions={len(history)}, latest={history['target_date'].max().date()}, "
+        f"portfolio=₹{float(history.iloc[-1]['portfolio_value']):,.2f}"
+    )
+    return combined
+
+
 def run_evening() -> None:
     symbols = load_universe()
     hist = update_history(symbols)
@@ -673,6 +794,14 @@ def run_evening() -> None:
     evals = evals.dropna(subset=["target_date", "symbol"])
     evals = evals.drop_duplicates(["target_date", "symbol"], keep="first").sort_values(["target_date", "rank"])
     evals.to_csv(EVALUATIONS_FILE, index=False)
+
+    # Paper-trade the Top-5 from the same predictions whose actual market
+    # session is now complete. This is measurement only; P&L is never used
+    # directly as a training target.
+    _paper_trade_completed_predictions(predictions, hist)
+
+    # Retrain on all realized actual market data, including the newly completed
+    # prediction target session.
     train(hist)
 
     target_date = _next_trading_date(latest_actual_date, hist["date"])

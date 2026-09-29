@@ -169,6 +169,8 @@ def run_confidence_analysis() -> pd.DataFrame:
         "confidence_direction_accuracy_pct": confidence_direction,
         "baseline_profitable_close_pct": baseline_profit,
         "confidence_profitable_close_pct": confidence_profit,
+        "confidence_direction_spearman": direction_corr,
+        "confidence_profit_spearman": profit_corr,
         "minimum_rows_required": MIN_ROWS,
         "minimum_sessions_required": MIN_SESSIONS,
         "minimum_relative_mape_improvement": MIN_RELATIVE_IMPROVEMENT,

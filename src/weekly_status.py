@@ -173,6 +173,21 @@ def build_weekly_message() -> str:
                     "Latest Top-20 turnover  {}".format(_fmt(r.get("top20_turnover_pct"), "%")),
                 ]
 
+    final_path = DATA / "final_model_validation.csv"
+    if final_path.exists():
+        final = pd.read_csv(final_path)
+        if not final.empty:
+            r = final.iloc[-1]
+            lines += [
+                "",
+                "<b>FINAL MODEL VALIDATION</b>",
+                "OOS sessions              {}".format(r.get("oos_sessions", "-")),
+                "Model vs baseline         {}".format(r.get("model_vs_baseline_passed", "-")),
+                "5D Top-10 lift             {}".format(_fmt(r.get("top10_5d_mean_lift_vs_11_20_pct"), "%")),
+                "Promotion gate             {}".format(r.get("promotion_gate_passed", "-")),
+                "Decision                   {}".format(r.get("decision", "-")),
+            ]
+
     sector_path = DATA / "ranking_validation_sector_risk.csv"
     if sector_path.exists():
         sector = pd.read_csv(sector_path)

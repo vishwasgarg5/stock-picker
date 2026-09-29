@@ -200,52 +200,52 @@ def _pct_diff(predicted: object, actual: object) -> float:
 def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str:
     evals = evals.copy()
     evals["target_date"] = pd.to_datetime(evals["target_date"], errors="coerce").dt.normalize()
-    rows = evals[evals["target_date"] == target_date.normalize()].sort_values("rank")
+    rows = evals[evals["target_date"] == target_date.normalize()].sort_values("rank").head(10)
     if rows.empty:
         raise RuntimeError(f"No evaluations found for {target_date.date()}")
+
     metrics = {field: _mape(rows, field) for field in ["open", "high", "low", "close"]}
     overall = pd.Series(metrics, dtype="float64").mean()
     baseline_close = _baseline_mape(rows, "close")
     direction = pd.to_numeric(rows.get("close_direction_correct"), errors="coerce").mean() * 100 if "close_direction_correct" in rows else float("nan")
+
     lines = [
-        "<b>STOCK PICKER</b>",
-        f"{target_date:%d-%b-%Y} | EVENING",
-        f"{len(rows)} predictions evaluated",
+        "<b>📊 STOCK PICKER — MODEL VALIDATION</b>",
+        f"<b>{target_date:%d-%b-%Y}</b> | {len(rows)} predictions evaluated",
         "",
-        "<b>OHLC PREDICTED vs ACTUAL</b>",
-        "<pre>",
-        "Stock    | Open P/A/Δ | High P/A/Δ | Low P/A/Δ | Close P/A/Δ",
-        "-------------------------------------------------------------------",
+        "<b>OHLC: PREDICTED → ACTUAL</b>",
     ]
-    for _, row in rows.head(10).iterrows():
-        symbol = str(row["symbol"])[:8]
-        cells = []
-        for field in ["open", "high", "low", "close"]:
-            pred = float(row[f"predicted_{field}"])
-            actual = float(row[f"actual_{field}"])
-            delta = actual - pred
-            cells.append(f"{pred:.0f}/{actual:.0f}/{delta:+.0f}")
-        lines.append(f"{symbol:<8} | {cells[0]:>11} | {cells[1]:>11} | {cells[2]:>11} | {cells[3]:>11}")
+    for _, row in rows.iterrows():
+        symbol = str(row["symbol"]).strip()
+        lines += [
+            "",
+            f"<b>{int(row['rank'])}. {symbol}</b>",
+            f"Open  {_fmt(row['predicted_open'])} → {_fmt(row['actual_open'])}  ({_fmt(row['actual_open'] - row['predicted_open'])})",
+            f"High  {_fmt(row['predicted_high'])} → {_fmt(row['actual_high'])}  ({_fmt(row['actual_high'] - row['predicted_high'])})",
+            f"Low   {_fmt(row['predicted_low'])} → {_fmt(row['actual_low'])}  ({_fmt(row['actual_low'] - row['predicted_low'])})",
+            f"Close {_fmt(row['predicted_close'])} → {_fmt(row['actual_close'])}  ({_fmt(row['actual_close'] - row['predicted_close'])})",
+        ]
 
     lines += [
-        "</pre>",
         "",
-        "<b>MODEL PRICE ERROR (MAPE)</b>",
-        f"Open     {_fmt(metrics['open'])}%",
-        f"High     {_fmt(metrics['high'])}%",
-        f"Low      {_fmt(metrics['low'])}%",
-        f"Close    {_fmt(metrics['close'])}%",
-        f"Overall  <b>{_fmt(overall)}%</b>",
-        f"Direction Accuracy {_fmt(direction)}%",
-        f"Baseline Close MAPE {_fmt(baseline_close)}%",
+        "<b>MODEL ERROR</b>",
+        f"Open       {_fmt(metrics['open'])}%",
+        f"High       {_fmt(metrics['high'])}%",
+        f"Low        {_fmt(metrics['low'])}%",
+        f"Close      {_fmt(metrics['close'])}%",
+        f"<b>Overall    {_fmt(overall)}%</b>",
+        f"Direction  {_fmt(direction)}%",
+        f"Baseline C {_fmt(baseline_close)}%",
         "",
         "<b>ROLLING CLOSE MAPE</b>",
     ]
     for days in [7, 30, 90]:
         window = _window(evals, days)
-        lines.append(f"{days:>2}d       {_fmt(_mape(window, 'close'))}% | baseline {_fmt(_baseline_mape(window, 'close'))}% | direction {_fmt(pd.to_numeric(window.get('close_direction_correct'), errors='coerce').mean() * 100 if 'close_direction_correct' in window else float('nan'))}%")
+        roll_direction = pd.to_numeric(window.get("close_direction_correct"), errors="coerce").mean() * 100 if "close_direction_correct" in window else float("nan")
+        lines.append(
+            f"{days}d  Model {_fmt(_mape(window, 'close'))}% | Baseline {_fmt(_baseline_mape(window, 'close'))}% | Dir {_fmt(roll_direction)}%"
+        )
     return "\n".join(lines)
-
 
 def send_evening() -> None:
     if not EVALUATIONS_FILE.exists():
@@ -269,7 +269,7 @@ def send_evening() -> None:
 
 
 def build_paper_trading_message(trades: pd.DataFrame, target_date: pd.Timestamp) -> str:
-    """Build two-part paper report: completed actual result + next-day portfolio."""
+    """Build mobile-friendly completed result + next-day paper portfolio."""
     trades = trades.copy()
     trades["target_date"] = pd.to_datetime(trades["target_date"], errors="coerce").dt.normalize()
     rows = trades[trades["target_date"] == target_date.normalize()].sort_values("rank")
@@ -281,42 +281,34 @@ def build_paper_trading_message(trades: pd.DataFrame, target_date: pd.Timestamp)
     total_invested = pd.to_numeric(traded["position_value"], errors="coerce").fillna(0).sum()
     portfolio = pd.read_csv(PORTFOLIO_FILE) if PORTFOLIO_FILE.exists() else pd.DataFrame()
     latest_value = float(portfolio.iloc[-1]["portfolio_value"]) if not portfolio.empty else PAPER_CAPITAL + total_pnl
-    # Return is measured against the fixed ₹100,000 paper portfolio,
-    # including cash left unused by integer-share sizing.
     actual_return = (total_pnl / PAPER_CAPITAL * 100.0) if PAPER_CAPITAL else 0.0
 
     lines = [
-        "<b>📊 PAPER TRADING — ACTUAL RESULT</b>",
-        f"{target_date:%d-%b-%Y} | Previous prediction → actual market result",
-        "",
-        "<pre>",
-        "Stock     | Qty | Entry     | Exit      | P/L       | P/L%",
-        "---------------------------------------------------------",
+        "<b>💼 PAPER TRADING — ACTUAL RESULT</b>",
+        f"<b>{target_date:%d-%b-%Y}</b> | Previous Top-5",
     ]
     for _, row in traded.iterrows():
-        if "quantity" in row.index and pd.notna(row["quantity"]):
-            qty = int(row["quantity"])
-        elif pd.notna(row["entry_price"]) and float(row["entry_price"]) > 0:
-            qty = int(row["position_value"] // row["entry_price"])
-        else:
-            qty = 0
-        lines.append(
-            f"{str(row['symbol'])[:9]:<9} | {qty:>3} | {_fmt(row['entry_price']):>9} | "
-            f"{_fmt(row['exit_price']):>9} | {_fmt(row['profit_loss']):>9} | {_fmt(row['return_pct']):>6}%"
-        )
+        qty = int(row["quantity"]) if "quantity" in row.index and pd.notna(row["quantity"]) else 0
+        pnl = float(row["profit_loss"])
+        ret = float(row["return_pct"])
+        sign = "🟢" if pnl > 0 else "🔴" if pnl < 0 else "⚪"
+        lines += [
+            "",
+            f"{sign} <b>{str(row['symbol']).strip()}</b>  × {qty}",
+            f"Entry {_fmt(row['entry_price'])} → Exit {_fmt(row['exit_price'])}",
+            f"P/L ₹{pnl:+,.2f}  ({ret:+.2f}%)",
+        ]
+
     lines += [
-        "</pre>",
         "",
-        f"Trades       {len(traded)}",
-        f"Winners      {int((traded['profit_loss'] > 0).sum())}",
-        f"Losers       {int((traded['profit_loss'] < 0).sum())}",
-        f"Actual P/L   ₹{total_pnl:,.2f}",
-        f"Actual Return {_fmt(actual_return)}%",
-        f"Paper Value  ₹{latest_value:,.2f}",
+        "──────────────",
+        f"<b>Trades:</b> {len(traded)}  |  🟢 {int((traded['profit_loss'] > 0).sum())}  |  🔴 {int((traded['profit_loss'] < 0).sum())}",
+        f"<b>Total P/L:</b> ₹{total_pnl:+,.2f}",
+        f"<b>Portfolio return:</b> {actual_return:+.2f}%",
+        f"<b>Portfolio value:</b> ₹{latest_value:,.2f}",
         "",
     ]
 
-    # Build the next-day Top-5 order from the latest prediction session.
     next_date = pd.to_datetime(target_date).normalize()
     if PREDICTIONS_FILE.exists():
         predictions = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date", "target_date"])
@@ -324,8 +316,7 @@ def build_paper_trading_message(trades: pd.DataFrame, target_date: pd.Timestamp)
         future = predictions[predictions["target_date"] > next_date].sort_values(["target_date", "rank"])
         if not future.empty:
             next_target = future["target_date"].min()
-            nxt = future[future["target_date"] == next_target].head(10)
-            nxt = nxt.sort_values("rank").head(5).copy()
+            nxt = future[future["target_date"] == next_target].sort_values("rank").head(5).copy()
             allocation = PAPER_CAPITAL / PAPER_TRADE_TOP_N
             nxt["reference_price"] = pd.to_numeric(nxt["base_close"], errors="coerce")
             nxt["qty"] = np.floor(allocation / nxt["reference_price"]).fillna(0).astype(int)
@@ -334,31 +325,28 @@ def build_paper_trading_message(trades: pd.DataFrame, target_date: pd.Timestamp)
 
             lines += [
                 "<b>📈 NEXT-DAY PAPER PORTFOLIO</b>",
-                f"{next_target:%d-%b-%Y} | Top-5 selected shares",
-                "",
-                "<pre>",
-                "Rank | Stock     | Qty | Ref Price | Capital",
-                "------------------------------------------------",
+                f"<b>{next_target:%d-%b-%Y}</b> | Top-5",
             ]
             for _, row in nxt.iterrows():
-                lines.append(
-                    f"{int(row['rank']):>4} | {str(row['symbol'])[:9]:<9} | {int(row['qty']):>3} | "
-                    f"{_fmt(row['reference_price']):>9} | ₹{row['used_capital']:>8,.0f}"
-                )
+                lines += [
+                    "",
+                    f"<b>#{int(row['rank'])} {str(row['symbol']).strip()}</b>",
+                    f"Qty {int(row['qty'])}  |  Ref ₹{_fmt(row['reference_price'])}",
+                    f"Capital used ₹{row['used_capital']:,.0f}",
+                ]
             lines += [
-                "</pre>",
                 "",
-                f"Capital       ₹{PAPER_CAPITAL:,.0f}",
-                f"Used          ₹{nxt['used_capital'].sum():,.0f}",
-                f"Cash balance  ₹{cash_left:,.0f}",
+                "──────────────",
+                f"<b>Capital:</b> ₹{PAPER_CAPITAL:,.0f}",
+                f"<b>Used:</b> ₹{nxt['used_capital'].sum():,.0f}",
+                f"<b>Cash:</b> ₹{cash_left:,.0f}",
                 "",
-                "Qty = floor(₹20,000 / reference price).",
-                "Reference price = latest completed market close; paper trade entry remains actual next-day open.",
+                "Qty = floor(₹20,000 / reference price)",
+                "Reference = latest completed close; entry = next-day actual open",
             ]
         else:
             lines += ["<b>📈 NEXT-DAY PAPER PORTFOLIO</b>", "No future prediction available yet."]
     return "\n".join(lines)
-
 
 
 def send_paper_trading() -> None:

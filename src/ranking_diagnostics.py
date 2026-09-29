@@ -260,6 +260,66 @@ def run_mfe_mae_validation(candidates: pd.DataFrame, history: pd.DataFrame) -> p
     ).reset_index(drop=True)
 
 
+
+STABILITY_OUTPUT = DATA / "ranking_validation_stability.csv"
+
+
+def _empty_stability() -> pd.DataFrame:
+    return pd.DataFrame(columns=[
+        "prediction_date", "previous_prediction_date", "top5_overlap_pct",
+        "top10_overlap_pct", "top20_overlap_pct", "top10_retention_pct",
+        "mean_abs_rank_change", "median_abs_rank_change",
+        "ranked_symbols", "previous_ranked_symbols",
+    ])
+
+
+def run_ranking_stability(candidates: pd.DataFrame) -> pd.DataFrame:
+    """Measure consecutive-session ranking stability without using future outcomes."""
+    if candidates.empty:
+        return _empty_stability()
+
+    c = candidates.copy()
+    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    c["symbol"] = c["symbol"].astype(str).str.strip()
+    c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
+    c = c.dropna(subset=["prediction_date", "symbol", "rank"])
+    c = c[c["rank"].between(1, 20)].copy()
+
+    sessions = sorted(c["prediction_date"].unique())
+    rows = []
+    for previous_date, current_date in zip(sessions, sessions[1:]):
+        prev = c[c["prediction_date"] == previous_date].set_index("symbol")["rank"]
+        curr = c[c["prediction_date"] == current_date].set_index("symbol")["rank"]
+
+        def overlap_pct(n: int) -> float:
+            a = set(prev[prev <= n].index)
+            b = set(curr[curr <= n].index)
+            return len(a & b) / min(len(a), len(b)) * 100.0 if a and b else np.nan
+
+        common = prev.index.intersection(curr.index)
+        rank_change = (curr.loc[common] - prev.loc[common]).abs()
+        top10_prev = set(prev[prev <= 10].index)
+        top10_curr = set(curr[curr <= 10].index)
+        retained = len(top10_prev & top10_curr) / len(top10_prev) * 100.0 if top10_prev else np.nan
+
+        rows.append({
+            "prediction_date": pd.Timestamp(current_date),
+            "previous_prediction_date": pd.Timestamp(previous_date),
+            "top5_overlap_pct": overlap_pct(5),
+            "top10_overlap_pct": overlap_pct(10),
+            "top20_overlap_pct": overlap_pct(20),
+            "top10_retention_pct": retained,
+            "mean_abs_rank_change": rank_change.mean() if not rank_change.empty else np.nan,
+            "median_abs_rank_change": rank_change.median() if not rank_change.empty else np.nan,
+            "ranked_symbols": curr.index.nunique(),
+            "previous_ranked_symbols": prev.index.nunique(),
+        })
+
+    if not rows:
+        return _empty_stability()
+    return pd.DataFrame(rows).sort_values("prediction_date").reset_index(drop=True)
+
+
 def run_ranking_diagnostics() -> pd.DataFrame:
     if not CANDIDATES.exists() or not HISTORY.exists():
         out = _empty()
@@ -366,6 +426,8 @@ def run_ranking_diagnostics() -> pd.DataFrame:
     horizons.to_csv(HORIZON_OUTPUT, index=False)
     mfe_mae = run_mfe_mae_validation(c, h)
     mfe_mae.to_csv(DATA / "ranking_validation_mfe_mae.csv", index=False)
+    stability = run_ranking_stability(c)
+    stability.to_csv(STABILITY_OUTPUT, index=False)
 
     sessions = x["target_date"].nunique()
     top = x[x["rank"] <= 10]

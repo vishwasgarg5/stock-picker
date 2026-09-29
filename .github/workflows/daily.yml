@@ -36,6 +36,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Validate Python source
+        run: python -m compileall -q src
+
       - name: Update universe, evaluate yesterday's prediction, retrain and predict tomorrow
         run: |
           python - <<'PY'

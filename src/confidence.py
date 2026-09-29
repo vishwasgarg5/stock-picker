@@ -12,6 +12,7 @@ SELECTION_OUTPUT = DATA / "selection_validation.csv"
 MIN_ROWS = 100
 MIN_SESSIONS = 12
 MIN_RELATIVE_IMPROVEMENT = 0.01
+MIN_CALIBRATION_CORRELATION = 0.10
 
 def run_confidence_analysis() -> pd.DataFrame:
     if not CANDIDATES.exists() or not HISTORY.exists():
@@ -51,6 +52,25 @@ def run_confidence_analysis() -> pd.DataFrame:
     out["minimum_rows_required"] = MIN_ROWS
     out["minimum_sessions_required"] = MIN_SESSIONS
     out["validation_status"] = np.where((out["rows"]>=MIN_ROWS)&(out["sessions"]>=MIN_SESSIONS),"validated_sample","collecting")
+    # Calibration diagnostics: confidence should carry observable information,
+    # rather than merely being a model-generated score.  Spearman correlation
+    # is used because confidence is ordinal and not assumed to be a probability.
+    valid_conf = x.dropna(subset=["confidence_score", "direction_correct"]).copy()
+    direction_corr = (
+        valid_conf["confidence_score"].corr(valid_conf["direction_correct"], method="spearman")
+        if len(valid_conf) >= 2 else np.nan
+    )
+    profit_corr = (
+        valid_conf["confidence_score"].corr(valid_conf["profitable_close"], method="spearman")
+        if len(valid_conf) >= 2 else np.nan
+    )
+    out["confidence_direction_spearman"] = direction_corr
+    out["confidence_profit_spearman"] = profit_corr
+    bucket_order = ["0-25", "25-50", "50-75", "75-100"]
+    bucket_dir = out.set_index("confidence_bucket")["direction_accuracy_pct"].reindex(bucket_order)
+    bucket_profit = out.set_index("confidence_bucket")["profitable_close_pct"].reindex(bucket_order)
+    out["direction_bucket_monotonic"] = bool(bucket_dir.dropna().is_monotonic_increasing)
+    out["profit_bucket_monotonic"] = bool(bucket_profit.dropna().is_monotonic_increasing)
     # Promotion evidence must show a useful confidence gradient, not merely
     # a large sample. Require both low- and high-confidence buckets to have
     # sufficient data and the high-confidence bucket to have lower error.
@@ -61,6 +81,8 @@ def run_confidence_analysis() -> pd.DataFrame:
         and low.iloc[0]["validation_status"] == "validated_sample"
         and high.iloc[0]["validation_status"] == "validated_sample"
         and high.iloc[0]["close_mape_pct"] < low.iloc[0]["close_mape_pct"]
+        and pd.notna(direction_corr)
+        and direction_corr >= MIN_CALIBRATION_CORRELATION
     )
     out["promotion_evidence"] = evidence
     out.to_csv(OUTPUT,index=False)
@@ -150,6 +172,7 @@ def run_confidence_analysis() -> pd.DataFrame:
         "minimum_rows_required": MIN_ROWS,
         "minimum_sessions_required": MIN_SESSIONS,
         "minimum_relative_mape_improvement": MIN_RELATIVE_IMPROVEMENT,
+        "minimum_calibration_correlation": MIN_CALIBRATION_CORRELATION,
         "promotion_evidence": gate,
         "validation_status": "validated" if gate else ("collecting" if rows < MIN_ROWS or sessions < MIN_SESSIONS else "not_validated"),
     }])

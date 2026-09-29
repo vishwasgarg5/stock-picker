@@ -50,6 +50,15 @@ def _predict(bundle: dict, x: pd.DataFrame) -> np.ndarray:
     preds = np.column_stack([m.predict(x) for m in models])
     return preds @ weights
 
+def _safe_relative_improvement(baseline: float, model: float, min_baseline: float = 1e-3) -> float:
+    """Return relative improvement only when the baseline is numerically meaningful."""
+    baseline = float(baseline)
+    model = float(model)
+    if not np.isfinite(baseline) or not np.isfinite(model) or baseline < min_baseline:
+        return np.nan
+    return (baseline - model) / baseline * 100.0
+
+
 def _fit_challenger(x: pd.DataFrame, y: pd.Series) -> HistGradientBoostingRegressor:
     model = HistGradientBoostingRegressor(
         loss="absolute_error", max_iter=300, learning_rate=0.05,
@@ -116,18 +125,26 @@ def run_walk_forward() -> pd.DataFrame:
         if session_all.empty:
             continue
 
-        # Rank using only information available at the checkpoint.
-        ranking = rank_stocks(feat[feat["date"] <= checkpoint], None, use_market_regime=True)
-        baseline_ranking = rank_stocks(feat[feat["date"] <= checkpoint], None, use_market_regime=False)
-        top = ranking.head(10)[["symbol", "rank", "total_score", "market_regime"]].copy()
-        top["regime_selected"] = 1
-        baseline_top = baseline_ranking.head(10)[["symbol"]].copy()
-        baseline_top["baseline_selected"] = 1
+        # Production currently ranks with use_market_regime=False. Keep the
+        # primary walk-forward evaluation on that exact ranking path so model
+        # evidence is not based on a feature that production does not use.
+        production_ranking = rank_stocks(
+            feat[feat["date"] <= checkpoint], None, use_market_regime=False
+        )
+        regime_ranking = rank_stocks(
+            feat[feat["date"] <= checkpoint], None, use_market_regime=True
+        )
+        top = production_ranking.head(10)[
+            ["symbol", "rank", "total_score", "market_regime"]
+        ].copy()
+        top["production_selected"] = 1
+        regime_top = regime_ranking.head(10)[["symbol"]].copy()
+        regime_top["regime_selected"] = 1
         session_all = session_all.merge(top, on="symbol", how="left")
-        session_all = session_all.merge(baseline_top, on="symbol", how="left")
+        session_all = session_all.merge(regime_top, on="symbol", how="left")
+        session_all["production_selected"] = session_all["production_selected"].fillna(0).astype(int)
         session_all["regime_selected"] = session_all["regime_selected"].fillna(0).astype(int)
-        session_all["baseline_selected"] = session_all["baseline_selected"].fillna(0).astype(int)
-        session = session_all[session_all["regime_selected"] == 1].copy()
+        session = session_all[session_all["production_selected"] == 1].copy()
         if len(session) < 10:
             continue
 
@@ -139,8 +156,8 @@ def run_walk_forward() -> pd.DataFrame:
         # Merge actual next-session OHLC explicitly so feature columns keep their names.
         actual = actual.rename(columns={"open": "actual_open", "high": "actual_high", "low": "actual_low", "close": "actual_close"})
         session_all = session_all.merge(actual, on="symbol", how="inner")
-        session = session_all[session_all["regime_selected"] == 1].copy()
-        baseline_session = session_all[session_all["baseline_selected"] == 1].copy()
+        session = session_all[session_all["production_selected"] == 1].copy()
+        regime_session = session_all[session_all["regime_selected"] == 1].copy()
         if len(session) < 10:
             continue
 
@@ -166,9 +183,26 @@ def run_walk_forward() -> pd.DataFrame:
         session["predicted_high"] = session[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
         session["predicted_low"] = session[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
 
-        regime_mape = (abs(session["actual_close"] - session["predicted_close"]) / session["actual_close"].abs()).mean()
-        baseline_mape = (abs(baseline_session["actual_close"] - baseline_session["close"]) / baseline_session["actual_close"].abs()).mean()
-        regime_comparison_rows.append({"prediction_date": checkpoint, "target_date": target_date, "regime": session["market_regime"].iloc[0], "regime_selection_close_mape_pct": regime_mape * 100, "baseline_selection_close_mape_pct": baseline_mape * 100, "relative_improvement_pct": (baseline_mape - regime_mape) / max(baseline_mape, 1e-12) * 100})
+        # Regime is a separate challenger. Compare its selected basket with the
+        # production-selected basket; never use the regime result for the main
+        # model promotion evidence.
+        production_mape = (
+            abs(session["actual_close"] - session["predicted_close"])
+            / session["actual_close"].abs()
+        ).mean()
+        regime_mape = (
+            abs(regime_session["actual_close"] - regime_session["predicted_close"])
+            / regime_session["actual_close"].abs()
+        ).mean()
+        regime_relative = _safe_relative_improvement(production_mape, regime_mape)
+        regime_comparison_rows.append({
+            "prediction_date": checkpoint,
+            "target_date": target_date,
+            "regime": session["market_regime"].iloc[0],
+            "production_selection_close_mape_pct": production_mape * 100,
+            "regime_selection_close_mape_pct": regime_mape * 100,
+            "relative_improvement_pct": regime_relative,
+        })
 
         for _, row in session.iterrows():
             result = {
@@ -180,6 +214,7 @@ def run_walk_forward() -> pd.DataFrame:
                 "base_close": float(row["close"]),
                 "market_regime": row.get("market_regime", "NEUTRAL"),
                 "regime_selected": int(row.get("regime_selected", 0)),
+                "production_selected": int(row.get("production_selected", 0)),
             }
             for field in ["open", "high", "low", "close"]:
                 actual_value = float(row[f"actual_{field}"])
@@ -248,8 +283,20 @@ def run_walk_forward() -> pd.DataFrame:
         regime_validation.to_csv(DATA / "regime_validation.csv", index=False)
     regime_summary = _select_model(output)
     regime_summary["regime_validation_sessions"] = len(regime_validation)
-    regime_summary["regime_avg_relative_improvement_pct"] = float(regime_validation["relative_improvement_pct"].mean()) if not regime_validation.empty else np.nan
-    regime_summary["regime_promotion_gate_passed"] = bool(len(regime_validation) >= MIN_SELECTION_SESSIONS and regime_summary["regime_avg_relative_improvement_pct"].iloc[0] >= MIN_REGIME_RELATIVE_IMPROVEMENT * 100) if not regime_validation.empty else False
+    valid_regime = regime_validation[
+        np.isfinite(regime_validation["relative_improvement_pct"])
+    ] if not regime_validation.empty else pd.DataFrame()
+    regime_summary["regime_valid_comparison_sessions"] = len(valid_regime)
+    regime_summary["regime_avg_relative_improvement_pct"] = (
+        float(valid_regime["relative_improvement_pct"].mean())
+        if not valid_regime.empty else np.nan
+    )
+    regime_summary["regime_promotion_gate_passed"] = bool(
+        len(valid_regime) >= MIN_SELECTION_SESSIONS
+        and np.isfinite(regime_summary["regime_avg_relative_improvement_pct"].iloc[0])
+        and regime_summary["regime_avg_relative_improvement_pct"].iloc[0]
+        >= MIN_REGIME_RELATIVE_IMPROVEMENT * 100
+    )
     regime_summary.to_csv(SELECTION_FILE, index=False)
     return output
 

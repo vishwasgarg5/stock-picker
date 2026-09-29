@@ -600,11 +600,11 @@ def run_evening() -> None:
     hist = update_history(symbols)
     validate_data_quality(hist, symbols, "evening")
     if not PREDICTIONS_FILE.exists():
-        print("No predictions file; creating a next-session prediction if models are available.")
+        print("No stored prediction; training on all available history and creating the next-session prediction.")
         if not models_ready():
             train(hist)
         fundamentals = update_fundamentals(symbols)
-    record_fundamentals_snapshot(fundamentals, pd.to_datetime(hist["date"]).max())
+        record_fundamentals_snapshot(fundamentals, pd.to_datetime(hist["date"]).max())
         ranking = rank_stocks(features(hist), fundamentals)
         ranking.to_csv(RANKING_FILE, index=False)
         target_date = _next_trading_date(pd.to_datetime(hist["date"], errors="coerce").max().normalize(), hist["date"])
@@ -622,7 +622,7 @@ def run_evening() -> None:
         if not models_ready():
             train(hist)
         fundamentals = update_fundamentals(symbols)
-    record_fundamentals_snapshot(fundamentals, pd.to_datetime(hist["date"]).max())
+        record_fundamentals_snapshot(fundamentals, pd.to_datetime(hist["date"]).max())
         ranking = rank_stocks(features(hist), fundamentals)
         ranking.to_csv(RANKING_FILE, index=False)
         target_date = _next_trading_date(latest_actual_date, hist["date"])

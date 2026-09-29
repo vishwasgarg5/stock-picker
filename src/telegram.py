@@ -227,6 +227,8 @@ def build_evening_message(evals: pd.DataFrame, target_date: pd.Timestamp) -> str
             cells.append(f"{pred:.0f}/{actual:.0f}/{delta:+.0f}")
         lines.append(f"{symbol:<8} | {cells[0]:>11} | {cells[1]:>11} | {cells[2]:>11} | {cells[3]:>11}")
 
+    lines += [
+        "</pre>",
         "",
         "<b>MODEL PRICE ERROR (MAPE)</b>",
         f"Open     {_fmt(metrics['open'])}%",

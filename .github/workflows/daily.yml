@@ -53,6 +53,9 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # A manual rerun should resend the Top-10 even when the exact message
+          # was already recorded as sent in an earlier attempt.
+          FORCE_TELEGRAM: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
         run: python -m src.telegram
 
       - name: Send previous session OHLC evaluation

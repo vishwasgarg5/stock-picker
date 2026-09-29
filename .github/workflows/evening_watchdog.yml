@@ -30,8 +30,25 @@ jobs:
             echo "completed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Dispatch evening workflow if missing
+      - name: Check for an active evening workflow
+        id: active
         if: steps.check.outputs.completed == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          active_count="$(gh run list --workflow evening.yml --status in_progress --json databaseId --jq 'length')"
+          queued_count="$(gh run list --workflow evening.yml --status queued --json databaseId --jq 'length')"
+          echo "active=$active_count"
+          echo "queued=$queued_count"
+          if [ "$active_count" -gt 0 ] || [ "$queued_count" -gt 0 ]; then
+            echo "already_running=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_running=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Dispatch evening workflow if missing
+        if: steps.check.outputs.completed == 'false' && steps.active.outputs.already_running == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -41,6 +58,8 @@ jobs:
         run: |
           if [ "${{ steps.check.outputs.completed }}" = "true" ]; then
             echo "Evening workflow already completed for today."
+          elif [ "${{ steps.active.outputs.already_running }}" = "true" ]; then
+            echo "Evening workflow is already queued or running; no duplicate dispatch."
           else
             echo "Evening workflow was not recorded; a replacement run was dispatched."
           fi

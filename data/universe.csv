@@ -1,6 +1,5 @@
 symbol,company_name
 360ONE,360 ONE WAM Ltd.
-3MINDIA,3M India Ltd.
 AADHARHFC,Aadhar Housing Finance Ltd.
 AARTIIND,Aarti Industries Ltd.
 AAVAS,Aavas Financiers Ltd.
@@ -8,8 +7,6 @@ ABB,ABB India Ltd.
 ABBOTINDIA,Abbott India Ltd.
 ABCAPITAL,Aditya Birla Capital Ltd.
 ABDL,Allied Blenders and Distillers Ltd.
-ABFRL,Aditya Birla Fashion and Retail Ltd.
-ABLBL,Aditya Birla Lifestyle Brands Ltd.
 ABREL,Aditya Birla Real Estate Ltd.
 ABSLAMC,Aditya Birla Sun Life AMC Ltd.
 ACC,ACC Ltd.
@@ -23,6 +20,7 @@ ADANIPORTS,Adani Ports and Special Economic Zone Ltd.
 ADANIPOWER,Adani Power Ltd.
 AEGISLOG,Aegis Logistics Ltd.
 AEGISVOPAK,Aegis Vopak Terminals Ltd.
+AETHER,Aether Industries Ltd.
 AFCONS,Afcons Infrastructure Ltd.
 AFFLE,Affle 3i Ltd.
 AIAENG,AIA Engineering Ltd.
@@ -52,8 +50,11 @@ ATHERENERG,Ather Energy Ltd.
 ATUL,Atul Ltd.
 AUBANK,AU Small Finance Bank Ltd.
 AUROPHARMA,Aurobindo Pharma Ltd.
+AVANTIFEED,Avanti Feeds Ltd.
 AWL,AWL Agri Business Ltd.
 AXISBANK,Axis Bank Ltd.
+AZAD,Azad Engineering Ltd.
+BAGMANE,Bagmane Prime Office REIT
 BAJAJ-AUTO,Bajaj Auto Ltd.
 BAJAJFINSV,Bajaj Finserv Ltd.
 BAJAJHFL,Bajaj Housing Finance Ltd.
@@ -65,22 +66,20 @@ BANDHANBNK,Bandhan Bank Ltd.
 BANKBARODA,Bank of Baroda
 BANKINDIA,Bank of India
 BATAINDIA,Bata India Ltd.
-BAYERCROP,Bayer Cropscience Ltd.
-BBTC,Bombay Burmah Trading Corporation Ltd.
+BBOX,Black Box Ltd.
 BDL,Bharat Dynamics Ltd.
 BEL,Bharat Electronics Ltd.
 BELRISE,Belrise Industries Ltd.
 BEML,BEML Ltd.
 BERGEPAINT,Berger Paints India Ltd.
+BHARATCOAL,Bharat Coking Coal Ltd.
 BHARATFORG,Bharat Forge Ltd.
 BHARTIARTL,Bharti Airtel Ltd.
 BHARTIHEXA,Bharti Hexacom Ltd.
 BHEL,Bharat Heavy Electricals Ltd.
-BIKAJI,Bikaji Foods International Ltd.
 BIOCON,Biocon Ltd.
+BIRET,Brookfield India Real Estate Trust
 BLS,BLS International Services Ltd.
-BLUEDART,Blue Dart Express Ltd.
-BLUEJET,Blue Jet Healthcare Ltd.
 BLUESTARCO,Blue Star Ltd.
 BOSCHLTD,Bosch Ltd.
 BPCL,Bharat Petroleum Corporation Ltd.
@@ -104,7 +103,6 @@ CENTRALBK,Central Bank of India
 CESC,CESC Ltd.
 CGCL,Capri Global Capital Ltd.
 CGPOWER,CG Power and Industrial Solutions Ltd.
-CHALET,Chalet Hotels Ltd.
 CHAMBLFERT,Chambal Fertilizers & Chemicals Ltd.
 CHENNPETRO,Chennai Petroleum Corporation Ltd.
 CHOICEIN,Choice International Ltd.
@@ -113,6 +111,8 @@ CHOLAHLDNG,Cholamandalam Financial Holdings Ltd.
 CIEINDIA,CIE Automotive India Ltd.
 CIPLA,Cipla Ltd.
 CLEAN,Clean Science and Technology Ltd.
+CLEANMAX,Clean Max Enviro Energy Solutions Ltd.
+CMPDI,Central Mine Planning & Design Institute Ltd.
 COALINDIA,Coal India Ltd.
 COCHINSHIP,Cochin Shipyard Ltd.
 COFORGE,Coforge Ltd.
@@ -128,11 +128,11 @@ CRISIL,CRISIL Ltd.
 CROMPTON,Crompton Greaves Consumer Electricals Ltd.
 CUB,City Union Bank Ltd.
 CUMMINSIND,Cummins India Ltd.
+CUPID,Cupid Ltd.
 CYIENT,Cyient Ltd.
 DABUR,Dabur India Ltd.
 DALBHARAT,Dalmia Bharat Ltd.
 DATAPATTNS,Data Patterns (India) Ltd.
-DCMSHRIRAM,DCM Shriram Ltd.
 DEEPAKFERT,Deepak Fertilisers & Petrochemicals Corp. Ltd.
 DEEPAKNTR,Deepak Nitrite Ltd.
 DELHIVERY,Delhivery Ltd.
@@ -151,12 +151,12 @@ EIHOTEL,EIH Ltd.
 ELECON,Elecon Engineering Co. Ltd.
 ELGIEQUIP,Elgi Equipments Ltd.
 EMAMILTD,Emami Ltd.
+EMBASSY,EMBASSY OFFICE PARKS REIT
 EMCURE,Emcure Pharmaceuticals Ltd.
 EMMVEE,Emmvee Photovoltaic Power Ltd.
 ENDURANCE,Endurance Technologies Ltd.
 ENGINERSIN,Engineers India Ltd.
 ENRIN,Siemens Energy India Ltd.
-ERIS,Eris Lifesciences Ltd.
 ESCORTS,Escorts Kubota Ltd.
 ETERNAL,Eternal Ltd.
 EXIDEIND,Exide Industries Ltd.
@@ -168,6 +168,7 @@ FIVESTAR,Five-Star Business Finance Ltd.
 FLUOROCHEM,Gujarat Fluorochemicals Ltd.
 FORCEMOT,Force Motors Ltd.
 FORTIS,Fortis Healthcare Ltd.
+FRACTAL,Fractal Analytics Ltd.
 FSL,Firstsource Solutions Ltd.
 GABRIEL,Gabriel India Ltd.
 GAIL,GAIL (India) Ltd.
@@ -181,7 +182,6 @@ GLENMARK,Glenmark Pharmaceuticals Ltd.
 GMDCLTD,Gujarat Mineral Development Corporation Ltd.
 GMRAIRPORT,GMR Airports Ltd.
 GODFRYPHLP,Godfrey Phillips India Ltd.
-GODIGIT,Go Digit General Insurance Ltd.
 GODREJCP,Godrej Consumer Products Ltd.
 GODREJIND,Godrej Industries Ltd.
 GODREJPROP,Godrej Properties Ltd.
@@ -229,7 +229,6 @@ IGIL,International Gemological Institute Ltd.
 IGL,Indraprastha Gas Ltd.
 IIFL,IIFL Finance Ltd.
 IKS,Inventurus Knowledge Solutions Ltd.
-INDGN,Indegene Ltd.
 INDHOTEL,Indian Hotels Co. Ltd.
 INDIACEM,India Cements Ltd.
 INDIAMART,Indiamart Intermesh Ltd.
@@ -238,6 +237,7 @@ INDIGO,InterGlobe Aviation Ltd.
 INDUSINDBK,IndusInd Bank Ltd.
 INDUSTOWER,Indus Towers Ltd.
 INFY,Infosys Ltd.
+INOXINDIA,INOX India Ltd.
 INOXWIND,Inox Wind Ltd.
 INTELLECT,Intellect Design Arena Ltd.
 IOB,Indian Overseas Bank
@@ -263,13 +263,11 @@ JMFINANCIL,JM Financial Ltd.
 JPPOWER,Jaiprakash Power Ventures Ltd.
 JSL,Jindal Stainless Ltd.
 JSWCEMENT,JSW Cement Ltd.
-JSWDULUX,JSW Dulux Ltd.
 JSWENERGY,JSW Energy Ltd.
 JSWINFRA,JSW Infrastructure Ltd.
 JSWSTEEL,JSW Steel Ltd.
 JUBLFOOD,Jubilant Foodworks Ltd.
 JUBLINGREA,Jubilant Ingrevia Ltd.
-JUBLPHARMA,Jubilant Pharmova Ltd.
 JWL,Jupiter Wagons Ltd.
 JYOTICNC,Jyoti CNC Automation Ltd.
 KAJARIACER,Kajaria Ceramics Ltd.
@@ -280,13 +278,14 @@ KEC,Kec International Ltd.
 KEI,KEI Industries Ltd.
 KFINTECH,Kfin Technologies Ltd.
 KIMS,Krishna Institute of Medical Sciences Ltd.
+KIRLOSBROS,Kirloskar Brothers Ltd.
 KIRLOSENG,Kirloskar Oil Eng Ltd.
 KOTAKBANK,Kotak Mahindra Bank Ltd.
 KPIL,Kalpataru Projects International Ltd.
 KPITTECH,KPIT Technologies Ltd.
 KPRMILL,K.P.R. Mill Ltd.
+KSB,KSB Ltd.
 LALPATHLAB,Dr. Lal Path Labs Ltd.
-LATENTVIEW,Latent View Analytics Ltd.
 LAURUSLABS,Laurus Labs Ltd.
 LEMONTREE,Lemon Tree Hotels Ltd.
 LENSKART,Lenskart Solutions Ltd.
@@ -307,7 +306,6 @@ M&MFIN,Mahindra & Mahindra Financial Services Ltd.
 MAHABANK,Bank of Maharashtra
 MANAPPURAM,Manappuram Finance Ltd.
 MANKIND,Mankind Pharma Ltd.
-MAPMYINDIA,C.E. Info Systems Ltd.
 MARICO,Marico Ltd.
 MARUTI,Maruti Suzuki India Ltd.
 MAXHEALTH,Max Healthcare Institute Ltd.
@@ -325,6 +323,7 @@ MPHASIS,MphasiS Ltd.
 MRF,MRF Ltd.
 MRPL,Mangalore Refinery & Petrochemicals Ltd.
 MSUMI,Motherson Sumi Wiring India Ltd.
+MTARTECH,MTAR Technologies Ltd.
 MUTHOOTFIN,Muthoot Finance Ltd.
 NAM-INDIA,Nippon Life India Asset Management Ltd.
 NATCOPHARM,NATCO Pharma Ltd.
@@ -337,11 +336,9 @@ NCC,NCC Ltd.
 NESTLEIND,Nestle India Ltd.
 NETWEB,Netweb Technologies India Ltd.
 NEULANDLAB,Neuland Laboratories Ltd.
-NEWGEN,Newgen Software Technologies Ltd.
 NH,Narayana Hrudayalaya Ltd.
 NHPC,NHPC Ltd.
 NIACL,The New India Assurance Company Ltd.
-NIVABUPA,Niva Bupa Health Insurance Company Ltd.
 NLCINDIA,NLC India Ltd.
 NMDC,NMDC Ltd.
 NSLNISP,NMDC Steel Ltd.
@@ -365,7 +362,6 @@ PCBL,PCBL Chemical Ltd.
 PERSISTENT,Persistent Systems Ltd.
 PETRONET,Petronet LNG Ltd.
 PFC,Power Finance Corporation Ltd.
-PFIZER,Pfizer Ltd.
 PFOCUS,Prime Focus Ltd.
 PGEL,PG Electroplast Ltd.
 PHOENIXLTD,Phoenix Mills Ltd.
@@ -384,6 +380,7 @@ POWERINDIA,Hitachi Energy India Ltd.
 PPLPHARMA,Piramal Pharma Ltd.
 PREMIERENE,Premier Energies Ltd.
 PRESTIGE,Prestige Estates Projects Ltd.
+PRIVISCL,Privi Speciality Chemicals Ltd.
 PTCIL,PTC Industries Ltd.
 PVRINOX,PVR INOX Ltd.
 PWL,Physicswallah Ltd.
@@ -400,15 +397,14 @@ RITES,RITES Ltd.
 RKFORGE,Ramkrishna Forgings Ltd.
 RPOWER,Reliance Power Ltd.
 RRKABEL,R R Kabel Ltd.
+RUBICON,Rubicon Research Ltd.
 RVNL,Rail Vikas Nigam Ltd.
 SAGILITY,Sagility Ltd.
 SAIL,Steel Authority of India Ltd.
 SAILIFE,Sai Life Sciences Ltd.
 SAMMAANCAP,Sammaan Capital Ltd.
-SAPPHIRE,Sapphire Foods India Ltd.
+SANSERA,Sansera Engineering Ltd.
 SARDAEN,Sarda Energy and Minerals Ltd.
-SAREGAMA,Saregama India Ltd
-SBFC,SBFC Finance Ltd.
 SBICARD,SBI Cards and Payment Services Ltd.
 SBILIFE,SBI Life Insurance Company Ltd.
 SBIN,State Bank of India
@@ -416,6 +412,7 @@ SCHAEFFLER,Schaeffler India Ltd.
 SCHNEIDER,Schneider Electric Infrastructure Ltd.
 SCI,Shipping Corporation of India Ltd.
 SHREECEM,Shree Cement Ltd.
+SHRIPISTON,SPR Auto Technologies Ltd.
 SHRIRAMFIN,Shriram Finance Ltd.
 SHYAMMETL,Shyam Metalics and Energy Ltd.
 SIEMENS,Siemens Ltd.
@@ -424,10 +421,9 @@ SJVN,SJVN Ltd.
 SOBHA,Sobha Ltd.
 SOLARINDS,Solar Industries India Ltd.
 SONACOMS,Sona BLW Precision Forgings Ltd.
-SONATSOFTW,Sonata Software Ltd.
-SPLPETRO,Supreme Petrochem Ltd.
 SRF,SRF Ltd.
 STARHEALTH,Star Health and Allied Insurance Company Ltd.
+STLTECH,Sterlite Technologies Ltd.
 SUMICHEM,Sumitomo Chemical India Ltd.
 SUNDARMFIN,Sundaram Finance Ltd.
 SUNPHARMA,Sun Pharmaceutical Industries Ltd.
@@ -450,12 +446,13 @@ TATASTEEL,Tata Steel Ltd.
 TATATECH,Tata Technologies Ltd.
 TBOTEK,TBO Tek Ltd.
 TCS,Tata Consultancy Services Ltd.
+TDPOWERSYS,TD Power Systems Ltd.
 TECHM,Tech Mahindra Ltd.
 TECHNOE,Techno Electric & Engineering Company Ltd.
 TEGA,Tega Industries Ltd.
 TEJASNET,Tejas Networks Ltd.
 TENNIND,Tenneco Clean Air India Ltd.
-THELEELA,Leela Palaces Hotels & Resorts Ltd.
+THANGAMAYL,Thangamayil Jewellery Ltd.
 THERMAX,Thermax Ltd.
 TIINDIA,Tube Investments of India Ltd.
 TIMKEN,Timken India Ltd.
@@ -465,7 +462,6 @@ TMCV,Tata Motors Ltd.
 TMPV,Tata Motors Passenger Vehicles Ltd.
 TORNTPHARM,Torrent Pharmaceuticals Ltd.
 TORNTPOWER,Torrent Power Ltd.
-TRAVELFOOD,Travel Food Services Ltd.
 TRENT,Trent Ltd.
 TRIDENT,Trident Ltd.
 TRITURBINE,Triveni Turbine Ltd.
@@ -481,10 +477,14 @@ UPL,UPL Ltd.
 URBANCO,Urban Company Ltd.
 USHAMART,Usha Martin Ltd.
 UTIAMC,UTI Asset Management Company Ltd.
+VAML,Vedanta Aluminium Metal Ltd.
 VBL,Varun Beverages Ltd.
 VEDL,Vedanta Ltd.
+VEDPOWER,Vedanta Power Ltd.
 VIJAYA,Vijaya Diagnostic Centre Ltd.
+VISL,Vedanta Iron and Steel Ltd.
 VMM,Vishal Mega Mart Ltd.
+VOGL,Vedanta Oil and Gas Ltd.
 VOLTAS,Voltas Ltd.
 VTL,Vardhman Textiles Ltd.
 WAAREEENER,Waaree Energies Ltd.

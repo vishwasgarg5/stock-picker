@@ -533,6 +533,34 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     candidates = out.sort_values("rank").copy()
     selection_method = "ranking_top10"
     selected_symbols = set(candidates.head(10)["symbol"])
+
+    # Apply only a small, evidence-based penalty for repeatedly poor recent
+    # close predictions. This improves selection without activating the
+    # unvalidated learned selector prematurely.
+    try:
+        if EVALUATIONS_FILE.exists():
+            ev = pd.read_csv(EVALUATIONS_FILE)
+            ev["target_date"] = pd.to_datetime(ev["target_date"], errors="coerce").dt.normalize()
+            ev["close_abs_pct_error"] = pd.to_numeric(ev["close_abs_pct_error"], errors="coerce")
+            ev = ev.dropna(subset=["target_date", "symbol", "close_abs_pct_error"])
+            if not ev.empty:
+                cutoff = ev["target_date"].max() - pd.Timedelta(days=21)
+                recent = ev[ev["target_date"] >= cutoff]
+                if len(recent) >= 30:
+                    recent_error = recent.groupby("symbol")["close_abs_pct_error"].mean()
+                    candidates["recent_close_error"] = candidates["symbol"].map(recent_error)
+                    median_error = float(recent_error.median())
+                    excess = ((candidates["recent_close_error"] / max(median_error, 1e-6)) - 1.0).clip(lower=0, upper=2)
+                    candidates["selection_penalty"] = excess * 0.75
+                    candidates["selection_priority"] = candidates["rank"] + candidates["selection_penalty"]
+                    selected_symbols = set(candidates.sort_values(["selection_priority", "rank"]).head(10)["symbol"])
+                    selection_method = "ranking_recent_error_adjusted"
+                else:
+                    candidates["recent_close_error"] = np.nan
+                    candidates["selection_penalty"] = 0.0
+    except Exception as exc:
+        print(f"Recent-error selector unavailable; retaining Top-10 ranking: {exc}")
+
     try:
         analysis = pd.read_csv(SELECTION_VALIDATION_FILE)
         validated = not analysis.empty and "promotion_evidence" in analysis.columns and analysis["promotion_evidence"].fillna(False).astype(bool).any()
@@ -540,8 +568,8 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             candidates["selection_priority"] = candidates["rank"] + ((100.0 - candidates["confidence_score"]) / 100.0)
             selected_symbols = set(candidates.sort_values(["selection_priority", "rank"]).head(10)["symbol"])
             selection_method = "validated_confidence_tiebreak"
-    except Exception as exc:
-        print(f"Confidence selector unavailable; retaining Top-10 ranking: {exc}")
+    except Exception:
+        print("Confidence selector unavailable; retaining current selection")
     candidates["selection_method"] = selection_method
     candidates["selected"] = candidates["symbol"].isin(selected_symbols).astype(int)
     candidates.to_csv(CANDIDATES_FILE, index=False)

@@ -163,7 +163,7 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
     lines.append("</pre>")
     if not rejected.empty:
         lines += ["", "<b>Nearest rejected</b>"]
-        lines.append(", ".join(f"{str(row["symbol"]).strip()} (rank {int(row["rank"])})" for _, row in rejected.iterrows()))
+        lines.append(", ".join(f"{str(row['symbol']).strip()} (rank {int(row['rank'])})" for _, row in rejected.iterrows()))
     return "\n".join(lines)
 
 

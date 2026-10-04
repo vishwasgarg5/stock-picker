@@ -11,6 +11,7 @@ import requests
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 PREDICTIONS_FILE = DATA / "predictions.csv"
+CANDIDATES_FILE = DATA / "prediction_candidates.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 PAPER_TRADES_FILE = DATA / "paper_trades.csv"
 PORTFOLIO_FILE = DATA / "portfolio_daily.csv"
@@ -129,9 +130,22 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
         raise RuntimeError(f"Expected 10 predictions for {target_date.date()}, found {len(rows)}")
     total_stocks = _universe_count()
     previous_closes = _previous_closes(target_date, rows["symbol"])
+    selection_method = "-"
+    rejected = pd.DataFrame()
+    if CANDIDATES_FILE.exists():
+        try:
+            candidates = pd.read_csv(CANDIDATES_FILE)
+            candidates["target_date"] = pd.to_datetime(candidates["target_date"], errors="coerce").dt.normalize()
+            candidates = candidates[candidates["target_date"] == target_date.normalize()].copy()
+            if not candidates.empty:
+                selection_method = str(candidates["selection_method"].dropna().iloc[0]) if candidates["selection_method"].notna().any() else "-"
+                rejected = candidates[candidates["selected"].astype(int).eq(0)].sort_values("rank").head(3)
+        except Exception:
+            pass
     lines = [
         "<b>STOCK PICKER</b>",
         f"{target_date:%d-%b-%Y} | TOP 10 / {total_stocks}",
+        f"<b>Selection:</b> {selection_method}",
         "",
         "<pre>",
         "Index   | Open      | High      | Low       | Close     | O→PC %",
@@ -147,6 +161,9 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
             f"{_fmt(row['predicted_low']):>9} | {_fmt(row['predicted_close']):>9} | {_fmt_pct(gap_pct):>7}"
         )
     lines.append("</pre>")
+    if not rejected.empty:
+        lines += ["", "<b>Nearest rejected</b>"]
+        lines.append(", ".join(f"{str(r["symbol"]).strip()} (rank {int(r["rank"])})" for _, r in rejected.iterrows()))
     return "\n".join(lines)
 
 

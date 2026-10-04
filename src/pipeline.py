@@ -551,7 +551,8 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
                     candidates["recent_close_error"] = candidates["symbol"].map(recent_error)
                     median_error = float(recent_error.median())
                     excess = ((candidates["recent_close_error"] / max(median_error, 1e-6)) - 1.0).clip(lower=0, upper=2)
-                    candidates["selection_penalty"] = excess * 0.75
+                    candidates["selection_penalty"] = (excess * 0.75).fillna(0.0)
+                    # No recent history means no evidence of persistent error; do not penalize it.
                     candidates["selection_priority"] = candidates["rank"] + candidates["selection_penalty"]
                     selected_symbols = set(candidates.sort_values(["selection_priority", "rank"]).head(10)["symbol"])
                     selection_method = "ranking_recent_error_adjusted"

@@ -49,9 +49,6 @@ jobs:
           run_evening()
           PY
 
-      - name: Rebuild paper trading, learning and strategy metrics
-        run: python -m src.paper_trading
-
       - name: Send tomorrow's Top-10 prediction
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

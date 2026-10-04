@@ -49,6 +49,9 @@ jobs:
           run_evening()
           PY
 
+      - name: Refresh performance history
+        run: python -m src.performance_history
+
       - name: Send tomorrow's Top-10 prediction
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

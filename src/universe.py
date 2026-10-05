@@ -72,6 +72,7 @@ def update_universe() -> pd.DataFrame:
         df = fetch_universe()
         df.to_csv(UNIVERSE_FILE, index=False)
         print(f"Updated Nifty 500 universe: {len(df)} stocks")
+        update_new_listings(df)
         return df
     except Exception as exc:
         # Never destroy a previously valid universe because NSE is temporarily unavailable.

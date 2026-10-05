@@ -505,6 +505,19 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_
     latest = latest.merge(available, on="symbol", how="left")
     latest["fundamental_score"] = fundamental_score(latest)
     latest["sector_regime_score"] = sector_regime_scores(latest, regime)
+    # Dedicated ranking challenger is strictly gated by its out-of-sample
+    # promotion evidence; until then it cannot influence production ranking.
+    latest["ranking_model_score"] = 0.0
+    try:
+        from .ranking_model import latest_rank_scores
+        challenger = latest_rank_scores(df)
+        if not challenger.empty:
+            latest = latest.merge(challenger, on="symbol", how="left", suffixes=("", "_challenger"))
+            raw = pd.to_numeric(latest["ranking_model_score_challenger"], errors="coerce")
+            latest["ranking_model_score"] = raw.rank(pct=True).fillna(0.0) * 15.0
+            latest = latest.drop(columns=["ranking_model_score_challenger"])
+    except Exception as exc:
+        print(f"Ranking challenger unavailable; retaining current ranking: {exc}")
     total_weight = float(sum(weight for weight, _ in FUNDAMENTAL_FIELDS.values()))
     latest["fundamental_coverage_pct"] = (
         latest[list(FUNDAMENTAL_FIELDS)].notna().mul(
@@ -512,7 +525,7 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_
         ).sum(axis=1) / total_weight * 100.0
     ).clip(0, 100)
     # Keep the sector/regime adjustment deliberately small; ML OHLC predictions remain unchanged.
-    latest["total_score"] = latest["technical_score"] + latest["fundamental_score"] + latest["sector_regime_score"]
+    latest["total_score"] = latest["technical_score"] + latest["fundamental_score"] + latest["sector_regime_score"] + latest["ranking_model_score"]
     latest = latest.sort_values(["total_score", "symbol"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
     latest["rank"] = np.arange(1, len(latest) + 1, dtype=int)
     if latest["rank"].duplicated().any() or latest["rank"].tolist() != list(range(1, len(latest) + 1)):

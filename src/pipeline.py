@@ -551,6 +551,33 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     expected_move = (out["predicted_close"] / out["base_close"] - 1).abs()
     uncertainty_ratio = out["prediction_spread"] / expected_move.replace(0, np.nan)
     out["confidence_score"] = (100 / (1 + uncertainty_ratio)).clip(0, 100).fillna(0)
+
+    # New listings get a separate maturity-aware confidence score. This does not
+    # change the core ML prediction; it prevents short post-IPO histories from
+    # being interpreted as equally reliable as established stocks.
+    out["listing_age_days"] = np.nan
+    out["listing_status"] = "CORE"
+    out["listing_confidence_factor"] = 1.0
+    try:
+        if NEW_LISTINGS_FILE.exists():
+            listing = pd.read_csv(NEW_LISTINGS_FILE)
+            if {"symbol", "calendar_age", "status"}.issubset(listing.columns):
+                listing["symbol"] = listing["symbol"].astype(str).str.upper().str.strip()
+                listing["calendar_age"] = pd.to_numeric(listing["calendar_age"], errors="coerce")
+                meta = listing.drop_duplicates("symbol").set_index("symbol")
+                out["listing_age_days"] = out["symbol"].map(meta["calendar_age"])
+                out["listing_status"] = out["symbol"].map(meta["status"]).fillna("CORE")
+                out["listing_confidence_factor"] = out["listing_age_days"].map(
+                    lambda age: 0.70 if pd.notna(age) and age < 20
+                    else 0.85 if pd.notna(age) and age < 60
+                    else 1.0
+                )
+    except Exception as exc:
+        print(f"New-listing confidence adjustment unavailable: {exc}")
+    out["adjusted_confidence_score"] = (
+        out["confidence_score"] * out["listing_confidence_factor"]
+    ).clip(0, 100)
+
     out["target_date"] = pd.Timestamp(target_date).normalize()
     out["created_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     candidates = out.sort_values("rank").copy()

@@ -284,7 +284,7 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def market_regime(df: pd.DataFrame) -> str:
-    """Classify the broad market regime using only completed historical bars."""
+    """Classify market regime from the cross-sectional median of completed bars."""
     x = df.copy()
     x["date"] = pd.to_datetime(x["date"], errors="coerce").dt.normalize()
     daily = x.groupby("date")["close"].median().sort_index().dropna()
@@ -300,15 +300,45 @@ def market_regime(df: pd.DataFrame) -> str:
     return "NEUTRAL"
 
 
+def sector_regime_scores(latest: pd.DataFrame, regime: str) -> pd.Series:
+    """Reward relative sector strength without changing the core ML prediction."""
+    score = pd.Series(0.0, index=latest.index)
+    if "sector" not in latest.columns:
+        return score
+    x = latest.copy()
+    x["_momentum"] = pd.to_numeric(x["return_20d"], errors="coerce")
+    sector_strength = x.groupby("sector")["_momentum"].transform("median")
+    valid = sector_strength.notna()
+    if valid.any():
+        relative = sector_strength[valid].rank(pct=True)
+        score.loc[relative.index] = relative * 3.0
+    # In a bear regime, prefer strength rather than adding broad-market risk.
+    if regime == "BEAR":
+        score *= 1.25
+    return score
+
+
 def market_regime_score(latest: pd.DataFrame, regime: str) -> pd.Series:
-    """Small regime-aware adjustment; ranking remains primarily technical+fundamental."""
+    """Regime-aware ranking adjustment; core ML predictions remain unchanged."""
     score = pd.Series(0.0, index=latest.index)
     momentum = latest["return_20d"].rank(pct=True)
     if regime == "BULL":
         score = momentum * 2.0
     elif regime == "BEAR":
+        # Do not reward raw momentum in a bear market; sector-relative strength
+        # remains available through sector_regime_scores.
         score = 0.0
     return score
+
+
+def regime_trade_filter(regime: str, score: pd.Series) -> pd.Series:
+    """Conservative production filter for the paper-trading challenger only."""
+    if regime == "BULL":
+        return pd.Series(True, index=score.index)
+    if regime == "NEUTRAL":
+        return pd.Series(True, index=score.index)
+    # BEAR: require above-median composite ranking score.
+    return score >= score.median()
 
 
 def technical_score(latest: pd.DataFrame) -> pd.Series:

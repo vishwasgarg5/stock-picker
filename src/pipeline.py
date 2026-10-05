@@ -11,7 +11,7 @@ import pandas_market_calendars as mcal
 import yfinance as yf
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor
 
-from .new_listing_model import challenger_ready, latest_challenger_features, predict_challenger_close
+from .new_listing_model import challenger_ready, latest_challenger_features, predict_challenger_ohlc
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -556,8 +556,19 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         raise RuntimeError(f"Expected at least 10 ranked stocks, found {len(ranked)}")
     latest = features(df).sort_values("date").groupby("symbol", as_index=False).tail(1)
     latest = latest[latest["symbol"].isin(ranked["symbol"])].dropna(subset=FEATURE_COLUMNS)
+    ipo_pred = predict_challenger_ohlc(df, ranked["symbol"].tolist()) if challenger_ready() else pd.DataFrame()
+
+    if len(latest) < 10 and not ipo_pred.empty:
+        # Fill missing short-history IPO candidates with the validated challenger.
+        missing = ranked.loc[~ranked["symbol"].isin(latest["symbol"])]
+        ipo_fill = ipo_pred[ipo_pred["symbol"].isin(missing["symbol"])]
+        if not ipo_fill.empty:
+            ipo_fill = ipo_fill.rename(columns={"date": "prediction_date"})
+            ipo_fill["base_close"] = ipo_fill["close"]
+            ipo_fill["prediction_spread"] = 0.0
+            latest = pd.concat([latest, ipo_fill], ignore_index=True, sort=False)
     if len(latest) < 10:
-        raise RuntimeError(f"Expected features for at least 10 candidates, found {len(latest)}")
+        raise RuntimeError(f"Expected predictions for at least 10 candidates, found {len(latest)}")
     if not models_ready():
         raise RuntimeError("Prediction models are missing")
     spreads = []

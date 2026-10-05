@@ -76,6 +76,9 @@ jobs:
       - name: Build strategy A/B comparison report
         run: python -m src.strategy_ab_report
 
+      - name: Run consolidated performance audit
+        run: python -m src.performance_audit
+
       - name: Refresh performance history
         run: python -m src.performance_history
 

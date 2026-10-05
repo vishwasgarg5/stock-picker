@@ -11,6 +11,8 @@ import pandas_market_calendars as mcal
 import yfinance as yf
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor
 
+from .new_listing_model import challenger_ready, latest_challenger_features, predict_challenger_close
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 MODELS = ROOT / "models"
@@ -436,6 +438,31 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_
     work["date"] = pd.to_datetime(work["date"], errors="coerce").dt.normalize()
     latest_date = work["date"].max()
     latest = work[work["date"] == latest_date].dropna(subset=FEATURE_COLUMNS).copy()
+    # Validated IPO challenger can rank mature-enough recent listings (20-59
+    # calendar days) even before the standard 50-session feature set exists.
+    if challenger_ready():
+        try:
+            ipo = latest_challenger_features(work, work["symbol"].unique().tolist())
+            if not ipo.empty:
+                ipo = ipo[["symbol", "date", "close", "age_sessions", "predicted_close_return"]].copy()
+                ipo["return_20d"] = ipo["return_5d"] = ipo["predicted_close_return"]
+                ipo["volume_ratio"] = 1.0
+                ipo["rsi14"] = 50.0
+                ipo["ema20"] = ipo["close"]
+                ipo["ema50"] = ipo["close"]
+                ipo["technical_score"] = 50.0 + ipo["predicted_close_return"].rank(pct=True) * 20.0
+                ipo["market_regime_score"] = 0.0
+                ipo["technical_score"] = ipo["technical_score"].clip(0, 80)
+                ipo["market_regime"] = market_regime(work)
+                for col in FUNDAMENTAL_FIELDS:
+                    ipo[col] = np.nan
+                ipo["fundamental_score"] = 0.0
+                ipo["fundamental_coverage_pct"] = 0.0
+                ipo["total_score"] = ipo["technical_score"]
+                latest = pd.concat([latest, ipo.drop(columns=["age_sessions", "predicted_close_return"])], ignore_index=True)
+                latest = latest.drop_duplicates("symbol", keep="first")
+        except Exception as exc:
+            print(f"Validated IPO ranking unavailable; retaining core ranking: {exc}")
     latest["technical_score"] = technical_score(latest)
     regime = market_regime(df)
     latest["market_regime"] = regime

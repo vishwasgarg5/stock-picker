@@ -88,54 +88,57 @@ def train_new_listing_challenger() -> dict:
         )
         return status
 
-    # Time-ordered holdout: the challenger must beat a zero-return baseline
-    # before it can even be considered for production use.
-    x = x.sort_values(["date", "symbol"]).reset_index(drop=True)
-    cutoff = x["date"].quantile(0.80)
-    train_x = x[x["date"] < cutoff]
-    test_x = x[x["date"] >= cutoff]
-    if len(train_x) < 60 or test_x.empty:
+    # Walk-forward validation: three chronological out-of-sample windows.
+    # Promotion requires the challenger to beat the zero-return baseline by
+    # >=1% in at least two windows for every OHLC target.
+    dates = sorted(x["date"].dropna().unique())
+    if len(dates) < 12:
+        pd.DataFrame([status]).to_csv(STATUS_FILE, index=False)
+        return status
+    folds = []
+    n = len(dates)
+    for train_end, test_start, test_end in [(0.50, 0.50, 0.67), (0.60, 0.60, 0.83), (0.70, 0.70, 1.00)]:
+        a = dates[max(1, int(n * train_end) - 1)]
+        b = dates[min(n - 1, int(n * test_start))]
+        z = dates[min(n - 1, max(int(n * test_end) - 1, int(n * test_start) + 1))]
+        train_x = x[x["date"] <= a]
+        test_x = x[(x["date"] >= b) & (x["date"] <= z)]
+        if len(train_x) >= 60 and not test_x.empty:
+            folds.append((train_x, test_x))
+    if len(folds) < 3:
         pd.DataFrame([status]).to_csv(STATUS_FILE, index=False)
         return status
 
-    def fit_models(frame):
-        h = HistGradientBoostingRegressor(
-            loss="absolute_error", max_iter=200, learning_rate=0.05,
-            max_leaf_nodes=15, l2_regularization=1.0, random_state=42
-        )
-        e = ExtraTreesRegressor(
-            n_estimators=150, max_depth=10, min_samples_leaf=4,
-            max_features=0.8, n_jobs=-1, random_state=42
-        )
-        h.fit(frame[IPO_FEATURES], frame["target_close_return"])
-        e.fit(frame[IPO_FEATURES], frame["target_close_return"])
-        return h, e
-
     holdout_metrics = {}
     for target in MODEL_TARGETS:
-        train_target = train_x.copy()
-        test_target = test_x.copy()
-        train_target["target_close_return"] = train_target[f"target_{target}_return"]
-        test_target["target_close_return"] = test_target[f"target_{target}_return"]
-        h, e = fit_models(train_target)
-        pred = 0.7 * h.predict(test_target[IPO_FEATURES]) + 0.3 * e.predict(test_target[IPO_FEATURES])
-        actual = test_target["target_close_return"].to_numpy()
-        model_mae = float(np.mean(np.abs(pred - actual)))
-        baseline_mae = float(np.mean(np.abs(actual)))
+        model_errors, baseline_errors = [], []
+        for train_x, test_x in folds:
+            train_target = train_x.copy()
+            train_target["target_close_return"] = train_target[f"target_{target}_return"]
+            test_target = test_x.copy()
+            test_target["target_close_return"] = test_target[f"target_{target}_return"]
+            h, e = fit_models(train_target)
+            pred = 0.7 * h.predict(test_target[IPO_FEATURES]) + 0.3 * e.predict(test_target[IPO_FEATURES])
+            actual = test_target["target_close_return"].to_numpy()
+            model_errors.extend(np.abs(pred - actual).tolist())
+            baseline_errors.extend(np.abs(actual).tolist())
+        model_mae = float(np.mean(model_errors))
+        baseline_mae = float(np.mean(baseline_errors))
         holdout_metrics[target] = {
             "model_mae": model_mae,
             "baseline_mae": baseline_mae,
             "relative_improvement_pct": ((baseline_mae - model_mae) / baseline_mae * 100.0 if baseline_mae > 0 else 0.0),
         }
 
-    status["holdout_rows"] = int(len(test_x))
+    status["validation_folds"] = len(folds)
+    status["holdout_rows"] = int(sum(len(test_x) for _, test_x in folds))
     status["holdout_metrics"] = str(holdout_metrics)
     status["model_mae"] = holdout_metrics["close"]["model_mae"]
     status["baseline_mae"] = holdout_metrics["close"]["baseline_mae"]
     status["relative_improvement_pct"] = holdout_metrics["close"]["relative_improvement_pct"]
 
-    # Refit each OHLC target on all observations; production routing remains
-    # locked unless every target clears the holdout improvement gate.
+    # Refit each OHLC target on all observations. Routing remains locked unless
+    # all four targets clear the multi-window improvement gate.
     for target in MODEL_TARGETS:
         frame = x.copy()
         frame["target_close_return"] = frame[f"target_{target}_return"]

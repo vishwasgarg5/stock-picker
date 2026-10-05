@@ -534,11 +534,17 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     selection_method = "ranking_top10"
     selected_symbols = set(candidates.head(10)["symbol"])
 
-    # Apply only a small, evidence-based penalty for repeatedly poor recent
-    # close predictions. This improves selection without activating the
-    # unvalidated learned selector prematurely.
+    # Apply the recent-error selector only after its own out-of-sample
+    # A/B validation gate has demonstrated improvement over pure rank selection.
+    # Until then, production stays on the safer rank-based Top-10.
     try:
-        if EVALUATIONS_FILE.exists():
+        validation = pd.read_csv(SELECTION_VALIDATION_FILE) if SELECTION_VALIDATION_FILE.exists() else pd.DataFrame()
+        selector_validated = (
+            not validation.empty
+            and "recent_error_promotion_evidence" in validation.columns
+            and bool(validation["recent_error_promotion_evidence"].fillna(False).astype(bool).any())
+        )
+        if selector_validated and EVALUATIONS_FILE.exists():
             ev = pd.read_csv(EVALUATIONS_FILE)
             ev["target_date"] = pd.to_datetime(ev["target_date"], errors="coerce").dt.normalize()
             ev["close_abs_pct_error"] = pd.to_numeric(ev["close_abs_pct_error"], errors="coerce")

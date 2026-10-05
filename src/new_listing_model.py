@@ -11,6 +11,7 @@ DATA = ROOT / "data"
 MODELS = ROOT / "models"
 NEW_LISTINGS_FILE = DATA / "new_listings.csv"
 HISTORY_FILE = DATA / "ohlcv.csv"
+MODEL_TARGETS = ["open", "high", "low", "close"]
 MODEL_FILE = MODELS / "new_listing_close.joblib"
 STATUS_FILE = DATA / "new_listing_model_status.csv"
 
@@ -45,7 +46,8 @@ def _features(hist: pd.DataFrame, listing_dates: pd.Series) -> pd.DataFrame:
     x["gap_pct"] = (x["open"] / prev.replace(0, np.nan)) - 1.0
     x["close_position"] = (x["close"] - x["low"]) / (x["high"] - x["low"]).replace(0, np.nan)
     # One-step-ahead return; the current row contains information known at session close.
-    x["target_close_return"] = g["close"].shift(-1) / x["close"] - 1.0
+    for field in MODEL_TARGETS:
+        x[f"target_{field}_return"] = g[field].shift(-1) / x["close"] - 1.0
     return x
 
 
@@ -74,7 +76,7 @@ def train_new_listing_challenger() -> dict:
     x = _features(hist, listing_dates)
     x = x[x["symbol"].isin(listing_dates.index)]
     x = x[x["age_sessions"] >= MIN_AGE]
-    x = x.dropna(subset=IPO_FEATURES + ["target_close_return"])
+    x = x.dropna(subset=IPO_FEATURES + [f"target_{t}_return" for t in MODEL_TARGETS])
 
     status["symbols"] = int(x["symbol"].nunique())
     status["rows"] = int(len(x))
@@ -138,7 +140,7 @@ def train_new_listing_challenger() -> dict:
     return status
 
 def challenger_ready() -> bool:
-    if not STATUS_FILE.exists() or not MODEL_FILE.exists():
+    if not STATUS_FILE.exists() or not all((MODELS / f"new_listing_{t}.joblib").exists() for t in MODEL_TARGETS):
         return False
     try:
         s = pd.read_csv(STATUS_FILE)
@@ -169,21 +171,23 @@ def latest_challenger_features(hist: pd.DataFrame, symbols: list[str]) -> pd.Dat
     return latest.dropna(subset=IPO_FEATURES).copy()
 
 
-def predict_challenger_close(hist: pd.DataFrame, symbols: list[str]) -> pd.DataFrame:
+def predict_challenger_ohlc(hist: pd.DataFrame, symbols: list[str]) -> pd.DataFrame:
     if not challenger_ready():
         return pd.DataFrame()
     latest = latest_challenger_features(hist, symbols)
     if latest.empty:
         return pd.DataFrame()
-    bundle = joblib.load(MODEL_FILE)
-    models = bundle["models"]
-    weights = np.asarray(bundle.get("weights", [0.7, 0.3]), dtype=float)
-    weights = weights / weights.sum()
-    pred = sum(w * m.predict(latest[IPO_FEATURES]) for w, m in zip(weights, models))
-    latest["predicted_close_return"] = pred
-    latest["predicted_close"] = latest["close"] * (1.0 + pred)
-    return latest[["symbol", "date", "close", "age_sessions", "predicted_close_return", "predicted_close"]].copy()
-
+    out = latest[["symbol", "date", "close", "age_sessions"]].copy()
+    for target in MODEL_TARGETS:
+        bundle = joblib.load(MODELS / f"new_listing_{target}.joblib")
+        models = bundle["models"]
+        weights = np.asarray(bundle.get("weights", [0.7, 0.3]), dtype=float)
+        weights = weights / weights.sum()
+        pred = sum(w * m.predict(latest[IPO_FEATURES]) for w, m in zip(weights, models))
+        out[f"predicted_{target}"] = latest["close"] * (1.0 + pred)
+    out["predicted_high"] = out[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
+    out["predicted_low"] = out[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
+    return out
 
 if __name__ == "__main__":
     train_new_listing_challenger()

@@ -111,28 +111,45 @@ def train_new_listing_challenger() -> dict:
         e.fit(frame[IPO_FEATURES], frame["target_close_return"])
         return h, e
 
-    h, e = fit_models(train_x)
-    pred_h = h.predict(test_x[IPO_FEATURES])
-    pred_e = e.predict(test_x[IPO_FEATURES])
-    pred = 0.7 * pred_h + 0.3 * pred_e
-    actual = test_x["target_close_return"].to_numpy()
-    model_mae = float(np.mean(np.abs(pred - actual)))
-    baseline_mae = float(np.mean(np.abs(actual)))
-    status["holdout_rows"] = int(len(test_x))
-    status["model_mae"] = model_mae
-    status["baseline_mae"] = baseline_mae
-    status["relative_improvement_pct"] = (
-        (baseline_mae - model_mae) / baseline_mae * 100.0
-        if baseline_mae > 0 else 0.0
-    )
+    holdout_metrics = {}
+    for target in MODEL_TARGETS:
+        train_target = train_x.copy()
+        test_target = test_x.copy()
+        train_target["target_close_return"] = train_target[f"target_{target}_return"]
+        test_target["target_close_return"] = test_target[f"target_{target}_return"]
+        h, e = fit_models(train_target)
+        pred = 0.7 * h.predict(test_target[IPO_FEATURES]) + 0.3 * e.predict(test_target[IPO_FEATURES])
+        actual = test_target["target_close_return"].to_numpy()
+        model_mae = float(np.mean(np.abs(pred - actual)))
+        baseline_mae = float(np.mean(np.abs(actual)))
+        holdout_metrics[target] = {
+            "model_mae": model_mae,
+            "baseline_mae": baseline_mae,
+            "relative_improvement_pct": ((baseline_mae - model_mae) / baseline_mae * 100.0 if baseline_mae > 0 else 0.0),
+        }
 
-    # Refit on all available observations, but keep it as a challenger only.
-    h, e = fit_models(x)
-    joblib.dump({"models": [h, e], "weights": [0.7, 0.3], "version": "new_listing_challenger_v1",
-                 "features": IPO_FEATURES, "holdout_model_mae": model_mae,
-                 "holdout_baseline_mae": baseline_mae}, MODEL_FILE)
-    status["status"] = "validated_challenger" if (
-        baseline_mae > 0 and model_mae < baseline_mae * 0.99
+    status["holdout_rows"] = int(len(test_x))
+    status["holdout_metrics"] = str(holdout_metrics)
+    status["model_mae"] = holdout_metrics["close"]["model_mae"]
+    status["baseline_mae"] = holdout_metrics["close"]["baseline_mae"]
+    status["relative_improvement_pct"] = holdout_metrics["close"]["relative_improvement_pct"]
+
+    # Refit each OHLC target on all observations; production routing remains
+    # locked unless every target clears the holdout improvement gate.
+    for target in MODEL_TARGETS:
+        frame = x.copy()
+        frame["target_close_return"] = frame[f"target_{target}_return"]
+        h, e = fit_models(frame)
+        joblib.dump(
+            {"models": [h, e], "weights": [0.7, 0.3],
+             "version": "new_listing_challenger_v1", "features": IPO_FEATURES,
+             "target": target},
+            MODELS / f"new_listing_{target}.joblib",
+        )
+
+    status["status"] = "validated_challenger" if all(
+        m["baseline_mae"] > 0 and m["model_mae"] < m["baseline_mae"] * 0.99
+        for m in holdout_metrics.values()
     ) else "trained_challenger"
 
     pd.DataFrame([status]).to_csv(STATUS_FILE, index=False)

@@ -64,6 +64,12 @@ jobs:
       - name: Run Paper Trading V2 confidence-filtered benchmark
         run: python -m src.paper_trading_v2
 
+      - name: Run production system health gate
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m src.system_health
+
       - name: Evaluate champion vs challenger strategy
         run: python -m src.strategy_governor
 

@@ -59,14 +59,19 @@ def train_challenger(hist: pd.DataFrame) -> dict:
     if len(ds) < MIN_ROWS:
         print(f"Ranking challenger: collecting data ({len(ds)} rows)")
         return {"status": "collecting", "rows": len(ds)}
-    cutoff = ds["date"].max() - pd.Timedelta(days=45)
-    train = ds[ds["date"] < cutoff]
+
+    # Train only on the earlier chronological portion. Validation below uses
+    # strictly later sessions, preventing future-return leakage.
+    dates = sorted(ds["date"].dropna().unique())
+    split = dates[max(1, int(len(dates) * 0.70)) - 1]
+    train = ds[ds["date"] <= split].copy()
     if len(train) < MIN_ROWS // 2:
         return {"status": "collecting", "rows": len(ds)}
+
     bundle = _fit(train[RANK_FEATURES], train["target_return"])
     MODEL_FILE.parent.mkdir(exist_ok=True)
     joblib.dump(bundle, MODEL_FILE)
-    result = validate_challenger(ds, bundle)
+    result = validate_challenger(ds[ds["date"] > split].copy(), bundle)
     return result
 
 
@@ -94,6 +99,7 @@ def validate_challenger(ds: pd.DataFrame, bundle: dict) -> dict:
     val = pd.DataFrame(rows)
     if val.empty:
         return {"status": "collecting", "sessions": 0, "rows": 0}
+
     val["return_lift_pct"] = val["model_top10_return_pct"] - val["baseline_top10_return_pct"]
     val.to_csv(VALIDATION_FILE, index=False)
     sessions = len(val)
@@ -103,13 +109,15 @@ def validate_challenger(ds: pd.DataFrame, bundle: dict) -> dict:
         val["model_top10_positive_pct"].mean() -
         val["baseline_top10_positive_pct"].mean()
     )
-    # Require both better average top-10 return and positive-hit rate.
     promoted = (
         sessions >= MIN_SESSIONS and
         total_rows >= MIN_ROWS_VALIDATION and
         lift > 0 and positive_lift >= 0
     )
-    status = "promote" if promoted else ("collecting" if sessions < MIN_SESSIONS or total_rows < MIN_ROWS_VALIDATION else "hold")
+    status = "promote" if promoted else (
+        "collecting" if sessions < MIN_SESSIONS or total_rows < MIN_ROWS_VALIDATION
+        else "hold"
+    )
     summary = pd.DataFrame([{
         "sessions": sessions, "rows": total_rows,
         "mean_top10_return_lift_pct": lift,
@@ -118,9 +126,11 @@ def validate_challenger(ds: pd.DataFrame, bundle: dict) -> dict:
         "status": status,
     }])
     summary.to_csv(DATA / "ranking_model_validation_summary.csv", index=False)
-    print(f"Ranking challenger: sessions={sessions}, rows={total_rows}, return_lift={lift:.3f}%, status={status}")
+    print(
+        f"Ranking challenger: sessions={sessions}, rows={total_rows}, "
+        f"return_lift={lift:.3f}%, status={status}"
+    )
     return summary.iloc[0].to_dict()
-
 
 def latest_rank_scores(hist: pd.DataFrame) -> pd.DataFrame:
     if not MODEL_FILE.exists() or not VALIDATION_FILE.exists():

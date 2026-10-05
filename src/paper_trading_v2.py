@@ -62,7 +62,15 @@ def run_paper_trading_v2() -> pd.DataFrame:
     if evidence:
         # Within each session, trade the highest-confidence names, capped at five.
         x["confidence_pct"] = x.groupby("target_date")["confidence_score"].rank(pct=True, method="first")
-        selected = x[x["confidence_pct"] >= 0.8].sort_values(
+        eligible = x[x["confidence_pct"] >= 0.8].copy()
+        # In BEAR regimes, require above-median model rank as an additional
+        # protection. This changes only V2; V1 remains the benchmark.
+        if "market_regime" in eligible.columns:
+            bear = eligible["market_regime"].astype(str).str.upper().eq("BEAR")
+            if bear.any():
+                eligible.loc[bear, "rank_cut"] = eligible.loc[bear].groupby("target_date")["rank"].transform("median")
+                eligible = eligible[~bear | (eligible["rank"] <= eligible["rank_cut"])]
+        selected = eligible.sort_values(
             ["target_date", "confidence_score"], ascending=[True, False]
         ).groupby("target_date", group_keys=False).head(MAX_TRADES).copy()
         x.loc[selected.index, "signal"] = "BUY"

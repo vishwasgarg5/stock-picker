@@ -27,6 +27,7 @@ CANDIDATES_FILE = DATA / "prediction_candidates.csv"
 CANDIDATE_HISTORY_FILE = DATA / "prediction_candidates_history.csv"
 CONFIDENCE_ANALYSIS_FILE = DATA / "confidence_analysis.csv"
 SELECTION_VALIDATION_FILE = DATA / "selection_validation.csv"
+NEW_LISTINGS_FILE = DATA / "new_listings.csv"
 EVALUATIONS_FILE = DATA / "evaluations.csv"
 PAPER_TRADES_FILE = DATA / "paper_trades.csv"
 PORTFOLIO_FILE = DATA / "portfolio_daily.csv"
@@ -103,10 +104,32 @@ def _validate_prediction_session(prediction: pd.DataFrame, target_date: pd.Times
 
 
 def load_universe() -> list[str]:
+    """Return Nifty 500 plus sufficiently mature recent listings.
+
+    Recent listings are tracked separately by src.universe. The first 19 calendar
+    days remain watch/limited-data only; from day 20 they can enter the normal
+    ML pipeline with the same ranking machinery. This prevents a handful of
+    post-IPO observations from being treated like established stocks.
+    """
     df = pd.read_csv(UNIVERSE_FILE)
-    symbols = df["symbol"].dropna().astype(str).str.upper().str.strip().unique().tolist()
-    if len(symbols) < 100:
-        raise RuntimeError(f"Universe contains only {len(symbols)} symbols; refusing to run")
+    core = df["symbol"].dropna().astype(str).str.upper().str.strip().unique().tolist()
+
+    eligible_new = []
+    if NEW_LISTINGS_FILE.exists():
+        recent = pd.read_csv(NEW_LISTINGS_FILE)
+        if not recent.empty and {"symbol", "calendar_age"}.issubset(recent.columns):
+            recent["symbol"] = recent["symbol"].astype(str).str.upper().str.strip()
+            recent["calendar_age"] = pd.to_numeric(recent["calendar_age"], errors="coerce")
+            eligible_new = recent.loc[
+                recent["calendar_age"].ge(20) & recent["symbol"].ne(""),
+                "symbol"
+            ].dropna().tolist()
+
+    symbols = list(dict.fromkeys(core + eligible_new))
+    if len(core) < 100:
+        raise RuntimeError(f"Core Nifty universe contains only {len(core)} symbols; refusing to run")
+    if eligible_new:
+        print(f"Recent listings eligible for ML pipeline: {len(eligible_new)}")
     return symbols
 
 

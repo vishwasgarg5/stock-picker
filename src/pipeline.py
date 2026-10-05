@@ -463,7 +463,7 @@ def fundamental_score(fundamentals: pd.DataFrame) -> pd.Series:
     return scored.clip(0, 20)
 
 
-def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_market_regime: bool = False) -> pd.DataFrame:
+def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_market_regime: bool = True) -> pd.DataFrame:
     work = df.copy()
     work["date"] = pd.to_datetime(work["date"], errors="coerce").dt.normalize()
     latest_date = work["date"].max()
@@ -504,13 +504,15 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_
     available = fundamentals[[c for c in fundamental_cols if c in fundamentals.columns]].copy()
     latest = latest.merge(available, on="symbol", how="left")
     latest["fundamental_score"] = fundamental_score(latest)
+    latest["sector_regime_score"] = sector_regime_scores(latest, regime)
     total_weight = float(sum(weight for weight, _ in FUNDAMENTAL_FIELDS.values()))
     latest["fundamental_coverage_pct"] = (
         latest[list(FUNDAMENTAL_FIELDS)].notna().mul(
             pd.Series({k: v[0] for k, v in FUNDAMENTAL_FIELDS.items()})
         ).sum(axis=1) / total_weight * 100.0
     ).clip(0, 100)
-    latest["total_score"] = latest["technical_score"] + latest["fundamental_score"]
+    # Keep the sector/regime adjustment deliberately small; ML OHLC predictions remain unchanged.
+    latest["total_score"] = latest["technical_score"] + latest["fundamental_score"] + latest["sector_regime_score"]
     latest = latest.sort_values(["total_score", "symbol"], ascending=[False, True], kind="mergesort").reset_index(drop=True)
     latest["rank"] = np.arange(1, len(latest) + 1, dtype=int)
     if latest["rank"].duplicated().any() or latest["rank"].tolist() != list(range(1, len(latest) + 1)):

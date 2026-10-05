@@ -24,7 +24,7 @@ def _confidence_gate() -> bool:
         x = pd.read_csv(CONF_SUMMARY)
         if x.empty:
             return False
-        return bool(x.iloc[-1].get("confidence_promotion_evidence", False))
+        return str(x.iloc[-1].get("confidence_promotion_evidence", "False")).strip().lower() == "true"
     except Exception:
         return False
 

@@ -571,13 +571,16 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         raise RuntimeError(f"Expected predictions for at least 10 candidates, found {len(latest)}")
     if not models_ready():
         raise RuntimeError("Prediction models are missing")
+    core_latest = latest.dropna(subset=FEATURE_COLUMNS).copy()
+    ipo_rows = latest.loc[~latest["symbol"].isin(core_latest["symbol"])].copy()
     spreads = []
     for name in TARGETS:
         bundle = joblib.load(MODELS / f"{name}.joblib")
-        pred, spread = _ensemble_predict(bundle, latest[FEATURE_COLUMNS])
-        latest[f"predicted_{name}"] = latest["close"] * (1 + pred)
+        pred, spread = _ensemble_predict(bundle, core_latest[FEATURE_COLUMNS])
+        core_latest[f"predicted_{name}"] = core_latest["close"] * (1 + pred)
         spreads.append(spread)
-    latest["prediction_spread"] = np.mean(np.column_stack(spreads), axis=1)
+    core_latest["prediction_spread"] = np.mean(np.column_stack(spreads), axis=1) if spreads else 0.0
+    latest = pd.concat([core_latest, ipo_rows], ignore_index=True, sort=False)
     latest["predicted_high"] = latest[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
     latest["predicted_low"] = latest[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
     out = latest[["date", "symbol", "close", "predicted_open", "predicted_high", "predicted_low", "predicted_close", "prediction_spread"]].copy().rename(columns={"date": "prediction_date", "close": "base_close"})

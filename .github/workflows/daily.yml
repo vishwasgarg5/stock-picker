@@ -67,6 +67,9 @@ jobs:
       - name: Evaluate champion vs challenger strategy
         run: python -m src.strategy_governor
 
+      - name: Build strategy A/B comparison report
+        run: python -m src.strategy_ab_report
+
       - name: Refresh performance history
         run: python -m src.performance_history
 

@@ -42,6 +42,9 @@ jobs:
       - name: Build new-listing ML challenger
         run: python -m src.new_listing_model
 
+      - name: Validate confidence calibration before production filtering
+        run: python -m src.confidence_validation
+
       - name: Validate selector A/B before production selection
         run: python -m src.selection_validation
 

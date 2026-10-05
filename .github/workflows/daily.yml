@@ -64,6 +64,9 @@ jobs:
       - name: Run Paper Trading V2 confidence-filtered benchmark
         run: python -m src.paper_trading_v2
 
+      - name: Evaluate champion vs challenger strategy
+        run: python -m src.strategy_governor
+
       - name: Refresh performance history
         run: python -m src.performance_history
 

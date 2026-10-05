@@ -1,0 +1,18 @@
+{
+  "as_of": "2026-10-05 00:00:00",
+  "production_strategy": "V1",
+  "status": "collecting",
+  "reason": "insufficient matched-date evidence",
+  "common_sessions": 0,
+  "v2_trades": 0,
+  "v1_net_pnl": 0.0,
+  "v2_net_pnl": 0.0,
+  "pnl_lift": 0.0,
+  "v1_return_pct": 0.0,
+  "v2_return_pct": 0.0,
+  "return_lift_pct": 0.0,
+  "v1_max_drawdown_pct": 0.0,
+  "v2_max_drawdown_pct": 0.0,
+  "session_win_rate_pct": 0.0,
+  "drawdown_gate": false
+}

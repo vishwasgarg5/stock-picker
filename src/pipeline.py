@@ -570,13 +570,17 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
 
     try:
         analysis = pd.read_csv(SELECTION_VALIDATION_FILE)
-        validated = not analysis.empty and "promotion_evidence" in analysis.columns and analysis["promotion_evidence"].fillna(False).astype(bool).any()
+        validated = (
+            not analysis.empty
+            and "confidence_promotion_evidence" in analysis.columns
+            and analysis["confidence_promotion_evidence"].fillna(False).astype(bool).any()
+        )
         if validated:
             candidates["selection_priority"] = candidates["rank"] + ((100.0 - candidates["confidence_score"]) / 100.0)
             selected_symbols = set(candidates.sort_values(["selection_priority", "rank"]).head(10)["symbol"])
             selection_method = "validated_confidence_tiebreak"
     except Exception:
-        print("Confidence selector unavailable; retaining current selection")
+        print("Confidence selector unavailable or not validated; retaining current selection")
     candidates["selection_method"] = selection_method
     candidates["selected"] = candidates["symbol"].isin(selected_symbols).astype(int)
     candidates.to_csv(CANDIDATES_FILE, index=False)

@@ -137,6 +137,53 @@ def train_new_listing_challenger() -> dict:
     print(f"New-listing challenger trained: {status['symbols']} symbols, {status['rows']} rows")
     return status
 
+def challenger_ready() -> bool:
+    if not STATUS_FILE.exists() or not MODEL_FILE.exists():
+        return False
+    try:
+        s = pd.read_csv(STATUS_FILE)
+        return not s.empty and str(s.iloc[-1].get("status", "")) == "validated_challenger"
+    except Exception:
+        return False
+
+
+def latest_challenger_features(hist: pd.DataFrame, symbols: list[str]) -> pd.DataFrame:
+    if not NEW_LISTINGS_FILE.exists():
+        return pd.DataFrame()
+    listings = pd.read_csv(NEW_LISTINGS_FILE)
+    if listings.empty or not {"symbol", "listing_date", "calendar_age"}.issubset(listings.columns):
+        return pd.DataFrame()
+    listings["symbol"] = listings["symbol"].astype(str).str.upper().str.strip()
+    listings["listing_date"] = pd.to_datetime(listings["listing_date"], errors="coerce").dt.normalize()
+    listings["calendar_age"] = pd.to_numeric(listings["calendar_age"], errors="coerce")
+    eligible = listings[
+        listings["symbol"].isin([str(s).upper().strip() for s in symbols])
+        & listings["calendar_age"].between(20, 59, inclusive="both")
+    ].copy()
+    if eligible.empty:
+        return pd.DataFrame()
+    dates = eligible.drop_duplicates("symbol").set_index("symbol")["listing_date"]
+    x = _features(hist, dates)
+    latest = x.sort_values("date").groupby("symbol", as_index=False).tail(1)
+    latest = latest[latest["symbol"].isin(eligible["symbol"])]
+    return latest.dropna(subset=IPO_FEATURES).copy()
+
+
+def predict_challenger_close(hist: pd.DataFrame, symbols: list[str]) -> pd.DataFrame:
+    if not challenger_ready():
+        return pd.DataFrame()
+    latest = latest_challenger_features(hist, symbols)
+    if latest.empty:
+        return pd.DataFrame()
+    bundle = joblib.load(MODEL_FILE)
+    models = bundle["models"]
+    weights = np.asarray(bundle.get("weights", [0.7, 0.3]), dtype=float)
+    weights = weights / weights.sum()
+    pred = sum(w * m.predict(latest[IPO_FEATURES]) for w, m in zip(weights, models))
+    latest["predicted_close_return"] = pred
+    latest["predicted_close"] = latest["close"] * (1.0 + pred)
+    return latest[["symbol", "date", "close", "age_sessions", "predicted_close_return", "predicted_close"]].copy()
+
 
 if __name__ == "__main__":
     train_new_listing_challenger()

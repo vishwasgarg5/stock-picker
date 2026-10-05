@@ -1,0 +1,2 @@
+status,universe_symbols,fresh_symbols,coverage_pct,prediction_count,prediction_integrity,latest_data_date,model_performance,warnings,failures
+FAILED,501,497,99.2,120,FAIL,2026-10-05,no evaluation history yet,,"prediction count is 120, expected 10 | duplicate prediction symbols | prediction ranks are not unique"

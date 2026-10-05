@@ -1,0 +1,2 @@
+sessions,rows,mean_top10_return_lift_pct,positive_rate_lift_pct,promotion_evidence,status
+636,313617,0.1955754665393844,1.6509433962264168,True,promote

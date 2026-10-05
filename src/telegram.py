@@ -16,6 +16,7 @@ EVALUATIONS_FILE = DATA / "evaluations.csv"
 PAPER_TRADES_FILE = DATA / "paper_trades.csv"
 PORTFOLIO_FILE = DATA / "portfolio_daily.csv"
 UNIVERSE_FILE = DATA / "universe.csv"
+NEW_LISTINGS_FILE = DATA / "new_listings.csv"
 OHLCV_FILE = DATA / "ohlcv.csv"
 SENT_FILE = DATA / "telegram_sent.csv"
 EVENING_SENT_FILE = DATA / "telegram_evening_sent.csv"
@@ -161,6 +162,21 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
             f"{_fmt(row['predicted_low']):>9} | {_fmt(row['predicted_close']):>9} | {_fmt_pct(gap_pct):>7}"
         )
     lines.append("</pre>")
+
+    if NEW_LISTINGS_FILE.exists():
+        try:
+            listings = pd.read_csv(NEW_LISTINGS_FILE)
+            if not listings.empty and {"symbol", "status", "calendar_age"}.issubset(listings.columns):
+                eligible = listings[listings["status"].isin(["ML_CANDIDATE_REDUCED_CONFIDENCE", "NORMAL"])].copy()
+                if not eligible.empty:
+                    names = ", ".join(
+                        f"{str(r['symbol']).strip()} ({int(float(r['calendar_age']))}d)"
+                        for _, r in eligible.head(5).iterrows()
+                    )
+                    lines += ["", "<b>New-listing candidates</b>", names]
+        except Exception:
+            pass
+
     if not rejected.empty:
         lines += ["", "<b>Nearest rejected</b>"]
         lines.append(", ".join(f"{str(row['symbol']).strip()} (rank {int(row['rank'])})" for _, row in rejected.iterrows()))

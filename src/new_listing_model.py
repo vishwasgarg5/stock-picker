@@ -86,22 +86,53 @@ def train_new_listing_challenger() -> dict:
         )
         return status
 
-    # Challenger only: never promoted automatically. The model is trained on
-    # new-listing observations and must later pass out-of-sample validation.
-    h = HistGradientBoostingRegressor(
-        loss="absolute_error", max_iter=200, learning_rate=0.05,
-        max_leaf_nodes=15, l2_regularization=1.0, random_state=42
+    # Time-ordered holdout: the challenger must beat a zero-return baseline
+    # before it can even be considered for production use.
+    x = x.sort_values(["date", "symbol"]).reset_index(drop=True)
+    cutoff = x["date"].quantile(0.80)
+    train_x = x[x["date"] < cutoff]
+    test_x = x[x["date"] >= cutoff]
+    if len(train_x) < 60 or test_x.empty:
+        pd.DataFrame([status]).to_csv(STATUS_FILE, index=False)
+        return status
+
+    def fit_models(frame):
+        h = HistGradientBoostingRegressor(
+            loss="absolute_error", max_iter=200, learning_rate=0.05,
+            max_leaf_nodes=15, l2_regularization=1.0, random_state=42
+        )
+        e = ExtraTreesRegressor(
+            n_estimators=150, max_depth=10, min_samples_leaf=4,
+            max_features=0.8, n_jobs=-1, random_state=42
+        )
+        h.fit(frame[IPO_FEATURES], frame["target_close_return"])
+        e.fit(frame[IPO_FEATURES], frame["target_close_return"])
+        return h, e
+
+    h, e = fit_models(train_x)
+    pred_h = h.predict(test_x[IPO_FEATURES])
+    pred_e = e.predict(test_x[IPO_FEATURES])
+    pred = 0.7 * pred_h + 0.3 * pred_e
+    actual = test_x["target_close_return"].to_numpy()
+    model_mae = float(np.mean(np.abs(pred - actual)))
+    baseline_mae = float(np.mean(np.abs(actual)))
+    status["holdout_rows"] = int(len(test_x))
+    status["model_mae"] = model_mae
+    status["baseline_mae"] = baseline_mae
+    status["relative_improvement_pct"] = (
+        (baseline_mae - model_mae) / baseline_mae * 100.0
+        if baseline_mae > 0 else 0.0
     )
-    e = ExtraTreesRegressor(
-        n_estimators=150, max_depth=10, min_samples_leaf=4,
-        max_features=0.8, n_jobs=-1, random_state=42
-    )
-    X, y = x[IPO_FEATURES], x["target_close_return"]
-    h.fit(X, y)
-    e.fit(X, y)
+
+    # Refit on all available observations, but keep it as a challenger only.
+    h, e = fit_models(x)
     joblib.dump({"models": [h, e], "weights": [0.7, 0.3], "version": "new_listing_challenger_v1",
-                 "features": IPO_FEATURES}, MODEL_FILE)
-    status["status"] = "trained_challenger"
+                 "features": IPO_FEATURES, "holdout_model_mae": model_mae,
+                 "holdout_baseline_mae": baseline_mae}, MODEL_FILE)
+    status["status"] = "validated_challenger" if (
+        baseline_mae > 0 and model_mae < baseline_mae * 0.99
+    ) else "trained_challenger"
+
     pd.DataFrame([status]).to_csv(STATUS_FILE, index=False)
     print(f"New-listing challenger trained: {status['symbols']} symbols, {status['rows']} rows")
     return status

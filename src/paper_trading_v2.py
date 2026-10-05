@@ -103,7 +103,7 @@ def run_paper_trading_v2() -> pd.DataFrame:
 
         # Never allocate more than 0.75% of portfolio capital to initial stop risk.
         eligible["risk_budget"] = CAPITAL * MAX_POSITION_RISK_PCT / 100.0
-        eligible["risk_per_share"] = eligible["actual_open"] * eligible["stop_distance_pct"] / 100.0
+        eligible["risk_per_share"] = eligible["base_close"] * eligible["stop_distance_pct"] / 100.0
         eligible["risk_quantity"] = np.floor(
             eligible["risk_budget"] / eligible["risk_per_share"].replace(0, np.nan)
         ).fillna(0).astype(int)
@@ -125,12 +125,17 @@ def run_paper_trading_v2() -> pd.DataFrame:
         selected = selected[selected["risk_value_cum"] <= CAPITAL * MAX_PORTFOLIO_RISK_PCT / 100.0].copy()
 
         x.loc[:, "signal"] = "SKIP"
-        x.loc[selected.index, "signal"] = "BUY"
-        x.loc[selected.index, "strategy"] = "V2_CONFIDENCE_RISK_FILTERED"
-        x.loc[selected.index, "quantity"] = selected["quantity_candidate"].to_numpy()
-        x.loc[selected.index, "risk_reward"] = selected["risk_reward"].to_numpy()
-        x.loc[selected.index, "stop_distance_pct"] = selected["stop_distance_pct"].to_numpy()
-        x.loc[selected.index, "expected_return_pct"] = selected["expected_return_pct"].to_numpy()
+        selected_keys = selected.set_index(["symbol", "target_date"])
+        x_keys = pd.MultiIndex.from_frame(x[["symbol", "target_date"]])
+        x.loc[x_keys.isin(selected_keys.index), "signal"] = "BUY"
+        x.loc[x_keys.isin(selected_keys.index), "strategy"] = "V2_CONFIDENCE_RISK_FILTERED"
+        for col in ["quantity", "risk_reward", "stop_distance_pct", "expected_return_pct"]:
+            lookup = selected_keys[col]
+            x[col] = [
+                lookup.get((sym, dt), np.nan)
+                if (sym, dt) in lookup.index else old_value
+                for sym, dt, old_value in zip(x["symbol"], x["target_date"], x[col])
+            ]
     else:
         x["strategy"] = "V2_WAITING_FOR_EVIDENCE"
 

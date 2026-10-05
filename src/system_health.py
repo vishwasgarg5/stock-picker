@@ -43,6 +43,14 @@ def run_health_check() -> dict:
     if hist.empty:
         failures.append("OHLCV history is empty")
 
+    # predictions.csv is a rolling history, so health validation must inspect
+    # only the latest target_date rather than the entire file.
+    latest_prediction_date = pd.NaT
+    if not predictions.empty and "target_date" in predictions.columns:
+        predictions["target_date"] = pd.to_datetime(predictions["target_date"], errors="coerce").dt.normalize()
+        latest_prediction_date = predictions["target_date"].max()
+        predictions = predictions[predictions["target_date"].eq(latest_prediction_date)].copy()
+
     pred_ok = True
     if len(predictions) != MIN_PREDICTIONS:
         failures.append(f"prediction count is {len(predictions)}, expected {MIN_PREDICTIONS}")
@@ -99,6 +107,7 @@ def run_health_check() -> dict:
         "fresh_symbols": int(fresh),
         "coverage_pct": round(coverage * 100, 2),
         "prediction_count": int(len(predictions)),
+        "latest_prediction_date": str(latest_prediction_date.date()) if pd.notna(latest_prediction_date) else "",
         "prediction_integrity": "PASS" if pred_ok else "FAIL",
         "latest_data_date": str(latest_date.date()) if pd.notna(latest_date) else "",
         "model_performance": baseline_note,
@@ -108,7 +117,7 @@ def run_health_check() -> dict:
     pd.DataFrame([report]).to_csv(DATA / "system_health.csv", index=False)
     print(
         f"SYSTEM HEALTH: {status} | data={coverage:.1%} | "
-        f"predictions={len(predictions)}/{MIN_PREDICTIONS} | {baseline_note}"
+        f"predictions={len(predictions)}/{MIN_PREDICTIONS} | target={report['latest_prediction_date']} | {baseline_note}"
     )
     if warnings:
         print("WARNINGS:", *warnings, sep="\n- ")
@@ -131,7 +140,7 @@ def _send_telegram(report: dict) -> None:
         f"{icon} STOCK PICKER — SYSTEM HEALTH\n\n"
         f"Status: {report['status']}\n"
         f"Data: {report['fresh_symbols']}/{report['universe_symbols']} ({report['coverage_pct']:.1f}%)\n"
-        f"Predictions: {report['prediction_count']}/{MIN_PREDICTIONS}\n"
+        f"Predictions: {report['prediction_count']}/{MIN_PREDICTIONS} ({report['latest_prediction_date']})\n"
         f"Integrity: {report['prediction_integrity']}\n"
         f"Performance: {report['model_performance']}\n"
         f"Warnings: {report['warnings'] or 'None'}\n"

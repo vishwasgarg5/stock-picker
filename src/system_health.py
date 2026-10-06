@@ -24,6 +24,38 @@ def _read(name: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _recent_model_note(evaluations: pd.DataFrame) -> tuple[str, list[str]]:
+    warnings: list[str] = []
+    if evaluations.empty:
+        return "no evaluation history yet", warnings
+
+    required = {"target_date", "close_abs_pct_error", "baseline_close_abs_pct_error"}
+    if not required.issubset(evaluations.columns):
+        return "evaluation history present (metrics unavailable)", warnings
+
+    x = evaluations.copy()
+    x["target_date"] = pd.to_datetime(x["target_date"], errors="coerce")
+    x["close_abs_pct_error"] = pd.to_numeric(x["close_abs_pct_error"], errors="coerce")
+    x["baseline_close_abs_pct_error"] = pd.to_numeric(x["baseline_close_abs_pct_error"], errors="coerce")
+    x = x.dropna(subset=["target_date", "close_abs_pct_error", "baseline_close_abs_pct_error"])
+    if x.empty:
+        return "evaluation history present (metrics unavailable)", warnings
+
+    session = x.groupby("target_date", as_index=False)[
+        ["close_abs_pct_error", "baseline_close_abs_pct_error"]
+    ].mean().sort_values("target_date")
+    recent = session.tail(5)
+    if len(recent) < 3:
+        return f"evaluation history present ({len(session)} sessions)", warnings
+
+    model = float(recent["close_abs_pct_error"].mean() * 100)
+    base = float(recent["baseline_close_abs_pct_error"].mean() * 100)
+    note = f"recent close MAPE {model:.2f}% vs baseline {base:.2f}%"
+    if model > base * 1.10:
+        warnings.append("recent close MAPE is >10% worse than baseline")
+    return note, warnings
+
+
 def run_health_check() -> dict:
     universe = _read("universe.csv")
     hist = _read("ohlcv.csv")
@@ -43,8 +75,6 @@ def run_health_check() -> dict:
     if hist.empty:
         failures.append("OHLCV history is empty")
 
-    # predictions.csv is a rolling history, so health validation must inspect
-    # only the latest target_date rather than the entire file.
     latest_prediction_date = pd.NaT
     if not predictions.empty and "target_date" in predictions.columns:
         predictions["target_date"] = pd.to_datetime(predictions["target_date"], errors="coerce").dt.normalize()
@@ -85,16 +115,8 @@ def run_health_check() -> dict:
                 failures.append("predicted move exceeds 40%")
                 pred_ok = False
 
-    evaluations = _read("evaluations.csv")
-    baseline_note = "no evaluation history yet"
-    if not evaluations.empty and "close_mape_pct" in evaluations.columns:
-        recent = pd.to_numeric(evaluations["close_mape_pct"], errors="coerce").dropna().tail(5)
-        if len(recent) >= 3:
-            baseline_note = f"recent close MAPE {recent.mean():.2f}%"
-            if "baseline_close_mape_pct" in evaluations.columns:
-                base = pd.to_numeric(evaluations["baseline_close_mape_pct"], errors="coerce").dropna().tail(len(recent))
-                if len(base) == len(recent) and recent.mean() > base.mean() * 1.10:
-                    warnings.append("recent close MAPE is >10% worse than baseline")
+    model_note, model_warnings = _recent_model_note(_read("evaluations.csv"))
+    warnings.extend(model_warnings)
 
     if failures:
         status = "FAILED"
@@ -110,14 +132,14 @@ def run_health_check() -> dict:
         "latest_prediction_date": str(latest_prediction_date.date()) if pd.notna(latest_prediction_date) else "",
         "prediction_integrity": "PASS" if pred_ok else "FAIL",
         "latest_data_date": str(latest_date.date()) if pd.notna(latest_date) else "",
-        "model_performance": baseline_note,
+        "model_performance": model_note,
         "warnings": " | ".join(warnings),
         "failures": " | ".join(failures),
     }
     pd.DataFrame([report]).to_csv(DATA / "system_health.csv", index=False)
     print(
         f"SYSTEM HEALTH: {status} | data={coverage:.1%} | "
-        f"predictions={len(predictions)}/{MIN_PREDICTIONS} | target={report['latest_prediction_date']} | {baseline_note}"
+        f"predictions={len(predictions)}/{MIN_PREDICTIONS} | target={report['latest_prediction_date']} | {model_note}"
     )
     if warnings:
         print("WARNINGS:", *warnings, sep="\n- ")
@@ -153,7 +175,6 @@ def _send_telegram(report: dict) -> None:
             timeout=15,
         ).raise_for_status()
     except Exception as exc:
-        # Telegram failure must never hide the actual model/data health result.
         print(f"Telegram health notification failed: {exc}")
 
 

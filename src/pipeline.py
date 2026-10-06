@@ -717,6 +717,42 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             selection_method = "validated_confidence_tiebreak"
     except Exception:
         print("Confidence selector unavailable or not validated; retaining current selection")
+    # Trade-quality challenger: only changes production selection after its own
+    # out-of-sample promotion gate. Its recent-symbol features also provide
+    # repeat-loss protection without leaking future outcomes.
+    try:
+        from .trade_quality_model import latest_trade_quality_scores
+        quality = latest_trade_quality_scores(candidates)
+        if not quality.empty:
+            quality["target_date"] = pd.to_datetime(quality["target_date"], errors="coerce").dt.normalize()
+            candidates = candidates.merge(
+                quality[["symbol", "target_date", "trade_quality_probability",
+                         "recent_symbol_return_pct", "recent_symbol_win_rate",
+                         "recent_symbol_error_pct"]],
+                on=["symbol", "target_date"], how="left"
+            )
+            candidates["trade_quality_probability"] = pd.to_numeric(
+                candidates["trade_quality_probability"], errors="coerce"
+            )
+            candidates["repeat_loss_penalty"] = (
+                (0.50 - candidates["recent_symbol_win_rate"].fillna(0.50)).clip(lower=0) * 1.5
+                + (candidates["recent_symbol_error_pct"].fillna(0.0) / 10.0).clip(upper=1.0) * 0.75
+            )
+            candidates["quality_adjustment"] = (
+                (0.50 - candidates["trade_quality_probability"].fillna(0.50)).clip(lower=0) * 2.0
+            )
+            candidates["selection_priority"] = (
+                candidates["selection_priority"]
+                + candidates["repeat_loss_penalty"]
+                + candidates["quality_adjustment"]
+            )
+            selected_symbols = set(
+                candidates.sort_values(["selection_priority", "rank"]).head(10)["symbol"]
+            )
+            selection_method = f"{selection_method}+trade_quality"
+    except Exception as exc:
+        print(f"Trade-quality challenger unavailable; retaining current selection: {exc}")
+
     candidates["selection_method"] = selection_method
     candidates["selected"] = candidates["symbol"].isin(selected_symbols).astype(int)
     candidates.to_csv(CANDIDATES_FILE, index=False)

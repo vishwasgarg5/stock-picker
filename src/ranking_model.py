@@ -52,7 +52,7 @@ def _fit(x: pd.DataFrame, y: pd.Series) -> dict:
 def _predict(bundle: dict, x: pd.DataFrame) -> np.ndarray:
     weights = np.asarray(bundle["weights"], dtype=float)
     weights /= weights.sum()
-    return sum(w * m.predict(x) for w, m in zip(bundle["models"], weights))
+    return sum(weight * model.predict(x) for model, weight in zip(bundle["models"], weights))
 
 
 def _recent_metrics(val: pd.DataFrame) -> dict:

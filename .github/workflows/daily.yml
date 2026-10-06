@@ -90,6 +90,9 @@ jobs:
       - name: Run consolidated performance audit
         run: python -m src.performance_audit
 
+      - name: Build detailed portfolio comparison
+        run: python -m src.portfolio_comparison
+
       - name: Refresh performance history
         run: python -m src.performance_history
 

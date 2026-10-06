@@ -4,6 +4,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from .risk_management import apply_risk_gate
+from .trade_quality_model import latest_trade_quality_scores
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 PREDICTIONS_FILE = DATA / "predictions.csv"
@@ -77,6 +80,7 @@ def run_paper_trading_v2() -> pd.DataFrame:
     evidence = _confidence_gate()
     x["strategy"] = "V2_WAITING_FOR_EVIDENCE"
     x["signal"] = "SKIP"
+    x["no_trade_reason"] = "confidence_evidence_not_promoted"
 
     if evidence:
         x["confidence_pct"] = x.groupby("target_date")["confidence_score"].rank(pct=True, method="first")
@@ -91,45 +95,34 @@ def run_paper_trading_v2() -> pd.DataFrame:
         x["target_return_pct"] = x["expected_return_pct"].clip(lower=0.0)
         x["risk_reward"] = x["target_return_pct"] / x["stop_distance_pct"].replace(0, np.nan)
 
-        eligible = eligible.merge(
-            x[["symbol", "target_date", "expected_return_pct", "atr_pct", "stop_distance_pct", "target_return_pct", "risk_reward"]],
-            on=["symbol", "target_date"], how="left", suffixes=("", "_risk")
-        )
-        eligible = eligible[
-            eligible["expected_return_pct"].gt(0) &
-            eligible["risk_reward"].ge(MIN_RISK_REWARD) &
-            eligible["atr_pct"].notna()
-        ].copy()
+        # Enrich candidates with the promoted trade-quality challenger when available.
+        quality = latest_trade_quality_scores(eligible)
+        if not quality.empty:
+            eligible = eligible.merge(
+                quality,
+                on=["symbol", "target_date"],
+                how="left",
+            )
+        if "trade_quality_probability" not in eligible.columns:
+            eligible["trade_quality_probability"] = 0.50
 
-        # Never allocate more than 0.75% of portfolio capital to initial stop risk.
-        eligible["risk_budget"] = CAPITAL * MAX_POSITION_RISK_PCT / 100.0
-        eligible["risk_per_share"] = eligible["base_close"] * eligible["stop_distance_pct"] / 100.0
-        eligible["risk_quantity"] = np.floor(
-            eligible["risk_budget"] / eligible["risk_per_share"].replace(0, np.nan)
-        ).fillna(0).astype(int)
-
-        # Capital constraint remains roughly equal-weighted; risk sizing can only reduce size.
-        allocation = CAPITAL / MAX_TRADES
-        eligible["capital_quantity"] = np.floor(allocation / eligible["base_close"].replace(0, np.nan)).fillna(0).astype(int)
-        eligible["quantity_candidate"] = np.minimum(eligible["risk_quantity"], eligible["capital_quantity"])
-        eligible = eligible[eligible["quantity_candidate"] > 0].copy()
-
-        selected = eligible.sort_values(
+        # One centralized risk/no-trade gate owns sizing, volatility, R/R,
+        # trade-quality and aggregate portfolio-risk constraints.
+        risked = apply_risk_gate(eligible, capital=CAPITAL)
+        selected = risked[
+            risked["trade_decision"].eq("BUY")
+        ].sort_values(
             ["target_date", "risk_reward", "confidence_score"],
             ascending=[True, False, False]
         ).groupby("target_date", group_keys=False).head(MAX_TRADES).copy()
 
-        # Cap aggregate initial stop risk at 3% of portfolio capital.
-        selected["risk_value"] = selected["quantity_candidate"] * selected["risk_per_share"]
-        selected["risk_value_cum"] = selected.groupby("target_date")["risk_value"].cumsum()
-        selected = selected[selected["risk_value_cum"] <= CAPITAL * MAX_PORTFOLIO_RISK_PCT / 100.0].copy()
-
         x.loc[:, "signal"] = "SKIP"
+        x.loc[:, "no_trade_reason"] = "risk_gate_rejected"
         selected_keys = selected.set_index(["symbol", "target_date"])
         x_keys = pd.MultiIndex.from_frame(x[["symbol", "target_date"]])
         x.loc[x_keys.isin(selected_keys.index), "signal"] = "BUY"
         x.loc[x_keys.isin(selected_keys.index), "strategy"] = "V2_CONFIDENCE_RISK_FILTERED"
-        for col in ["quantity", "risk_reward", "stop_distance_pct", "expected_return_pct"]:
+        for col in ["quantity", "risk_reward", "stop_distance_pct", "expected_return_pct", "trade_quality_probability", "no_trade_reason"]:
             lookup = selected_keys[col]
             x[col] = [
                 lookup.get((sym, dt), np.nan)
@@ -139,11 +132,12 @@ def run_paper_trading_v2() -> pd.DataFrame:
     else:
         x["strategy"] = "V2_WAITING_FOR_EVIDENCE"
 
-    for col in ["quantity", "risk_reward", "stop_distance_pct", "expected_return_pct"]:
+    for col in ["quantity", "risk_reward", "stop_distance_pct", "expected_return_pct", "trade_quality_probability", "no_trade_reason"]:
         if col not in x:
             x[col] = np.nan
 
     x["reference_price"] = x["base_close"]
+    x["no_trade_reason"] = x["no_trade_reason"].fillna("").astype(str)
     x["quantity"] = np.where(x["signal"].eq("BUY"), x["quantity"].fillna(0), 0).astype(int)
     x["planned_capital"] = np.where(x["signal"].eq("BUY"), x["quantity"] * x["reference_price"], 0.0)
     x["entry_price"] = np.where(x["signal"].eq("BUY"), x["actual_open"], np.nan)
@@ -165,7 +159,7 @@ def run_paper_trading_v2() -> pd.DataFrame:
     keep = [
         "prediction_date", "target_date", "symbol", "rank", "score", "confidence_score",
         "strategy", "signal", "reference_price", "quantity", "planned_capital",
-        "expected_return_pct", "risk_reward", "stop_distance_pct",
+        "expected_return_pct", "risk_reward", "stop_distance_pct", "trade_quality_probability", "no_trade_reason",
         "entry_price", "exit_price", "return_pct", "gross_profit_loss",
         "trading_cost", "profit_loss"
     ]

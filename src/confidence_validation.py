@@ -27,7 +27,7 @@ def run_confidence_validation() -> pd.DataFrame:
 
     p = pd.read_csv(PREDICTIONS_FILE, parse_dates=["target_date"])
     h = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
-    if p.empty or h.empty or "confidence_score" not in p.columns:
+    if p.empty or h.empty or "prediction_spread" not in p.columns:
         return _write([{
             "as_of": pd.Timestamp.now().normalize(), "rows": 0, "sessions": 0,
             "confidence_promotion_evidence": False, "validation_status": "collecting",
@@ -35,7 +35,7 @@ def run_confidence_validation() -> pd.DataFrame:
 
     p["target_date"] = pd.to_datetime(p["target_date"], errors="coerce").dt.normalize()
     p["symbol"] = p["symbol"].astype(str).str.upper().str.strip()
-    p["confidence_score"] = pd.to_numeric(p["confidence_score"], errors="coerce")
+    p["prediction_spread"] = pd.to_numeric(p["prediction_spread"], errors="coerce")
     p["base_close"] = pd.to_numeric(p["base_close"], errors="coerce")
     h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
     h["symbol"] = h["symbol"].astype(str).str.upper().str.strip()
@@ -45,7 +45,7 @@ def run_confidence_validation() -> pd.DataFrame:
         columns={"date": "target_date", "close": "actual_close"}
     )
     x = p.merge(actual, on=["target_date", "symbol"], how="inner")
-    x = x.dropna(subset=["target_date", "confidence_score", "base_close", "actual_close"])
+    x = x.dropna(subset=["target_date", "prediction_spread", "base_close", "actual_close"])
     x = x[x["base_close"] > 0]
     if x.empty:
         return _write([{
@@ -64,7 +64,7 @@ def run_confidence_validation() -> pd.DataFrame:
 
     # Use within-session percentile to avoid one unusually volatile market day
     # dominating the confidence calibration.
-    x["confidence_pct"] = x.groupby("target_date")["confidence_score"].rank(pct=True)
+    # Calibrate confidence from lower ensemble uncertainty, not from the size of the predicted move.\n    x["confidence_score_calibrated"] = (1.0 - x.groupby("target_date")["prediction_spread"].rank(pct=True, method="average")).clip(0.0, 1.0) * 100.0\n    x["confidence_pct"] = x.groupby("target_date")["confidence_score_calibrated"].rank(pct=True, method="average")
     x["confidence_bucket"] = pd.cut(
         x["confidence_pct"],
         bins=[0, 0.2, 0.4, 0.6, 0.8, 1.0],

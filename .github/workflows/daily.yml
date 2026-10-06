@@ -57,6 +57,10 @@ jobs:
         if: inputs.reuse_stored_data != true
         run: python -m src.trade_quality_model
 
+      - name: Validate risk management and no-trade gate
+        if: inputs.reuse_stored_data != true
+        run: python -m src.risk_management
+
       - name: Validate confidence calibration before production filtering
         if: inputs.reuse_stored_data != true
         run: python -m src.confidence_validation

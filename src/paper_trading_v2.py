@@ -182,6 +182,12 @@ def run_paper_trading_v2() -> pd.DataFrame:
         trades=("symbol", "count"), gross_profit_loss=("gross_profit_loss", "sum"),
         trading_cost=("trading_cost", "sum"), daily_profit_loss=("profit_loss", "sum")
     )
+    # Keep every completed prediction session in V2 history, including
+    # explicit NO_TRADE sessions, so A/B comparison is not selection-biased.
+    sessions = combined[["target_date"]].dropna().drop_duplicates().sort_values("target_date")
+    daily = sessions.merge(daily, on="target_date", how="left")
+    for col in ["trades", "gross_profit_loss", "trading_cost", "daily_profit_loss"]:
+        daily[col] = pd.to_numeric(daily[col], errors="coerce").fillna(0.0)
     if daily.empty:
         return combined
 

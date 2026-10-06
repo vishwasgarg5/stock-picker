@@ -64,7 +64,7 @@ def run_confidence_validation() -> pd.DataFrame:
 
     # Use within-session percentile to avoid one unusually volatile market day
     # dominating the confidence calibration.
-    # Calibrate confidence from lower ensemble uncertainty, not from the size of the predicted move.\n    x["confidence_score_calibrated"] = (1.0 - x.groupby("target_date")["prediction_spread"].rank(pct=True, method="average")).clip(0.0, 1.0) * 100.0\n    x["confidence_pct"] = x.groupby("target_date")["confidence_score_calibrated"].rank(pct=True, method="average")
+    # Calibrate confidence from lower ensemble uncertainty, not from the size of the predicted move.\n    x["confidence_score_calibrated"] = (\n        1.0 - x.groupby("target_date")["prediction_spread"].rank(pct=True, method="average")\n    ).clip(0.0, 1.0) * 100.0\n    x["confidence_pct"] = x.groupby("target_date")["confidence_score_calibrated"].rank(\n        pct=True, method="average"\n    )
     x["confidence_bucket"] = pd.cut(
         x["confidence_pct"],
         bins=[0, 0.2, 0.4, 0.6, 0.8, 1.0],

@@ -1,2 +1,2 @@
-sessions,rows,mean_top10_return_lift_pct,positive_rate_lift_pct,promotion_evidence,status
-636,313617,0.1955754665393844,1.6509433962264168,True,promote
+sessions,rows,mean_top10_return_lift_pct,positive_rate_lift_pct,promotion_evidence,production_ready,status,recent_5_sessions,recent_5_lift_pct,recent_5_positive_lift_pct,recent_10_sessions,recent_10_lift_pct,recent_10_positive_lift_pct,recent_20_sessions,recent_20_lift_pct,recent_20_positive_lift_pct
+636,313617,0.1955754665393844,1.6509433962264168,True,True,promote,5,1.0454081785279459,10.0,10,0.483896711666163,2.0,20,0.4463861886707584,0.0

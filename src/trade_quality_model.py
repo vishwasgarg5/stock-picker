@@ -35,7 +35,8 @@ def _num(x):
 def _base_features(pred: pd.DataFrame, trades: pd.DataFrame, evaluations: pd.DataFrame) -> pd.DataFrame:
     p = pred.copy()
     p["target_date"] = pd.to_datetime(p["target_date"], errors="coerce").dt.normalize()
-    p["prediction_date"] = pd.to_datetime(p["prediction_date"], errors="coerce").dt.normalize()
+    if "prediction_date" in p.columns:
+        p["prediction_date"] = pd.to_datetime(p["prediction_date"], errors="coerce").dt.normalize()
     p["symbol"] = p["symbol"].astype(str).str.upper().str.strip()
     for c in ["rank", "score", "confidence_score", "prediction_spread", "base_close",
               "predicted_high", "predicted_low", "predicted_close"]:

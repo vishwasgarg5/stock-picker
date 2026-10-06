@@ -16,6 +16,7 @@ RANK_FEATURES = FEATURE_COLUMNS + ["market_momentum", "market_volatility", "cros
 MIN_ROWS = 500
 MIN_SESSIONS = 12
 MIN_ROWS_VALIDATION = 100
+RECENT_WINDOWS = (5, 10, 20)
 
 
 def _build_dataset(hist: pd.DataFrame) -> pd.DataFrame:
@@ -51,7 +52,27 @@ def _fit(x: pd.DataFrame, y: pd.Series) -> dict:
 def _predict(bundle: dict, x: pd.DataFrame) -> np.ndarray:
     weights = np.asarray(bundle["weights"], dtype=float)
     weights /= weights.sum()
-    return sum(w * m.predict(x) for w, m in zip(weights, bundle["models"]))
+    return sum(w * m.predict(x) for w, m in zip(bundle["models"], weights))
+
+
+def _recent_metrics(val: pd.DataFrame) -> dict:
+    out = {}
+    if val.empty:
+        return out
+    ordered = val.sort_values("target_date").copy()
+    for n in RECENT_WINDOWS:
+        w = ordered.tail(n)
+        if len(w) < n:
+            out[f"recent_{n}_sessions"] = len(w)
+            out[f"recent_{n}_lift_pct"] = np.nan
+            out[f"recent_{n}_positive_lift_pct"] = np.nan
+            continue
+        out[f"recent_{n}_sessions"] = len(w)
+        out[f"recent_{n}_lift_pct"] = float(w["return_lift_pct"].mean())
+        out[f"recent_{n}_positive_lift_pct"] = float(
+            w["model_top10_positive_pct"].mean() - w["baseline_top10_positive_pct"].mean()
+        )
+    return out
 
 
 def train_challenger(hist: pd.DataFrame) -> dict:
@@ -60,8 +81,6 @@ def train_challenger(hist: pd.DataFrame) -> dict:
         print(f"Ranking challenger: collecting data ({len(ds)} rows)")
         return {"status": "collecting", "rows": len(ds)}
 
-    # Train only on the earlier chronological portion. Validation below uses
-    # strictly later sessions, preventing future-return leakage.
     dates = sorted(ds["date"].dropna().unique())
     split = dates[max(1, int(len(dates) * 0.70)) - 1]
     train = ds[ds["date"] <= split].copy()
@@ -71,8 +90,7 @@ def train_challenger(hist: pd.DataFrame) -> dict:
     bundle = _fit(train[RANK_FEATURES], train["target_return"])
     MODEL_FILE.parent.mkdir(exist_ok=True)
     joblib.dump(bundle, MODEL_FILE)
-    result = validate_challenger(ds[ds["date"] > split].copy(), bundle)
-    return result
+    return validate_challenger(ds[ds["date"] > split].copy(), bundle)
 
 
 def validate_challenger(ds: pd.DataFrame, bundle: dict) -> dict:
@@ -96,12 +114,14 @@ def validate_challenger(ds: pd.DataFrame, bundle: dict) -> dict:
             "model_top10_positive_pct": float(np.mean(top > 0) * 100),
             "baseline_top10_positive_pct": float(np.mean(base > 0) * 100),
         })
+
     val = pd.DataFrame(rows)
     if val.empty:
         return {"status": "collecting", "sessions": 0, "rows": 0}
 
     val["return_lift_pct"] = val["model_top10_return_pct"] - val["baseline_top10_return_pct"]
     val.to_csv(VALIDATION_FILE, index=False)
+
     sessions = len(val)
     total_rows = int(val["rows"].sum())
     lift = float(val["return_lift_pct"].mean())
@@ -109,28 +129,50 @@ def validate_challenger(ds: pd.DataFrame, bundle: dict) -> dict:
         val["model_top10_positive_pct"].mean() -
         val["baseline_top10_positive_pct"].mean()
     )
-    promoted = (
+    recent = _recent_metrics(val)
+
+    full_evidence = (
         sessions >= MIN_SESSIONS and
         total_rows >= MIN_ROWS_VALIDATION and
-        lift > 0 and positive_lift >= 0
+        lift > 0 and
+        positive_lift >= 0
     )
-    status = "promote" if promoted else (
-        "collecting" if sessions < MIN_SESSIONS or total_rows < MIN_ROWS_VALIDATION
-        else "hold"
+    recent_ready = all(
+        recent.get(f"recent_{n}_sessions", 0) == n
+        and pd.notna(recent.get(f"recent_{n}_lift_pct"))
+        and recent.get(f"recent_{n}_lift_pct") > 0
+        and recent.get(f"recent_{n}_positive_lift_pct") >= 0
+        for n in RECENT_WINDOWS
     )
-    summary = pd.DataFrame([{
-        "sessions": sessions, "rows": total_rows,
+    production_ready = bool(full_evidence and recent_ready)
+
+    status = "promote" if production_ready else (
+        "validated_hold" if full_evidence else (
+            "collecting" if sessions < MIN_SESSIONS or total_rows < MIN_ROWS_VALIDATION
+            else "hold"
+        )
+    )
+
+    summary_row = {
+        "sessions": sessions,
+        "rows": total_rows,
         "mean_top10_return_lift_pct": lift,
         "positive_rate_lift_pct": positive_lift,
-        "promotion_evidence": promoted,
+        "promotion_evidence": full_evidence,
+        "production_ready": production_ready,
         "status": status,
-    }])
+        **recent,
+    }
+    summary = pd.DataFrame([summary_row])
     summary.to_csv(DATA / "ranking_model_validation_summary.csv", index=False)
     print(
         f"Ranking challenger: sessions={sessions}, rows={total_rows}, "
-        f"return_lift={lift:.3f}%, status={status}"
+        f"return_lift={lift:.3f}%, recent5={recent.get('recent_5_lift_pct', np.nan):.3f}%, "
+        f"recent10={recent.get('recent_10_lift_pct', np.nan):.3f}%, "
+        f"recent20={recent.get('recent_20_lift_pct', np.nan):.3f}%, status={status}"
     )
     return summary.iloc[0].to_dict()
+
 
 def latest_rank_scores(hist: pd.DataFrame) -> pd.DataFrame:
     if not MODEL_FILE.exists() or not VALIDATION_FILE.exists():
@@ -139,7 +181,7 @@ def latest_rank_scores(hist: pd.DataFrame) -> pd.DataFrame:
     if not summary_file.exists():
         return pd.DataFrame()
     s = pd.read_csv(summary_file)
-    if s.empty or str(s.iloc[-1].get("status", "")) != "promote":
+    if s.empty or str(s.iloc[-1].get("status", "")) != "promote" or not bool(s.iloc[-1].get("production_ready", False)):
         return pd.DataFrame()
     bundle = joblib.load(MODEL_FILE)
     x = _build_dataset(hist)

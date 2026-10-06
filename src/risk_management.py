@@ -58,6 +58,10 @@ def apply_risk_gate(candidates: pd.DataFrame, capital: float = CAPITAL) -> pd.Da
     x.loc[x["atr_pct"].gt(MAX_ATR_PCT), "no_trade_reason"] = "volatility_too_high"
     x.loc[x["trade_quality_probability"].lt(MIN_TRADE_QUALITY), "no_trade_reason"] = "trade_quality_below_min"
     x.loc[(x["risk_reward"].fillna(0) < MIN_RISK_REWARD) & x["no_trade_reason"].eq(""), "no_trade_reason"] = "risk_reward_below_min"
+    x.loc[
+        eligible & x["trade_decision"].eq("NO_TRADE") & x["no_trade_reason"].eq(""),
+        "no_trade_reason"
+    ] = "portfolio_risk_limit"
     x.loc[x["trade_decision"].eq("BUY"), "no_trade_reason"] = ""
     return x
 

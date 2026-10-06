@@ -4,7 +4,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .risk_management import apply_risk_gate
+from .risk_management import (
+    apply_risk_gate,
+    MAX_PORTFOLIO_RISK_PCT,
+    MAX_POSITION_RISK_PCT,
+    MIN_EXPECTED_RETURN_PCT,
+    MIN_RISK_REWARD,
+    MAX_TRADES,
+)
 from .trade_quality_model import latest_trade_quality_scores
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,9 +24,6 @@ PORTFOLIO_FILE = DATA / "portfolio_v2_daily.csv"
 
 CAPITAL = 100000.0
 MAX_TRADES = 5
-MIN_RISK_REWARD = 1.25
-MAX_POSITION_RISK_PCT = 0.75
-MAX_PORTFOLIO_RISK_PCT = 3.0
 COST_RATE = 0.0005
 
 

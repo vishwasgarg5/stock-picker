@@ -11,6 +11,15 @@ def _read(name):
     p = DATA / name
     return pd.read_csv(p) if p.exists() else pd.DataFrame()
 
+def _production_strategy():
+    state = DATA / "strategy_state.json"
+    if not state.exists():
+        return "V1"
+    try:
+        return str(json.loads(state.read_text()).get("production_strategy", "V1"))
+    except Exception:
+        return "V1"
+
 def main():
     v1 = _read("portfolio_daily.csv")
     v2 = _read("portfolio_v2_daily.csv")
@@ -41,9 +50,12 @@ def main():
         ]
     if not v2.empty:
         latest = v2.iloc[-1]
+        peak = pd.to_numeric(v2["portfolio_value"], errors="coerce").cummax()
+        dd = (pd.to_numeric(v2["portfolio_value"], errors="coerce") / peak - 1) * 100
         rows += [{"strategy":"V2","metric":"latest_date","value":latest["target_date"]},
                  {"strategy":"V2","metric":"portfolio_value","value":latest["portfolio_value"]},
                  {"strategy":"V2","metric":"cumulative_return_pct","value":latest["cumulative_return_pct"]},
+                 {"strategy":"V2","metric":"max_drawdown_pct","value":dd.min()},
                  {"strategy":"V2","metric":"sessions","value":len(v2)}]
     else:
         rows += [{"strategy":"V2","metric":"status","value":"NO_PORTFOLIO_HISTORY"}]
@@ -70,7 +82,7 @@ def main():
 
     summary = {
         "as_of": pd.Timestamp.utcnow().strftime("%Y-%m-%d"),
-        "production_strategy":"V1",
+        "production_strategy":_production_strategy(),
         "latest_v1_date": str(v1["target_date"].iloc[-1]) if not v1.empty else "",
         "v1_portfolio_value": float(v1["portfolio_value"].iloc[-1]) if not v1.empty else 100000.0,
         "v1_cumulative_return_pct": float(v1["cumulative_return_pct"].iloc[-1]) if not v1.empty else 0.0,

@@ -18,6 +18,7 @@ MIN_V2_TRADES = 50
 MIN_RETURN_LIFT_PCT = 0.05
 MAX_DRAWDOWN_DEGRADATION_PCT = 1.0
 MIN_SESSION_WIN_RATE_PCT = 60.0
+CONFIDENCE_SUMMARY_FILE = DATA / "confidence_validation_summary.csv"
 
 
 def _load(path: Path) -> pd.DataFrame:
@@ -55,6 +56,19 @@ def _metrics(x: pd.DataFrame, prefix: str) -> dict:
     return {"sessions": int(len(x)), "trades": trades, "net_pnl": pnl, "return_pct": ret, "max_drawdown_pct": dd}
 
 
+def _confidence_promoted() -> bool:
+    if not CONFIDENCE_SUMMARY_FILE.exists():
+        return False
+    try:
+        x = pd.read_csv(CONFIDENCE_SUMMARY_FILE)
+        if x.empty:
+            return False
+        value = x.iloc[-1].get("confidence_promotion_evidence", False)
+        return str(value).strip().lower() == "true"
+    except Exception:
+        return False
+
+
 def _load_state() -> dict:
     if not STATE_FILE.exists():
         return {"production_strategy": "V1", "status": "collecting", "reason": "initial_state"}
@@ -72,6 +86,7 @@ def evaluate_promotion() -> dict:
 
     common_sessions = len(matched)
     v2_trades = int(matched["v2_trades"].sum()) if not matched.empty else 0
+    confidence_promoted = _confidence_promoted()
     enough = common_sessions >= MIN_COMMON_SESSIONS and v2_trades >= MIN_V2_TRADES
 
     if enough:
@@ -94,6 +109,7 @@ def evaluate_promotion() -> dict:
         and return_lift >= MIN_RETURN_LIFT_PCT
         and session_win_rate >= MIN_SESSION_WIN_RATE_PCT
         and dd_gate
+        and confidence_promoted
     )
 
     current = str(state.get("production_strategy", "V1"))
@@ -101,6 +117,8 @@ def evaluate_promotion() -> dict:
         production, status, reason = "V2", "promoted", "V2 passed matched-date A/B gates"
     elif current == "V2":
         rollback = bool(
+            not confidence_promoted
+            or
             enough
             and pnl_lift < 0
             and return_lift < -MIN_RETURN_LIFT_PCT
@@ -132,6 +150,7 @@ def evaluate_promotion() -> dict:
         "v2_max_drawdown_pct": v2.get("max_drawdown_pct", 0.0),
         "session_win_rate_pct": session_win_rate,
         "drawdown_gate": dd_gate,
+        "confidence_promoted": confidence_promoted,
     }
 
     pd.DataFrame([comparison]).to_csv(AB_FILE, index=False)

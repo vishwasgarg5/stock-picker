@@ -2,6 +2,12 @@ name: Daily stock prediction and self-retraining
 
 on:
   workflow_dispatch:
+    inputs:
+      reuse_stored_data:
+        description: 'Reuse already-generated repository data and only refresh reports/Telegram'
+        required: false
+        default: false
+        type: boolean
   schedule:
     # 15:15 IST = 09:45 UTC, Monday-Friday.
     - cron: '45 9 * * 1-5'
@@ -39,19 +45,24 @@ jobs:
       - name: Validate Python source
         run: python -m compileall -q src
 
-      - name: Build new-listing ML challenger
+            if: inputs.reuse_stored_data != true
+- name: Build new-listing ML challenger
         run: python -m src.new_listing_model
 
-      - name: Build and validate dedicated ranking challenger
+            if: inputs.reuse_stored_data != true
+- name: Build and validate dedicated ranking challenger
         run: python -m src.ranking_model
 
-      - name: Validate confidence calibration before production filtering
+            if: inputs.reuse_stored_data != true
+- name: Validate confidence calibration before production filtering
         run: python -m src.confidence_validation
 
-      - name: Validate selector A/B before production selection
+            if: inputs.reuse_stored_data != true
+- name: Validate selector A/B before production selection
         run: python -m src.selection_validation
 
-      - name: Update universe, evaluate yesterday's prediction, retrain and predict tomorrow
+            if: inputs.reuse_stored_data != true
+- name: Update universe, evaluate yesterday's prediction, retrain and predict tomorrow
         run: |
           python - <<'PY'
           from src.universe import update_universe

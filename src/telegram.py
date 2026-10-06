@@ -394,7 +394,7 @@ def build_paper_trading_v2_message(trades: pd.DataFrame, target_date: pd.Timesta
     buys = rows[rows["signal"].eq("BUY")].copy()
     pnl = pd.to_numeric(buys["profit_loss"], errors="coerce").fillna(0.0)
     portfolio = pd.read_csv(V2_PORTFOLIO_FILE) if V2_PORTFOLIO_FILE.exists() else pd.DataFrame()
-    value = float(portfolio.iloc[-1]["portfolio_value"]) if not portfolio.empty else CAPITAL + float(pnl.sum())
+    value = float(portfolio.iloc[-1]["portfolio_value"]) if not portfolio.empty else PAPER_CAPITAL + float(pnl.sum())
     reasons = rows[rows["signal"].ne("BUY")]["no_trade_reason"].value_counts().head(5) if "no_trade_reason" in rows else pd.Series(dtype=int)
     lines = [
         "<b>🛡️ PAPER TRADING V2 — RISK GATE</b>",

@@ -21,6 +21,9 @@ OHLCV_FILE = DATA / "ohlcv.csv"
 SENT_FILE = DATA / "telegram_sent.csv"
 EVENING_SENT_FILE = DATA / "telegram_evening_sent.csv"
 PAPER_SENT_FILE = DATA / "telegram_paper_sent.csv"
+V2_TRADES_FILE = DATA / "paper_trades_v2.csv"
+V2_PORTFOLIO_FILE = DATA / "portfolio_v2_daily.csv"
+V2_SENT_FILE = DATA / "telegram_paper_v2_sent.csv"
 PAPER_CAPITAL = 100000.0
 PAPER_TRADE_TOP_N = 5
 
@@ -381,6 +384,55 @@ def build_paper_trading_message(trades: pd.DataFrame, target_date: pd.Timestamp)
             lines += ["<b>📈 NEXT-DAY PAPER PORTFOLIO</b>", "No future prediction available yet."]
     return "\n".join(lines)
 
+
+def build_paper_trading_v2_message(trades: pd.DataFrame, target_date: pd.Timestamp) -> str:
+    trades = trades.copy()
+    trades["target_date"] = pd.to_datetime(trades["target_date"], errors="coerce").dt.normalize()
+    rows = trades[trades["target_date"] == target_date.normalize()].sort_values("rank")
+    if rows.empty:
+        raise RuntimeError(f"No V2 paper trades found for {target_date.date()}")
+    buys = rows[rows["signal"].eq("BUY")].copy()
+    pnl = pd.to_numeric(buys["profit_loss"], errors="coerce").fillna(0.0)
+    portfolio = pd.read_csv(V2_PORTFOLIO_FILE) if V2_PORTFOLIO_FILE.exists() else pd.DataFrame()
+    value = float(portfolio.iloc[-1]["portfolio_value"]) if not portfolio.empty else CAPITAL + float(pnl.sum())
+    reasons = rows[rows["signal"].ne("BUY")]["no_trade_reason"].value_counts().head(5) if "no_trade_reason" in rows else pd.Series(dtype=int)
+    lines = [
+        "<b>🛡️ PAPER TRADING V2 — RISK GATE</b>",
+        f"<b>{target_date:%d-%b-%Y}</b> | {len(buys)} BUY / {len(rows)-len(buys)} NO_TRADE",
+    ]
+    for _, row in buys.iterrows():
+        lines += [
+            "",
+            f"🟢 <b>{str(row['symbol']).strip()}</b> × {int(row['quantity'])}",
+            f"Entry {_fmt(row['entry_price'])} → Exit {_fmt(row['exit_price'])}",
+            f"P/L ₹{float(row['profit_loss']):+,.2f} | R/R {_fmt(row['risk_reward'])}",
+        ]
+    if not buys.empty:
+        lines += ["", f"<b>V2 P/L:</b> ₹{pnl.sum():+,.2f}"]
+    if not reasons.empty:
+        lines += ["", "<b>NO_TRADE reasons</b>"]
+        lines += [f"{idx}: {int(val)}" for idx, val in reasons.items()]
+    lines += ["", f"<b>V2 Portfolio:</b> ₹{value:,.2f}", "V1 remains champion until governor promotion gates pass."]
+    return "\n".join(lines)
+
+def send_paper_trading_v2() -> None:
+    if not V2_TRADES_FILE.exists():
+        print("No V2 paper trades yet; skipping V2 Telegram report.")
+        return
+    trades = pd.read_csv(V2_TRADES_FILE, parse_dates=["target_date"])
+    if trades.empty:
+        print("No V2 paper trades yet; skipping V2 Telegram report.")
+        return
+    target_date = trades["target_date"].dropna().dt.normalize().max()
+    if pd.isna(target_date):
+        return
+    message = build_paper_trading_v2_message(trades, target_date)
+    if _already_sent(V2_SENT_FILE, target_date, message, force=_force_telegram()):
+        print(f"V2 Telegram already sent for {target_date.date()}; skipping duplicate.")
+        return
+    _send(message)
+    _record_sent(V2_SENT_FILE, target_date, message)
+    print(f"V2 Telegram sent for {target_date.date()}")
 
 def send_paper_trading() -> None:
     if not PAPER_TRADES_FILE.exists():

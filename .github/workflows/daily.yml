@@ -123,6 +123,11 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python -c "from src.telegram import send_paper_trading; send_paper_trading()"
+      - name: Send V2 risk-gated paper trading result
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -c "from src.telegram import send_paper_trading_v2; send_paper_trading_v2()"
 
       - name: Commit prediction, evaluation, model and history files
         if: always()

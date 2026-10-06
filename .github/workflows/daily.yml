@@ -53,6 +53,10 @@ jobs:
         if: inputs.reuse_stored_data != true
         run: python -m src.ranking_model
 
+      - name: Build and validate trade-quality challenger
+        if: inputs.reuse_stored_data != true
+        run: python -m src.trade_quality_model
+
       - name: Validate confidence calibration before production filtering
         if: inputs.reuse_stored_data != true
         run: python -m src.confidence_validation

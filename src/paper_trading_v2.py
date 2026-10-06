@@ -6,10 +6,7 @@ import pandas as pd
 
 from .risk_management import (
     apply_risk_gate,
-    MAX_PORTFOLIO_RISK_PCT,
-    MAX_POSITION_RISK_PCT,
     MIN_EXPECTED_RETURN_PCT,
-    MIN_RISK_REWARD,
     MAX_TRADES,
 )
 from .trade_quality_model import latest_trade_quality_scores
@@ -23,7 +20,6 @@ TRADES_FILE = DATA / "paper_trades_v2.csv"
 PORTFOLIO_FILE = DATA / "portfolio_v2_daily.csv"
 
 CAPITAL = 100000.0
-MAX_TRADES = 5
 COST_RATE = 0.0005
 
 

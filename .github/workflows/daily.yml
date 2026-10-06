@@ -45,24 +45,24 @@ jobs:
       - name: Validate Python source
         run: python -m compileall -q src
 
-            if: inputs.reuse_stored_data != true
-- name: Build new-listing ML challenger
+      - name: Build new-listing ML challenger
+        if: inputs.reuse_stored_data != true
         run: python -m src.new_listing_model
 
-            if: inputs.reuse_stored_data != true
-- name: Build and validate dedicated ranking challenger
+      - name: Build and validate dedicated ranking challenger
+        if: inputs.reuse_stored_data != true
         run: python -m src.ranking_model
 
-            if: inputs.reuse_stored_data != true
-- name: Validate confidence calibration before production filtering
+      - name: Validate confidence calibration before production filtering
+        if: inputs.reuse_stored_data != true
         run: python -m src.confidence_validation
 
-            if: inputs.reuse_stored_data != true
-- name: Validate selector A/B before production selection
+      - name: Validate selector A/B before production selection
+        if: inputs.reuse_stored_data != true
         run: python -m src.selection_validation
 
-            if: inputs.reuse_stored_data != true
-- name: Update universe, evaluate yesterday's prediction, retrain and predict tomorrow
+      - name: Update universe, evaluate yesterday's prediction, retrain and predict tomorrow
+        if: inputs.reuse_stored_data != true
         run: |
           python - <<'PY'
           from src.universe import update_universe

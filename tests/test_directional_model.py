@@ -26,7 +26,7 @@ def test_recent_full_window_is_available():
 
 def test_walk_forward_split_is_chronological():
     from src.directional_model import _walk_forward_splits
-    dates = pd.date_range("2026-01-01", periods=70, freq="D")
+    dates = pd.date_range("2026-01-01", periods=80, freq="D")
     splits = list(_walk_forward_splits(list(dates)))
     assert splits
     train, test = splits[0]

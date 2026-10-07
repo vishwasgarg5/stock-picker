@@ -647,7 +647,8 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             out = out.merge(d, on="symbol", how="left")
     except Exception as exc:
         print(f"Directional challenger unavailable; retaining base predictions: {exc}")
-    out["direction_probability"] = pd.to_numeric(out.get("direction_probability"), errors="coerce").fillna(0.5)
+    direction_series = out["direction_probability"] if "direction_probability" in out.columns else pd.Series(0.5, index=out.index)
+    out["direction_probability"] = pd.to_numeric(direction_series, errors="coerce").fillna(0.5).clip(0.0, 1.0)
     out["direction_score_model"] = out["direction_probability"] * 100.0
     out["confidence_calibration_version"] = "uncertainty_rank_v2"
 

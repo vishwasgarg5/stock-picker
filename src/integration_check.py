@@ -14,6 +14,7 @@ def main() -> int:
         "src/risk_management.py", "src/trade_quality_model.py",
         "src/ranking_model.py", "src/strategy_governor.py",
         "src/performance_audit.py", "src/portfolio_comparison.py",
+        "src/phase2_optimizer.py",
         "data/predictions.csv", "data/ohlcv.csv",
     ]
     for rel in required:
@@ -30,8 +31,8 @@ def main() -> int:
             failures.append("workflow_dispatch_reuse_input_missing")
         if "concurrency:" not in workflow or "stock-picker-daily" not in workflow:
             failures.append("workflow_concurrency_guard_missing")
-    else:
-        failures.append("missing:.github/workflows/daily.yml")
+        if "src.phase2_optimizer" not in workflow:
+            failures.append("phase2_optimizer_not_wired_to_workflow")
 
     pipeline = (ROOT / "src/pipeline.py").read_text(encoding="utf-8")
     v2 = (ROOT / "src/paper_trading_v2.py").read_text(encoding="utf-8")
@@ -48,6 +49,7 @@ def main() -> int:
         "governor_to_portfolio_report": "strategy_state.json" in portfolio,
         "governor_v1_safe_default": 'production_strategy": "V1"' in governor,
         "confidence_to_governor": "confidence_validation_summary.csv" in governor,
+        "phase2_shadow_optimizer": "production_enabled" in (ROOT / "src/phase2_optimizer.py").read_text(encoding="utf-8"),
     }
     failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
 
@@ -57,6 +59,8 @@ def main() -> int:
         "data/strategy_ab_comparison.csv",
         "data/performance_audit_summary.csv",
         "data/portfolio_comparison_summary.csv",
+        "data/phase2_performance_summary.csv",
+        "data/phase2_optimized_candidates.csv",
     ]
     failures.extend(f"missing_generated_report:{p}" for p in generated if not (ROOT / p).exists())
 

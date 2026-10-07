@@ -36,6 +36,7 @@ def build_dashboard() -> dict:
     v2 = _read("paper_trades_v2.csv")
     v2daily = _read("portfolio_v2_daily.csv")
     governance = _read("model_governance_summary.csv")
+    phase4 = _read("phase4_performance_summary.csv")
     state = {}
     state_path = DATA / "phase2_state.json"
     if state_path.exists():
@@ -84,6 +85,14 @@ def build_dashboard() -> dict:
         "v2_worst_trade_pnl": _last(governance, "worst_v2_trade_pnl", np.nan),
         "v2_max_consecutive_losses": _last(governance, "max_consecutive_v2_losses", np.nan),
         "v2_profit_factor": _last(governance, "v2_profit_factor", np.nan),
+        "phase4_regime": str(phase4.iloc[-1].get("regime", "NEUTRAL")) if not phase4.empty else "NEUTRAL",
+        "phase4_confidence_floor_percentile": _last(phase4, "confidence_floor_percentile", np.nan),
+        "phase4_min_expected_return_pct": _last(phase4, "min_expected_return_pct", np.nan),
+        "phase4_cooldown_symbols": _last(phase4, "cooldown_symbols", np.nan),
+        "phase4_stable_features": _last(phase4, "stable_features", np.nan),
+        "phase4_bootstrap_ci_low_pct": _last(phase4, "bootstrap_ci_low_pct", -np.inf),
+        "phase4_bootstrap_ci_high_pct": _last(phase4, "bootstrap_ci_high_pct", np.inf),
+        "phase4_safety_status": str(phase4.iloc[-1].get("safety_status", "UNKNOWN")) if not phase4.empty else "UNKNOWN",
     }
     dashboard["model_beating_baseline"] = bool(
         np.isfinite(dashboard["latest_close_mape_pct"])

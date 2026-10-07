@@ -94,6 +94,9 @@ jobs:
       - name: Run Paper Trading V2 confidence-filtered benchmark
         run: python -m src.paper_trading_v2
 
+      - name: Refresh Phase 2 evidence after V2 paper trading
+        run: python -m src.phase2_optimizer
+
       - name: Run production system health gate
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

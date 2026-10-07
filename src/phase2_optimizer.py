@@ -133,10 +133,13 @@ def _confidence_v3(c: pd.DataFrame, direction: pd.DataFrame) -> pd.Series:
     return (0.60 * uncertainty + 0.40 * dscore).clip(0, 100)
 
 
-def _portfolio_feedback(e: pd.DataFrame) -> dict:
-    if e.empty or "profit_loss" not in e:
+def _portfolio_feedback(trades: pd.DataFrame) -> dict:
+    if trades.empty or "profit_loss" not in trades.columns:
         return {"trades": 0, "win_rate_pct": np.nan, "net_pnl": 0.0, "profit_factor": np.nan}
-    pnl = pd.to_numeric(e["profit_loss"], errors="coerce").dropna()
+    x = trades.copy()
+    if "signal" in x.columns:
+        x = x[x["signal"].astype(str).str.upper().eq("BUY")]
+    pnl = pd.to_numeric(x["profit_loss"], errors="coerce").dropna()
     if pnl.empty:
         return {"trades": 0, "win_rate_pct": np.nan, "net_pnl": 0.0, "profit_factor": np.nan}
     gross_win = pnl[pnl > 0].sum()
@@ -256,7 +259,7 @@ def run_phase2() -> pd.DataFrame:
     c["phase2_top5"] = (c["phase2_rank"] <= 5).astype(int)
     c.to_csv(OUT, index=False)
 
-    feedback = _portfolio_feedback(e)
+    feedback = _portfolio_feedback(_read(DATA / "paper_trades.csv"))
     direction_lift, return_lift, matched_eval_sessions = _shadow_selection_metrics(c, e)
 
     # Independent V2 evidence is read from the actual paper-trading history.

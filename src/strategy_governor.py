@@ -22,6 +22,12 @@ MIN_RETURN_LIFT_CI_LOW_PCT = 0.0
 DIRECTIONAL_SUMMARY_FILE = DATA / "directional_model_validation_summary.csv"
 CONFIDENCE_SUMMARY_FILE = DATA / "confidence_validation_summary.csv"
 PHASE2_SUMMARY_FILE = DATA / "phase2_performance_summary.csv"
+GOVERNANCE_SUMMARY_FILE = DATA / "model_governance_summary.csv"
+MIN_PROMOTION_SESSIONS = 20
+MIN_PROMOTION_TRADES = 50
+MIN_RETENTION_WIN_RATE_PCT = 50.0
+ROLLBACK_RETURN_LIFT_PCT = -0.25
+ROLLBACK_CI_LOW_PCT = -0.25
 
 
 def _load(path: Path) -> pd.DataFrame:
@@ -106,6 +112,20 @@ def _phase2_enabled() -> tuple[bool, dict]:
         return False, {}
 
 
+
+def _governance() -> dict:
+    if not GOVERNANCE_SUMMARY_FILE.exists():
+        return {"safety_status": "FAIL", "bootstrap_ci_low_pct": -float("inf"), "drift_status": "UNKNOWN"}
+    try:
+        x = pd.read_csv(GOVERNANCE_SUMMARY_FILE)
+        if x.empty:
+            return {"safety_status": "FAIL", "bootstrap_ci_low_pct": -float("inf"), "drift_status": "UNKNOWN"}
+        row = x.iloc[-1].to_dict()
+        row["bootstrap_ci_low_pct"] = float(pd.to_numeric(row.get("bootstrap_ci_low_pct"), errors="coerce"))
+        return row
+    except Exception:
+        return {"safety_status": "FAIL", "bootstrap_ci_low_pct": -float("inf"), "drift_status": "UNKNOWN"}
+
 def _load_state() -> dict:
     if not STATE_FILE.exists():
         return {"production_strategy": "V1", "status": "collecting", "reason": "initial_state"}
@@ -126,7 +146,9 @@ def evaluate_promotion() -> dict:
     confidence_promoted = _confidence_promoted()
     directional_promoted = _directional_promoted()
     phase2_enabled, phase2 = _phase2_enabled()
+    governance = _governance()
     enough = common_sessions >= MIN_COMMON_SESSIONS and v2_trades >= MIN_V2_TRADES
+    governance_safe = str(governance.get("safety_status", "FAIL")).upper() == "PASS"
 
     if enough:
         v1 = _metrics(matched, "v1")
@@ -160,6 +182,8 @@ def evaluate_promotion() -> dict:
         and return_lift_ci_low >= MIN_RETURN_LIFT_CI_LOW_PCT
         and session_win_rate >= MIN_SESSION_WIN_RATE_PCT
         and dd_gate
+        and governance_safe
+        and float(governance.get("bootstrap_ci_low_pct", -float("inf"))) >= MIN_RETURN_LIFT_CI_LOW_PCT
     )
 
     current = str(state.get("production_strategy", "V1"))
@@ -167,14 +191,14 @@ def evaluate_promotion() -> dict:
         production, status, reason = "V2", "promoted", "V2 passed matched-date, confidence and Phase-2 gates"
     elif current == "V2":
         rollback = bool(
-            not phase2_enabled
+            not governance_safe
+            or not phase2_enabled
             or not confidence_promoted
             or not directional_promoted
             or (
                 enough
-                and pnl_lift < 0
-                and return_lift < -MIN_RETURN_LIFT_PCT
-                and session_win_rate < 40.0
+                and (return_lift <= ROLLBACK_RETURN_LIFT_PCT or return_lift_ci_low <= ROLLBACK_CI_LOW_PCT)
+                and session_win_rate < MIN_RETENTION_WIN_RATE_PCT
                 and not dd_gate
             )
         )
@@ -209,6 +233,9 @@ def evaluate_promotion() -> dict:
         "phase2_enabled": phase2_enabled,
         "phase2_direction_lift_pct": phase2.get("direction_lift_pct", 0.0),
         "phase2_shadow_return_lift_pct": phase2.get("return_lift_pct", 0.0),
+        "governance_safe": governance_safe,
+        "governance_bootstrap_ci_low_pct": governance.get("bootstrap_ci_low_pct", -float("inf")),
+        "governance_drift_status": governance.get("drift_status", "UNKNOWN"),
     }
 
     pd.DataFrame([comparison]).to_csv(AB_FILE, index=False)

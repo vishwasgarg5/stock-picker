@@ -60,6 +60,10 @@ def main() -> int:
         "phase2_shadow_return_measurement": "_shadow_selection_metrics" in phase2,
         "directional_challenger_module": "src/directional_model.py" in required,
         "directional_challenger_pipeline": "directional_model" in pipeline,
+        "directional_walk_forward_validation": "walk_forward" in (ROOT / "src/directional_model.py").read_text(encoding="utf-8"),
+        "directional_brier_gate": "brier_lift" in (ROOT / "src/directional_model.py").read_text(encoding="utf-8"),
+        "directional_target_threshold": "TARGET_MOVE_THRESHOLD" in (ROOT / "src/directional_model.py").read_text(encoding="utf-8"),
+        "directional_gate_to_governor": "directional_model_validation_summary.csv" in governor and "directional_promoted" in governor,
     }
     failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
 

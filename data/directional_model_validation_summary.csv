@@ -1,0 +1,2 @@
+sessions,rows,mean_accuracy_pct,mean_accuracy_lift_pct,production_ready,status,recent_5_sessions,recent_5_accuracy_pct,recent_5_lift_pct,recent_10_sessions,recent_10_accuracy_pct,recent_10_lift_pct,recent_20_sessions,recent_20_accuracy_pct,recent_20_lift_pct
+635,295143,51.29561381610531,-16.123746602217608,False,hold,5,48.16769197376681,-17.485594663222308,10,51.88538485471186,-15.503337956867577,20,49.78191347187332,-18.007832090859708

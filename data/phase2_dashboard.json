@@ -15,6 +15,10 @@
   "v2_ab_return_lift_pct": 0.0,
   "v2_ab_session_win_rate_pct": 0.0,
   "v2_ab_drawdown_gate": false,
+  "directional_challenger_accuracy_pct": 51.29561381610531,
+  "directional_challenger_lift_pct": -16.123746602217608,
+  "directional_challenger_ready": false,
+  "return_lift_ci_low_pct": -Infinity,
   "promotion_safe": true,
   "model_beating_baseline": false,
   "directional_quality_warning": true

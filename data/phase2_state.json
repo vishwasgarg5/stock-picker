@@ -5,6 +5,7 @@
   "v2_trades": 0,
   "evaluated_shadow_sessions": 1,
   "direction_lift_pct": -12.5,
+  "direction_model_available_pct": 0.0,
   "return_lift_pct": 0.017408473661222057,
   "trades": 100,
   "win_rate_pct": 36.0,

@@ -16,9 +16,9 @@ V1,sessions,13,2026-10-07
 V1,net_pnl,-3511.3231331310817,2026-10-07
 V1,max_drawdown_pct,,2026-10-07
 V2,sessions,9,2026-10-07
-V2,net_pnl,0.0,2026-10-07
+V2,net_pnl,-174.89794462585243,2026-10-07
 V2,max_drawdown_pct,0.0,2026-10-07
-V2,trades,0.0,2026-10-07
+V2,trades,5.0,2026-10-07
 Confidence,rows,90,2026-10-07
 Confidence,sessions,9,2026-10-07
 Confidence,top_confidence_mape_pct,1.7667117315088066,2026-10-07
@@ -41,7 +41,7 @@ Ranking challenger,recent_5_positive_lift_pct,-4.0,2026-10-07
 Ranking challenger,recent_10_positive_lift_pct,-4.0,2026-10-07
 Ranking challenger,recent_20_positive_lift_pct,-5.0,2026-10-07
 Strategy A/B,common_sessions,9,2026-10-07
-Strategy A/B,v2_trades,0,2026-10-07
+Strategy A/B,v2_trades,5,2026-10-07
 Strategy A/B,pnl_lift,0.0,2026-10-07
 Strategy A/B,return_lift_pct,0.0,2026-10-07
 Strategy A/B,session_win_rate_pct,0.0,2026-10-07

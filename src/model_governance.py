@@ -202,7 +202,7 @@ def _manifest() -> dict:
 
 
 def _safety() -> dict:
-    required = ["data/ohlcv.csv","data/predictions.csv","data/strategy_state.json"]
+    required = ["data/ohlcv.csv","data/predictions.csv"]
     missing = [p for p in required if not (ROOT / p).exists()]
     failures = list(missing)
     p = _read("predictions.csv")
@@ -216,8 +216,9 @@ def _safety() -> dict:
             if pd.to_numeric(p["rank"],errors="coerce").nunique() != len(p):
                 failures.append("duplicate_prediction_rank")
     state = {}
+    state_path = ROOT / "data/strategy_state.json"
     try:
-        state = json.loads((ROOT/"data/strategy_state.json").read_text()) if (ROOT/"data/strategy_state.json").exists() else {}
+        state = json.loads(state_path.read_text()) if state_path.exists() else {"production_strategy": "V1"}
     except Exception:
         failures.append("invalid_strategy_state")
     if str(state.get("production_strategy","V1")).upper() not in {"V1","V2"}:

@@ -16,23 +16,24 @@ HISTORY_FILE = DATA / "ohlcv.csv"
 
 MIN_ROWS = 500
 MIN_SESSIONS = 12
+MIN_TRAIN_SESSIONS = 60
 RECENT_WINDOWS = (5, 10, 20)
+TARGET_MOVE_THRESHOLD = 0.0015
 
 
 def _dataset(hist: pd.DataFrame) -> pd.DataFrame:
     x = features(hist).sort_values(["symbol", "date"]).copy()
     g = x.groupby("symbol", group_keys=False)
     next_return = g["close"].shift(-1) / x["close"] - 1.0
-    x["target_direction"] = (next_return > 0).astype(int)
-    # Ignore essentially flat moves; they are not useful directional training
-    # examples and otherwise make the class boundary artificially noisy.
     x["target_return"] = next_return
+    # Exclude tiny moves from training because their direction is mostly noise.
     x = x.dropna(subset=FEATURE_COLUMNS + ["target_return"]).copy()
-    x = x[x["target_return"].abs() >= 0.001].copy()
+    x = x[x["target_return"].abs() >= TARGET_MOVE_THRESHOLD].copy()
+    x["target_direction"] = (x["target_return"] > 0).astype(int)
     return x
 
 
-def _fit(x: pd.DataFrame, y: pd.Series) -> dict:
+def _fit(x: pd.DataFrame, y: pd.Series, regime: str = "ALL") -> dict:
     hgb = HistGradientBoostingClassifier(
         max_iter=250, learning_rate=0.05, max_leaf_nodes=31,
         l2_regularization=1.0, random_state=42
@@ -46,7 +47,8 @@ def _fit(x: pd.DataFrame, y: pd.Series) -> dict:
     return {
         "models": [hgb, extra],
         "weights": [0.65, 0.35],
-        "version": "directional_challenger_v1",
+        "version": "directional_challenger_v2_walkforward",
+        "regime": regime,
         "features": FEATURE_COLUMNS,
     }
 
@@ -93,7 +95,7 @@ def _evaluate_predictions(actual: np.ndarray, p: np.ndarray, baseline_prob: floa
     }
 
 
-def _walk_forward_splits(dates: list, min_train_sessions: int = 60, test_sessions: int = 5):
+def _walk_forward_splits(dates: list, min_train_sessions: int = MIN_TRAIN_SESSIONS, test_sessions: int = 5):
     dates = sorted(pd.to_datetime(dates).unique())
     for end in range(min_train_sessions, len(dates), test_sessions):
         train_dates = dates[:end]

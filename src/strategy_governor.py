@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import json
 import pandas as pd
+import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -23,6 +24,7 @@ DIRECTIONAL_SUMMARY_FILE = DATA / "directional_model_validation_summary.csv"
 CONFIDENCE_SUMMARY_FILE = DATA / "confidence_validation_summary.csv"
 PHASE2_SUMMARY_FILE = DATA / "phase2_performance_summary.csv"
 GOVERNANCE_SUMMARY_FILE = DATA / "model_governance_summary.csv"
+PHASE4_SUMMARY_FILE = DATA / "phase4_performance_summary.csv"
 MIN_PROMOTION_SESSIONS = 20
 MIN_PROMOTION_TRADES = 50
 MIN_RETENTION_WIN_RATE_PCT = 50.0
@@ -113,6 +115,20 @@ def _phase2_enabled() -> tuple[bool, dict]:
 
 
 
+def _phase4() -> dict:
+    if not PHASE4_SUMMARY_FILE.exists():
+        return {"safety_status": "FAIL", "production_ready": False, "bootstrap_ci_low_pct": -float("inf")}
+    try:
+        x = pd.read_csv(PHASE4_SUMMARY_FILE)
+        if x.empty:
+            return {"safety_status": "FAIL", "production_ready": False, "bootstrap_ci_low_pct": -float("inf")}
+        row = x.iloc[-1].to_dict()
+        row["bootstrap_ci_low_pct"] = float(pd.to_numeric(row.get("bootstrap_ci_low_pct"), errors="coerce"))
+        return row
+    except Exception:
+        return {"safety_status": "FAIL", "production_ready": False, "bootstrap_ci_low_pct": -float("inf")}
+
+
 def _governance() -> dict:
     if not GOVERNANCE_SUMMARY_FILE.exists():
         return {"safety_status": "FAIL", "bootstrap_ci_low_pct": -float("inf"), "drift_status": "UNKNOWN"}
@@ -147,8 +163,10 @@ def evaluate_promotion() -> dict:
     directional_promoted = _directional_promoted()
     phase2_enabled, phase2 = _phase2_enabled()
     governance = _governance()
+    phase4 = _phase4()
     enough = common_sessions >= MIN_COMMON_SESSIONS and v2_trades >= MIN_V2_TRADES
     governance_safe = str(governance.get("safety_status", "FAIL")).upper() == "PASS"
+    phase4_safe = str(phase4.get("safety_status", "FAIL")).upper() in {"PASS", "SHADOW_ONLY"}
 
     if enough:
         v1 = _metrics(matched, "v1")
@@ -183,6 +201,7 @@ def evaluate_promotion() -> dict:
         and session_win_rate >= MIN_SESSION_WIN_RATE_PCT
         and dd_gate
         and governance_safe
+        and phase4_safe
         and float(governance.get("bootstrap_ci_low_pct", -float("inf"))) >= MIN_RETURN_LIFT_CI_LOW_PCT
     )
 
@@ -236,6 +255,11 @@ def evaluate_promotion() -> dict:
         "governance_safe": governance_safe,
         "governance_bootstrap_ci_low_pct": governance.get("bootstrap_ci_low_pct", -float("inf")),
         "governance_drift_status": governance.get("drift_status", "UNKNOWN"),
+        "phase4_safe": phase4_safe,
+        "phase4_regime": phase4.get("regime", "NEUTRAL"),
+        "phase4_confidence_floor_percentile": phase4.get("confidence_floor_percentile", np.nan),
+        "phase4_min_expected_return_pct": phase4.get("min_expected_return_pct", np.nan),
+        "phase4_bootstrap_ci_low_pct": phase4.get("bootstrap_ci_low_pct", -float("inf")),
     }
 
     pd.DataFrame([comparison]).to_csv(AB_FILE, index=False)

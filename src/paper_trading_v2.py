@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .risk_management import apply_risk_gate, MAX_TRADES
+from .risk_management import MAX_TRADES
 from .trade_quality_model import latest_trade_quality_scores
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,6 +19,7 @@ PORTFOLIO_FILE = DATA / "portfolio_v2_daily.csv"
 CAPITAL = 100000.0
 COST_RATE = 0.0005
 SHADOW_CONFIDENCE_PERCENTILE = 0.50
+MAX_SHADOW_ATR_PCT = 8.0
 
 
 def _confidence_gate() -> bool:
@@ -50,12 +51,16 @@ def _phase2_confidence(p: pd.DataFrame) -> pd.DataFrame:
         return p
     try:
         q = pd.read_csv(PHASE2_FILE)
-        if q.empty or not {"prediction_date", "target_date", "symbol"}.issubset(q.columns):
+        required = {"prediction_date", "target_date", "symbol"}
+        if q.empty or not required.issubset(q.columns):
             return p
         q["prediction_date"] = pd.to_datetime(q["prediction_date"], errors="coerce").dt.normalize()
         q["target_date"] = pd.to_datetime(q["target_date"], errors="coerce").dt.normalize()
         q["symbol"] = q["symbol"].astype(str).str.upper().str.strip()
-        keep = [c for c in ["prediction_date", "target_date", "symbol", "phase2_rank", "phase2_selected", "confidence_v3", "direction_score_v3"] if c in q.columns]
+        keep = [c for c in [
+            "prediction_date", "target_date", "symbol", "phase2_rank",
+            "phase2_selected", "phase2_score", "confidence_v3", "direction_score_v3"
+        ] if c in q.columns]
         q = q[keep].drop_duplicates(["prediction_date", "target_date", "symbol"], keep="last")
         return p.merge(q, on=["prediction_date", "target_date", "symbol"], how="left")
     except Exception:
@@ -71,11 +76,13 @@ def run_paper_trading_v2() -> pd.DataFrame:
     if p.empty or h.empty or "confidence_score" not in p.columns:
         return pd.DataFrame()
 
-    p["target_date"] = pd.to_datetime(p["target_date"], errors="coerce").dt.normalize()
-    p["prediction_date"] = pd.to_datetime(p["prediction_date"], errors="coerce").dt.normalize()
+    for c in ["target_date", "prediction_date"]:
+        p[c] = pd.to_datetime(p[c], errors="coerce").dt.normalize()
     p["symbol"] = p["symbol"].astype(str).str.upper().str.strip()
-    for col in ["rank", "confidence_score", "base_close", "predicted_high", "predicted_low", "predicted_close"]:
-        p[col] = pd.to_numeric(p.get(col), errors="coerce")
+
+    for col in ["rank", "score", "confidence_score", "base_close", "predicted_high", "predicted_low", "predicted_close"]:
+        if col in p.columns:
+            p[col] = pd.to_numeric(p[col], errors="coerce")
 
     p = _phase2_confidence(p)
     if "confidence_v3" not in p.columns:
@@ -83,15 +90,18 @@ def run_paper_trading_v2() -> pd.DataFrame:
     p["confidence_v3"] = pd.to_numeric(p["confidence_v3"], errors="coerce").fillna(
         pd.to_numeric(p["confidence_score"], errors="coerce")
     )
+    p["phase2_score"] = pd.to_numeric(p.get("phase2_score"), errors="coerce")
+    p["phase2_selected"] = pd.to_numeric(p.get("phase2_selected"), errors="coerce").fillna(0)
 
-    actual = h.rename(columns={"date": "target_date", "open": "actual_open", "close": "actual_close"})[
-        ["symbol", "target_date", "actual_open", "actual_close"]
-    ].copy()
+    actual = h.rename(columns={
+        "date": "target_date",
+        "open": "actual_open",
+        "close": "actual_close"
+    })[["symbol", "target_date", "actual_open", "actual_close"]].copy()
     actual["symbol"] = actual["symbol"].astype(str).str.upper().str.strip()
 
     atr = _atr14(h)
-    latest_atr = atr.sort_values("date").drop_duplicates(["symbol", "date"], keep="last")
-    latest_atr = latest_atr.rename(columns={"date": "prediction_date"})
+    latest_atr = atr.rename(columns={"date": "prediction_date"})
     p = p.dropna(subset=["target_date", "prediction_date", "symbol"])
     x = p.merge(actual, on=["symbol", "target_date"], how="inner")
     x = x.merge(latest_atr, on=["symbol", "prediction_date"], how="left")
@@ -102,11 +112,13 @@ def run_paper_trading_v2() -> pd.DataFrame:
 
     confidence_promoted = _confidence_gate()
 
-    # V2 must collect genuine paper-trading evidence before promotion.  The
-    # evidence itself cannot depend on the promotion flag, otherwise the
-    # strategy can never reach the 50-trade gate (circular evidence).
+    # Evidence collection is independent of production promotion. V2 benchmarks
+    # the Phase-2 selector itself; production remains protected by the governor.
     x["confidence_pct"] = x.groupby("target_date")["confidence_v3"].rank(pct=True, method="first")
-    eligible = x[x["confidence_pct"] >= SHADOW_CONFIDENCE_PERCENTILE].copy()
+    eligible = x[
+        (x["confidence_pct"] >= SHADOW_CONFIDENCE_PERCENTILE)
+        & x["phase2_selected"].eq(1)
+    ].copy()
 
     eligible["expected_return_pct"] = (
         eligible["predicted_close"] / eligible["base_close"].replace(0, np.nan) - 1.0
@@ -115,8 +127,7 @@ def run_paper_trading_v2() -> pd.DataFrame:
         eligible["atr14"] / eligible["base_close"].replace(0, np.nan) * 100.0
     ).replace([np.inf, -np.inf], np.nan)
     eligible["stop_distance_pct"] = np.maximum(1.5 * eligible["atr_pct"].fillna(0.0), 1.0)
-    eligible["target_return_pct"] = eligible["expected_return_pct"].clip(lower=0.0)
-    eligible["risk_reward"] = eligible["target_return_pct"] / eligible["stop_distance_pct"].replace(0, np.nan)
+    eligible["risk_reward"] = eligible["expected_return_pct"] / eligible["stop_distance_pct"].replace(0, np.nan)
 
     quality = latest_trade_quality_scores(eligible)
     if not quality.empty:
@@ -127,34 +138,47 @@ def run_paper_trading_v2() -> pd.DataFrame:
         eligible["trade_quality_probability"], errors="coerce"
     ).fillna(0.50)
 
-    risked = apply_risk_gate(eligible, capital=CAPITAL)
-    selected = risked[risked["trade_decision"].eq("BUY")].sort_values(
-        ["target_date", "risk_reward", "confidence_v3"], ascending=[True, False, False]
+    # Shadow benchmark is not a production risk gate. Apply only a hard ATR
+    # sanity bound, then select the best Phase-2 candidates.
+    eligible = eligible[
+        eligible["atr_pct"].isna() | eligible["atr_pct"].le(MAX_SHADOW_ATR_PCT)
+    ].copy()
+    selected = eligible.sort_values(
+        ["target_date", "phase2_score", "confidence_v3"],
+        ascending=[True, False, False]
     ).groupby("target_date", group_keys=False).head(MAX_TRADES).copy()
 
-    x["strategy"] = "V2_SHADOW_RISK_FILTERED" if not confidence_promoted else "V2_CONFIDENCE_RISK_FILTERED"
+    x["strategy"] = "V2_SHADOW_BENCHMARK" if not confidence_promoted else "V2_CONFIDENCE_BENCHMARK"
     x["signal"] = "SKIP"
-    x["no_trade_reason"] = "shadow_confidence_filter_or_risk_gate"
-    selected_keys = selected.set_index(["symbol", "target_date"]) if not selected.empty else pd.DataFrame()
+    x["no_trade_reason"] = "shadow_selection_filter"
     if not selected.empty:
-        x_keys = pd.MultiIndex.from_frame(x[["symbol", "target_date"]])
-        x.loc[x_keys.isin(selected_keys.index), "signal"] = "BUY"
-        x.loc[x_keys.isin(selected_keys.index), "no_trade_reason"] = ""
-        for col in ["quantity", "risk_reward", "stop_distance_pct", "expected_return_pct", "trade_quality_probability"]:
-            lookup = selected_keys[col]
-            x[col] = [
-                lookup.get((sym, dt), old_value)
-                if (sym, dt) in lookup.index else old_value
-                for sym, dt, old_value in zip(x["symbol"], x["target_date"], x.get(col, pd.Series(np.nan, index=x.index)))
-            ]
+        selected_idx = pd.MultiIndex.from_frame(selected[["symbol", "target_date"]])
+        x_idx = pd.MultiIndex.from_frame(x[["symbol", "target_date"]])
+        mask = x_idx.isin(selected_idx)
+        x.loc[mask, "signal"] = "BUY"
+        x.loc[mask, "no_trade_reason"] = ""
+
+        selected_lookup = selected.set_index(["symbol", "target_date"])
+        for col in ["risk_reward", "stop_distance_pct", "expected_return_pct", "trade_quality_probability"]:
+            if col in selected.columns:
+                old_series = x[col] if col in x.columns else pd.Series(np.nan, index=x.index)
+                x[col] = [
+                    selected_lookup.loc[(sym, dt), col]
+                    if (sym, dt) in selected_lookup.index else old
+                    for sym, dt, old in zip(x["symbol"], x["target_date"], old_series)
+                ]
     else:
-        for col in ["quantity", "risk_reward", "stop_distance_pct", "expected_return_pct", "trade_quality_probability"]:
+        for col in ["risk_reward", "stop_distance_pct", "expected_return_pct", "trade_quality_probability"]:
             if col not in x:
                 x[col] = np.nan
 
     x["reference_price"] = x["base_close"]
     x["no_trade_reason"] = x["no_trade_reason"].fillna("").astype(str)
-    x["quantity"] = np.where(x["signal"].eq("BUY"), pd.to_numeric(x["quantity"], errors="coerce").fillna(0), 0).astype(int)
+    x["quantity"] = np.where(
+        x["signal"].eq("BUY"),
+        np.floor((CAPITAL / MAX_TRADES) / x["reference_price"].replace(0, np.nan)).fillna(0),
+        0,
+    ).astype(int)
     x["planned_capital"] = np.where(x["signal"].eq("BUY"), x["quantity"] * x["reference_price"], 0.0)
     x["entry_price"] = np.where(x["signal"].eq("BUY"), x["actual_open"], np.nan)
     x["exit_price"] = np.where(x["signal"].eq("BUY"), x["actual_close"], np.nan)
@@ -215,8 +239,10 @@ def run_paper_trading_v2() -> pd.DataFrame:
     daily.to_csv(PORTFOLIO_FILE, index=False)
 
     print(
-        f"Paper V2: confidence_promoted={confidence_promoted}, shadow_filter={SHADOW_CONFIDENCE_PERCENTILE:.0%}, "
-        f"sessions={len(daily)}, BUY trades={int(buy.shape[0])}, portfolio=₹{float(daily.iloc[-1]['portfolio_value']):,.2f}"
+        f"Paper V2: confidence_promoted={confidence_promoted}, "
+        f"shadow_selector={SHADOW_CONFIDENCE_PERCENTILE:.0%}, "
+        f"sessions={len(daily)}, BUY trades={int(buy.shape[0])}, "
+        f"portfolio=₹{float(daily.iloc[-1]['portfolio_value']):,.2f}"
     )
     return combined
 

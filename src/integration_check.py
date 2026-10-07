@@ -16,7 +16,7 @@ def main() -> int:
         "src/ranking_model.py", "src/strategy_governor.py",
         "src/performance_audit.py", "src/portfolio_comparison.py",
         "src/phase2_optimizer.py", "src/phase2_dashboard.py",
-        "src/directional_model.py",
+        "src/directional_model.py", "src/model_governance.py",
         "data/predictions.csv", "data/ohlcv.csv",
     ]
     for rel in required:
@@ -37,12 +37,17 @@ def main() -> int:
             failures.append("phase2_optimizer_refresh_after_v2_missing")
         if "src.phase2_dashboard" not in workflow:
             failures.append("phase2_dashboard_not_wired_to_workflow")
+        if "src.model_governance" not in workflow:
+            failures.append("model_governance_not_wired_to_workflow")
+        if "timeout-minutes: 360" not in workflow:
+            failures.append("workflow_timeout_not_extended_to_platform_maximum")
 
     pipeline = (ROOT / "src/pipeline.py").read_text(encoding="utf-8")
     v2 = (ROOT / "src/paper_trading_v2.py").read_text(encoding="utf-8")
     governor = (ROOT / "src/strategy_governor.py").read_text(encoding="utf-8")
     portfolio = (ROOT / "src/portfolio_comparison.py").read_text(encoding="utf-8")
     phase2 = (ROOT / "src/phase2_optimizer.py").read_text(encoding="utf-8")
+    governance = (ROOT / "src/model_governance.py").read_text(encoding="utf-8")
 
     links = {
         "confidence_to_v2": "confidence_validation_summary.csv" in v2 and "_confidence_gate" in v2,
@@ -64,6 +69,11 @@ def main() -> int:
         "directional_brier_gate": "brier_lift" in (ROOT / "src/directional_model.py").read_text(encoding="utf-8"),
         "directional_target_threshold": "TARGET_MOVE_THRESHOLD" in (ROOT / "src/directional_model.py").read_text(encoding="utf-8"),
         "directional_gate_to_governor": "directional_model_validation_summary.csv" in governor and "directional_promoted" in governor,
+        "governance_to_governor": "model_governance_summary.csv" in governor and "_governance" in governor,
+        "governance_bootstrap": "_bootstrap_ab" in governance and "bootstrap_ci_low_pct" in governance,
+        "governance_drift": "_drift" in governance and "feature_drift_count" in governance,
+        "governance_manifest": "_manifest" in governance and "model_manifest.json" in governance,
+        "governance_safety": "_safety" in governance and "v1_safe_default" in governance,
     }
     failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
 
@@ -78,6 +88,13 @@ def main() -> int:
         "data/phase2_dashboard.csv",
         "data/phase2_dashboard.json",
         "data/directional_model_validation_summary.csv",
+        "data/model_governance_summary.csv",
+        "data/model_governance.json",
+        "data/model_manifest.json",
+        "data/target_threshold_diagnostics.csv",
+        "data/regime_performance.csv",
+        "data/stock_stability.csv",
+        "data/feature_stability.csv",
     ]
     failures.extend(f"missing_generated_report:{p}" for p in generated if not (ROOT / p).exists())
 

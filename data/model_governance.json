@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-10-07T17:47:15.408945+00:00",
+  "as_of": "2026-10-07T18:43:57.943146+00:00",
   "target_threshold_current_pct": 0.15,
   "target_threshold_candidates_pct": "0.1,0.15,0.25,0.5",
   "target_threshold_best_coverage_pct": 0.1,
@@ -21,8 +21,8 @@
   "max_feature_median_shift": 0.0,
   "confidence_evidence": false,
   "phase2_enabled": false,
-  "safety_status": "FAIL",
-  "safety_failures": "duplicate_prediction_symbol|duplicate_prediction_rank",
+  "safety_status": "PASS",
+  "safety_failures": "",
   "v1_safe_default": true,
   "tail_v2_trades": 5,
   "worst_v2_trade_pnl": -207.978434753418,

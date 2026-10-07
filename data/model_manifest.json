@@ -6,7 +6,7 @@
     "src/directional_model.py": "d6a546edd7ee6435cb4fcd40626c11c8971c6f2cb71d48a1d74c8b858fae65fc",
     "src/final_validation.py": "7b28eb38d275e92b556e608977f8db60fd618100446c077cf794f3d921d03e25",
     "src/integration_check.py": "20026d6e8d89f97c1be9e44c6677c59ae259c860d96205e8cef18df90501a58f",
-    "src/model_governance.py": "2a77f64fdd4741375510868eae43c1a3429a86bdd33f6055f00dfea866d1dbc5",
+    "src/model_governance.py": "6ae4c29e774675baadba66eeea7eb09c2e6e7dabb52eb464160cc8a7ff07a21b",
     "src/new_listing_model.py": "dd51412fa28c2a393811a4839e23764df5079c40ccf4cf93c6896f2fd931142c",
     "src/outcomes.py": "15da3c0da4c855b7318f62dfa34aefb8f523c7db1aeef8dec5b66f604356795e",
     "src/paper_trading.py": "19917bc641fba2f7d911d72c4c97718415a16e69b711802ab3587aa0c3920c88",
@@ -29,7 +29,7 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "70946151def347414167094213ee8912332084cbb8f2924d4a56da3400affb61"
+    ".github/workflows/daily.yml": "9323e0a722bdbda07d582c3f12e2d6278904dc3be87f37e232b78a328adb1109"
   },
   "manifest_version": "governance_v1"
 }

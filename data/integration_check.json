@@ -1,7 +1,5 @@
 {
-  "status": "FAIL",
-  "failures": [
-    "link_broken:directional_challenger_module"
-  ],
-  "as_of": "2026-10-07T16:40:16.841997+00:00"
+  "status": "PASS",
+  "failures": [],
+  "as_of": "2026-10-07T18:44:02.277683+00:00"
 }

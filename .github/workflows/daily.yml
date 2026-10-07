@@ -95,11 +95,17 @@ jobs:
       - name: Run Phase 2 performance optimizer in shadow mode
         run: python -m src.phase2_optimizer
 
-      - name: Run Paper Trading V2 confidence-filtered benchmark
+      - name: Run Phase 4 adaptive performance optimizer
+        run: python -m src.phase4_optimizer
+
+      - name: Run Paper Trading V2 confidence-filtered benchmark with Phase 4 overlay
         run: python -m src.paper_trading_v2
 
       - name: Refresh Phase 2 evidence after V2 paper trading
         run: python -m src.phase2_optimizer
+
+      - name: Refresh Phase 4 adaptive evidence after V2 paper trading
+        run: python -m src.phase4_optimizer
 
       - name: Run connected model and strategy governance
         if: always()

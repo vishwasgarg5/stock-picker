@@ -49,3 +49,5 @@ def test_meaningful_move_target_excludes_tiny_moves():
     hist = pd.DataFrame(rows)
     out = _dataset(hist)
     assert "target_direction" in out.columns
+    assert len(out) < len(hist)
+    assert (out["target_return"].abs() >= 0.0015).all()

@@ -16,7 +16,7 @@ def main(preflight: bool = False) -> int:
         "src/risk_management.py", "src/trade_quality_model.py",
         "src/ranking_model.py", "src/strategy_governor.py",
         "src/performance_audit.py", "src/portfolio_comparison.py",
-        "src/phase2_optimizer.py", "src/phase2_dashboard.py",
+        "src/phase2_optimizer.py", "src/phase2_dashboard.py", "src/phase4_optimizer.py",
         "src/directional_model.py", "src/model_governance.py",
         "data/predictions.csv", "data/ohlcv.csv",
     ]
@@ -77,6 +77,11 @@ def main(preflight: bool = False) -> int:
         "governance_safety": "_safety" in governance and "v1_safe_default" in governance,
         "governance_model_drift": "_model_drift" in governance and "model_drift_status" in governance,
         "governance_20_step_map": "step_20_consolidated_dashboard" in governance,
+        "phase4_module": "src/phase4_optimizer.py" in required,
+        "phase4_v2_overlay": "apply_phase4" in v2 and "phase4_eligible" in v2,
+        "phase4_adaptive_sizing": "phase4_weight" in v2,
+        "phase4_governor_gate": "phase4_performance_summary.csv" in governor and "_phase4" in governor,
+        "phase4_no_future_data": "future actual prices" in (ROOT / "src/phase4_optimizer.py").read_text(encoding="utf-8"),
     }
     failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
 
@@ -90,6 +95,9 @@ def main(preflight: bool = False) -> int:
         "data/phase2_optimized_candidates.csv",
         "data/phase2_dashboard.csv",
         "data/phase2_dashboard.json",
+        "data/phase4_performance_summary.csv",
+        "data/phase4_candidates.csv",
+        "data/phase4_config.json",
         "data/directional_model_validation_summary.csv",
         "data/model_governance_summary.csv",
         "data/model_governance.json",

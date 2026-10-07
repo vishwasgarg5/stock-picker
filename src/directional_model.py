@@ -53,11 +53,11 @@ def _dataset(hist: pd.DataFrame) -> pd.DataFrame:
 
 def _fit(x: pd.DataFrame, y: pd.Series, regime: str = "ALL") -> dict:
     hgb = HistGradientBoostingClassifier(
-        max_iter=250, learning_rate=0.05, max_leaf_nodes=31,
+        max_iter=150, learning_rate=0.05, max_leaf_nodes=31,
         l2_regularization=1.0, random_state=42
     )
     extra = ExtraTreesClassifier(
-        n_estimators=250, max_depth=14, min_samples_leaf=5,
+        n_estimators=100, max_depth=12, min_samples_leaf=5,
         max_features=0.8, n_jobs=-1, random_state=42, class_weight="balanced"
     )
     hgb.fit(x, y)
@@ -113,7 +113,7 @@ def _evaluate_predictions(actual: np.ndarray, p: np.ndarray, baseline_prob: floa
     }
 
 
-def _walk_forward_splits(dates: list, min_train_sessions: int = MIN_TRAIN_SESSIONS, test_sessions: int = 5):
+def _walk_forward_splits(dates: list, min_train_sessions: int = MIN_TRAIN_SESSIONS, test_sessions: int = 20):
     dates = sorted(pd.to_datetime(dates).unique())
     for end in range(min_train_sessions, len(dates), test_sessions):
         train_dates = dates[:end]
@@ -188,6 +188,10 @@ def train_challenger(hist: pd.DataFrame) -> dict:
         **recent,
     }
     pd.DataFrame([summary]).to_csv(SUMMARY_FILE, index=False)
+    if ready:
+        final_bundle = _fit(ds[MODEL_FEATURES], ds["target_direction"], regime="ALL")
+        MODEL_FILE.parent.mkdir(parents=True, exist_ok=True)
+        joblib.dump(final_bundle, MODEL_FILE)
     print(
         f"Directional challenger: sessions={sessions}, accuracy={mean_acc:.2f}%, "
         f"lift={lift:.2f}pp, brier_lift={brier_lift:.4f}, "

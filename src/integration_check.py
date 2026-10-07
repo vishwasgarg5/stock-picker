@@ -74,6 +74,8 @@ def main() -> int:
         "governance_drift": "_drift" in governance and "feature_drift_count" in governance,
         "governance_manifest": "_manifest" in governance and "model_manifest.json" in governance,
         "governance_safety": "_safety" in governance and "v1_safe_default" in governance,
+        "governance_model_drift": "_model_drift" in governance and "model_drift_status" in governance,
+        "governance_20_step_map": "step_20_consolidated_dashboard" in governance,
     }
     failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
 

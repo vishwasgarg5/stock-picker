@@ -160,6 +160,14 @@ def run_phase2() -> pd.DataFrame:
 
     c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
     c["prediction_date"] = _norm_dates(c["prediction_date"])
+    # Candidate history can contain incomplete/stale rows.  Never allow invalid
+    # dates or non-finite scores to enter the ranking/groupby stage.
+    c = c.dropna(subset=["symbol", "prediction_date"]).copy()
+    if c.empty:
+        state = {"status": "collecting", "production_enabled": False, "reason": "no_valid_candidates"}
+        STATE.write_text(json.dumps(state, indent=2))
+        pd.DataFrame([state]).to_csv(SUMMARY, index=False)
+        return pd.DataFrame()
     if "rank" not in c:
         c["rank"] = np.arange(1, len(c) + 1)
     direction = _directional_history(c, e)
@@ -171,8 +179,10 @@ def run_phase2() -> pd.DataFrame:
 
     regime = _regime(c, h)
     c["regime"] = regime
-    expected = pd.to_numeric(c.get("predicted_close"), errors="coerce") / pd.to_numeric(c.get("base_close"), errors="coerce") - 1.0
-    c["expected_return_pct"] = expected * 100.0
+    predicted_close = pd.to_numeric(c.get("predicted_close", pd.Series(np.nan, index=c.index)), errors="coerce")
+    base_close = pd.to_numeric(c.get("base_close", pd.Series(np.nan, index=c.index)), errors="coerce")
+    expected = predicted_close.div(base_close.replace(0, np.nan)) - 1.0
+    c["expected_return_pct"] = expected.replace([np.inf, -np.inf], np.nan).fillna(0.0) * 100.0
     c["phase2_score"] = (
         c["score"].rank(pct=True).fillna(0.5) * 35.0
         + c["direction_score_v3"] * 0.25
@@ -182,7 +192,14 @@ def run_phase2() -> pd.DataFrame:
     )
     if regime == "BEAR":
         c["phase2_score"] -= (100.0 - c["direction_score_v3"]).clip(lower=0) * 0.05
-    c["phase2_rank"] = c.groupby("prediction_date")["phase2_score"].rank(method="first", ascending=False).astype(int)
+    c["phase2_score"] = pd.to_numeric(c["phase2_score"], errors="coerce").replace([np.inf, -np.inf], np.nan)
+    c["phase2_score"] = c["phase2_score"].fillna(50.0).clip(lower=-1e6, upper=1e6)
+    c["phase2_rank"] = (
+        c.groupby("prediction_date")["phase2_score"]
+        .rank(method="first", ascending=False)
+        .fillna(len(c) + 1)
+        .astype("int64")
+    )
     c["phase2_selected"] = (c["phase2_rank"] <= 10).astype(int)
     c.to_csv(OUT, index=False)
 

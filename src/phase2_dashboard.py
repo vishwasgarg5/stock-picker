@@ -71,6 +71,8 @@ def build_dashboard() -> dict:
         "bootstrap_ci_high_pct": _last(governance, "bootstrap_ci_high_pct", np.inf),
         "feature_drift_count": _last(governance, "feature_drift_count", np.nan),
         "drift_status": str(governance.iloc[-1].get("drift_status","UNKNOWN")) if not governance.empty else "UNKNOWN",
+        "model_drift_status": str(governance.iloc[-1].get("model_drift_status","UNKNOWN")) if not governance.empty else "UNKNOWN",
+        "recent_direction_accuracy_pct": _last(governance, "recent_direction_accuracy_pct", np.nan),
         "unstable_stocks": _last(governance, "unstable_stocks", np.nan),
         "stable_features": _last(governance, "stable_features", np.nan),
         "v2_worst_trade_pnl": _last(governance, "worst_v2_trade_pnl", np.nan),

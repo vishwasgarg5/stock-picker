@@ -58,6 +58,8 @@ def main() -> int:
         "phase2_repeat_loss_control": "repeat_loss_penalty" in phase2,
         "phase2_regime_engine": "_regime" in phase2,
         "phase2_shadow_return_measurement": "_shadow_selection_metrics" in phase2,
+        "directional_challenger_module": "directional_model.py" in required_files,
+        "directional_challenger_pipeline": "directional_model" in pipeline,
     }
     failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
 

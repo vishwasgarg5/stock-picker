@@ -61,7 +61,7 @@ def main() -> int:
         "directional_challenger_module": "src/directional_model.py" in required,
         "directional_challenger_pipeline": "directional_model" in pipeline,
     }
-    failures.extend(f"link_broken:{name}" for (const [name, ok] of Object.entries(links)) if not ok)
+    failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
 
     generated = [
         "data/confidence_validation_summary.csv",

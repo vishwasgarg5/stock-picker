@@ -181,7 +181,7 @@ def latest_rank_scores(hist: pd.DataFrame) -> pd.DataFrame:
     if not summary_file.exists():
         return pd.DataFrame()
     s = pd.read_csv(summary_file)
-    if s.empty or str(s.iloc[-1].get("status", "")) != "promote" or not bool(s.iloc[-1].get("production_ready", False)):
+    if s.empty or str(s.iloc[-1].get("status", "")) != "promote" or str(s.iloc[-1].get("production_ready", False)).strip().lower() != "true":
         return pd.DataFrame()
     bundle = joblib.load(MODEL_FILE)
     x = _build_dataset(hist)

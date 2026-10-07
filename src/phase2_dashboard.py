@@ -73,6 +73,9 @@ def build_dashboard() -> dict:
         "drift_status": str(governance.iloc[-1].get("drift_status","UNKNOWN")) if not governance.empty else "UNKNOWN",
         "unstable_stocks": _last(governance, "unstable_stocks", np.nan),
         "stable_features": _last(governance, "stable_features", np.nan),
+        "v2_worst_trade_pnl": _last(governance, "worst_v2_trade_pnl", np.nan),
+        "v2_max_consecutive_losses": _last(governance, "max_consecutive_v2_losses", np.nan),
+        "v2_profit_factor": _last(governance, "v2_profit_factor", np.nan),
     }
     dashboard["model_beating_baseline"] = bool(
         np.isfinite(dashboard["latest_close_mape_pct"])

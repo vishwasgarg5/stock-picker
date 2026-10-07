@@ -46,8 +46,8 @@ jobs:
       - name: Validate Python source
         run: python -m compileall -q src
 
-      - name: Run Phase 2 regression tests
-        run: pytest -q tests/test_phase2_optimizer.py
+      - name: Run Phase 2 and directional regression tests
+        run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py
 
       - name: Build new-listing ML challenger
         if: inputs.reuse_stored_data != true
@@ -64,6 +64,10 @@ jobs:
       - name: Validate risk management and no-trade gate
         if: inputs.reuse_stored_data != true
         run: python -m src.risk_management
+
+      - name: Build and validate directional accuracy challenger
+        if: inputs.reuse_stored_data != true
+        run: python -m src.directional_model
 
       - name: Validate confidence calibration before production filtering
         if: inputs.reuse_stored_data != true

@@ -28,12 +28,12 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: pip
@@ -110,6 +110,9 @@ jobs:
 
       - name: Refresh performance history
         run: python -m src.performance_history
+
+      - name: Build Phase 2 performance dashboard
+        run: python -m src.phase2_dashboard
 
       - name: Final end-to-end integration and promotion gate
         run: python -m src.integration_check

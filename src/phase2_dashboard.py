@@ -66,7 +66,13 @@ def build_dashboard() -> dict:
         "directional_challenger_lift_pct": _last(direction, "mean_accuracy_lift_pct"),
         "directional_challenger_ready": bool(str(direction.iloc[-1].get("production_ready", "False")).lower() == "true") if not direction.empty else False,
         "return_lift_ci_low_pct": _last(ab, "return_lift_ci_low_pct", -np.inf),
-        "promotion_safe": bool(str(governance.iloc[-1].get("safety_status","FAIL")).upper() == "PASS") if not governance.empty else False,
+        "promotion_safe": bool(
+            (not governance.empty and str(governance.iloc[-1].get("safety_status","FAIL")).upper() == "PASS")
+            and (not governance.empty and float(pd.to_numeric(governance.iloc[-1].get("bootstrap_ci_low_pct"), errors="coerce")) >= 0.0)
+            and (not direction.empty and str(direction.iloc[-1].get("production_ready","False")).lower() == "true")
+            and (not ab.empty and float(pd.to_numeric(ab.iloc[-1].get("common_sessions"), errors="coerce")) >= 20)
+            and (not ab.empty and float(pd.to_numeric(ab.iloc[-1].get("v2_trades"), errors="coerce")) >= 50)
+        ),
         "bootstrap_ci_low_pct": _last(governance, "bootstrap_ci_low_pct", -np.inf),
         "bootstrap_ci_high_pct": _last(governance, "bootstrap_ci_high_pct", np.inf),
         "feature_drift_count": _last(governance, "feature_drift_count", np.nan),

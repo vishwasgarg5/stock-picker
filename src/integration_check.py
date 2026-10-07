@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 WORKFLOW = ROOT / ".github" / "workflows" / "daily.yml"
 
+
 def main() -> int:
     failures = []
     required = [
@@ -14,7 +15,7 @@ def main() -> int:
         "src/risk_management.py", "src/trade_quality_model.py",
         "src/ranking_model.py", "src/strategy_governor.py",
         "src/performance_audit.py", "src/portfolio_comparison.py",
-        "src/phase2_optimizer.py",
+        "src/phase2_optimizer.py", "src/phase2_dashboard.py",
         "data/predictions.csv", "data/ohlcv.csv",
     ]
     for rel in required:
@@ -33,12 +34,15 @@ def main() -> int:
             failures.append("workflow_concurrency_guard_missing")
         if "src.phase2_optimizer" not in workflow:
             failures.append("phase2_optimizer_not_wired_to_workflow")
+        if "src.phase2_dashboard" not in workflow:
+            failures.append("phase2_dashboard_not_wired_to_workflow")
 
     pipeline = (ROOT / "src/pipeline.py").read_text(encoding="utf-8")
     v2 = (ROOT / "src/paper_trading_v2.py").read_text(encoding="utf-8")
     risk = (ROOT / "src/risk_management.py").read_text(encoding="utf-8")
     governor = (ROOT / "src/strategy_governor.py").read_text(encoding="utf-8")
     portfolio = (ROOT / "src/portfolio_comparison.py").read_text(encoding="utf-8")
+    phase2 = (ROOT / "src/phase2_optimizer.py").read_text(encoding="utf-8")
 
     links = {
         "confidence_to_v2": "confidence_validation_summary.csv" in v2 and "_confidence_gate" in v2,
@@ -49,7 +53,11 @@ def main() -> int:
         "governor_to_portfolio_report": "strategy_state.json" in portfolio,
         "governor_v1_safe_default": 'production_strategy": "V1"' in governor,
         "confidence_to_governor": "confidence_validation_summary.csv" in governor,
-        "phase2_shadow_optimizer": "production_enabled" in (ROOT / "src/phase2_optimizer.py").read_text(encoding="utf-8"),
+        "phase2_shadow_optimizer": "production_enabled" in phase2,
+        "phase2_directional_engine": "direction_score_v3" in phase2,
+        "phase2_repeat_loss_control": "repeat_loss_penalty" in phase2,
+        "phase2_regime_engine": "_regime" in phase2,
+        "phase2_shadow_return_measurement": "_shadow_selection_metrics" in phase2,
     }
     failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
 
@@ -61,6 +69,8 @@ def main() -> int:
         "data/portfolio_comparison_summary.csv",
         "data/phase2_performance_summary.csv",
         "data/phase2_optimized_candidates.csv",
+        "data/phase2_dashboard.csv",
+        "data/phase2_dashboard.json",
     ]
     failures.extend(f"missing_generated_report:{p}" for p in generated if not (ROOT / p).exists())
 
@@ -73,6 +83,7 @@ def main() -> int:
     (DATA / "integration_check.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps(result, indent=2))
     return 0 if not failures else 1
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -164,6 +164,34 @@ def _bootstrap_ab() -> dict:
     }
 
 
+
+
+def _tail_risk() -> dict:
+    trades = _read("paper_trades_v2.csv")
+    if trades.empty or "profit_loss" not in trades.columns:
+        return {"v2_trades": 0, "worst_trade_pnl": np.nan, "consecutive_losses": 0, "profit_factor": np.nan}
+    if "signal" in trades.columns:
+        trades = trades[trades["signal"].astype(str).str.upper().eq("BUY")]
+    pnl = pd.to_numeric(trades["profit_loss"], errors="coerce").dropna()
+    if pnl.empty:
+        return {"v2_trades": 0, "worst_trade_pnl": np.nan, "consecutive_losses": 0, "profit_factor": np.nan}
+    loss_runs = 0
+    max_loss_run = 0
+    for value in pnl.to_numpy():
+        if value < 0:
+            loss_runs += 1
+            max_loss_run = max(max_loss_run, loss_runs)
+        else:
+            loss_runs = 0
+    gross_win = float(pnl[pnl > 0].sum())
+    gross_loss = float(-pnl[pnl < 0].sum())
+    return {
+        "v2_trades": int(len(pnl)),
+        "worst_trade_pnl": float(pnl.min()),
+        "consecutive_losses": int(max_loss_run),
+        "profit_factor": float(gross_win / gross_loss) if gross_loss > 0 else np.inf,
+    }
+
 def _drift(hist: pd.DataFrame) -> dict:
     try:
         from .pipeline import FEATURE_COLUMNS, features
@@ -236,6 +264,7 @@ def run_governance() -> dict:
     features = _feature_stability(hist)
     bootstrap = _bootstrap_ab()
     drift = _drift(hist)
+    tail = _tail_risk()
     safety = _safety()
     confidence = _read("confidence_validation_summary.csv")
     selection = _read("phase2_performance_summary.csv")
@@ -261,6 +290,10 @@ def run_governance() -> dict:
         "safety_status": safety["status"],
         "safety_failures": "|".join(safety["failures"]),
         "v1_safe_default": safety["v1_safe_default"],
+        "tail_v2_trades": tail["v2_trades"],
+        "worst_v2_trade_pnl": tail["worst_trade_pnl"],
+        "max_consecutive_v2_losses": tail["consecutive_losses"],
+        "v2_profit_factor": tail["profit_factor"],
     }
     pd.DataFrame([report]).to_csv(DATA/"model_governance_summary.csv",index=False)
     targets.to_csv(DATA/"target_threshold_diagnostics.csv",index=False)

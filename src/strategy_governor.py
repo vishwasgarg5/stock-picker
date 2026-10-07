@@ -18,6 +18,7 @@ MIN_V2_TRADES = 50
 MIN_RETURN_LIFT_PCT = 0.05
 MAX_DRAWDOWN_DEGRADATION_PCT = 1.0
 MIN_SESSION_WIN_RATE_PCT = 60.0
+MIN_RETURN_LIFT_CI_LOW_PCT = 0.0
 CONFIDENCE_SUMMARY_FILE = DATA / "confidence_validation_summary.csv"
 PHASE2_SUMMARY_FILE = DATA / "phase2_performance_summary.csv"
 
@@ -119,12 +120,20 @@ def evaluate_promotion() -> dict:
         return_lift = v2["return_pct"] - v1["return_pct"]
         pnl_lift = v2["net_pnl"] - v1["net_pnl"]
         session_win_rate = float(matched["v2_wins_session"].mean() * 100.0)
+        diffs = pd.to_numeric(matched["return_difference_pct"], errors="coerce").dropna()
+        if len(diffs) >= 2:
+            mean_diff = float(diffs.mean())
+            se = float(diffs.std(ddof=1) / (len(diffs) ** 0.5))
+            return_lift_ci_low = mean_diff - 1.96 * se
+        else:
+            return_lift_ci_low = -float("inf")
         dd_gate = v2["max_drawdown_pct"] >= v1["max_drawdown_pct"] - MAX_DRAWDOWN_DEGRADATION_PCT
     else:
         v1 = _metrics(matched, "v1") if not matched.empty else {}
         v2 = _metrics(matched, "v2") if not matched.empty else {}
         return_lift = pnl_lift = 0.0
         session_win_rate = 0.0
+        return_lift_ci_low = -float("inf")
         dd_gate = False
 
     promote = bool(
@@ -133,6 +142,7 @@ def evaluate_promotion() -> dict:
         and confidence_promoted
         and pnl_lift > 0
         and return_lift >= MIN_RETURN_LIFT_PCT
+        and return_lift_ci_low >= MIN_RETURN_LIFT_CI_LOW_PCT
         and session_win_rate >= MIN_SESSION_WIN_RATE_PCT
         and dd_gate
     )
@@ -173,6 +183,7 @@ def evaluate_promotion() -> dict:
         "v1_return_pct": v1.get("return_pct", 0.0),
         "v2_return_pct": v2.get("return_pct", 0.0),
         "return_lift_pct": return_lift,
+        "return_lift_ci_low_pct": return_lift_ci_low,
         "v1_max_drawdown_pct": v1.get("max_drawdown_pct", 0.0),
         "v2_max_drawdown_pct": v2.get("max_drawdown_pct", 0.0),
         "session_win_rate_pct": session_win_rate,

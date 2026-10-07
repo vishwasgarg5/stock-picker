@@ -19,6 +19,7 @@ MIN_RETURN_LIFT_PCT = 0.05
 MAX_DRAWDOWN_DEGRADATION_PCT = 1.0
 MIN_SESSION_WIN_RATE_PCT = 60.0
 MIN_RETURN_LIFT_CI_LOW_PCT = 0.0
+DIRECTIONAL_SUMMARY_FILE = DATA / "directional_model_validation_summary.csv"
 CONFIDENCE_SUMMARY_FILE = DATA / "confidence_validation_summary.csv"
 PHASE2_SUMMARY_FILE = DATA / "phase2_performance_summary.csv"
 
@@ -79,6 +80,18 @@ def _confidence_promoted() -> bool:
         return False
 
 
+def _directional_promoted() -> bool:
+    if not DIRECTIONAL_SUMMARY_FILE.exists():
+        return False
+    try:
+        x = pd.read_csv(DIRECTIONAL_SUMMARY_FILE)
+        if x.empty:
+            return False
+        return str(x.iloc[-1].get("production_ready", False)).strip().lower() == "true"
+    except Exception:
+        return False
+
+
 def _phase2_enabled() -> tuple[bool, dict]:
     if not PHASE2_SUMMARY_FILE.exists():
         return False, {}
@@ -111,6 +124,7 @@ def evaluate_promotion() -> dict:
     common_sessions = len(matched)
     v2_trades = int(matched["v2_trades"].sum()) if not matched.empty else 0
     confidence_promoted = _confidence_promoted()
+    directional_promoted = _directional_promoted()
     phase2_enabled, phase2 = _phase2_enabled()
     enough = common_sessions >= MIN_COMMON_SESSIONS and v2_trades >= MIN_V2_TRADES
 
@@ -140,6 +154,7 @@ def evaluate_promotion() -> dict:
         enough
         and phase2_enabled
         and confidence_promoted
+        and directional_promoted
         and pnl_lift > 0
         and return_lift >= MIN_RETURN_LIFT_PCT
         and return_lift_ci_low >= MIN_RETURN_LIFT_CI_LOW_PCT
@@ -154,6 +169,7 @@ def evaluate_promotion() -> dict:
         rollback = bool(
             not phase2_enabled
             or not confidence_promoted
+            or not directional_promoted
             or (
                 enough
                 and pnl_lift < 0
@@ -189,6 +205,7 @@ def evaluate_promotion() -> dict:
         "session_win_rate_pct": session_win_rate,
         "drawdown_gate": dd_gate,
         "confidence_promoted": confidence_promoted,
+        "directional_promoted": directional_promoted,
         "phase2_enabled": phase2_enabled,
         "phase2_direction_lift_pct": phase2.get("direction_lift_pct", 0.0),
         "phase2_shadow_return_lift_pct": phase2.get("return_lift_pct", 0.0),

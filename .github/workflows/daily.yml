@@ -50,6 +50,7 @@ jobs:
         run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py tests/test_model_governance.py
 
       - name: Preflight end-to-end integration wiring
+        if: always()
         run: python -m src.integration_check --preflight
 
       - name: Build new-listing ML challenger

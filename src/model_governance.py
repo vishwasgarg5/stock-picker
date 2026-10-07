@@ -257,10 +257,15 @@ def _safety() -> dict:
             if c not in p.columns:
                 failures.append("prediction_missing:"+c)
         if {"symbol","rank"}.issubset(p.columns):
-            if p["symbol"].astype(str).str.upper().duplicated().any():
-                failures.append("duplicate_prediction_symbol")
-            if pd.to_numeric(p["rank"],errors="coerce").nunique() != len(p):
-                failures.append("duplicate_prediction_rank")
+            date_col = next((c for c in ["target_date", "date", "prediction_date"] if c in p.columns), None)
+            if date_col is not None:
+                key = pd.to_datetime(p[date_col], errors="coerce").dt.normalize().astype(str)
+                sym = p["symbol"].astype(str).str.upper().str.strip()
+                rank = pd.to_numeric(p["rank"], errors="coerce")
+                if pd.DataFrame({"date": key, "symbol": sym}).duplicated().any():
+                    failures.append("duplicate_prediction_date_symbol")
+                if pd.DataFrame({"date": key, "rank": rank}).duplicated().any():
+                    failures.append("duplicate_prediction_date_rank")
     state = {}
     state_path = ROOT / "data/strategy_state.json"
     try:

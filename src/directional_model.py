@@ -217,6 +217,8 @@ def latest_direction_scores(hist: pd.DataFrame) -> pd.DataFrame:
         "symbol": x["symbol"].astype(str).str.upper().str.strip().values,
         "direction_probability": p,
         "direction_score_model": p * 100.0,
+        "direction_model_version": str(bundle.get("version", "unknown")),
+        "direction_target_threshold": TARGET_MOVE_THRESHOLD,
     })
 
 

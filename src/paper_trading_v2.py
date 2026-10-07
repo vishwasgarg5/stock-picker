@@ -6,6 +6,7 @@ import pandas as pd
 
 from .risk_management import MAX_TRADES
 from .trade_quality_model import latest_trade_quality_scores
+from .phase4_optimizer import apply_phase4
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -138,14 +139,23 @@ def run_paper_trading_v2() -> pd.DataFrame:
         eligible["trade_quality_probability"], errors="coerce"
     ).fillna(0.50)
 
-    # Shadow benchmark is not a production risk gate. Apply only a hard ATR
-    # sanity bound, then select the best Phase-2 candidates.
+    # Phase 4 is an adaptive overlay learned only from already-realized data.
+    # It improves signal thresholds, symbol weighting, regime handling and
+    # losing-symbol cooldowns while remaining downstream of Phase 2.
+    eligible["confidence_pct"] = eligible.groupby("target_date")["confidence_v3"].rank(
+        pct=True, method="first"
+    )
+    eligible = apply_phase4(eligible)
+
+    # Shadow benchmark is not a production risk gate. Apply only the Phase-4
+    # eligibility rules and a hard ATR sanity bound.
     eligible = eligible[
-        eligible["atr_pct"].isna() | eligible["atr_pct"].le(MAX_SHADOW_ATR_PCT)
+        eligible["phase4_eligible"]
+        & (eligible["atr_pct"].isna() | eligible["atr_pct"].le(MAX_SHADOW_ATR_PCT))
     ].copy()
     selected = eligible.sort_values(
-        ["target_date", "phase2_score", "confidence_v3"],
-        ascending=[True, False, False]
+        ["target_date", "phase4_score", "phase2_score", "confidence_v3"],
+        ascending=[True, False, False, False]
     ).groupby("target_date", group_keys=False).head(MAX_TRADES).copy()
 
     x["strategy"] = "V2_SHADOW_BENCHMARK" if not confidence_promoted else "V2_CONFIDENCE_BENCHMARK"
@@ -159,7 +169,9 @@ def run_paper_trading_v2() -> pd.DataFrame:
         x.loc[mask, "no_trade_reason"] = ""
 
         selected_lookup = selected.set_index(["symbol", "target_date"])
-        for col in ["risk_reward", "stop_distance_pct", "expected_return_pct", "trade_quality_probability"]:
+        for col in ["risk_reward", "stop_distance_pct", "expected_return_pct",
+                    "trade_quality_probability", "phase4_score", "phase4_weight",
+                    "phase4_stop_atr_multiplier", "phase4_target_stop_multiple"]:
             if col in selected.columns:
                 old_series = x[col] if col in x.columns else pd.Series(np.nan, index=x.index)
                 x[col] = [
@@ -174,9 +186,12 @@ def run_paper_trading_v2() -> pd.DataFrame:
 
     x["reference_price"] = x["base_close"]
     x["no_trade_reason"] = x["no_trade_reason"].fillna("").astype(str)
+    # Phase-4 weight can only reduce the equal-allocation budget; it cannot
+    # increase it. This keeps the portfolio-capital invariant intact.
+    weight = pd.to_numeric(x.get("phase4_weight"), errors="coerce").fillna(1.0).clip(0.0, 1.0)
     x["quantity"] = np.where(
         x["signal"].eq("BUY"),
-        np.floor((CAPITAL / MAX_TRADES) / x["reference_price"].replace(0, np.nan)).fillna(0),
+        np.floor((CAPITAL / MAX_TRADES) * weight / x["reference_price"].replace(0, np.nan)).fillna(0),
         0,
     ).astype(int)
     x["planned_capital"] = np.where(x["signal"].eq("BUY"), x["quantity"] * x["reference_price"], 0.0)
@@ -201,7 +216,9 @@ def run_paper_trading_v2() -> pd.DataFrame:
         "prediction_date", "target_date", "symbol", "rank", "score", "confidence_score",
         "confidence_v3", "direction_score_v3", "strategy", "signal", "reference_price",
         "quantity", "planned_capital", "expected_return_pct", "risk_reward",
-        "stop_distance_pct", "trade_quality_probability", "no_trade_reason",
+        "stop_distance_pct", "trade_quality_probability", "phase4_score",
+        "phase4_weight", "phase4_stop_atr_multiplier", "phase4_target_stop_multiple",
+        "no_trade_reason",
         "entry_price", "exit_price", "return_pct", "gross_profit_loss",
         "trading_cost", "profit_loss",
     ]

@@ -1,18 +1,19 @@
 {
-  "as_of": "2026-10-06 00:00:00",
+  "as_of": "2026-10-07 00:00:00",
   "production_strategy": "V1",
   "status": "collecting",
   "reason": "insufficient matched-date evidence",
-  "common_sessions": 8,
+  "common_sessions": 9,
   "v2_trades": 0,
-  "v1_net_pnl": -3928.4735095676515,
+  "v1_net_pnl": -3217.322996872339,
   "v2_net_pnl": 0.0,
   "pnl_lift": 0.0,
-  "v1_return_pct": -3.928473509567651,
+  "v1_return_pct": -3.2173229968723387,
   "v2_return_pct": 0.0,
   "return_lift_pct": 0.0,
   "v1_max_drawdown_pct": NaN,
   "v2_max_drawdown_pct": 0.0,
   "session_win_rate_pct": 0.0,
-  "drawdown_gate": false
+  "drawdown_gate": false,
+  "confidence_promoted": false
 }

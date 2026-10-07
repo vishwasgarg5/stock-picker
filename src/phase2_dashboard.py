@@ -35,6 +35,7 @@ def build_dashboard() -> dict:
     direction = _read("directional_model_validation_summary.csv")
     v2 = _read("paper_trades_v2.csv")
     v2daily = _read("portfolio_v2_daily.csv")
+    governance = _read("model_governance_summary.csv")
     state = {}
     state_path = DATA / "phase2_state.json"
     if state_path.exists():
@@ -65,7 +66,13 @@ def build_dashboard() -> dict:
         "directional_challenger_lift_pct": _last(direction, "mean_accuracy_lift_pct"),
         "directional_challenger_ready": bool(str(direction.iloc[-1].get("production_ready", "False")).lower() == "true") if not direction.empty else False,
         "return_lift_ci_low_pct": _last(ab, "return_lift_ci_low_pct", -np.inf),
-        "promotion_safe": True,
+        "promotion_safe": bool(str(governance.iloc[-1].get("safety_status","FAIL")).upper() == "PASS") if not governance.empty else False,
+        "bootstrap_ci_low_pct": _last(governance, "bootstrap_ci_low_pct", -np.inf),
+        "bootstrap_ci_high_pct": _last(governance, "bootstrap_ci_high_pct", np.inf),
+        "feature_drift_count": _last(governance, "feature_drift_count", np.nan),
+        "drift_status": str(governance.iloc[-1].get("drift_status","UNKNOWN")) if not governance.empty else "UNKNOWN",
+        "unstable_stocks": _last(governance, "unstable_stocks", np.nan),
+        "stable_features": _last(governance, "stable_features", np.nan),
     }
     dashboard["model_beating_baseline"] = bool(
         np.isfinite(dashboard["latest_close_mape_pct"])

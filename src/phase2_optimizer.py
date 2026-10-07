@@ -2,10 +2,10 @@ from __future__ import annotations
 
 """Phase 2 performance optimizer.
 
-All eight Phase-2 improvements run in shadow mode first.  The module never
-changes V1 unless its explicit production gate passes.  It combines directional
-quality, ranking quality, bounded repeat-loss penalties, empirical confidence,
-market regime, and portfolio feedback into a deterministic candidate score.
+Runs all eight performance improvements in shadow mode.  V1 remains the
+production champion until independent matched-session/trade evidence passes.
+The optimizer is deliberately conservative: directional quality and realized
+trade returns are evaluated separately from price-magnitude MAPE.
 """
 
 from pathlib import Path
@@ -31,7 +31,10 @@ MIN_RETURN_LIFT_PCT = 0.05
 
 
 def _read(path: Path) -> pd.DataFrame:
-    return pd.read_csv(path) if path.exists() else pd.DataFrame()
+    try:
+        return pd.read_csv(path) if path.exists() else pd.DataFrame()
+    except Exception:
+        return pd.DataFrame()
 
 
 def _norm_dates(x: pd.Series) -> pd.Series:
@@ -60,16 +63,18 @@ def _directional_history(c: pd.DataFrame, e: pd.DataFrame) -> pd.DataFrame:
         direction_accuracy=("direction_correct", "mean"),
         direction_rows=("direction_correct", "size"),
     ).reset_index()
-    # Shrink small samples toward 50% so one lucky trade cannot dominate ranking.
-    g["direction_score"] = ((g["direction_accuracy"] * g["direction_rows"] + 0.50 * 10.0)
-                            / (g["direction_rows"] + 10.0) * 100.0)
+    # Bayesian-style shrinkage toward 50% for small samples.
+    g["direction_score"] = (
+        (g["direction_accuracy"] * g["direction_rows"] + 0.50 * 10.0)
+        / (g["direction_rows"] + 10.0) * 100.0
+    )
     return g
 
 
 def _repeat_loss_penalty(candidates: pd.DataFrame, e: pd.DataFrame) -> pd.DataFrame:
     out = candidates[["symbol"]].drop_duplicates().copy()
     out["repeat_loss_penalty"] = 0.0
-    if e.empty or "symbol" not in e:
+    if e.empty or "symbol" not in e or "target_date" not in e:
         return out
     x = e.copy()
     x["symbol"] = x["symbol"].astype(str).str.upper().str.strip()
@@ -81,28 +86,32 @@ def _repeat_loss_penalty(candidates: pd.DataFrame, e: pd.DataFrame) -> pd.DataFr
     else:
         return out
     x["pnl"] = pnl
-    x = x.dropna(subset=["symbol", "pnl"]).sort_values("target_date")
-    latest = x["target_date"].max()
-    if pd.isna(latest):
+    x = x.dropna(subset=["symbol", "pnl", "target_date"]).sort_values("target_date")
+    if x.empty:
         return out
+    latest = x["target_date"].max()
     x["age"] = (latest - x["target_date"]).dt.days.clip(lower=0)
     x["decay"] = np.exp(-x["age"] / max(DECAY_SESSIONS, 1))
     x["loss_weight"] = (x["pnl"] < 0).astype(float) * x["decay"]
     x["win_weight"] = (x["pnl"] > 0).astype(float) * x["decay"]
     g = x.groupby("symbol").agg(losses=("loss_weight", "sum"), wins=("win_weight", "sum")).reset_index()
     g["repeat_loss_penalty"] = ((g["losses"] - g["wins"] * 0.50).clip(lower=0) * 0.5).clip(upper=MAX_REPEAT_PENALTY)
-    return out.drop(columns=["repeat_loss_penalty"]).merge(g[["symbol", "repeat_loss_penalty"]], on="symbol", how="left").fillna({"repeat_loss_penalty": 0.0})
+    return out.drop(columns=["repeat_loss_penalty"]).merge(
+        g[["symbol", "repeat_loss_penalty"]], on="symbol", how="left"
+    ).fillna({"repeat_loss_penalty": 0.0})
 
 
 def _regime(c: pd.DataFrame, h: pd.DataFrame) -> str:
-    if h.empty or "date" not in h or "close" not in h:
+    if h.empty or not {"date", "close"}.issubset(h.columns):
         return "NEUTRAL"
     x = h.copy()
     x["date"] = _norm_dates(x["date"])
-    daily = pd.to_numeric(x["close"], errors="coerce").groupby(x["date"]).median().dropna().sort_index()
+    x["close"] = pd.to_numeric(x["close"], errors="coerce")
+    daily = x.dropna(subset=["date", "close"]).groupby("date")["close"].median().sort_index()
     if len(daily) < 50:
         return "NEUTRAL"
-    s20, s50 = daily.rolling(20).mean().iloc[-1], daily.rolling(50).mean().iloc[-1]
+    s20 = daily.rolling(20).mean().iloc[-1]
+    s50 = daily.rolling(50).mean().iloc[-1]
     r20 = daily.iloc[-1] / daily.iloc[-21] - 1.0
     if daily.iloc[-1] > s20 > s50 and r20 >= 0.03:
         return "BULL"
@@ -112,12 +121,15 @@ def _regime(c: pd.DataFrame, h: pd.DataFrame) -> str:
 
 
 def _confidence_v3(c: pd.DataFrame, direction: pd.DataFrame) -> pd.Series:
-    spread = pd.to_numeric(c.get("prediction_spread", 0), errors="coerce").abs()
+    spread = pd.to_numeric(c.get("prediction_spread", pd.Series(np.nan, index=c.index)), errors="coerce").abs()
+    # Smaller prediction spread = lower uncertainty. Rank only valid spreads.
     spread_pct = spread.rank(pct=True, method="average")
     uncertainty = (1.0 - spread_pct).clip(0, 1).fillna(0.5) * 100.0
-    direction_map = direction.set_index("symbol")["direction_score"] if not direction.empty else pd.Series(dtype=float)
-    dscore = c["symbol"].map(direction_map).fillna(50.0)
-    # Direction is now a first-class confidence component, not an afterthought.
+    if direction.empty:
+        dscore = pd.Series(50.0, index=c.index)
+    else:
+        dmap = direction.set_index("symbol")["direction_score"]
+        dscore = c["symbol"].map(dmap).fillna(50.0)
     return (0.60 * uncertainty + 0.40 * dscore).clip(0, 100)
 
 
@@ -135,6 +147,42 @@ def _portfolio_feedback(e: pd.DataFrame) -> dict:
         "net_pnl": float(pnl.sum()),
         "profit_factor": float(gross_win / gross_loss) if gross_loss > 0 else np.inf,
     }
+
+
+def _shadow_selection_metrics(c: pd.DataFrame, e: pd.DataFrame) -> tuple[float, float, int]:
+    """Compare Phase-2 Top-10 against the original rank Top-10 on completed sessions."""
+    if c.empty or e.empty or "rank" not in c.columns:
+        return 0.0, 0.0, 0
+    keys = [k for k in ["prediction_date", "symbol"] if k in c.columns and k in e.columns]
+    if keys != ["prediction_date", "symbol"]:
+        return 0.0, 0.0, 0
+    cols = ["prediction_date", "symbol", "phase2_selected", "phase2_rank"]
+    cc = c[cols].copy()
+    cc["prediction_date"] = _norm_dates(cc["prediction_date"])
+    ee = e.copy()
+    ee["prediction_date"] = _norm_dates(ee["prediction_date"])
+    ee["symbol"] = ee["symbol"].astype(str).str.upper().str.strip()
+    cc["symbol"] = cc["symbol"].astype(str).str.upper().str.strip()
+    m = ee.merge(cc, on=["prediction_date", "symbol"], how="inner")
+    if m.empty:
+        return 0.0, 0.0, 0
+    direction = pd.to_numeric(m.get("close_direction_correct"), errors="coerce")
+    m["actual_return_pct"] = np.nan
+    if {"actual_open", "actual_close"}.issubset(m.columns):
+        op = pd.to_numeric(m["actual_open"], errors="coerce")
+        cl = pd.to_numeric(m["actual_close"], errors="coerce")
+        m["actual_return_pct"] = np.where(op.ne(0), (cl / op - 1.0) * 100.0, np.nan)
+    phase = m[m["phase2_selected"].eq(1)]
+    base = m[pd.to_numeric(m["rank"], errors="coerce") <= 10]
+    if phase.empty or base.empty:
+        return 0.0, 0.0, int(m["prediction_date"].nunique())
+    pdir = direction.loc[phase.index].mean()
+    bdir = direction.loc[base.index].mean()
+    pret = pd.to_numeric(phase["actual_return_pct"], errors="coerce").mean()
+    bret = pd.to_numeric(base["actual_return_pct"], errors="coerce").mean()
+    direction_lift = float((pdir - bdir) * 100.0) if np.isfinite(pdir) and np.isfinite(bdir) else 0.0
+    return_lift = float(pret - bret) if np.isfinite(pret) and np.isfinite(bret) else 0.0
+    return direction_lift, return_lift, int(m["prediction_date"].nunique())
 
 
 def _production_gate(summary: dict) -> tuple[bool, str]:
@@ -160,22 +208,27 @@ def run_phase2() -> pd.DataFrame:
 
     c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
     c["prediction_date"] = _norm_dates(c["prediction_date"])
-    # Candidate history can contain incomplete/stale rows.  Never allow invalid
-    # dates or non-finite scores to enter the ranking/groupby stage.
     c = c.dropna(subset=["symbol", "prediction_date"]).copy()
     if c.empty:
         state = {"status": "collecting", "production_enabled": False, "reason": "no_valid_candidates"}
         STATE.write_text(json.dumps(state, indent=2))
         pd.DataFrame([state]).to_csv(SUMMARY, index=False)
         return pd.DataFrame()
+
+    for col in ["score", "predicted_close", "base_close", "prediction_spread", "rank"]:
+        if col in c:
+            c[col] = pd.to_numeric(c[col], errors="coerce")
+    c["score"] = c["score"].fillna(50.0) if "score" in c else 50.0
     if "rank" not in c:
-        c["rank"] = np.arange(1, len(c) + 1)
+        c["rank"] = c.groupby("prediction_date").cumcount() + 1
+
     direction = _directional_history(c, e)
     repeat = _repeat_loss_penalty(c, e)
-    c["direction_score_v3"] = c["symbol"].map(direction.set_index("symbol")["direction_score"] if not direction.empty else {}).fillna(50.0)
+    dmap = direction.set_index("symbol")["direction_score"] if not direction.empty else pd.Series(dtype=float)
+    c["direction_score_v3"] = c["symbol"].map(dmap).fillna(50.0)
     c["confidence_v3"] = _confidence_v3(c, direction)
     c = c.merge(repeat, on="symbol", how="left")
-    c["repeat_loss_penalty"] = c["repeat_loss_penalty"].fillna(0.0)
+    c["repeat_loss_penalty"] = pd.to_numeric(c["repeat_loss_penalty"], errors="coerce").fillna(0.0)
 
     regime = _regime(c, h)
     c["regime"] = regime
@@ -183,69 +236,68 @@ def run_phase2() -> pd.DataFrame:
     base_close = pd.to_numeric(c.get("base_close", pd.Series(np.nan, index=c.index)), errors="coerce")
     expected = predicted_close.div(base_close.replace(0, np.nan)) - 1.0
     c["expected_return_pct"] = expected.replace([np.inf, -np.inf], np.nan).fillna(0.0) * 100.0
-    c["phase2_score"] = (
-        c["score"].rank(pct=True).fillna(0.5) * 35.0
-        + c["direction_score_v3"] * 0.25
-        + c["confidence_v3"] * 0.20
-        + expected.rank(pct=True).fillna(0.5) * 10.0
-        - c["repeat_loss_penalty"]
-    )
+
+    # Rank components independently so no single raw model score dominates.
+    rank_score = c.groupby("prediction_date")["score"].rank(pct=True, method="average").fillna(0.5) * 35.0
+    return_rank = c.groupby("prediction_date")["expected_return_pct"].rank(pct=True, method="average").fillna(0.5) * 10.0
+    direction_component = c["direction_score_v3"] * 0.25
+    confidence_component = c["confidence_v3"] * 0.20
+    c["phase2_score"] = rank_score + direction_component + confidence_component + return_rank - c["repeat_loss_penalty"]
     if regime == "BEAR":
         c["phase2_score"] -= (100.0 - c["direction_score_v3"]).clip(lower=0) * 0.05
-    c["phase2_score"] = pd.to_numeric(c["phase2_score"], errors="coerce").replace([np.inf, -np.inf], np.nan)
-    c["phase2_score"] = c["phase2_score"].fillna(50.0).clip(lower=-1e6, upper=1e6)
+    c["phase2_score"] = pd.to_numeric(c["phase2_score"], errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(50.0)
+    c["phase2_score"] = c["phase2_score"].clip(lower=-1e6, upper=1e6)
     c["phase2_rank"] = (
-        c.groupby("prediction_date")["phase2_score"]
-        .rank(method="first", ascending=False)
-        .fillna(len(c) + 1)
+        c.groupby("prediction_date")["phase2_score"].rank(method="first", ascending=False)
+        .fillna(c.groupby("prediction_date")["phase2_score"].transform("size").fillna(1) + 1)
         .astype("int64")
     )
     c["phase2_selected"] = (c["phase2_rank"] <= 10).astype(int)
+    c["phase2_top5"] = (c["phase2_rank"] <= 5).astype(int)
     c.to_csv(OUT, index=False)
 
     feedback = _portfolio_feedback(e)
-    # These are deliberately conservative defaults until a matched V1/V2 history exists.
-    matched_sessions = 0
-    v2_trades = 0
-    try:
-        v2 = _read(DATA / "paper_trades_v2.csv")
-        if not v2.empty:
-            v2_trades = int((v2.get("signal", pd.Series(dtype=str)).astype(str) == "BUY").sum())
-            matched_sessions = int(_read(DATA / "portfolio_v2_daily.csv")["target_date"].nunique()) if (DATA / "portfolio_v2_daily.csv").exists() else 0
-    except Exception:
-        pass
+    direction_lift, return_lift, matched_eval_sessions = _shadow_selection_metrics(c, e)
 
-    # Directional comparison uses evaluated Top-10 vs ranks 11-20 when available.
-    direction_lift = 0.0
-    if not e.empty and "close_direction_correct" in e.columns and "rank" in e.columns:
-        z = e.copy()
-        z["rank"] = pd.to_numeric(z["rank"], errors="coerce")
-        d = pd.to_numeric(z["close_direction_correct"], errors="coerce")
-        top = d[z["rank"] <= 10].mean() if (z["rank"] <= 10).any() else np.nan
-        nxt = d[z["rank"].between(11,20)].mean() if z["rank"].between(11,20).any() else np.nan
-        if np.isfinite(top) and np.isfinite(nxt):
-            direction_lift = float((top - nxt) * 100.0)
+    # Independent V2 evidence is read from the actual paper-trading history.
+    v2 = _read(DATA / "paper_trades_v2.csv")
+    v2daily = _read(DATA / "portfolio_v2_daily.csv")
+    if not v2.empty and "signal" in v2.columns:
+        v2_trades = int(v2["signal"].astype(str).str.upper().eq("BUY").sum())
+    else:
+        v2_trades = 0
+    if not v2daily.empty and "target_date" in v2daily.columns:
+        matched_sessions = int(_norm_dates(v2daily["target_date"]).dropna().nunique())
+    else:
+        matched_sessions = 0
 
     summary = {
         "as_of": pd.Timestamp.now().normalize(),
         "regime": regime,
         "matched_sessions": matched_sessions,
         "v2_trades": v2_trades,
+        "evaluated_shadow_sessions": matched_eval_sessions,
         "direction_lift_pct": direction_lift,
-        "return_lift_pct": 0.0,
+        "return_lift_pct": return_lift,
         **feedback,
     }
     enabled, reason = _production_gate(summary)
-    summary["production_enabled"] = enabled
-    summary["status"] = "promote" if enabled else "shadow"
-    summary["reason"] = reason
-    summary["min_matched_sessions"] = MIN_SESSIONS
-    summary["min_v2_trades"] = MIN_TRADES
-    summary["min_direction_lift_pct"] = MIN_DIRECTION_LIFT_PCT
-    summary["min_return_lift_pct"] = MIN_RETURN_LIFT_PCT
+    summary.update({
+        "production_enabled": enabled,
+        "status": "promote" if enabled else "shadow",
+        "reason": reason,
+        "min_matched_sessions": MIN_SESSIONS,
+        "min_v2_trades": MIN_TRADES,
+        "min_direction_lift_pct": MIN_DIRECTION_LIFT_PCT,
+        "min_return_lift_pct": MIN_RETURN_LIFT_PCT,
+    })
     pd.DataFrame([summary]).to_csv(SUMMARY, index=False)
     STATE.write_text(json.dumps(summary, indent=2, default=str))
-    print(f"Phase 2: status={summary['status']}, regime={regime}, direction_lift={direction_lift:.2f}%, reason={reason}")
+    print(
+        f"Phase 2: status={summary['status']}, regime={regime}, "
+        f"shadow_direction_lift={direction_lift:.2f}%, shadow_return_lift={return_lift:.2f}%, "
+        f"V2_sessions={matched_sessions}, V2_trades={v2_trades}, reason={reason}"
+    )
     return pd.DataFrame([summary])
 
 

@@ -2,13 +2,14 @@ from __future__ import annotations
 from pathlib import Path
 import json
 import pandas as pd
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 WORKFLOW = ROOT / ".github" / "workflows" / "daily.yml"
 
 
-def main() -> int:
+def main(preflight: bool = False) -> int:
     failures = []
     required = [
         "src/confidence_validation.py", "src/paper_trading_v2.py",
@@ -98,7 +99,8 @@ def main() -> int:
         "data/stock_stability.csv",
         "data/feature_stability.csv",
     ]
-    failures.extend(f"missing_generated_report:{p}" for p in generated if not (ROOT / p).exists())
+    if not preflight:
+        failures.extend(f"missing_generated_report:{p}" for p in generated if not (ROOT / p).exists())
 
     result = {
         "status": "PASS" if not failures else "FAIL",
@@ -112,4 +114,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(preflight="--preflight" in sys.argv))

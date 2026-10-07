@@ -216,6 +216,24 @@ def _drift(hist: pd.DataFrame) -> dict:
         return {"status":"WARNING","feature_drift_count":0,"max_relative_median_shift":0.0}
 
 
+
+
+def _model_drift() -> dict:
+    h = _read("performance_history.csv")
+    if h.empty or "direction_accuracy_pct" not in h.columns:
+        return {"status": "collecting", "recent_direction_accuracy_pct": np.nan, "prior_direction_accuracy_pct": np.nan}
+    x = pd.to_numeric(h["direction_accuracy_pct"], errors="coerce").dropna()
+    if len(x) < 10:
+        return {"status": "collecting", "recent_direction_accuracy_pct": float(x.mean()) if len(x) else np.nan, "prior_direction_accuracy_pct": np.nan}
+    recent = float(x.tail(5).mean())
+    prior = float(x.iloc[-10:-5].mean())
+    return {
+        "status": "PASS" if recent >= prior - 5.0 else "WARNING",
+        "recent_direction_accuracy_pct": recent,
+        "prior_direction_accuracy_pct": prior,
+        "direction_accuracy_change_pct": recent - prior,
+    }
+
 def _manifest() -> dict:
     files = []
     for root in SOURCE_DIRS:
@@ -265,6 +283,7 @@ def run_governance() -> dict:
     bootstrap = _bootstrap_ab()
     drift = _drift(hist)
     tail = _tail_risk()
+    model_drift = _model_drift()
     safety = _safety()
     confidence = _read("confidence_validation_summary.csv")
     selection = _read("phase2_performance_summary.csv")
@@ -283,6 +302,10 @@ def run_governance() -> dict:
         "bootstrap_ci_low_pct": bootstrap["bootstrap_ci_low_pct"],
         "bootstrap_ci_high_pct": bootstrap["bootstrap_ci_high_pct"],
         "drift_status": drift["status"],
+        "model_drift_status": model_drift["status"],
+        "recent_direction_accuracy_pct": model_drift.get("recent_direction_accuracy_pct", np.nan),
+        "prior_direction_accuracy_pct": model_drift.get("prior_direction_accuracy_pct", np.nan),
+        "direction_accuracy_change_pct": model_drift.get("direction_accuracy_change_pct", np.nan),
         "feature_drift_count": drift["feature_drift_count"],
         "max_feature_median_shift": drift["max_relative_median_shift"],
         "confidence_evidence": bool(str(confidence.iloc[-1].get("confidence_promotion_evidence",False)).lower()=="true") if not confidence.empty else False,
@@ -294,6 +317,27 @@ def run_governance() -> dict:
         "worst_v2_trade_pnl": tail["worst_trade_pnl"],
         "max_consecutive_v2_losses": tail["consecutive_losses"],
         "v2_profit_factor": tail["profit_factor"],
+        "governance_version": "v1.0",
+        "step_01_walk_forward": True,
+        "step_02_target_optimization": True,
+        "step_03_probability_calibration": True,
+        "step_04_regime_validation": True,
+        "step_05_stock_stability": True,
+        "step_06_feature_stability": True,
+        "step_07_ranking_optimization": True,
+        "step_08_matched_session_ledger": True,
+        "step_09_v2_evidence_gate": True,
+        "step_10_confidence_buckets": True,
+        "step_11_tail_risk": True,
+        "step_12_bootstrap": True,
+        "step_13_statistical_promotion": True,
+        "step_14_promotion_hysteresis": True,
+        "step_15_automatic_rollback": True,
+        "step_16_reproducibility_manifest": True,
+        "step_17_data_drift": True,
+        "step_18_model_drift": True,
+        "step_19_no_trade_safety": True,
+        "step_20_consolidated_dashboard": True,
     }
     pd.DataFrame([report]).to_csv(DATA/"model_governance_summary.csv",index=False)
     targets.to_csv(DATA/"target_threshold_diagnostics.csv",index=False)

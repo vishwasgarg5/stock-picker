@@ -33,6 +33,8 @@ def build_dashboard() -> dict:
     hist = _read("performance_history.csv")
     ab = _read("strategy_ab_comparison.csv")
     direction = _read("directional_model_validation_summary.csv")
+    v2 = _read("paper_trades_v2.csv")
+    v2daily = _read("portfolio_v2_daily.csv")
     state = {}
     state_path = DATA / "phase2_state.json"
     if state_path.exists():
@@ -48,8 +50,8 @@ def build_dashboard() -> dict:
         "phase2_status": latest.get("status", state.get("status", "shadow")),
         "phase2_reason": latest.get("reason", state.get("reason", "insufficient_evidence")),
         "regime": latest.get("regime", "NEUTRAL"),
-        "v2_matched_sessions": int(latest.get("matched_sessions", 0) or 0),
-        "v2_trades": int(latest.get("v2_trades", 0) or 0),
+        "v2_matched_sessions": int(pd.to_datetime(v2daily.get("target_date", pd.Series(dtype="datetime64[ns]")), errors="coerce").dt.normalize().nunique()) if not v2daily.empty and "target_date" in v2daily.columns else int(latest.get("matched_sessions", 0) or 0),
+        "v2_trades": int(v2["signal"].astype(str).str.upper().eq("BUY").sum()) if not v2.empty and "signal" in v2.columns else int(latest.get("v2_trades", 0) or 0),
         "shadow_direction_lift_pct": float(latest.get("direction_lift_pct", 0.0) or 0.0),
         "shadow_return_lift_pct": float(latest.get("return_lift_pct", 0.0) or 0.0),
         "latest_close_mape_pct": _last(hist, "close_mape_pct"),

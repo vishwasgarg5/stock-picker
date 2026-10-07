@@ -1,9 +1,10 @@
-as_of,production_strategy,status,reason,common_sessions,v2_trades,v1_net_pnl,v2_net_pnl,pnl_lift,v1_return_pct,v2_return_pct,return_lift_pct,v1_max_drawdown_pct,v2_max_drawdown_pct,session_win_rate_pct,drawdown_gate,confidence_promoted
-2026-10-05,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,
-2026-10-05 00:00:00,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,
-2026-10-06 00:00:00,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,
-2026-10-06 00:00:00,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,
-2026-10-06 00:00:00,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,
-2026-10-06 00:00:00,V1,collecting,insufficient matched-date evidence,8,0,-3928.473509567652,0.0,0.0,-3.928473509567651,0.0,0.0,,0.0,0.0,False,
-2026-10-07 00:00:00,V1,collecting,insufficient matched-date evidence,9,0,-3217.322996872339,0.0,0.0,-3.2173229968723387,0.0,0.0,,0.0,0.0,False,False
-2026-10-07 00:00:00,V1,collecting,insufficient matched-date evidence,9,0,-3217.322996872339,0.0,0.0,-3.2173229968723387,0.0,0.0,,0.0,0.0,False,False
+as_of,production_strategy,status,reason,common_sessions,v2_trades,v1_net_pnl,v2_net_pnl,pnl_lift,v1_return_pct,v2_return_pct,return_lift_pct,v1_max_drawdown_pct,v2_max_drawdown_pct,session_win_rate_pct,drawdown_gate,confidence_promoted,phase2_enabled,phase2_direction_lift_pct,phase2_shadow_return_lift_pct
+2026-10-05,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,,,,
+2026-10-05 00:00:00,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,,,,
+2026-10-06 00:00:00,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,,,,
+2026-10-06 00:00:00,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,,,,
+2026-10-06 00:00:00,V1,collecting,insufficient matched-date evidence,0,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,,,,
+2026-10-06 00:00:00,V1,collecting,insufficient matched-date evidence,8,0,-3928.473509567652,0.0,0.0,-3.928473509567651,0.0,0.0,,0.0,0.0,False,,,,
+2026-10-07 00:00:00,V1,collecting,insufficient matched-date evidence,9,0,-3217.322996872339,0.0,0.0,-3.2173229968723387,0.0,0.0,,0.0,0.0,False,False,,,
+2026-10-07 00:00:00,V1,collecting,insufficient matched-date evidence,9,0,-3217.322996872339,0.0,0.0,-3.2173229968723387,0.0,0.0,,0.0,0.0,False,False,,,
+2026-10-07 00:00:00,V1,collecting,insufficient matched-date evidence,9,0,-3217.322996872339,0.0,0.0,-3.2173229968723387,0.0,0.0,,0.0,0.0,False,False,False,-12.5,0.017408473661222

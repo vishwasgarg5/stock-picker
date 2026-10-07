@@ -19,6 +19,7 @@ MIN_RETURN_LIFT_PCT = 0.05
 MAX_DRAWDOWN_DEGRADATION_PCT = 1.0
 MIN_SESSION_WIN_RATE_PCT = 60.0
 CONFIDENCE_SUMMARY_FILE = DATA / "confidence_validation_summary.csv"
+PHASE2_SUMMARY_FILE = DATA / "phase2_performance_summary.csv"
 
 
 def _load(path: Path) -> pd.DataFrame:
@@ -27,17 +28,26 @@ def _load(path: Path) -> pd.DataFrame:
     try:
         return pd.read_csv(path, parse_dates=["target_date"])
     except Exception:
-        return pd.DataFrame()
+        try:
+            return pd.read_csv(path)
+        except Exception:
+            return pd.DataFrame()
 
 
 def _matched(v1: pd.DataFrame, v2: pd.DataFrame) -> pd.DataFrame:
     if v1.empty or v2.empty:
         return pd.DataFrame()
-    a = v1[["target_date", "daily_profit_loss", "daily_return_pct", "drawdown_pct"]].copy()
-    b = v2[["target_date", "daily_profit_loss", "daily_return_pct", "drawdown_pct", "trades"]].copy()
+    needed1 = ["target_date", "daily_profit_loss", "daily_return_pct", "drawdown_pct"]
+    needed2 = ["target_date", "daily_profit_loss", "daily_return_pct", "drawdown_pct", "trades"]
+    if not set(needed1).issubset(v1.columns) or not set(needed2).issubset(v2.columns):
+        return pd.DataFrame()
+    a = v1[needed1].copy()
+    b = v2[needed2].copy()
+    a["target_date"] = pd.to_datetime(a["target_date"], errors="coerce").dt.normalize()
+    b["target_date"] = pd.to_datetime(b["target_date"], errors="coerce").dt.normalize()
     a = a.rename(columns={"daily_profit_loss": "v1_pnl", "daily_return_pct": "v1_return_pct", "drawdown_pct": "v1_drawdown_pct"})
     b = b.rename(columns={"daily_profit_loss": "v2_pnl", "daily_return_pct": "v2_return_pct", "drawdown_pct": "v2_drawdown_pct", "trades": "v2_trades"})
-    x = a.merge(b, on="target_date", how="inner").sort_values("target_date")
+    x = a.merge(b, on="target_date", how="inner").dropna(subset=["target_date"]).sort_values("target_date")
     if x.empty:
         return x
     x["pnl_difference"] = x["v2_pnl"] - x["v1_pnl"]
@@ -49,10 +59,10 @@ def _matched(v1: pd.DataFrame, v2: pd.DataFrame) -> pd.DataFrame:
 def _metrics(x: pd.DataFrame, prefix: str) -> dict:
     if x.empty:
         return {"sessions": 0, "trades": 0, "net_pnl": 0.0, "return_pct": 0.0, "max_drawdown_pct": 0.0}
-    pnl = float(x[f"{prefix}_pnl"].sum())
-    ret = float(x[f"{prefix}_return_pct"].sum())
-    dd = float(x[f"{prefix}_drawdown_pct"].min())
-    trades = int(x["v2_trades"].sum()) if prefix == "v2" and "v2_trades" in x else 0
+    pnl = float(pd.to_numeric(x[f"{prefix}_pnl"], errors="coerce").fillna(0).sum())
+    ret = float(pd.to_numeric(x[f"{prefix}_return_pct"], errors="coerce").fillna(0).sum())
+    dd = float(pd.to_numeric(x[f"{prefix}_drawdown_pct"], errors="coerce").min())
+    trades = int(pd.to_numeric(x["v2_trades"], errors="coerce").fillna(0).sum()) if prefix == "v2" and "v2_trades" in x else 0
     return {"sessions": int(len(x)), "trades": trades, "net_pnl": pnl, "return_pct": ret, "max_drawdown_pct": dd}
 
 
@@ -63,10 +73,23 @@ def _confidence_promoted() -> bool:
         x = pd.read_csv(CONFIDENCE_SUMMARY_FILE)
         if x.empty:
             return False
-        value = x.iloc[-1].get("confidence_promotion_evidence", False)
-        return str(value).strip().lower() == "true"
+        return str(x.iloc[-1].get("confidence_promotion_evidence", False)).strip().lower() == "true"
     except Exception:
         return False
+
+
+def _phase2_enabled() -> tuple[bool, dict]:
+    if not PHASE2_SUMMARY_FILE.exists():
+        return False, {}
+    try:
+        x = pd.read_csv(PHASE2_SUMMARY_FILE)
+        if x.empty:
+            return False, {}
+        row = x.iloc[-1].to_dict()
+        enabled = str(row.get("production_enabled", False)).strip().lower() == "true"
+        return enabled, row
+    except Exception:
+        return False, {}
 
 
 def _load_state() -> dict:
@@ -87,6 +110,7 @@ def evaluate_promotion() -> dict:
     common_sessions = len(matched)
     v2_trades = int(matched["v2_trades"].sum()) if not matched.empty else 0
     confidence_promoted = _confidence_promoted()
+    phase2_enabled, phase2 = _phase2_enabled()
     enough = common_sessions >= MIN_COMMON_SESSIONS and v2_trades >= MIN_V2_TRADES
 
     if enough:
@@ -105,29 +129,32 @@ def evaluate_promotion() -> dict:
 
     promote = bool(
         enough
+        and phase2_enabled
+        and confidence_promoted
         and pnl_lift > 0
         and return_lift >= MIN_RETURN_LIFT_PCT
         and session_win_rate >= MIN_SESSION_WIN_RATE_PCT
         and dd_gate
-        and confidence_promoted
     )
 
     current = str(state.get("production_strategy", "V1"))
     if current == "V1" and promote:
-        production, status, reason = "V2", "promoted", "V2 passed matched-date A/B gates"
+        production, status, reason = "V2", "promoted", "V2 passed matched-date, confidence and Phase-2 gates"
     elif current == "V2":
         rollback = bool(
-            not confidence_promoted
-            or
-            enough
-            and pnl_lift < 0
-            and return_lift < -MIN_RETURN_LIFT_PCT
-            and session_win_rate < 40.0
-            and not dd_gate
+            not phase2_enabled
+            or not confidence_promoted
+            or (
+                enough
+                and pnl_lift < 0
+                and return_lift < -MIN_RETURN_LIFT_PCT
+                and session_win_rate < 40.0
+                and not dd_gate
+            )
         )
         production = "V1" if rollback else "V2"
         status = "rolled_back" if rollback else "stable"
-        reason = "matched-date V2 deterioration triggered rollback" if rollback else "V2 remains within rollback gate"
+        reason = "Phase-2/confidence safety gate failed or matched-date deterioration triggered rollback" if rollback else "V2 remains within rollback gates"
     else:
         production = "V1"
         status = "collecting" if not enough else "hold"
@@ -151,6 +178,9 @@ def evaluate_promotion() -> dict:
         "session_win_rate_pct": session_win_rate,
         "drawdown_gate": dd_gate,
         "confidence_promoted": confidence_promoted,
+        "phase2_enabled": phase2_enabled,
+        "phase2_direction_lift_pct": phase2.get("direction_lift_pct", 0.0),
+        "phase2_shadow_return_lift_pct": phase2.get("return_lift_pct", 0.0),
     }
 
     pd.DataFrame([comparison]).to_csv(AB_FILE, index=False)
@@ -164,7 +194,8 @@ def evaluate_promotion() -> dict:
 
     print(
         f"Strategy A/B: common_sessions={common_sessions}, v2_trades={v2_trades}, "
-        f"session_win_rate={session_win_rate:.1f}%, production={production}, status={status}"
+        f"phase2={phase2_enabled}, session_win_rate={session_win_rate:.1f}%, "
+        f"production={production}, status={status}"
     )
     return comparison
 

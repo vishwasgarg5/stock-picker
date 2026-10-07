@@ -639,6 +639,16 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     out["prediction_spread"] = pd.to_numeric(out["prediction_spread"], errors="coerce").abs()
     spread_rank = out["prediction_spread"].rank(method="average", pct=True)
     out["confidence_score"] = ((1.0 - spread_rank).clip(0.0, 1.0) * 100.0).fillna(0.0)
+    # Directional challenger is metadata/shadow-only until its own OOS gate passes.
+    try:
+        from .directional_model import latest_direction_scores
+        d = latest_direction_scores(df)
+        if not d.empty:
+            out = out.merge(d, on="symbol", how="left")
+    except Exception as exc:
+        print(f"Directional challenger unavailable; retaining base predictions: {exc}")
+    out["direction_probability"] = pd.to_numeric(out.get("direction_probability"), errors="coerce").fillna(0.5)
+    out["direction_score_model"] = out["direction_probability"] * 100.0
     out["confidence_calibration_version"] = "uncertainty_rank_v2"
 
     # New listings get a separate maturity-aware confidence score. This does not

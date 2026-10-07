@@ -1,0 +1,19 @@
+{
+  "as_of": "2026-10-07 00:00:00",
+  "regime": "NEUTRAL",
+  "matched_sessions": 9,
+  "v2_trades": 0,
+  "direction_lift_pct": 0.0,
+  "return_lift_pct": 0.0,
+  "trades": 0,
+  "win_rate_pct": NaN,
+  "net_pnl": 0.0,
+  "profit_factor": NaN,
+  "production_enabled": false,
+  "status": "shadow",
+  "reason": "insufficient_evidence",
+  "min_matched_sessions": 20,
+  "min_v2_trades": 50,
+  "min_direction_lift_pct": 0.5,
+  "min_return_lift_pct": 0.05
+}

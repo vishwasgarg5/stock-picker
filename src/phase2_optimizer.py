@@ -228,7 +228,9 @@ def run_phase2() -> pd.DataFrame:
     direction = _directional_history(c, e)
     repeat = _repeat_loss_penalty(c, e)
     dmap = direction.set_index("symbol")["direction_score"] if not direction.empty else pd.Series(dtype=float)
-    c["direction_score_v3"] = c["symbol"].map(dmap).fillna(50.0)
+    historical_direction = c["symbol"].map(dmap).fillna(50.0)
+    model_direction = pd.to_numeric(c.get("direction_score_model", pd.Series(np.nan, index=c.index)), errors="coerce")
+    c["direction_score_v3"] = (0.60 * historical_direction + 0.40 * model_direction.fillna(historical_direction)).clip(0, 100)
     c["confidence_v3"] = _confidence_v3(c, direction)
     c = c.merge(repeat, on="symbol", how="left")
     c["repeat_loss_penalty"] = pd.to_numeric(c["repeat_loss_penalty"], errors="coerce").fillna(0.0)
@@ -281,6 +283,7 @@ def run_phase2() -> pd.DataFrame:
         "v2_trades": v2_trades,
         "evaluated_shadow_sessions": matched_eval_sessions,
         "direction_lift_pct": direction_lift,
+        "direction_model_available_pct": float(model_direction.notna().mean() * 100.0) if len(model_direction) else 0.0,
         "return_lift_pct": return_lift,
         **feedback,
     }

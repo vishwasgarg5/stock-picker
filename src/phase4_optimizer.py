@@ -143,7 +143,11 @@ def _feature_feedback() -> dict:
 def _bootstrap(trades: pd.DataFrame) -> tuple[float, float]:
     if trades.empty or "return_pct" not in trades.columns:
         return -np.inf, np.inf
-    r = pd.to_numeric(trades.loc[trades.get("signal", "BUY").astype(str).str.upper().eq("BUY") if "signal" in trades else slice(None), "return_pct"], errors="coerce").dropna().to_numpy()
+    if "signal" in trades.columns:
+        mask = trades["signal"].astype(str).str.upper().eq("BUY")
+        r = pd.to_numeric(trades.loc[mask, "return_pct"], errors="coerce").dropna().to_numpy()
+    else:
+        r = pd.to_numeric(trades["return_pct"], errors="coerce").dropna().to_numpy()
     if len(r) < 10:
         return -np.inf, np.inf
     rng = np.random.default_rng(20261008)

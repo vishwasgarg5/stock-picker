@@ -49,6 +49,9 @@ jobs:
       - name: Run Phase 2 and directional regression tests
         run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py tests/test_model_governance.py
 
+      - name: Preflight end-to-end integration wiring
+        run: python -m src.integration_check --preflight
+
       - name: Build new-listing ML challenger
         if: inputs.reuse_stored_data != true
         run: python -m src.new_listing_model

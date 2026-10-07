@@ -31,7 +31,7 @@ def test_walk_forward_split_is_chronological():
     assert splits
     train, test = splits[0]
     assert len(train) == 60
-    assert len(test) == 5
+    assert len(test) == 10
     assert max(train) < min(test)
 
 

@@ -691,7 +691,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         selector_validated = (
             not validation.empty
             and "recent_error_promotion_evidence" in validation.columns
-            and bool(validation["recent_error_promotion_evidence"].fillna(False).astype(bool).any())
+            and validation["recent_error_promotion_evidence"].astype(str).str.strip().str.lower().eq("true").any()
         )
         if selector_validated and EVALUATIONS_FILE.exists():
             ev = pd.read_csv(EVALUATIONS_FILE)
@@ -722,7 +722,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         validated = (
             not analysis.empty
             and "confidence_promotion_evidence" in analysis.columns
-            and analysis["confidence_promotion_evidence"].fillna(False).astype(bool).any()
+            and analysis["confidence_promotion_evidence"].astype(str).str.strip().str.lower().eq("true").any()
         )
         if validated:
             candidates["selection_priority"] = candidates["rank"] + ((100.0 - candidates["confidence_score"]) / 100.0)

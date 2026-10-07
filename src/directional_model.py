@@ -188,10 +188,14 @@ def train_challenger(hist: pd.DataFrame) -> dict:
         **recent,
     }
     pd.DataFrame([summary]).to_csv(SUMMARY_FILE, index=False)
-    if ready:
-        final_bundle = _fit(ds[MODEL_FEATURES], ds["target_direction"], regime="ALL")
-        MODEL_FILE.parent.mkdir(parents=True, exist_ok=True)
-        joblib.dump(final_bundle, MODEL_FILE)
+    # Always persist the validated challenger artifact as SHADOW evidence.  The
+    # governor, not artifact existence, controls production use.
+    final_bundle = _fit(ds[MODEL_FEATURES], ds["target_direction"], regime="ALL")
+    final_bundle["production_ready"] = ready
+    final_bundle["validation_sessions"] = sessions
+    final_bundle["target_threshold"] = TARGET_MOVE_THRESHOLD
+    MODEL_FILE.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(final_bundle, MODEL_FILE)
     print(
         f"Directional challenger: sessions={sessions}, accuracy={mean_acc:.2f}%, "
         f"lift={lift:.2f}pp, brier_lift={brier_lift:.4f}, "

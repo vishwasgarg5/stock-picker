@@ -46,7 +46,7 @@ def main() -> int:
 
     links = {
         "confidence_to_v2": "confidence_validation_summary.csv" in v2 and "_confidence_gate" in v2,
-        "risk_to_v2": "apply_risk_gate" in v2,
+        "shadow_safety_to_v2": "MAX_SHADOW_ATR_PCT" in v2,
         "quality_to_pipeline": "latest_trade_quality_scores" in pipeline,
         "ranking_to_pipeline": "latest_rank_scores" in pipeline,
         "v2_to_governor": "portfolio_v2_daily.csv" in governor,
@@ -58,7 +58,7 @@ def main() -> int:
         "phase2_repeat_loss_control": "repeat_loss_penalty" in phase2,
         "phase2_regime_engine": "_regime" in phase2,
         "phase2_shadow_return_measurement": "_shadow_selection_metrics" in phase2,
-        "directional_challenger_module": "directional_model.py" in required_files,
+        "directional_challenger_module": "src/directional_model.py" in required,
         "directional_challenger_pipeline": "directional_model" in pipeline,
     }
     failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
@@ -73,6 +73,7 @@ def main() -> int:
         "data/phase2_optimized_candidates.csv",
         "data/phase2_dashboard.csv",
         "data/phase2_dashboard.json",
+        "data/directional_model_validation_summary.csv",
     ]
     failures.extend(f"missing_generated_report:{p}" for p in generated if not (ROOT / p).exists())
 

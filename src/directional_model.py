@@ -19,15 +19,33 @@ MIN_SESSIONS = 12
 MIN_TRAIN_SESSIONS = 60
 RECENT_WINDOWS = (5, 10, 20)
 TARGET_MOVE_THRESHOLD = 0.0015
+MODEL_FEATURES = FEATURE_COLUMNS + ["regime_code"]
+
+
+def _regime_codes(hist: pd.DataFrame) -> pd.DataFrame:
+    x = hist.copy()
+    x["date"] = pd.to_datetime(x["date"], errors="coerce").dt.normalize()
+    x["close"] = pd.to_numeric(x["close"], errors="coerce")
+    daily = x.dropna(subset=["date", "close"]).groupby("date")["close"].median().sort_index()
+    s20 = daily.rolling(20).mean()
+    s50 = daily.rolling(50).mean()
+    r20 = daily / daily.shift(20) - 1.0
+    code = pd.Series(0.0, index=daily.index)
+    code[(daily > s20) & (s20 > s50) & (r20 >= 0.03)] = 1.0
+    code[(daily < s20) & (s20 < s50) & (r20 <= -0.03)] = -1.0
+    return code.rename("regime_code").reset_index()
 
 
 def _dataset(hist: pd.DataFrame) -> pd.DataFrame:
     x = features(hist).sort_values(["symbol", "date"]).copy()
+    regimes = _regime_codes(hist)
+    x = x.merge(regimes, on="date", how="left")
+    x["regime_code"] = pd.to_numeric(x["regime_code"], errors="coerce").fillna(0.0)
     g = x.groupby("symbol", group_keys=False)
     next_return = g["close"].shift(-1) / x["close"] - 1.0
     x["target_return"] = next_return
     # Exclude tiny moves from training because their direction is mostly noise.
-    x = x.dropna(subset=FEATURE_COLUMNS + ["target_return"]).copy()
+    x = x.dropna(subset=MODEL_FEATURES + ["target_return"]).copy()
     x = x[x["target_return"].abs() >= TARGET_MOVE_THRESHOLD].copy()
     x["target_direction"] = (x["target_return"] > 0).astype(int)
     return x
@@ -49,7 +67,7 @@ def _fit(x: pd.DataFrame, y: pd.Series, regime: str = "ALL") -> dict:
         "weights": [0.65, 0.35],
         "version": "directional_challenger_v2_walkforward",
         "regime": regime,
-        "features": FEATURE_COLUMNS,
+        "features": MODEL_FEATURES,
     }
 
 
@@ -116,12 +134,12 @@ def train_challenger(hist: pd.DataFrame) -> dict:
         test = ds[ds["date"].isin(test_dates)].copy()
         if train.empty or test.empty:
             continue
-        bundle = _fit(train[FEATURE_COLUMNS], train["target_direction"])
+        bundle = _fit(train[MODEL_FEATURES], train["target_direction"])
         baseline_prob = _baseline_prob(train["target_direction"])
         for date, g in test.groupby("date", sort=True):
             if len(g) < 10:
                 continue
-            p = _predict(bundle, g[FEATURE_COLUMNS])
+            p = _predict(bundle, g[MODEL_FEATURES])
             actual = g["target_direction"].to_numpy()
             metrics = _evaluate_predictions(actual, p, baseline_prob)
             rows.append({
@@ -188,10 +206,13 @@ def latest_direction_scores(hist: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
     bundle = joblib.load(MODEL_FILE)
     x = features(hist).sort_values("date").groupby("symbol", as_index=False).tail(1)
-    x = x.dropna(subset=FEATURE_COLUMNS)
+    regimes = _regime_codes(hist)
+    x = x.merge(regimes, on="date", how="left")
+    x["regime_code"] = pd.to_numeric(x["regime_code"], errors="coerce").fillna(0.0)
+    x = x.dropna(subset=MODEL_FEATURES)
     if x.empty:
         return pd.DataFrame()
-    p = _predict(bundle, x[FEATURE_COLUMNS])
+    p = _predict(bundle, x[MODEL_FEATURES])
     return pd.DataFrame({
         "symbol": x["symbol"].astype(str).str.upper().str.strip().values,
         "direction_probability": p,

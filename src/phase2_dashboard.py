@@ -32,6 +32,7 @@ def build_dashboard() -> dict:
     p2 = _read("phase2_performance_summary.csv")
     hist = _read("performance_history.csv")
     ab = _read("strategy_ab_comparison.csv")
+    direction = _read("directional_model_validation_summary.csv")
     state = {}
     state_path = DATA / "phase2_state.json"
     if state_path.exists():
@@ -58,6 +59,10 @@ def build_dashboard() -> dict:
         "v2_ab_return_lift_pct": _last(ab, "return_lift_pct"),
         "v2_ab_session_win_rate_pct": _last(ab, "session_win_rate_pct"),
         "v2_ab_drawdown_gate": bool(str(ab.iloc[-1].get("drawdown_gate", "False")).lower() == "true") if not ab.empty else False,
+        "directional_challenger_accuracy_pct": _last(direction, "mean_accuracy_pct"),
+        "directional_challenger_lift_pct": _last(direction, "mean_accuracy_lift_pct"),
+        "directional_challenger_ready": bool(str(direction.iloc[-1].get("production_ready", "False")).lower() == "true") if not direction.empty else False,
+        "return_lift_ci_low_pct": _last(ab, "return_lift_ci_low_pct", -np.inf),
         "promotion_safe": True,
     }
     dashboard["model_beating_baseline"] = bool(

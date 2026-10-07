@@ -72,40 +72,64 @@ def _recent(val: pd.DataFrame) -> dict:
     return out
 
 
+def _baseline_prob(y: pd.Series) -> float:
+    """Chronological prior baseline: training-set positive rate."""
+    return float(pd.to_numeric(y, errors="coerce").mean())
+
+
+def _evaluate_predictions(actual: np.ndarray, p: np.ndarray, baseline_prob: float) -> dict:
+    actual = np.asarray(actual, dtype=int)
+    p = np.asarray(p, dtype=float)
+    model_pred = (p >= 0.5).astype(int)
+    model_acc = float((model_pred == actual).mean() * 100.0)
+    base_pred = np.full(len(actual), int(baseline_prob >= 0.5), dtype=int)
+    baseline_acc = float((base_pred == actual).mean() * 100.0)
+    return {
+        "model_accuracy_pct": model_acc,
+        "baseline_accuracy_pct": baseline_acc,
+        "accuracy_lift_pct": model_acc - baseline_acc,
+        "model_brier": float(np.mean((p - actual) ** 2)),
+        "baseline_brier": float(np.mean((baseline_prob - actual) ** 2)),
+    }
+
+
+def _walk_forward_splits(dates: list, min_train_sessions: int = 60, test_sessions: int = 5):
+    dates = sorted(pd.to_datetime(dates).unique())
+    for end in range(min_train_sessions, len(dates), test_sessions):
+        train_dates = dates[:end]
+        test_dates = dates[end:end + test_sessions]
+        if len(test_dates) < test_sessions:
+            break
+        yield train_dates, test_dates
+
+
 def train_challenger(hist: pd.DataFrame) -> dict:
     ds = _dataset(hist)
     if len(ds) < MIN_ROWS:
         return {"status": "collecting", "rows": len(ds)}
 
-    dates = sorted(ds["date"].unique())
-    split_idx = max(1, int(len(dates) * 0.70)) - 1
-    split = dates[split_idx]
-    train = ds[ds["date"] <= split]
-    test = ds[ds["date"] > split]
-    if train.empty or test.empty:
-        return {"status": "collecting", "rows": len(ds)}
-
-    bundle = _fit(train[FEATURE_COLUMNS], train["target_direction"])
-    MODEL_FILE.parent.mkdir(exist_ok=True)
-    joblib.dump(bundle, MODEL_FILE)
-
     rows = []
-    for date, g in test.groupby("date", sort=True):
-        if len(g) < 10:
+    for train_dates, test_dates in _walk_forward_splits(ds["date"].tolist()):
+        train = ds[ds["date"].isin(train_dates)].copy()
+        test = ds[ds["date"].isin(test_dates)].copy()
+        if train.empty or test.empty:
             continue
-        p = _predict(bundle, g[FEATURE_COLUMNS])
-        actual = g["target_direction"].to_numpy()
-        model_acc = float(((p >= 0.5).astype(int) == actual).mean() * 100.0)
-        baseline_acc = float(max(actual.mean(), 1.0 - actual.mean()) * 100.0)
-        rows.append({
-            "target_date": date,
-            "rows": len(g),
-            "model_accuracy_pct": model_acc,
-            "baseline_accuracy_pct": baseline_acc,
-            "accuracy_lift_pct": model_acc - baseline_acc,
-        })
+        bundle = _fit(train[FEATURE_COLUMNS], train["target_direction"])
+        baseline_prob = _baseline_prob(train["target_direction"])
+        for date, g in test.groupby("date", sort=True):
+            if len(g) < 10:
+                continue
+            p = _predict(bundle, g[FEATURE_COLUMNS])
+            actual = g["target_direction"].to_numpy()
+            metrics = _evaluate_predictions(actual, p, baseline_prob)
+            rows.append({
+                "target_date": date,
+                "rows": len(g),
+                "train_end": max(train_dates),
+                **metrics,
+            })
 
-    val = pd.DataFrame(rows)
+    val = pd.DataFrame(rows).drop_duplicates("target_date", keep="last")
     if val.empty:
         return {"status": "collecting", "rows": len(ds), "sessions": 0}
 
@@ -114,10 +138,15 @@ def train_challenger(hist: pd.DataFrame) -> dict:
     mean_acc = float(val["model_accuracy_pct"].mean())
     lift = float(val["accuracy_lift_pct"].mean())
     recent = _recent(val)
+    mean_brier = float(val["model_brier"].mean())
+    baseline_brier = float(val["baseline_brier"].mean())
+    brier_lift = baseline_brier - mean_brier
+
     ready = bool(
         sessions >= MIN_SESSIONS
         and mean_acc >= 52.0
         and lift > 0
+        and brier_lift >= 0
         and all(
             recent[f"recent_{n}_sessions"] == n
             and pd.notna(recent[f"recent_{n}_lift_pct"])
@@ -130,6 +159,10 @@ def train_challenger(hist: pd.DataFrame) -> dict:
         "rows": int(val["rows"].sum()),
         "mean_accuracy_pct": mean_acc,
         "mean_accuracy_lift_pct": lift,
+        "mean_brier": mean_brier,
+        "baseline_brier": baseline_brier,
+        "brier_lift": brier_lift,
+        "walk_forward": True,
         "production_ready": ready,
         "status": "promote" if ready else ("hold" if sessions >= MIN_SESSIONS else "collecting"),
         **recent,
@@ -137,11 +170,10 @@ def train_challenger(hist: pd.DataFrame) -> dict:
     pd.DataFrame([summary]).to_csv(SUMMARY_FILE, index=False)
     print(
         f"Directional challenger: sessions={sessions}, accuracy={mean_acc:.2f}%, "
-        f"lift={lift:.2f}pp, recent20={recent.get('recent_20_lift_pct', np.nan):.2f}pp, "
-        f"status={summary['status']}"
+        f"lift={lift:.2f}pp, brier_lift={brier_lift:.4f}, "
+        f"recent20={recent.get('recent_20_lift_pct', np.nan):.2f}pp, status={summary['status']}"
     )
     return summary
-
 
 def latest_direction_scores(hist: pd.DataFrame) -> pd.DataFrame:
     if not MODEL_FILE.exists() or not SUMMARY_FILE.exists():

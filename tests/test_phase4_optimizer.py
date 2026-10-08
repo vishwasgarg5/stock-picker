@@ -81,3 +81,14 @@ def test_market_intelligence_score_is_bounded():
     score, level = _market_score(out, 2.0, 80.0)
     assert 0.0 <= score <= 100.0
     assert level in {"RISK_ON", "NEUTRAL", "RISK_OFF"}
+
+
+def test_market_score_excludes_missing_index_data():
+    from src.index_intelligence import _market_score
+    out = pd.DataFrame(columns=["index", "direction", "confidence"])
+    score, level, confidence, quality, available = _market_score(out, -6.8, 28.33)
+    assert not available
+    assert score < 35
+    assert level == "RISK_OFF"
+    assert quality == "LOW"
+    assert confidence > 0

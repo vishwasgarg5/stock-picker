@@ -73,3 +73,11 @@ def test_index_news_reason_scoring_is_deterministic():
     assert headline
     assert url == "x"
     assert reasons and reasons[0]["event"] in {"RBI / rates", "Crude oil", "General market", "Inflation", "Geopolitics"}
+
+
+def test_market_intelligence_score_is_bounded():
+    from src.index_intelligence import _market_score
+    out = pd.DataFrame({"index": ["NIFTY50"], "direction": ["BUY"], "confidence": [0.8]})
+    score, level = _market_score(out, 2.0, 80.0)
+    assert 0.0 <= score <= 100.0
+    assert level in {"RISK_ON", "NEUTRAL", "RISK_OFF"}

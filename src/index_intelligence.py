@@ -272,6 +272,22 @@ def score_news(items: list[dict]) -> tuple[float, str, str, str, list[dict]]:
         bearish=sum(w in BEAR_WORDS for w in words)
         general=1.0 if bullish>bearish else -1.0 if bearish>bullish else 0.0
         impact=float(c["market_impact"])
+        # For mixed headlines, aggregate explicit contextual signals instead of
+        # letting the first matched event dominate the market score.
+        text_l = str(headline).lower()
+        contextual = []
+        if any(w in text_l for w in ("crude oil", "crude", "brent", "opec")):
+            if any(w in text_l for w in ("rises", "rise", "surges", "surge", "higher", "jumps", "jump")):
+                contextual.append(-1.0)
+            elif any(w in text_l for w in ("falls", "fall", "drops", "drop", "lower", "declines", "decline")):
+                contextual.append(1.0)
+        if any(w in text_l for w in ("rbi", "repo", "rate", "rates", "policy", "monetary")):
+            if any(w in text_l for w in ("hike", "hikes", "raise", "raises", "raised", "tightening", "tightens")):
+                contextual.append(-0.9)
+            elif any(w in text_l for w in ("cut", "cuts", "easing", "lower", "lowered")):
+                contextual.append(0.9)
+        if contextual:
+            impact=float(np.mean(contextual))
         if general and impact and np.sign(general)!=np.sign(impact):
             impact=0.65*impact+0.35*general
         elif general and not impact:

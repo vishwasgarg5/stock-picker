@@ -30,3 +30,16 @@ def test_phase4_symbol_stats_is_shrinkage_safe():
 def test_phase4_regime_returns_neutral_without_history():
     h = pd.DataFrame({"date": pd.date_range("2026-01-01", periods=10), "close": range(100, 110)})
     assert _regime(h) == "NEUTRAL"
+
+
+def test_phase4_missing_metadata_defaults_neutral():
+    import pandas as pd
+    from src.phase4_optimizer import apply_phase4
+    x = pd.DataFrame({
+        "symbol": ["ABC"], "phase2_score": [1.0],
+        "trade_quality_probability": [0.8],
+        "confidence_pct": [0.9], "expected_return_pct": [1.0],
+    })
+    y = apply_phase4(x)
+    assert bool(y.iloc[0]["phase4_eligible"])
+    assert float(y.iloc[0]["phase4_weight"]) == 1.0

@@ -52,3 +52,12 @@ def test_phase4_missing_scoring_columns_are_safe():
     assert len(y) == 1
     assert float(y.iloc[0]["symbol_weight"]) == 1.0
     assert not bool(y.iloc[0]["phase4_eligible"])
+
+
+def test_index_intelligence_overlay_is_conservative():
+    from src.index_intelligence import apply_index_overlay
+    x = pd.DataFrame({"symbol": ["ABC"], "phase4_score": [10.0], "score": [5.0]})
+    y = apply_index_overlay(x)
+    assert y.iloc[0]["index_market_regime"] in {"BULL", "BEAR", "NEUTRAL"}
+    assert 0 < float(y.iloc[0]["index_risk_multiplier"]) <= 1.0
+    assert float(y.iloc[0]["phase4_score"]) <= 10.0

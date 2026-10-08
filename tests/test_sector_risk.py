@@ -22,5 +22,5 @@ def test_sector_risk_uses_point_in_time_snapshot():
 
     assert row["top_sector"] == "Tech"
     assert row["top_sector_weight_pct"] == pytest.approx(60.0)
-    assert row["sector_hhi"] == pytest.approx(3600.0)
+    assert row["sector_hhi"] == pytest.approx(4400.0)
     assert bool(row["concentration_breach"]) is True

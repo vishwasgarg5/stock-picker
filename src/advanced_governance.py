@@ -9,6 +9,7 @@ V1 pipeline; promotion remains evidence-gated and V1-safe by default.
 from pathlib import Path
 import json
 import math
+import re
 import numpy as np
 import pandas as pd
 
@@ -37,22 +38,29 @@ def calibrate_confidence(confidence: pd.Series, correct: pd.Series) -> dict:
             "calibration_status":"PASS" if brier<=0.25 and ece<=0.15 else "WARNING"}
 
 def stock_news_impact(headlines: list[dict], universe: pd.DataFrame) -> pd.DataFrame:
-    """Match company-specific headlines to symbols without requiring future data."""
+    """Match company-specific headlines using symbols and distinctive company tokens."""
     if universe.empty or "symbol" not in universe.columns:
         return pd.DataFrame(columns=["symbol","stock_news_score","stock_news_count","stock_news_reason"])
     from .news_context import classify_headline
     u=universe.copy()
     u["symbol"]=u["symbol"].astype(str).str.upper().str.strip()
     u["company_name"]=u.get("company_name",u["symbol"]).astype(str)
+    token_freq={}
+    token_sets={}
+    stop={"india","limited","ltd","company","holdings","group","industries","services","financial","solutions","enterprise","enterprises"}
+    for _,r in u.iterrows():
+        tokens={w.lower() for w in re.findall(r"[a-zA-Z0-9]+",str(r["company_name"])) if len(w)>=8 and w.lower() not in stop}
+        token_sets[str(r["symbol"])]=tokens
+        for t in tokens: token_freq[t]=token_freq.get(t,0)+1
     rows=[]
     for _,r in u.iterrows():
-        sym=str(r["symbol"]); name=str(r["company_name"])
-        aliases={sym.lower(), name.lower()}
-        aliases.update(w.strip().lower() for w in name.replace("&"," ").replace("-"," ").split() if len(w.strip())>=5)
+        sym=str(r["symbol"])
+        name=str(r["company_name"]).lower()
+        distinctive={t for t in token_sets.get(sym,set()) if token_freq.get(t,0)==1}
         matches=[]
         for item in headlines:
             h=str(item.get("headline","")).lower()
-            if any(a in h for a in aliases):
+            if sym.lower() in h or name in h or any(t in h for t in distinctive):
                 c=classify_headline(h)
                 matches.append((float(c["market_impact"]),str(item.get("headline","")),c["event"]))
         if matches:

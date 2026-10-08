@@ -1,2 +1,2 @@
 as_of,candidate_rows,sessions,baseline_close_mape_pct,adjusted_close_mape_pct,relative_mape_improvement_pct,baseline_direction_accuracy_pct,adjusted_direction_accuracy_pct,baseline_profitable_close_pct,adjusted_profitable_close_pct,baseline_mean_return_pct,adjusted_mean_return_pct,minimum_rows_required,minimum_sessions_required,minimum_relative_mape_improvement_pct,recent_error_promotion_evidence,promotion_evidence,validation_status
-2026-10-07,10,1,1.3144041347579027,1.3144041347579027,0.0,50.0,50.0,20.0,20.0,-0.9542092797291634,-0.9542092797291634,100,12,1.0,False,False,collecting
+2026-10-08,10,1,1.3144041347579027,1.3144041347579027,0.0,50.0,50.0,20.0,20.0,-0.9542092797291634,-0.9542092797291634,100,12,1.0,False,False,collecting

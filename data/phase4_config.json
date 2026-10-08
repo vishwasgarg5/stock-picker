@@ -1,0 +1,54 @@
+{
+  "report": {
+    "as_of": "2026-10-08T00:29:15.389976+00:00",
+    "phase4_version": "phase4_adaptive_v1",
+    "regime": "NEUTRAL",
+    "symbols_scored": 55,
+    "cooldown_symbols": 0,
+    "stable_features": 0,
+    "unstable_feature_count": 18,
+    "confidence_floor_percentile": 0.55,
+    "min_expected_return_pct": 0.5,
+    "stop_atr_multiplier": 1.25,
+    "target_stop_multiple": 1.15,
+    "max_positions": 5,
+    "bootstrap_ci_low_pct": -Infinity,
+    "bootstrap_ci_high_pct": Infinity,
+    "safety_status": "SHADOW_ONLY",
+    "production_ready": false,
+    "reason": "Phase 4 is an adaptive overlay; V1/V2 production promotion remains controlled by strategy_governor."
+  },
+  "parameters": {
+    "confidence_percentile": 0.55,
+    "min_expected_return_pct": 0.5,
+    "stop_atr_multiplier": 1.25,
+    "target_stop_multiple": 1.15,
+    "max_positions": 5,
+    "max_symbol_weight": 1.5,
+    "min_symbol_weight": 0.5,
+    "regime": "NEUTRAL"
+  },
+  "feature_feedback": {
+    "stable_features": 0,
+    "unstable_features": [
+      "atr14_pct",
+      "bb_position",
+      "close_sma20_gap",
+      "close_sma50_gap",
+      "ema20",
+      "ema50",
+      "macd",
+      "macd_signal",
+      "range_pct",
+      "return_1d",
+      "return_20d",
+      "return_5d",
+      "rsi14",
+      "sma20",
+      "sma50",
+      "volatility20",
+      "volume_ratio",
+      "volume_trend5"
+    ]
+  }
+}

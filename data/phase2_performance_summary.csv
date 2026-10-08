@@ -1,2 +1,2 @@
 as_of,regime,matched_sessions,v2_trades,evaluated_shadow_sessions,direction_lift_pct,direction_model_available_pct,return_lift_pct,trades,win_rate_pct,net_pnl,profit_factor,production_enabled,status,reason,min_matched_sessions,min_v2_trades,min_direction_lift_pct,min_return_lift_pct
-2026-10-07,NEUTRAL,9,5,1,-12.5,0.0,0.017408473661222057,100,36.0,-3511.3231331310817,0.7228358290247994,False,shadow,insufficient_evidence,20,50,0.5,0.05
+2026-10-08,NEUTRAL,9,5,1,-12.5,0.0,0.017408473661222057,100,36.0,-3511.3231331310817,0.7228358290247994,False,shadow,insufficient_evidence,20,50,0.5,0.05

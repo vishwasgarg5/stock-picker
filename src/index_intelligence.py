@@ -9,6 +9,10 @@ selection risk rather than replacing the V1 production champion.
 
 from pathlib import Path
 import json
+import re
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
 
@@ -75,9 +79,20 @@ def build_index_intelligence(hist: pd.DataFrame | None = None) -> pd.DataFrame:
         bull = (out["regime"] == "BULL").mean()
         bear = (out["regime"] == "BEAR").mean()
         market = "BULL" if bull >= 0.60 else "BEAR" if bear >= 0.60 else "NEUTRAL"
-    config = {"version": "index_intelligence_v1", "market_regime": market,
-              "risk_multiplier": 1.0 if market == "BULL" else 0.80 if market == "NEUTRAL" else 0.55}
+    news = fetch_market_news()
+    news_score, headline, news_sentiment, news_url = score_news(news)
+    news_reason = headline
+    config = {"version": "index_intelligence_v2", "market_regime": market,
+              "risk_multiplier": 1.0 if market == "BULL" else 0.80 if market == "NEUTRAL" else 0.55,
+              "news_sentiment": news_sentiment, "news_score": news_score,
+              "market_reason": news_reason, "market_reason_url": news_url,
+              "news_headline": headline}
     CONFIG.write_text(json.dumps(config, indent=2))
+    out["news_sentiment"] = news_sentiment
+    out["market_reason"] = news_reason
+    out["news_headline"] = headline
+    out["news_source_url"] = news_url
+    out.to_csv(SUMMARY, index=False)
     print(json.dumps(config, indent=2))
     return out
 
@@ -93,6 +108,9 @@ def apply_index_overlay(candidates: pd.DataFrame) -> pd.DataFrame:
     risk = float(cfg.get("risk_multiplier", 0.80))
     x["index_market_regime"] = regime
     x["index_risk_multiplier"] = risk
+    x["market_reason"] = cfg.get("market_reason", "No fresh market headline available")
+    x["news_sentiment"] = cfg.get("news_sentiment", "NEUTRAL")
+    x["news_headline"] = cfg.get("news_headline", "No fresh market headline available")
     if "phase4_score" in x.columns:
         x["phase4_score"] = pd.to_numeric(x["phase4_score"], errors="coerce").fillna(0.0) * risk
     if "score" in x.columns:
@@ -101,3 +119,47 @@ def apply_index_overlay(candidates: pd.DataFrame) -> pd.DataFrame:
 
 if __name__ == "__main__":
     build_index_intelligence()
+
+
+NEWS_FEEDS = [
+    ("Google News", "https://news.google.com/rss/search?q=" + urllib.parse.quote("India Nifty Sensex stock market RBI crude oil FII OR geopolitics when:1d") + "&hl=en-IN&gl=IN&ceid=IN:en"),
+    ("Google News", "https://news.google.com/rss/search?q=" + urllib.parse.quote("Indian stock market Nifty today when:1d") + "&hl=en-IN&gl=IN&ceid=IN:en"),
+]
+BULL_WORDS = {"surge", "gain", "gains", "rally", "rise", "rises", "bullish", "upgrade", "inflow", "growth", "strong", "easing", "cut", "cuts", "record high"}
+BEAR_WORDS = {"fall", "falls", "drop", "drops", "decline", "declines", "bearish", "outflow", "inflation", "hike", "hikes", "war", "crude", "oil", "weak", "selling", "tightening", "yield", "risk"}
+
+def fetch_market_news(limit: int = 12) -> list[dict]:
+    items = []
+    for source, url in NEWS_FEEDS:
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "stock-picker/1.0"})
+            root = ET.fromstring(urllib.request.urlopen(req, timeout=10).read())
+            for item in root.findall(".//item"):
+                title = (item.findtext("title") or "").strip()
+                link = (item.findtext("link") or "").strip()
+                pub = (item.findtext("pubDate") or "").strip()
+                if title:
+                    items.append({"source": source, "headline": re.sub(r"\\s+", " ", title), "url": link, "published": pub})
+        except Exception as exc:
+            print(f"News feed unavailable: {exc}")
+    unique = []
+    seen = set()
+    for item in items:
+        key = item["headline"].lower()
+        if key not in seen:
+            seen.add(key); unique.append(item)
+    return unique[:limit]
+
+def score_news(items: list[dict]) -> tuple[float, str, str, str]:
+    scored = []
+    for item in items:
+        text = item["headline"].lower()
+        bull = sum(1 for w in BULL_WORDS if w in text)
+        bear = sum(1 for w in BEAR_WORDS if w in text)
+        scored.append((bull - bear, item))
+    if not scored:
+        return 0.0, "No fresh market headline available", "NEUTRAL", ""
+    scored.sort(key=lambda z: abs(z[0]), reverse=True)
+    score, item = scored[0]
+    sentiment = "BULLISH" if score > 0 else "BEARISH" if score < 0 else "NEUTRAL"
+    return float(score), item["headline"], sentiment, item.get("url", "")

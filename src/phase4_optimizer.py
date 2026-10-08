@@ -233,21 +233,29 @@ def apply_phase4(candidates: pd.DataFrame) -> pd.DataFrame:
                             "min_expected_return_pct", "stop_atr_multiplier",
                             "target_stop_multiple"] if c in scored.columns]
         x = x.merge(scored[cols].drop_duplicates("symbol"), on="symbol", how="left")
-    x["symbol_weight"] = pd.to_numeric(x.get("symbol_weight"), errors="coerce").fillna(1.0)
-    x["cooldown"] = x.get("cooldown", False).fillna(False).astype(bool)
+    def _numeric(name: str, default: float) -> pd.Series:
+        if name in x.columns:
+            return pd.to_numeric(x[name], errors="coerce").fillna(default)
+        return pd.Series(default, index=x.index, dtype=float)
+
+    x["symbol_weight"] = _numeric("symbol_weight", 1.0)
+    if "cooldown" in x.columns:
+        x["cooldown"] = x["cooldown"].fillna(False).astype(bool)
+    else:
+        x["cooldown"] = False
     x["phase4_confidence_floor"] = float(params.get("confidence_percentile", 0.60))
     x["phase4_min_expected_return_pct"] = float(params.get("min_expected_return_pct", 0.50))
     x["phase4_stop_atr_multiplier"] = float(params.get("stop_atr_multiplier", 1.25))
     x["phase4_target_stop_multiple"] = float(params.get("target_stop_multiple", 1.15))
     x["phase4_score"] = (
-        pd.to_numeric(x.get("phase2_score"), errors="coerce").fillna(0.0)
+        _numeric("phase2_score", 0.0)
         * x["symbol_weight"]
-        * (pd.to_numeric(x.get("trade_quality_probability"), errors="coerce").fillna(0.50) * 2.0)
+        * (_numeric("trade_quality_probability", 0.50) * 2.0)
     )
     x["phase4_eligible"] = (
         ~x["cooldown"]
-        & pd.to_numeric(x.get("confidence_pct"), errors="coerce").ge(x["phase4_confidence_floor"])
-        & pd.to_numeric(x.get("expected_return_pct"), errors="coerce").ge(x["phase4_min_expected_return_pct"])
+        & _numeric("confidence_pct", 0.0).ge(x["phase4_confidence_floor"])
+        & _numeric("expected_return_pct", 0.0).ge(x["phase4_min_expected_return_pct"])
     )
     # Diversification: cap one symbol and one candidate per symbol/session.
     x["phase4_weight"] = x["symbol_weight"].clip(MIN_SYMBOL_WEIGHT, MAX_SYMBOL_WEIGHT)

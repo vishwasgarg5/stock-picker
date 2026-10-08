@@ -1,0 +1,45 @@
+{
+  "version": "index_intelligence_v2",
+  "market_regime": "NEUTRAL",
+  "risk_multiplier": 0.8,
+  "news_sentiment": "BEARISH",
+  "news_score": -6.8,
+  "market_reason": "RBI / rates: Markets Fall: Sensex Drops 460 Pts Amid Oil Spike, RBI Policy - Rediff MoneyWiz",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPdHY5ZkhOaWhMbWhDX2ZlendPaTR5bTFDRExZb2cyT2t1bjcwdlNEbTF1ZnNFeldLbzRQeXFUc3c4RkROczRvamUtTDZSSkJlX2JEY0l2V1hWdS1BVDl3MW4xNVhrSUp5TXJ5VFg2bTNtQXBOX1dNdzYzOEs1SUowTi1TRWFrX3Ftc1RuMEEtazR3dGt0WWVpRGtLLTM2N1diWFRuMFJzcWZqSVA2Vm5UTtIBtgFBVV95cUxOb2ZPNVViRGVEYnM4aGJVeTBxMlRXU1MzdW4yam0yWEptY1lwSUdteDJBQ1IxWGQ4bms3bXdRWmxBV21UWF9SNzZ5c2oySTRzTTlzS0NkczZFWHdPZHJsUFdEcFA5NjlkSDk1YW95VVpDZ2N4cFBOUWpuS29seHZQckJBUXl6cDB6UUphUHMyX2QwRkNoLWppRXYzM095S0tpUElyRnRjQnRkZFpjSVFWd3dBR05hQQ?oc=5",
+  "news_headline": "RBI / rates: Markets Fall: Sensex Drops 460 Pts Amid Oil Spike, RBI Policy - Rediff MoneyWiz",
+  "news_reasons": [
+    {
+      "event": "RBI / rates",
+      "impact": -6.8,
+      "headline": "Markets Fall: Sensex Drops 460 Pts Amid Oil Spike, RBI Policy - Rediff MoneyWiz",
+      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPdHY5ZkhOaWhMbWhDX2ZlendPaTR5bTFDRExZb2cyT2t1bjcwdlNEbTF1ZnNFeldLbzRQeXFUc3c4RkROczRvamUtTDZSSkJlX2JEY0l2V1hWdS1BVDl3MW4xNVhrSUp5TXJ5VFg2bTNtQXBOX1dNdzYzOEs1SUowTi1TRWFrX3Ftc1RuMEEtazR3dGt0WWVpRGtLLTM2N1diWFRuMFJzcWZqSVA2Vm5UTtIBtgFBVV95cUxOb2ZPNVViRGVEYnM4aGJVeTBxMlRXU1MzdW4yam0yWEptY1lwSUdteDJBQ1IxWGQ4bms3bXdRWmxBV21UWF9SNzZ5c2oySTRzTTlzS0NkczZFWHdPZHJsUFdEcFA5NjlkSDk1YW95VVpDZ2N4cFBOUWpuS29seHZQckJBUXl6cDB6UUphUHMyX2QwRkNoLWppRXYzM095S0tpUElyRnRjQnRkZFpjSVFWd3dBR05hQQ?oc=5"
+    },
+    {
+      "event": "RBI / rates",
+      "impact": -6.8,
+      "headline": "Sensex Falls 429 Pts as RBI Hikes Rates, Crude Prices Rise - Rediff MoneyWiz",
+      "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxQWjdrSDhLWU51cU5FQVlnQXRXNGhkLTBQZGlxOEZkY0Y2RXRFTXNuVVVQTkN6elFVXzhDd1E3Nml4a3M4M1JZbXY5cjJEbGxSUzFvRHdiLUc5MFBYdVdhd1J5c0pDU2xVN3hnYjJaSjZ4QUFjb29xVERmNVo1NE5tQllFYTVoU293NTdiQkVYZGs5MEdNWDhaTTJodnhUM0V6ajRVQnVpN0x3T3liVmQzYzE4b9IBswFBVV95cUxQWjdrSDhLWU51cU5FQVlnQXRXNGhkLTBQZGlxOEZkY0Y2RXRFTXNuVVVQTkN6elFVXzhDd1E3Nml4a3M4M1JZbXY5cjJEbGxSUzFvRHdiLUc5MFBYdVdhd1J5c0pDU2xVN3hnYjJaSjZ4QUFjb29xVERmNVo1NE5tQllFYTVoU293NTdiQkVYZGs5MEdNWDhaTTJodnhUM0V6ajRVQnVpN0x3T3liVmQzYzE4bw?oc=5"
+    },
+    {
+      "event": "RBI / rates",
+      "impact": -5.8,
+      "headline": "GIFT Nifty signals mildly positive start for Sensex, Nifty, even as RBI rate hike, rising oil, US yields... - Moneycontrol.com",
+      "url": "https://news.google.com/rss/articles/CBMigAJBVV95cUxQRDRIR3pXMDJ6UGJtS0ZXMDIyb3NUMkVqT0otWUViRVgxZ0ZzRnNoVml3OVBVQ05ReVVXazN6UldKYW1SV1FSV1Rad0dEZmtLRl9sMWNfMVBob2pjcWFGRlZPR2JtUFJJOU9Rd2o4Tklodk5RNnFvQUpoaUwzNmlaczB6cVFlYWVMcDJ0eEZhN2ZScUxsN2dkb21EeXhmcklJMDlIOTM4OVZ4emd1NFBrRTYya3QwSjZPQ1pid0JER2FyOGNQMXQyYTFfbUlxNTB4YkJnajc0VG5McmE0S19DN3hmWnVndVc3cjRCNkx0S0h1cS1ncVMzR2x0akJ6Qm9U0gGGAkFVX3lxTE9USUctem5CcGVvakVub2pSTjJvLVFxZWxEZ0Vucm5tMnBjX1pJM2ZYancxZ2dOcEdtb2dUNTFGUFdJb0RjMm05dXBIRUxVUjNSOWJfVktyemQzR3F5WWsxVnZ4MEYzZjlmRkViMGpSSEdnT2ZCXzZvSXo2RHRSNXdZVkt4TEQtbktySXE5SVV3NkllVk9EVHFlQmxVU2MtXy1ZaXdfN0NtUHRKaS1Fa1ZJb3RwRl90WVd0Y3hqX1dfcnN0RGN6NlV4WUZqcHFDTHlzQTJ0MHlmYmRhV1RhQjhDdUVxSkpwU1FBcmVwZllyeGJ2SlpacEJfSkRpSDlXWThTZmE5N2c?oc=5"
+    },
+    {
+      "event": "RBI / rates",
+      "impact": -5.8,
+      "headline": "RBI Rate Hike Triggers Market Sell-Off; Sensex Drops 429 Pts, Nifty Slips Below 22,650 - The Indian Awaaz",
+      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQQnJqYVVYNmM1RVNSX2J4UlVsY3p1aVpNUVpBQ0M0Rm01NFZTUm9naldKS21HakZTWE5IMjViSm1Td214X21OX1RxVUoxLWtHWU4zMWV5T2dTUFBaQzdfMlhrdXhTRV9hRWtVYzBLVnR4UThCeHBuaU5xeU82VUdYU2Q4SU5HdDJYTjVVOTlmT0VXclgzWVIxZ3ZueGtaQUplTHpISDk5WWJUYmJWa1dmeg?oc=5"
+    },
+    {
+      "event": "RBI / rates",
+      "impact": -5.8,
+      "headline": "SENSEX, NIFTY50 resume decline after a two-day breather as RBI hikes repo rate - Upstox",
+      "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxQVkQ1RHAyY25jUnkzam00ZWNITk04djZaSzRSZVh2VVFSV1hrNjd2NlFpNjh2VTVwV2tVbC1GQjVLbWpCbmlSS2J4ZlpxLU01cTZfUm1sOE5RalBMT1RhejBEa0JmM1hvN3U0WFFrbjlxZDcyNnZjR2ltOWF6dktfUURGaXdac3lXaDNFXzNPM0c0d3BpY29JckRvczU2Yk13Y1AwaGRJaENXTE1vV3hYSjdfemZfSjRPTlpOT1o0SUVRcEpKbjA5YkI3UFhjRFhBdl8w?oc=5"
+    }
+  ],
+  "market_intelligence_score": 35.665399239543724,
+  "risk_level": "NEUTRAL",
+  "breadth_pct_above_sma20": 28.32699619771863
+}

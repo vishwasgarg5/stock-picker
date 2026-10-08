@@ -1,21 +1,22 @@
 {
-  "files": 30,
+  "files": 31,
   "sha256": {
     "src/confidence.py": "22c48932fe9d10c5c5ccd5f915c281176e1720f7bc5ae61cc5d8abfede44d08e",
     "src/confidence_validation.py": "630dd2b06345da52ed3efc7806931592c7cea341b50bc7be0b960dcb9c10f978",
     "src/directional_model.py": "d6a546edd7ee6435cb4fcd40626c11c8971c6f2cb71d48a1d74c8b858fae65fc",
     "src/final_validation.py": "7b28eb38d275e92b556e608977f8db60fd618100446c077cf794f3d921d03e25",
-    "src/integration_check.py": "0cab665776b6181f3c8e630358bdbbd0a6b6b185a9a4a83596e36f0686aae799",
+    "src/index_intelligence.py": "63e311ea2427c8f07bff8d17af89ab22f120e0d6f8ce90e9c119d186723c15ce",
+    "src/integration_check.py": "9266ff8f61295290aa38eb0181ad44e55ab20954951b81d94dad5f063e0e220a",
     "src/model_governance.py": "6ae4c29e774675baadba66eeea7eb09c2e6e7dabb52eb464160cc8a7ff07a21b",
     "src/new_listing_model.py": "dd51412fa28c2a393811a4839e23764df5079c40ccf4cf93c6896f2fd931142c",
     "src/outcomes.py": "15da3c0da4c855b7318f62dfa34aefb8f523c7db1aeef8dec5b66f604356795e",
     "src/paper_trading.py": "19917bc641fba2f7d911d72c4c97718415a16e69b711802ab3587aa0c3920c88",
-    "src/paper_trading_v2.py": "77fe842da371d882a261a97b396d06f7601bcf032ac365beb36e71814373d34e",
+    "src/paper_trading_v2.py": "62e673f14f3a9a67343ca90a566adce163c7f1cc6415d49d0193d3f51e577a25",
     "src/performance_audit.py": "6aa6d26cf448e0fed7c45db578fc4ea9804ef971a762f29b9c351d02335ba288",
     "src/performance_history.py": "d3206b0360f533fb333725fc842a4e769191d0ea8ba8b6815827fb200142b074",
     "src/phase2_dashboard.py": "2b799129504235a0811e120747c70eed7b8ca9aef47569f0d17d6ad8d8e1e798",
     "src/phase2_optimizer.py": "65d27d14af8793ca770375df85f7aee5a63ba4c71be0e42480acbdbcfbb5f2dc",
-    "src/phase4_optimizer.py": "d037f82999c357582868bc3d1834cc2c259ba3f4f45093280a91a01aeac22c4e",
+    "src/phase4_optimizer.py": "34e5a5d243597c514bf1a2799bb97ffeff701f98d5b537b986b11dc9ad2b48c2",
     "src/pipeline.py": "39e3025ffcfa43ba374c0fb405852f1c63df217731b46e584e1e46d3ede22813",
     "src/portfolio_comparison.py": "c4637d4c5e6f6323c7e4bdaef8172a9c232da0e69e00915b9969d7146e8d70aa",
     "src/ranking_diagnostics.py": "c907d9af20e621948522f23578c7b9aef7c8ad3ba01e7dbdc2e97f6691b96f9d",
@@ -30,7 +31,7 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "6ff7e938e3cf28fd217aea0ad5f5b105e3184057ff704bb1bb8b16d2ddf3d651"
+    ".github/workflows/daily.yml": "4f885c936b2cfbb6724b794b924b5ac5d9587e3695c3f6bcf9e3edef1e9da5cc"
   },
   "manifest_version": "governance_v1"
 }

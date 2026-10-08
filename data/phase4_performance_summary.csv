@@ -1,2 +1,2 @@
 as_of,phase4_version,regime,symbols_scored,cooldown_symbols,stable_features,unstable_feature_count,confidence_floor_percentile,min_expected_return_pct,stop_atr_multiplier,target_stop_multiple,max_positions,bootstrap_ci_low_pct,bootstrap_ci_high_pct,safety_status,production_ready,reason
-2026-10-08T00:29:15.389976+00:00,phase4_adaptive_v1,NEUTRAL,55,0,0,18,0.55,0.5,1.25,1.15,5,-inf,inf,SHADOW_ONLY,False,Phase 4 is an adaptive overlay; V1/V2 production promotion remains controlled by strategy_governor.
+2026-10-08T02:53:15.022645+00:00,phase4_adaptive_v1,NEUTRAL,55,0,0,18,0.55,0.5,1.25,1.15,5,-inf,inf,SHADOW_ONLY,False,Phase 4 is an adaptive overlay; V1/V2 production promotion remains controlled by strategy_governor.

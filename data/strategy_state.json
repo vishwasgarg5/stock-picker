@@ -1,15 +1,15 @@
 {
-  "as_of": "2026-10-07 00:00:00",
+  "as_of": "2026-10-08 00:00:00",
   "production_strategy": "V1",
   "status": "collecting",
   "reason": "insufficient matched-date evidence",
   "common_sessions": 9,
-  "v2_trades": 5,
+  "v2_trades": 0,
   "v1_net_pnl": -3217.322996872339,
-  "v2_net_pnl": -174.89794462585243,
+  "v2_net_pnl": 0.0,
   "pnl_lift": 0.0,
   "v1_return_pct": -3.2173229968723387,
-  "v2_return_pct": -0.1748979446258524,
+  "v2_return_pct": 0.0,
   "return_lift_pct": 0.0,
   "return_lift_ci_low_pct": -Infinity,
   "v1_max_drawdown_pct": NaN,
@@ -23,5 +23,10 @@
   "phase2_shadow_return_lift_pct": 0.017408473661222,
   "governance_safe": true,
   "governance_bootstrap_ci_low_pct": -0.34932889029402,
-  "governance_drift_status": "PASS"
+  "governance_drift_status": "PASS",
+  "phase4_safe": true,
+  "phase4_regime": "NEUTRAL",
+  "phase4_confidence_floor_percentile": 0.55,
+  "phase4_min_expected_return_pct": 0.5,
+  "phase4_bootstrap_ci_low_pct": -Infinity
 }

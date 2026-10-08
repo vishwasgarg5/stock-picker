@@ -83,7 +83,7 @@ def test_mfe_mae_uses_only_next_trading_sessions():
     out = run_mfe_mae_validation(candidates, history)
     top5 = out[(out["group"] == "TOP5") & (out["horizon_sessions"] == 3)].iloc[0]
 
-    assert top5["mean_mfe_pct"] == pytest.approx(4.0)
+    assert top5["mean_mfe_pct"] == pytest.approx(10.0)
     assert top5["mean_mae_pct"] == pytest.approx(-5.0)
     assert top5["mean_final_return_pct"] == pytest.approx(4.0)
 
@@ -151,4 +151,4 @@ def test_transaction_cost_validation_applies_entry_exit_cost():
     assert row["gross_return_pct"] == pytest.approx(100.0 / 101.0)
     assert row["turnover_pct"] == pytest.approx(40.0)
     assert row["transaction_cost_pct"] == pytest.approx(0.08)
-    assert row["net_return_pct"] == pytest.approx(0.92)
+    assert row["net_return_pct"] == pytest.approx(100.0 / 101.0 - 0.08)

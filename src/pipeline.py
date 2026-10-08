@@ -648,7 +648,8 @@ def apply_risk_off_selection(candidates: pd.DataFrame, risk_level: str = "NEUTRA
     low_vol=pct("volatility20",ascending=False)
     quality=pct("fundamental_score")
     x["risk_off_defensive_score"]=100*(0.40*strength+0.35*low_vol+0.25*quality)
-    news_component=pd.to_numeric(x.get("sector_news_score",0.0),errors="coerce").fillna(0.0).clip(-2.0,2.0) * 1.5
+    news_raw=x["sector_news_score"] if "sector_news_score" in x.columns else pd.Series(0.0,index=x.index)
+    news_component=pd.to_numeric(news_raw,errors="coerce").fillna(0.0).clip(-2.0,2.0) * 1.5
     x["risk_off_selection_score"]=x["total_score"]*0.70+x["risk_off_defensive_score"]*0.30+news_component
     x=x.sort_values(["risk_off_selection_score","rank","symbol"],ascending=[False,True,True],kind="mergesort")
     return x,"risk_off_defensive_v1"

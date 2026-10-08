@@ -188,7 +188,10 @@ def run_paper_trading_v2() -> pd.DataFrame:
     x["no_trade_reason"] = x["no_trade_reason"].fillna("").astype(str)
     # Phase-4 weight can only reduce the equal-allocation budget; it cannot
     # increase it. This keeps the portfolio-capital invariant intact.
-    weight = pd.to_numeric(x.get("phase4_weight"), errors="coerce").fillna(1.0).clip(0.0, 1.0)
+    if "phase4_weight" in x.columns:
+        weight = pd.to_numeric(x["phase4_weight"], errors="coerce").fillna(1.0).clip(0.0, 1.0)
+    else:
+        weight = pd.Series(1.0, index=x.index, dtype=float)
     x["quantity"] = np.where(
         x["signal"].eq("BUY"),
         np.floor((CAPITAL / MAX_TRADES) * weight / x["reference_price"].replace(0, np.nan)).fillna(0),

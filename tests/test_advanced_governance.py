@@ -41,3 +41,10 @@ def test_promotion_gate_keeps_v1_without_full_evidence():
     assert r["promotion_eligible"] is True
     r2=promotion_gate({"sessions":20})
     assert r2["promotion_eligible"] is False
+
+
+def test_stock_news_entity_matching():
+    from src.advanced_governance import stock_news_impact
+    u=pd.DataFrame({"symbol":["ABC"],"company_name":["Distinctive Solar Technologies Ltd."]})
+    out=stock_news_impact([{"headline":"Distinctive Solar Technologies wins major order"}],u)
+    assert int(out.iloc[0]["stock_news_count"])==1

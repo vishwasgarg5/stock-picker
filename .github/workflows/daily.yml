@@ -47,7 +47,7 @@ jobs:
         run: python -m compileall -q src
 
       - name: Run Phase 2 and directional regression tests
-        run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py tests/test_model_governance.py tests/test_phase4_optimizer.py tests/test_pipeline_data_quality.py tests/test_news_context.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_pipeline_ranking.py
+        run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py tests/test_model_governance.py tests/test_phase4_optimizer.py tests/test_pipeline_data_quality.py tests/test_news_context.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_pipeline_ranking.py tests/test_advanced_governance.py
 
       - name: Preflight end-to-end integration wiring
         if: always()
@@ -126,6 +126,9 @@ jobs:
 
       - name: Build strategy A/B comparison report
         run: python -m src.strategy_ab_report
+
+      - name: Run advanced selection calibration and safety controls
+        run: python -m src.advanced_governance
 
       - name: Run consolidated performance audit
         run: python -m src.performance_audit

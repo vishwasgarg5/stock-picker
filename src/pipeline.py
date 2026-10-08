@@ -739,6 +739,8 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     out["adjusted_confidence_score"] = (
         out["confidence_score"] * out["listing_confidence_factor"]
     ).clip(0, 100)
+    from .advanced_governance import confidence_tier
+    out["confidence_tier"] = out["adjusted_confidence_score"].map(confidence_tier)
 
     out["target_date"] = pd.Timestamp(target_date).normalize()
     out["created_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -758,7 +760,32 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             candidates["sector_news_score"]=candidates.get("sector",pd.Series("",index=candidates.index)).map(lambda s: sector_news_score(s,impacts))
         except Exception:
             candidates["sector_news_score"]=0.0
+        # Company-specific news is a second, narrower layer above sector context.
+        try:
+            from .advanced_governance import stock_news_impact, adaptive_selection_score, risk_budget, explain_selection
+            universe_meta=pd.read_csv(UNIVERSE_FILE) if UNIVERSE_FILE.exists() else pd.DataFrame()
+            news_items=[{"headline":x.get("headline",""),"url":x.get("url","")} for x in (cfg.get("news_reasons",[]) or [])]
+            stock_news=stock_news_impact(news_items, universe_meta)
+            candidates=candidates.merge(stock_news,on="symbol",how="left")
+            candidates["stock_news_score"]=pd.to_numeric(candidates["stock_news_score"],errors="coerce").fillna(0.0)
+            candidates["stock_news_count"]=pd.to_numeric(candidates["stock_news_count"],errors="coerce").fillna(0).astype(int)
+            candidates["stock_news_reason"]=candidates["stock_news_reason"].fillna("")
+            candidates["adaptive_selection_score"]=adaptive_selection_score(candidates,str(candidates.get("market_regime",pd.Series("NEUTRAL")).iloc[0]),risk_level)
+            candidates=risk_budget(candidates,PAPER_CAPITAL,0.20)
+            candidates["selection_explanation"]=candidates.apply(lambda r: json.dumps(explain_selection(r),sort_keys=True),axis=1)
+        except Exception as exc:
+            print(f"Advanced selection context unavailable; retaining existing selection: {exc}")
+            candidates["stock_news_score"]=0.0; candidates["stock_news_count"]=0; candidates["stock_news_reason"]=""
+            candidates["adaptive_selection_score"]=candidates.get("total_score",0.0)
+            candidates["risk_budget_weight"]=1.0/max(len(candidates),1)
+            candidates["risk_budget_value"]=candidates["risk_budget_weight"]*PAPER_CAPITAL
+            candidates["selection_explanation"]=""
         candidates,risk_method=apply_risk_off_selection(candidates,risk_level,10)
+        if risk_level=="RISK_OFF" and "adaptive_selection_score" in candidates.columns:
+            candidates["risk_off_selection_score"]=0.75*pd.to_numeric(candidates["risk_off_selection_score"],errors="coerce").fillna(0)+0.25*pd.to_numeric(candidates["adaptive_selection_score"],errors="coerce").fillna(0)
+            candidates=candidates.sort_values(["risk_off_selection_score","rank"],ascending=[False,True],kind="mergesort")
+            selected_symbols=set(candidates.head(10)["symbol"])
+            risk_method="risk_off_defensive_adaptive_v2"
         if risk_method!="ranking_top10":
             selected_symbols=set(candidates.head(10)["symbol"]); selection_method=risk_method
     except Exception as exc:

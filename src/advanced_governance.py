@@ -90,8 +90,16 @@ def risk_budget(df: pd.DataFrame, total_capital: float=100000.0, max_position_pc
     vol=pd.to_numeric(x.get("volatility20",pd.Series(0.02,index=x.index)),errors="coerce").fillna(0.02).clip(lower=0.005)
     conf=pd.to_numeric(x.get("adjusted_confidence_score",pd.Series(50.0,index=x.index)),errors="coerce").fillna(50)/100
     raw=(conf/(vol*100)).replace([np.inf,-np.inf],np.nan).fillna(0)
-    weights=(raw/raw.sum()).fillna(0).clip(upper=max_position_pct)
-    if weights.sum()>0: weights=weights/weights.sum()
+    weights=(raw/raw.sum()).fillna(0.0)
+    for _ in range(10):
+        over=weights>max_position_pct
+        if not over.any(): break
+        excess=float((weights[over]-max_position_pct).sum())
+        weights[over]=max_position_pct
+        under=~over
+        room=(max_position_pct-weights[under]).clip(lower=0)
+        if excess<=1e-12 or not under.any() or room.sum()<=1e-12: break
+        weights.loc[under]=weights.loc[under]+excess*(room/room.sum())
     x["risk_budget_weight"]=weights
     x["risk_budget_value"]=weights*float(total_capital)
     return x
@@ -167,3 +175,38 @@ def build_summary(hist: pd.DataFrame, candidates: pd.DataFrame | None=None) -> d
     CONFIG.write_text(json.dumps(out,indent=2,default=str))
     pd.DataFrame([out]).to_csv(SUMMARY,index=False)
     return out
+
+def run_advanced_controls() -> dict:
+    hist=pd.read_csv(DATA/"ohlcv.csv") if (DATA/"ohlcv.csv").exists() else pd.DataFrame()
+    candidates=pd.read_csv(DATA/"prediction_candidates.csv") if (DATA/"prediction_candidates.csv").exists() else pd.DataFrame()
+    summary=build_summary(hist,candidates)
+    gov=pd.read_csv(DATA/"model_governance_summary.csv") if (DATA/"model_governance_summary.csv").exists() else pd.DataFrame()
+    ab=pd.read_csv(DATA/"strategy_ab_comparison.csv") if (DATA/"strategy_ab_comparison.csv").exists() else pd.DataFrame()
+    conf=pd.read_csv(DATA/"confidence_validation_summary.csv") if (DATA/"confidence_validation_summary.csv").exists() else pd.DataFrame()
+    if not ab.empty:
+        row=ab.iloc[-1]
+        metrics={
+            "sessions":int(pd.to_numeric(row.get("common_sessions",0),errors="coerce") or 0),
+            "trades":int(pd.to_numeric(row.get("v2_trades",0),errors="coerce") or 0),
+            "return_lift_pct":float(pd.to_numeric(row.get("return_lift_pct",-999),errors="coerce")),
+            "session_win_rate_pct":float(pd.to_numeric(row.get("session_win_rate_pct",0),errors="coerce")),
+            "return_lift_ci_low_pct":float(pd.to_numeric(row.get("return_lift_ci_low_pct",-999),errors="coerce")),
+            "confidence_evidence":bool(not conf.empty and str(conf.iloc[-1].get("confidence_promotion_evidence",False)).lower()=="true"),
+            "governance_safe":bool(not gov.empty and str(gov.iloc[-1].get("safety_status","FAIL")).upper()=="PASS"),
+            "no_drawdown_breach":bool(float(pd.to_numeric(row.get("v2_max_drawdown_pct",0),errors="coerce") or 0)>=-8.0),
+        }
+    else:
+        metrics={"sessions":0,"trades":0,"return_lift_pct":-999,"session_win_rate_pct":0,
+                 "return_lift_ci_low_pct":-999,"confidence_evidence":False,
+                 "governance_safe":False,"no_drawdown_breach":False}
+    gate=promotion_gate(metrics)
+    out={**summary,"promotion_gate":gate,"production_strategy":"V1"}
+    pd.DataFrame([{"as_of":out["as_of"],"promotion_eligible":gate["promotion_eligible"],
+                   "decision":gate["decision"],"checks":json.dumps(gate["checks"],sort_keys=True)}]
+                ).to_csv(DATA/"advanced_promotion_gate.csv",index=False)
+    CONFIG.write_text(json.dumps(out,indent=2,default=str))
+    print(json.dumps(out,indent=2,default=str))
+    return out
+
+if __name__=="__main__":
+    run_advanced_controls()

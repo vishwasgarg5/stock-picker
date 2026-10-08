@@ -633,6 +633,24 @@ def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.
     return pd.Timestamp(schedule.index[0]).normalize()
 
 
+def apply_risk_off_selection(candidates: pd.DataFrame, risk_level: str = "NEUTRAL", top_n: int = 10) -> tuple[pd.DataFrame,str]:
+    """Re-rank only under unified RISK_OFF using defensive, quality signals."""
+    x=candidates.copy()
+    if x.empty or str(risk_level).upper()!="RISK_OFF":
+        return x,"ranking_top10"
+    defaults={"total_score":0.0,"return_20d":0.0,"volatility20":0.0,"fundamental_score":10.0,"close_sma20_gap":0.0}
+    for col,default in defaults.items():
+        if col not in x.columns: x[col]=default
+        x[col]=pd.to_numeric(x[col],errors="coerce").fillna(default)
+    def pct(col,ascending=True): return x[col].rank(pct=True,ascending=ascending).fillna(0.5)
+    strength=0.55*pct("return_20d")+0.45*pct("close_sma20_gap")
+    low_vol=pct("volatility20",ascending=False)
+    quality=pct("fundamental_score")
+    x["risk_off_defensive_score"]=100*(0.40*strength+0.35*low_vol+0.25*quality)
+    x["risk_off_selection_score"]=x["total_score"]*0.70+x["risk_off_defensive_score"]*0.30
+    x=x.sort_values(["risk_off_selection_score","rank","symbol"],ascending=[False,True,True],kind="mergesort")
+    return x,"risk_off_defensive_v1"
+
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:
     ranked = ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score", "market_regime"]].copy()
     if len(ranked) < 10:
@@ -721,6 +739,18 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     candidates = out.sort_values("rank").copy()
     selection_method = "ranking_top10"
     selected_symbols = set(candidates.head(10)["symbol"])
+    try:
+        from .index_intelligence import CONFIG
+        cfg=json.loads(CONFIG.read_text()) if CONFIG.exists() else {}
+        risk_level=str(cfg.get("risk_level","NEUTRAL")).upper()
+        candidates["risk_level"]=risk_level
+        candidates["index_risk_multiplier"]=float(cfg.get("risk_multiplier",0.80))
+        candidates["market_intelligence_score"]=float(cfg.get("market_intelligence_score",50.0))
+        candidates,risk_method=apply_risk_off_selection(candidates,risk_level,10)
+        if risk_method!="ranking_top10":
+            selected_symbols=set(candidates.head(10)["symbol"]); selection_method=risk_method
+    except Exception as exc:
+        print(f"Risk-off selector unavailable; retaining ranking Top-10: {exc}")
 
     # Apply the recent-error selector only after its own out-of-sample
     # A/B validation gate has demonstrated improvement over pure rank selection.
@@ -840,7 +870,17 @@ def run_morning() -> None:
     validate_data_quality(hist, symbols, "morning")
     fundamentals = update_fundamentals(symbols)
     record_fundamentals_snapshot(fundamentals, pd.to_datetime(hist["date"]).max())
+    try:
+        from .index_intelligence import build_index_intelligence
+        build_index_intelligence(hist)
+    except Exception as exc:
+        print(f"Market intelligence unavailable; retaining V1 ranking context: {exc}")
     ranking = rank_stocks(features(hist), fundamentals)
+    try:
+        from .index_intelligence import apply_index_overlay
+        ranking = apply_index_overlay(ranking)
+    except Exception as exc:
+        print(f"Market overlay unavailable; retaining base ranking: {exc}")
     ranking.to_csv(RANKING_FILE, index=False)
     if not models_ready():
         train(hist)

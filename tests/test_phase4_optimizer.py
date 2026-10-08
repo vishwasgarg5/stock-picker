@@ -43,3 +43,12 @@ def test_phase4_missing_metadata_defaults_neutral():
     y = apply_phase4(x)
     assert bool(y.iloc[0]["phase4_eligible"])
     assert float(y.iloc[0]["phase4_weight"]) == 1.0
+
+
+def test_phase4_missing_scoring_columns_are_safe():
+    from src.phase4_optimizer import apply_phase4
+    x = pd.DataFrame({"symbol": ["ABC"]})
+    y = apply_phase4(x)
+    assert len(y) == 1
+    assert float(y.iloc[0]["symbol_weight"]) == 1.0
+    assert not bool(y.iloc[0]["phase4_eligible"])

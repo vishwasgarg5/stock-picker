@@ -691,6 +691,8 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     out = latest[feature_cols + ["predicted_open", "predicted_high", "predicted_low", "predicted_close", "prediction_spread"]].copy().rename(columns={"date": "prediction_date", "close": "base_close"})
     lookup = ranked.set_index("symbol")
     out["rank"] = out["symbol"].map(lookup["rank"]).astype(int)
+    if "sector" in lookup.columns:
+        out["sector"] = out["symbol"].map(lookup["sector"])
     out["score"] = out["symbol"].map(lookup["total_score"])
     out["technical_score"] = out["symbol"].map(lookup["technical_score"])
     out["fundamental_score"] = out["symbol"].map(lookup["fundamental_score"])

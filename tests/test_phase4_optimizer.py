@@ -61,3 +61,14 @@ def test_index_intelligence_overlay_is_conservative():
     assert y.iloc[0]["index_market_regime"] in {"BULL", "BEAR", "NEUTRAL"}
     assert 0 < float(y.iloc[0]["index_risk_multiplier"]) <= 1.0
     assert float(y.iloc[0]["phase4_score"]) <= 10.0
+
+
+def test_index_news_reason_scoring_is_deterministic():
+    from src.index_intelligence import score_news
+    score, headline, sentiment, url = score_news([
+        {"headline": "Nifty falls as crude oil rises and RBI tightens policy", "url": "x"}
+    ])
+    assert score < 0
+    assert sentiment == "BEARISH"
+    assert headline
+    assert url == "x"

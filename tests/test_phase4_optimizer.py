@@ -92,3 +92,18 @@ def test_market_score_excludes_missing_index_data():
     assert level == "RISK_OFF"
     assert quality == "LOW"
     assert confidence > 0
+
+
+def test_market_risk_uses_unified_risk_level_when_index_data_missing(monkeypatch):
+    import json
+    import src.index_intelligence as ii
+    cfg = {"market_regime": "NEUTRAL", "risk_level": "RISK_OFF", "risk_multiplier": 0.55}
+    monkeypatch.setattr(ii.CONFIG, "read_text", lambda: json.dumps(cfg))
+    x = pd.DataFrame({"symbol": ["ABC"], "phase4_score": [10.0], "score": [8.0]})
+    y = ii.apply_index_overlay(x)
+    assert float(y.iloc[0]["index_risk_multiplier"]) == 0.55
+
+
+def test_index_ticker_mapping_covers_all_market_indices():
+    from src.index_intelligence import INDEX_TICKERS
+    assert set(INDEX_TICKERS) == {"NIFTY50", "BANKNIFTY", "NIFTYIT", "NIFTYAUTO", "NIFTYFIN"}

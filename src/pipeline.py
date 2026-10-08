@@ -648,12 +648,13 @@ def apply_risk_off_selection(candidates: pd.DataFrame, risk_level: str = "NEUTRA
     low_vol=pct("volatility20",ascending=False)
     quality=pct("fundamental_score")
     x["risk_off_defensive_score"]=100*(0.40*strength+0.35*low_vol+0.25*quality)
-    x["risk_off_selection_score"]=x["total_score"]*0.70+x["risk_off_defensive_score"]*0.30
+    news_component=pd.to_numeric(x.get("sector_news_score",0.0),errors="coerce").fillna(0.0).clip(-2.0,2.0) * 1.5
+    x["risk_off_selection_score"]=x["total_score"]*0.70+x["risk_off_defensive_score"]*0.30+news_component
     x=x.sort_values(["risk_off_selection_score","rank","symbol"],ascending=[False,True,True],kind="mergesort")
     return x,"risk_off_defensive_v1"
 
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:
-    ranked = ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score", "market_regime"]].copy()
+    ranked = ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score", "market_regime", "sector"]].copy() if "sector" in ranking.columns else ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score", "market_regime"]].copy()
     if len(ranked) < 10:
         raise RuntimeError(f"Expected at least 10 ranked stocks, found {len(ranked)}")
     latest = features(df).sort_values("date").groupby("symbol", as_index=False).tail(1)
@@ -685,7 +686,9 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     latest = pd.concat([core_latest, ipo_rows], ignore_index=True, sort=False)
     latest["predicted_high"] = latest[["predicted_high", "predicted_open", "predicted_close"]].max(axis=1)
     latest["predicted_low"] = latest[["predicted_low", "predicted_open", "predicted_close"]].min(axis=1)
-    out = latest[["date", "symbol", "close", "predicted_open", "predicted_high", "predicted_low", "predicted_close", "prediction_spread"]].copy().rename(columns={"date": "prediction_date", "close": "base_close"})
+    feature_cols = ["date", "symbol", "close", "return_20d", "volatility20", "close_sma20_gap"]
+    if "sector" in latest.columns: feature_cols.append("sector")
+    out = latest[feature_cols + ["predicted_open", "predicted_high", "predicted_low", "predicted_close", "prediction_spread"]].copy().rename(columns={"date": "prediction_date", "close": "base_close"})
     lookup = ranked.set_index("symbol")
     out["rank"] = out["symbol"].map(lookup["rank"]).astype(int)
     out["score"] = out["symbol"].map(lookup["total_score"])
@@ -747,6 +750,12 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         candidates["risk_level"]=risk_level
         candidates["index_risk_multiplier"]=float(cfg.get("risk_multiplier",0.80))
         candidates["market_intelligence_score"]=float(cfg.get("market_intelligence_score",50.0))
+        try:
+            from .news_context import sector_news_score
+            impacts=cfg.get("sector_news_impacts",{}) or {}
+            candidates["sector_news_score"]=candidates.get("sector",pd.Series("",index=candidates.index)).map(lambda s: sector_news_score(s,impacts))
+        except Exception:
+            candidates["sector_news_score"]=0.0
         candidates,risk_method=apply_risk_off_selection(candidates,risk_level,10)
         if risk_method!="ranking_top10":
             selected_symbols=set(candidates.head(10)["symbol"]); selection_method=risk_method

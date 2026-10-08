@@ -32,10 +32,21 @@ def classify_headline(headline: str) -> dict:
     if not matches:
         return {"event":"General market","market_impact":float(direction),"sector_impacts":{},"direction":direction}
     _,event,spec=max(matches,key=lambda x:x[0])
-    if event in {"Crude oil","RBI / rates","Inflation","Earnings / growth","US / global markets","Currency"}:
-        impact=spec["falling"] if direction<0 else spec["rising"] if direction>0 else 0.0
+    if event=="Crude oil":
+        impact=1.0 if any(w in text for w in ("falls","fall","drops","drop","lower","declines","decline")) else -1.0 if any(w in text for w in ("rises","rise","surges","surge","higher","jumps","jump")) else 0.0
+    elif event=="RBI / rates":
+        impact=0.9 if any(w in text for w in ("cut","cuts","easing","lower","lowered")) else -0.9 if any(w in text for w in ("hike","hikes","raise","raises","raised","tightening")) else 0.0
     elif event=="FII / DII flows":
-        impact=0.8 if "inflow" in text else -0.8 if "outflow" in text else 0.0
+        impact=0.8 if "inflow" in text else -0.8 if "outflow" in text or "selling" in text else 0.0
+    elif event=="Inflation":
+        impact=0.7 if any(w in text for w in ("falls","fall","lower","eases","easing")) else -0.9 if any(w in text for w in ("rises","rise","higher","surges","surge","accelerates")) else 0.0
+    elif event=="Earnings / growth":
+        impact=0.8 if direction>0 else -0.8 if direction<0 else 0.0
+    elif event=="US / global markets":
+        impact=0.7 if direction>0 else -0.7 if direction<0 else 0.0
+    elif event=="Currency":
+        # Broad-market interpretation: a stronger INR is supportive; a weaker INR is a drag.
+        impact=0.5 if any(w in text for w in ("strengthens","stronger","gains","rises")) else -0.5 if any(w in text for w in ("weakens","weaker","falls","drops")) else 0.0
     else:
         impact=spec["rising"] if direction>0 else spec["falling"] if direction<0 else 0.0
     return {"event":event,"market_impact":float(impact),"sector_impacts":dict(spec["sectors"]),"direction":direction}

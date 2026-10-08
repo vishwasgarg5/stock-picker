@@ -15,6 +15,8 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
+
+from .news_context import classify_headline, sector_impacts
 import yfinance as yf
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -114,7 +116,7 @@ def build_index_intelligence(hist: pd.DataFrame | None = None) -> pd.DataFrame:
               "risk_multiplier": risk_multiplier,
               "news_sentiment": news_sentiment, "news_score": news_score,
               "market_reason": news_reason, "market_reason_url": news_url,
-              "news_headline": headline, "news_reasons": news_reasons, "market_intelligence_score": market_score, "risk_level": risk_level, "market_confidence": market_confidence, "data_quality": data_quality, "index_data_available": index_data_available, "breadth_pct_above_sma20": breadth_pct}
+              "news_headline": headline, "news_reasons": news_reasons, "market_intelligence_score": market_score, "risk_level": risk_level, "market_confidence": market_confidence, "data_quality": data_quality, "index_data_available": index_data_available, "breadth_pct_above_sma20": breadth_pct, "sector_news_impacts": sector_impacts(news)}
     CONFIG.write_text(json.dumps(config, indent=2))
     out["news_sentiment"] = news_sentiment
     out["market_reason"] = news_reason
@@ -213,6 +215,7 @@ def apply_index_overlay(candidates: pd.DataFrame) -> pd.DataFrame:
     x["index_data_available"] = bool(cfg.get("index_data_available", False))
     x["risk_level"] = cfg.get("risk_level", "NEUTRAL")
     x["breadth_pct_above_sma20"] = float(cfg.get("breadth_pct_above_sma20", 50.0))
+    x["sector_news_impacts"] = json.dumps(cfg.get("sector_news_impacts", {}), sort_keys=True)
     if "phase4_score" in x.columns:
         x["phase4_score"] = pd.to_numeric(x["phase4_score"], errors="coerce").fillna(0.0) * risk
     if "score" in x.columns:
@@ -260,28 +263,19 @@ def fetch_market_news(limit: int = 12) -> list[dict]:
     return unique[:limit]
 
 def score_news(items: list[dict]) -> tuple[float, str, str, str, list[dict]]:
-    scored = []
+    scored=[]
     for item in items:
-        text = item["headline"].lower()
-        bull = sum(1 for w in BULL_WORDS if w in text)
-        bear = sum(1 for w in BEAR_WORDS if w in text)
-        event_scores = []
-        for event, (terms, weight) in EVENTS.items():
-            hits = sum(1 for term in terms if term in text)
-            if hits:
-                event_scores.append((event, weight * min(hits, 2)))
-        event = max(event_scores, key=lambda z: abs(z[1]))[0] if event_scores else "General market"
-        event_impact = next((v for k, v in event_scores if k == event), 0.0)
-        score = (bull - bear) + event_impact
-        scored.append((score, item, event, event_impact))
+        c=classify_headline(item.get("headline",""))
+        scored.append((float(c["market_impact"]),item,c["event"]))
     if not scored:
-        return 0.0, "No fresh market headline available", "NEUTRAL", "", []
-    scored.sort(key=lambda z: abs(z[0]), reverse=True)
-    top = scored[:5]
-    score, item, event, _ = top[0]
-    sentiment = "BULLISH" if score > 0 else "BEARISH" if score < 0 else "NEUTRAL"
-    reasons = [{"event": e, "impact": round(float(s), 2), "headline": i["headline"], "url": i.get("url", "")} for s, i, e, _ in top]
-    return float(score), f"{event}: {item['headline']}", sentiment, item.get("url", ""), reasons
+        return 0.0,"No fresh market headline available","NEUTRAL","",[]
+    scored.sort(key=lambda z:abs(z[0]),reverse=True)
+    top=scored[:5]
+    score,item,event=top[0]
+    sentiment="BULLISH" if score>0 else "BEARISH" if score<0 else "NEUTRAL"
+    reasons=[{"event":e,"impact":round(float(s),2),"headline":i["headline"],"url":i.get("url","")} for s,i,e in top]
+    return float(sum(s for s,_,_ in top)/len(top)),f"{event}: {item['headline']}",sentiment,item.get("url",""),reasons
+
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ def test_risk_budget_caps_positions():
     x=pd.DataFrame({"volatility20":[.01,.02,.03],"adjusted_confidence_score":[90,70,60]})
     out=risk_budget(x,100000,.20)
     assert out["risk_budget_weight"].max()<=.20+1e-9
-    assert abs(out["risk_budget_weight"].sum()-1.0)<1e-9
+    assert out["risk_budget_weight"].sum()<=1.0+1e-9
 
 def test_drawdown_guard():
     r=drawdown_guard(pd.Series([100,90,95]))

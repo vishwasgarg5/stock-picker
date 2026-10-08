@@ -148,7 +148,7 @@ def test_transaction_cost_validation_applies_entry_exit_cost():
     out = run_transaction_cost_validation(candidates, history, (10.0,))
     row = out[(out["prediction_date"] == dates[1]) & (out["group"] == "TOP5")].iloc[0]
 
-    assert row["gross_return_pct"] == pytest.approx(1.0)
+    assert row["gross_return_pct"] == pytest.approx(100.0 / 101.0)
     assert row["turnover_pct"] == pytest.approx(40.0)
     assert row["transaction_cost_pct"] == pytest.approx(0.08)
     assert row["net_return_pct"] == pytest.approx(0.92)

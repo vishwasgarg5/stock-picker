@@ -265,8 +265,18 @@ def fetch_market_news(limit: int = 12) -> list[dict]:
 def score_news(items: list[dict]) -> tuple[float, str, str, str, list[dict]]:
     scored=[]
     for item in items:
-        c=classify_headline(item.get("headline",""))
-        scored.append((float(c["market_impact"]),item,c["event"]))
+        headline=item.get("headline","")
+        c=classify_headline(headline)
+        words=set(re.sub(r"[^a-z0-9\\s-]"," ",str(headline).lower()).split())
+        bullish=sum(w in BULL_WORDS for w in words)
+        bearish=sum(w in BEAR_WORDS for w in words)
+        general=1.0 if bullish>bearish else -1.0 if bearish>bullish else 0.0
+        impact=float(c["market_impact"])
+        if general and impact and np.sign(general)!=np.sign(impact):
+            impact=0.65*impact+0.35*general
+        elif general and not impact:
+            impact=0.35*general
+        scored.append((impact,item,c["event"]))
     if not scored:
         return 0.0,"No fresh market headline available","NEUTRAL","",[]
     scored.sort(key=lambda z:abs(z[0]),reverse=True)

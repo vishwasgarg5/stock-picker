@@ -82,13 +82,13 @@ def build_index_intelligence(hist: pd.DataFrame | None = None) -> pd.DataFrame:
     news = fetch_market_news()
     news_score, headline, news_sentiment, news_url, news_reasons = score_news(news)
     breadth_pct, breadth_ratio = _breadth(hist)
-    market_score, risk_level = _market_score(out, news_score, breadth_pct)
+    market_score, risk_level, market_confidence, data_quality, index_data_available = _market_score(out, news_score, breadth_pct)
     news_reason = headline
     config = {"version": "index_intelligence_v2", "market_regime": market,
               "risk_multiplier": 1.0 if market == "BULL" else 0.80 if market == "NEUTRAL" else 0.55,
               "news_sentiment": news_sentiment, "news_score": news_score,
               "market_reason": news_reason, "market_reason_url": news_url,
-              "news_headline": headline, "news_reasons": news_reasons, "market_intelligence_score": market_score, "risk_level": risk_level, "breadth_pct_above_sma20": breadth_pct}
+              "news_headline": headline, "news_reasons": news_reasons, "market_intelligence_score": market_score, "risk_level": risk_level, "market_confidence": market_confidence, "data_quality": data_quality, "index_data_available": index_data_available, "breadth_pct_above_sma20": breadth_pct}
     CONFIG.write_text(json.dumps(config, indent=2))
     out["news_sentiment"] = news_sentiment
     out["market_reason"] = news_reason
@@ -96,6 +96,9 @@ def build_index_intelligence(hist: pd.DataFrame | None = None) -> pd.DataFrame:
     out["news_source_url"] = news_url
     out["news_reasons"] = json.dumps(news_reasons)
     out["market_intelligence_score"] = market_score
+    out["market_confidence"] = market_confidence
+    out["data_quality"] = data_quality
+    out["index_data_available"] = index_data_available
     out["risk_level"] = risk_level
     out["breadth_pct_above_sma20"] = breadth_pct
     out.to_csv(SUMMARY, index=False)
@@ -118,20 +121,49 @@ def _breadth(hist: pd.DataFrame) -> tuple[float, float]:
     pct = float((latest["close"] > latest["sma20"]).mean() * 100)
     return pct, pct / 100.0
 
-def _market_score(out: pd.DataFrame, news_score: float, breadth_pct: float) -> tuple[float, str]:
+def _market_score(out: pd.DataFrame, news_score: float, breadth_pct: float) -> tuple[float, str, float, str, bool]:
     weights = {"NIFTY50": .40, "BANKNIFTY": .25, "NIFTYFIN": .15, "NIFTYIT": .10, "NIFTYAUTO": .10}
-    if out.empty:
-        price_score = 50.0
-    else:
-        vals = []
+    valid = []
+    if not out.empty and {"index", "direction", "confidence"}.issubset(out.columns):
         for _, row in out.iterrows():
-            d = {"BUY": 1.0, "HOLD": 0.0, "AVOID": -1.0}.get(row["direction"], 0.0)
-            vals.append(weights.get(row["index"], .05) * d * float(row["confidence"]))
-        denom = sum(weights.get(i, .05) for i in out["index"])
-        price_score = 50.0 + 45.0 * sum(vals) / max(denom, .01)
+            idx = str(row["index"])
+            if idx not in weights:
+                continue
+            conf = pd.to_numeric(row["confidence"], errors="coerce")
+            if pd.isna(conf):
+                continue
+            d = {"BUY": 1.0, "HOLD": 0.0, "AVOID": -1.0}.get(str(row["direction"]), 0.0)
+            valid.append((weights[idx], d, float(conf)))
+    index_available = bool(valid)
+    if index_available:
+        denom = sum(w for w, _, _ in valid)
+        price_score = 50.0 + 45.0 * sum(w * d * conf for w, d, conf in valid) / max(denom, .01)
+    else:
+        price_score = None
+
+    components = []
+    if price_score is not None:
+        components.append((.60, price_score))
+    if breadth_pct is not None and np.isfinite(breadth_pct):
+        components.append((.20, float(np.clip(breadth_pct, 0, 100))))
     news_component = float(np.clip(50 + news_score * 8, 0, 100))
-    score = float(np.clip(.60 * price_score + .20 * breadth_pct + .20 * news_component, 0, 100))
-    return score, "RISK_ON" if score >= 65 else "RISK_OFF" if score <= 35 else "NEUTRAL"
+    components.append((.20, news_component))
+
+    total_w = sum(w for w, _ in components)
+    score = float(np.clip(sum(w * v for w, v in components) / max(total_w, .01), 0, 100))
+    coverage = total_w
+    confidence = float(np.clip(coverage * (.55 + .45 * min(1.0, abs(score - 50) / 50)), 0, 1))
+    if coverage < .80:
+        confidence *= .85
+
+    if score >= 65:
+        level = "RISK_ON"
+    elif score <= 35:
+        level = "RISK_OFF"
+    else:
+        level = "NEUTRAL"
+    quality = "HIGH" if coverage >= .95 else "MEDIUM" if coverage >= .75 else "LOW"
+    return score, level, confidence, quality, index_available
 
 def apply_index_overlay(candidates: pd.DataFrame) -> pd.DataFrame:
     x = candidates.copy()
@@ -150,6 +182,9 @@ def apply_index_overlay(candidates: pd.DataFrame) -> pd.DataFrame:
     x["news_headline"] = cfg.get("news_headline", "No fresh market headline available")
     x["news_reasons"] = json.dumps(cfg.get("news_reasons", []))
     x["market_intelligence_score"] = float(cfg.get("market_intelligence_score", 50.0))
+    x["market_confidence"] = float(cfg.get("market_confidence", 0.0))
+    x["data_quality"] = cfg.get("data_quality", "LOW")
+    x["index_data_available"] = bool(cfg.get("index_data_available", False))
     x["risk_level"] = cfg.get("risk_level", "NEUTRAL")
     x["breadth_pct_above_sma20"] = float(cfg.get("breadth_pct_above_sma20", 50.0))
     if "phase4_score" in x.columns:

@@ -3,7 +3,7 @@
   "market_regime": "BEAR",
   "risk_multiplier": 0.55,
   "news_sentiment": "BEARISH",
-  "news_score": -0.8799999999999999,
+  "news_score": -0.9199999999999999,
   "market_reason": "General market: Sensex fell 1,000 points: 5 reasons why stock market crashed today - India Today",
   "market_reason_url": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxOWm1DakxFYWJzYnFVWEQ5dkQ5cHR6TVZaeU5ral9iaEJIR3oxRTZXV2ZaM0x0Mm83TnpJRGxXU085RThXQldyZzhqMjN1eHYzTDB5dmF6czFWeWVZWGZ3cGNmVFR4aUhBQ1A2aGZ0QndGb2pKbDhnWVpyUE1femE0aGU3U2hDbnBYbGh4MWJBeGUyY2VtdkctcnE5S1NENmxVVXRqTXlyZl80b2pLZHNzakNXYTd4R3M0bGxTS0dGNTJadHd0cWVjRlFOVjE5UEtBU3hJeEJvVUhaazkzWUhLWXRQZ9IB6AFBVV95cUxQZ09hREVmdk8xR2Z0cUpzdTBXMnlnbUU3cjFBRlZwNDdpN0JGaFhTUDJqTUNmZlp3cHhWUjJCeDRVNnFOSTRsbFc5STZpT0FpUUlmTHh1LUhaeGxteC1HRm1fUGRGT2Q3OVlSSHRWQzFzdDJTSHFfaFkwXzZWU2dCSVRIUXg2U1Q1ZmdoLVhrb1VpdTVxWTF4SjFwakJ3Rk14VF9yazhXV1VkRVM1MjVIeHZLLURrckItcEotWTZwV184ay1zMjNZbEtDTlQ1OUE1N1gyd3FJU0JMYnBfMVByZEdHVlFQbnd5?oc=5",
   "news_headline": "General market: Sensex fell 1,000 points: 5 reasons why stock market crashed today - India Today",
@@ -17,39 +17,39 @@
     {
       "event": "RBI / rates",
       "impact": -0.9,
+      "headline": "Stock Market Crash Today: Why Sensex and Nifty Are Falling Sharply Amid RBI Rate Hike and FII Selling - NiftyTrader",
+      "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE5PaUVFeW1wY0ZZcGtrdXZZNzU4RGU1ZWJaNDQ1THlNaGNPdnRWamJmUy1GUWdqZzhWaGJoN1JaS25UTE5mQngwNjJtZGt3OXNiaWtIVVYtTXZGUHJTQmNQSUF3NzNxOXZfZVEzTg?oc=5"
+    },
+    {
+      "event": "RBI / rates",
+      "impact": -0.9,
       "headline": "Sensex Plunges 1,045 Points, Nifty Hits 52-Week Low Amid FII Selling, RBI Tightening - Rediff",
       "url": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQTzlTcjZJdzhXaXg4Nmh4UXB2cjFBbFpMVlYxTjFaWUVtLWFKcWFsUmh4cGZnQ2EtYmtCdndZdWxDQVdOYnB3Nzl6cFdMUUllZFk4aW1rYWhJc3ZDeFFaX3RXZVI4dkFpN1NsSFhEdVVjbEhRVE1tMTZKeWk2NWNBUEpIRVFrRTVFT1lvYlkzREtjVXgwLVlaM1gxd2JJNWdfYW91NWlJZV9JYlpwVElFNW5PUnY4akRWMVF4V3BVdzNNVGl1RU95QmNDTkRhUjdzZTVPLWxB0gHYAUFVX3lxTE93RzN0WDJnOEZxTi0xdm9KSTdwY1d0emlMSF80YUpGeld0aDVfOWxtMEMxT0szbUEtTGY2QVJ2ZFRZUUFMVms2UWlVbU9SZElYaDJCY2hGb25IVzFERkZzSXRoRVhmdWFUdVpyMUY3azZ5Ukk0V0VjdGI4aUN1YWk4ZUNRZnpFT0Y0dV92d3BBYkE5RXhCWjl3MUVHMVQzZnotVUptRFJKc3MxUGx6aWVqdHViX3ZHNmJ2MGVvTHFCN09HTUNFUkIzWDJnT0dmaDJueWlMd1RoMA?oc=5"
     },
     {
       "event": "Crude oil",
       "impact": -0.9,
-      "headline": "Sensex Dives 1,045 Pts Amid Oil Spike, RBI Tightening Fears - Rediff MoneyWiz",
-      "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxNRUNfdVpiQkcxYXc5OUFoaUlISUppRzBFRHpMYlF2VDJITmNmaFEzbjdBYVZLZ3VxdDNzZjB4QzlLNkpPXzlNWGZDLUdyOE9LSEFXVTBjTkhTMmd6SW1pSmNOZWtlMWRxU3FMZkpWcXp2ZnZjLWUzNDFiamwzdGpSSWFxSHAzd0NIeEpZallHMUljeUdLRFRvakZFZXJsSE45TDBqNEkzeVo3WERJVUlXcXBheUfSAbQBQVVfeXFMTUVDX3VaYkJHMWF3OTlBaGlJSElKaUcwRUR6TGJRdlQySE5jZmhRM243QWFWS2d1cXQzc2YweEM5SzZKT185TVhmQy1HcjhPS0hBV1UwY05IUzJnekltaUpjTmVrZTFkcVNxTGZKVnF6dmZ2Yy1lMzQxYmpsM3RqUklhcUhwM3dDSHhKWWpZRzFJY3lHS0RUb2pGRWVybEhOOUwwajRJM3laN1hESVVJV3FwYXlH?oc=5"
+      "headline": "Sensex, Nifty Plunge: Oil Spike & RBI Hike Drive Market Sell-off - Rediff MoneyWiz",
+      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPR3VrOVZ4dDdBRFVFUkVEbmJZZ0hZSHVqcUxPWXRaa1EzZV8tS2hySmJjbG9xcXhNV2tMZzFPcTExZzFDWi1xTzQ3OWJkS2k2TW9JdjV2UmQ3Uzl2ekQ3dldGSWo3Z0ZGbkpEMW1hclZ2U1JCMmhIcFR5ZmNXZWlwUGZHMWVqalhkSTRfTUp4Y2UzV2ZpQ2lWWXJVMGdLTktLRjlsTUF0dFNIdVk0U2ticVZobk92WU9y0gG4AUFVX3lxTE9HdWs5Vnh0N0FEVUVSRURuYllnSFlIdWpxTE9ZdFprUTNlXy1LaHJKYmNsb3FxeE1Xa0xnMU9xMTFnMUNaLXFPNDc5YmRLaTZNb0l2NXZSZDdTOXZ6RDd2V0ZJajdnRkZuSkQxbWFyVnZTUkIyaEhwVHlmY1dlaXBQZkcxZWpqWGRJNF9NSnhjZTNXZmlDaVZZclUwZ0tOS0tGOWxNQXR0U0h1WTRTa2JxVmhuT3ZZT3I?oc=5"
     },
     {
       "event": "RBI / rates",
       "impact": -0.9,
-      "headline": "GIFT Nifty signals mildly positive start for Sensex, Nifty, even as RBI rate hike, rising oil, US yields... - Moneycontrol.com",
-      "url": "https://news.google.com/rss/articles/CBMigAJBVV95cUxQRDRIR3pXMDJ6UGJtS0ZXMDIyb3NUMkVqT0otWUViRVgxZ0ZzRnNoVml3OVBVQ05ReVVXazN6UldKYW1SV1FSV1Rad0dEZmtLRl9sMWNfMVBob2pjcWFGRlZPR2JtUFJJOU9Rd2o4Tklodk5RNnFvQUpoaUwzNmlaczB6cVFlYWVMcDJ0eEZhN2ZScUxsN2dkb21EeXhmcklJMDlIOTM4OVZ4emd1NFBrRTYya3QwSjZPQ1pid0JER2FyOGNQMXQyYTFfbUlxNTB4YkJnajc0VG5McmE0S19DN3hmWnVndVc3cjRCNkx0S0h1cS1ncVMzR2x0akJ6Qm9U0gGGAkFVX3lxTE9USUctem5CcGVvakVub2pSTjJvLVFxZWxEZ0Vucm5tMnBjX1pJM2ZYancxZ2dOcEdtb2dUNTFGUFdJb0RjMm05dXBIRUxVUjNSOWJfVktyemQzR3F5WWsxVnZ4MEYzZjlmRkViMGpSSEdnT2ZCXzZvSXo2RHRSNXdZVkt4TEQtbktySXE5SVV3NkllVk9EVHFlQmxVU2MtXy1ZaXdfN0NtUHRKaS1Fa1ZJb3RwRl90WVd0Y3hqX1dfcnN0RGN6NlV4WUZqcHFDTHlzQTJ0MHlmYmRhV1RhQjhDdUVxSkpwU1FBcmVwZllyeGJ2SlpacEJfSkRpSDlXWThTZmE5N2c?oc=5"
-    },
-    {
-      "event": "US / global markets",
-      "impact": -0.7,
-      "headline": "Why is the stock market down today? 3 factors behind Sensex, Nifty 50 fall - Livemint",
-      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxNdm55Wk9YRlplUlVyYUd6REhlamNYTzc3dHEyUWZOVm5kR1hudjE2S1hKM1k5aER4eDUxMkE5QmgzN210bjQxMURrVEhHRW9CX3lWSkFOdGFwbkl3RmNNSm5Xel9DTTRzLV9rVFhxZmVIcWJmajd2MWRuclRGM0ptSzhrT3p6N0N0WnBjd0x6TjVMWTRkWHFlbmsxMGZrY25GRlowYl9hZF9wNnJzZFVHRWEtUDVKZzdnZ0hIT2xXZGdESlduSnBQNnNWOGFyQVMyUXRPb3VYT092Z9IB3wFBVV95cUxNd1c0QjVfR2Q3bnVSQ1RHS0pieVlaMnBQQlEzRnNUbzJJbFJLMTh4V2JobGFjZWV1b2FQRFRLQTRnU21IbjJvbHVWVXExcG9yTkxoNU1pY1IzSXUyR3JXOXdfLVhiM1B1c2ZVMjkwUGFzT0d2RUQtRHV2SDY2cHVoU2JiUG9hZUtwdHl3Mk5TTGxHTEpmR2s5ZmlfZXVTOTVTWE14cktLNjByQ0ZsR1ZRZTRweC02NGxKbTQ0dUZVVmJMdUJZaGxrREZLczVJdmttY0ttNjlvY0dTVUUwTlRz?oc=5"
+      "headline": "Sensex falls 400 pts, Nifty below 22,500 as D-Street digests RBI\u2019s calibrated tightening stance. What can - The Economic Times",
+      "url": "https://news.google.com/rss/articles/CBMiqAJBVV95cUxOTDF1OVdkemVabnJYbGF6MlBkdmxqZl8yaVFITjRRenFqNnNsSUdENF9TYzFHS0tFWGQ1RktoRkdoOVN6ejl1TndzazVGSXZkQk85Y3h5dEVMM19rUE5ZWGt0dDBoZmd1YWViRDU0RmxnN2wydEFhekpkOW5rYlNSRV8zUTRBWG16QlNoYmMyRlM4TzFzMmRlT21BaHpqYmYzYmpEWWZyS2FRM3ZxdVZHOVRtV2p1RDVwdDMyUXN3VmxrRDlad3RoOVctb2FpQTZGUXNkWEJyYUt0ejNYTFA3SmhxeTBFT2twRFpDZWpyeGpUdUxQVnUzVy1XTDRkR040dzJSSGhCc3Vjbmx2WmNRNmV5eXBDNkZTTFRuZF9sYVNwU1lpY2x1UNIBogJBVV95cUxQMTRkWHRHZHpIYVMzUXVseW9tcUZrZVJxVi0xck9yc3VjR3gyaU01TXA2MkFTSzNXYWNxLXBteHdvdWJPSVVleEw5aWFSTkJWVkVueld0em9Wb1BKWGZKODJxcWJ4WFlLYklMM2ZvR3FIN0ppY2JLVXBDbEpmaFBLMGNPRk5ybXJWWE5nQnA3T3lqV0RISDlJZzE1NVpicGlISHV5Wm9oV2NfVjRLMTJhbmNoVWxERlowWjRWeGxGV0hiQk9WS1A4Z1ZBNWFpM1hmVUUtS1NDNzYybUFLanprM2VKSEhCb0w5aTRxbHFyLXhPcENseElCcDRJcHo1VHdCNk9sNUZTcmw0TEIxWmdzWTlKcWlnWGM5UWdOc21mME9PUQ?oc=5"
     }
   ],
-  "market_intelligence_score": 31.87580228136882,
+  "market_intelligence_score": 31.81180228136882,
   "risk_level": "RISK_OFF",
-  "market_confidence": 0.7131177794676806,
+  "market_confidence": 0.7136937794676806,
   "data_quality": "HIGH",
   "index_data_available": true,
   "breadth_pct_above_sma20": 15.019011406844108,
   "sector_news_impacts": {
-    "bank": 2.4000000000000004,
-    "financial": 2.4000000000000004,
-    "real estate": 2.0999999999999996,
-    "auto": 1.2000000000000002,
+    "bank": 3.2,
+    "financial": 3.2,
+    "real estate": 2.8,
+    "auto": 1.6,
     "airlines": 3.0,
     "paints": 2.4000000000000004,
     "chemicals": 1.7999999999999998,

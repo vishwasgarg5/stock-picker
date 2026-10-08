@@ -30,7 +30,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -172,7 +172,24 @@ jobs:
           git add data/
           if git diff --cached --quiet; then
             echo 'No generated changes to commit.'
-          else
-            git commit -m "chore: daily predict evaluate retrain"
-            git push origin HEAD:${GITHUB_REF_NAME}
+            exit 0
           fi
+
+          git commit -m "chore: daily predict evaluate retrain"
+
+          # A source/config commit may land while this long-running job is executing.
+          # Rebase the generated-data commit onto the latest remote branch before pushing.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:${GITHUB_REF_NAME}; then
+              exit 0
+            fi
+            git fetch origin ${GITHUB_REF_NAME}
+            git rebase -X theirs origin/${GITHUB_REF_NAME} || {
+              git rebase --abort
+              echo "Unable to rebase generated data onto latest ${GITHUB_REF_NAME}."
+              exit 1
+            }
+          done
+
+          echo "Unable to push generated data after 3 attempts."
+          exit 1

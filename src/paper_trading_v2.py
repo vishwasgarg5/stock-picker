@@ -7,6 +7,7 @@ import pandas as pd
 from .risk_management import MAX_TRADES
 from .trade_quality_model import latest_trade_quality_scores
 from .phase4_optimizer import apply_phase4
+from .index_intelligence import apply_index_overlay
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -146,6 +147,7 @@ def run_paper_trading_v2() -> pd.DataFrame:
         pct=True, method="first"
     )
     eligible = apply_phase4(eligible)
+    eligible = apply_index_overlay(eligible)
 
     # Shadow benchmark is not a production risk gate. Apply only the Phase-4
     # eligibility rules and a hard ATR sanity bound.
@@ -221,6 +223,7 @@ def run_paper_trading_v2() -> pd.DataFrame:
         "quantity", "planned_capital", "expected_return_pct", "risk_reward",
         "stop_distance_pct", "trade_quality_probability", "phase4_score",
         "phase4_weight", "phase4_stop_atr_multiplier", "phase4_target_stop_multiple",
+                    "index_market_regime", "index_risk_multiplier", "index_adjusted_score",
         "no_trade_reason",
         "entry_price", "exit_price", "return_pct", "gross_profit_loss",
         "trading_cost", "profit_loss",

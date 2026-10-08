@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 import time
 
@@ -52,15 +53,52 @@ MIN_OHLCV_COVERAGE = 0.95
 MAX_PREDICTED_MOVE = 0.40
 
 
+def _nse_session_is_complete(date: pd.Timestamp) -> bool:
+    """Return whether an NSE date is safely completed for daily-bar use."""
+    candidate = pd.Timestamp(date).normalize()
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    today = pd.Timestamp(now.date())
+    if candidate < today:
+        return True
+    if candidate > today:
+        return False
+    return (now.hour, now.minute, now.second) >= (15, 30, 0)
+
+
+def _select_completed_market_date(hist: pd.DataFrame, symbols: list[str]) -> pd.Timestamp:
+    """Select newest completed session with sufficient clean OHLC coverage."""
+    if hist.empty:
+        raise RuntimeError("Data-quality gate failed: OHLCV history is empty")
+    x = hist.copy()
+    x["date"] = pd.to_datetime(x["date"], errors="coerce").dt.normalize()
+    x["symbol"] = x["symbol"].astype(str).str.upper().str.strip()
+    universe = {str(s).upper().strip() for s in symbols}
+    for candidate in sorted(x["date"].dropna().unique(), reverse=True):
+        candidate = pd.Timestamp(candidate)
+        if not _nse_session_is_complete(candidate):
+            continue
+        latest = x[(x["date"] == candidate) & x["symbol"].isin(universe)].drop_duplicates("symbol", keep="last")
+        coverage = len(latest) / max(len(universe), 1)
+        if coverage < MIN_OHLCV_COVERAGE:
+            continue
+        prices = latest[["open", "high", "low", "close"]].apply(pd.to_numeric, errors="coerce")
+        invalid = prices.isna().any(axis=1) | (
+            (prices["high"] < prices[["open", "close"]].max(axis=1)) |
+            (prices["low"] > prices[["open", "close"]].min(axis=1)) |
+            (prices["close"] <= 0)
+        )
+        if not invalid.any():
+            return candidate
+    raise RuntimeError(f"Data-quality gate failed: no completed NSE session has at least {MIN_OHLCV_COVERAGE:.0%} clean OHLC coverage")
+
+
 def validate_data_quality(hist: pd.DataFrame, symbols: list[str], context: str = "") -> dict:
     if hist.empty:
         raise RuntimeError("Data-quality gate failed: OHLCV history is empty")
     x = hist.copy()
     x["date"] = pd.to_datetime(x["date"], errors="coerce").dt.normalize()
     x["symbol"] = x["symbol"].astype(str).str.upper().str.strip()
-    latest_date = x["date"].max()
-    if pd.isna(latest_date):
-        raise RuntimeError("Data-quality gate failed: no valid OHLCV date")
+    latest_date = _select_completed_market_date(x, symbols)
     universe = {str(s).upper().strip() for s in symbols}
     latest = x[(x["date"] == latest_date) & x["symbol"].isin(universe)].drop_duplicates("symbol", keep="last")
     coverage = len(latest) / max(len(universe), 1)
@@ -69,9 +107,9 @@ def validate_data_quality(hist: pd.DataFrame, symbols: list[str], context: str =
     invalid_ohlc = int(((prices["high"] < prices[["open", "close"]].max(axis=1)) |
                         (prices["low"] > prices[["open", "close"]].min(axis=1)) |
                         (prices["close"] <= 0)).sum())
-    print(f"Data quality [{context}]: latest={latest_date.date()}, fresh={len(latest)}/{len(universe)} ({coverage:.1%}), bad_rows={bad_prices}, invalid_ohlc={invalid_ohlc}")
+    print(f"Data quality [{context}]: completed_session={latest_date.date()}, fresh={len(latest)}/{len(universe)} ({coverage:.1%}), bad_rows={bad_prices}, invalid_ohlc={invalid_ohlc}")
     if coverage < MIN_OHLCV_COVERAGE:
-        raise RuntimeError(f"Data-quality gate failed: fresh OHLCV coverage {coverage:.1%} ({len(latest)}/{len(universe)}), minimum {MIN_OHLCV_COVERAGE:.1%}")
+        raise RuntimeError(f"Data-quality gate failed: completed-session OHLCV coverage {coverage:.1%} ({len(latest)}/{len(universe)}), minimum {MIN_OHLCV_COVERAGE:.1%}")
     if bad_prices or invalid_ohlc:
         raise RuntimeError(f"Data-quality gate failed: {bad_prices} bad price rows and {invalid_ohlc} invalid OHLC rows")
     return {"latest_date": latest_date, "fresh_symbols": len(latest), "universe_symbols": len(universe), "coverage": coverage}
@@ -977,7 +1015,14 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
 def run_evening() -> None:
     symbols = load_universe()
     hist = update_history(symbols)
-    validate_data_quality(hist, symbols, "evening")
+    quality = validate_data_quality(hist, symbols, "evening")
+    completed_date = pd.Timestamp(quality["latest_date"]).normalize()
+    dates = pd.to_datetime(hist["date"], errors="coerce").dt.normalize()
+    raw_latest_date = dates.max()
+    if pd.notna(raw_latest_date) and raw_latest_date > completed_date:
+        dropped = int(dates.gt(completed_date).sum())
+        hist = hist.loc[dates <= completed_date].copy()
+        print(f"Excluded {dropped} rows from incomplete/non-completed session {raw_latest_date.date()}; using completed session {completed_date.date()}.")
     if not PREDICTIONS_FILE.exists():
         print("No stored prediction; training on all available history and creating the next-session prediction.")
         if not models_ready():

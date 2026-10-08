@@ -15,6 +15,9 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
+import yfinance as yf
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -26,9 +29,29 @@ INDEXES = {
     "NIFTY50": ["^NSEI", "NIFTY50", "NIFTY 50"],
     "BANKNIFTY": ["^NSEBANK", "BANKNIFTY", "NIFTY BANK"],
     "NIFTYIT": ["^CNXIT", "NIFTYIT", "NIFTY IT"],
-    "NIFTYAUTO": ["NIFTYAUTO", "NIFTY AUTO"],
-    "NIFTYFIN": ["NIFTYFIN", "NIFTY FINANCIAL SERVICES"],
+    "NIFTYAUTO": ["^CNXAUTO", "NIFTYAUTO", "NIFTY AUTO"],
+    "NIFTYFIN": ["^CNXFIN", "NIFTYFIN", "NIFTY FINANCIAL SERVICES"],
 }
+INDEX_TICKERS = {"NIFTY50": "^NSEI", "BANKNIFTY": "^NSEBANK", "NIFTYIT": "^CNXIT", "NIFTYAUTO": "^CNXAUTO", "NIFTYFIN": "^CNXFIN"}
+
+def _download_index_series(name: str) -> pd.Series:
+    ticker = INDEX_TICKERS.get(name)
+    if not ticker:
+        return pd.Series(dtype=float)
+    try:
+        raw = yf.Ticker(ticker).history(period="6mo", interval="1d", auto_adjust=False)
+        if raw.empty or "Close" not in raw.columns:
+            return pd.Series(dtype=float)
+        s = pd.to_numeric(raw["Close"], errors="coerce").dropna()
+        s.index = pd.to_datetime(s.index, errors="coerce").tz_localize(None).normalize()
+        s = s[~s.index.duplicated(keep="last")].sort_index()
+        now = datetime.now(ZoneInfo("Asia/Kolkata"))
+        if (now.hour, now.minute, now.second) < (15, 30, 0):
+            s = s[s.index < pd.Timestamp(now.date())]
+        return s
+    except Exception as exc:
+        print(f"Index data unavailable for {name}: {exc}")
+        return pd.Series(dtype=float)
 
 def _series(hist: pd.DataFrame, names: list[str]) -> pd.Series:
     if hist.empty or not {"date", "symbol", "close"}.issubset(hist.columns):
@@ -66,6 +89,8 @@ def build_index_intelligence(hist: pd.DataFrame | None = None) -> pd.DataFrame:
     for name, aliases in INDEXES.items():
         s = _series(hist, aliases)
         if s.empty:
+            s = _download_index_series(name)
+        if s.empty:
             continue
         r = _signal(s)
         r.update({"index": name, "as_of": str(s.index[-1].date())})
@@ -84,8 +109,9 @@ def build_index_intelligence(hist: pd.DataFrame | None = None) -> pd.DataFrame:
     breadth_pct, breadth_ratio = _breadth(hist)
     market_score, risk_level, market_confidence, data_quality, index_data_available = _market_score(out, news_score, breadth_pct)
     news_reason = headline
-    config = {"version": "index_intelligence_v2", "market_regime": market,
-              "risk_multiplier": 1.0 if market == "BULL" else 0.80 if market == "NEUTRAL" else 0.55,
+    risk_multiplier = 1.0 if risk_level == "RISK_ON" else 0.55 if risk_level == "RISK_OFF" else 0.80
+    config = {"version": "index_intelligence_v3", "market_regime": market,
+              "risk_multiplier": risk_multiplier,
               "news_sentiment": news_sentiment, "news_score": news_score,
               "market_reason": news_reason, "market_reason_url": news_url,
               "news_headline": headline, "news_reasons": news_reasons, "market_intelligence_score": market_score, "risk_level": risk_level, "market_confidence": market_confidence, "data_quality": data_quality, "index_data_available": index_data_available, "breadth_pct_above_sma20": breadth_pct}

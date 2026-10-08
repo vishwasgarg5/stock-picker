@@ -17,7 +17,7 @@
     "src/phase2_dashboard.py": "2b799129504235a0811e120747c70eed7b8ca9aef47569f0d17d6ad8d8e1e798",
     "src/phase2_optimizer.py": "65d27d14af8793ca770375df85f7aee5a63ba4c71be0e42480acbdbcfbb5f2dc",
     "src/phase4_optimizer.py": "34e5a5d243597c514bf1a2799bb97ffeff701f98d5b537b986b11dc9ad2b48c2",
-    "src/pipeline.py": "39e3025ffcfa43ba374c0fb405852f1c63df217731b46e584e1e46d3ede22813",
+    "src/pipeline.py": "c03a607cf18100afa635553278ba2070963cd7b81e042b0296f06b9dc6530370",
     "src/portfolio_comparison.py": "c4637d4c5e6f6323c7e4bdaef8172a9c232da0e69e00915b9969d7146e8d70aa",
     "src/ranking_diagnostics.py": "c907d9af20e621948522f23578c7b9aef7c8ad3ba01e7dbdc2e97f6691b96f9d",
     "src/ranking_model.py": "58fd15e9a244dbaa5d4aec072fcc07187caa79226276d089d126bcffb6b3c13c",
@@ -31,7 +31,7 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "4f885c936b2cfbb6724b794b924b5ac5d9587e3695c3f6bcf9e3edef1e9da5cc"
+    ".github/workflows/daily.yml": "a7cde48279236ce18fea1a38914862004d693fda073549cd748b43936e839563"
   },
   "manifest_version": "governance_v1"
 }

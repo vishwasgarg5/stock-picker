@@ -3,22 +3,16 @@
   "market_regime": "NEUTRAL",
   "risk_multiplier": 0.8,
   "news_sentiment": "BEARISH",
-  "news_score": -6.8,
-  "market_reason": "RBI / rates: Markets Fall: Sensex Drops 460 Pts Amid Oil Spike, RBI Policy - Rediff MoneyWiz",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPdHY5ZkhOaWhMbWhDX2ZlendPaTR5bTFDRExZb2cyT2t1bjcwdlNEbTF1ZnNFeldLbzRQeXFUc3c4RkROczRvamUtTDZSSkJlX2JEY0l2V1hWdS1BVDl3MW4xNVhrSUp5TXJ5VFg2bTNtQXBOX1dNdzYzOEs1SUowTi1TRWFrX3Ftc1RuMEEtazR3dGt0WWVpRGtLLTM2N1diWFRuMFJzcWZqSVA2Vm5UTtIBtgFBVV95cUxOb2ZPNVViRGVEYnM4aGJVeTBxMlRXU1MzdW4yam0yWEptY1lwSUdteDJBQ1IxWGQ4bms3bXdRWmxBV21UWF9SNzZ5c2oySTRzTTlzS0NkczZFWHdPZHJsUFdEcFA5NjlkSDk1YW95VVpDZ2N4cFBOUWpuS29seHZQckJBUXl6cDB6UUphUHMyX2QwRkNoLWppRXYzM095S0tpUElyRnRjQnRkZFpjSVFWd3dBR05hQQ?oc=5",
-  "news_headline": "RBI / rates: Markets Fall: Sensex Drops 460 Pts Amid Oil Spike, RBI Policy - Rediff MoneyWiz",
+  "news_score": -7.6,
+  "market_reason": "Crude oil: Sensex falls over 320 points in early deals amid elevated crude oil prices, FII outflows - Mid-Day",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxPaTZDemhyR2NiS0dPTmdnOUhONTNDcTNWRlJwdzNYdHJIOEs3RmNzQ3FFVkhSN0ZJaXNfNFAzLVBaYmlfV3FyOV9hRDA1N19fSjB4STZWYXpraFdDcjJ5VzhlM2F5bUV5LXFveTFaRXZrbzYxbE1FM2Z5U3dEeW52MHhmaVVyQk9pTjNXaXVDRmxTcGNna1dGMUlvT1pKeVdwQ2htOHlHSHNhdFRscUd4VlpZanY5ZUdYdWJ2S2p4aUxMbHNIU0tiZVlCaDJXRC1XVmlPTml4bWVZaklrWUFFUXNUdlN6blhTVUHSAeoBQVVfeXFMT2k2Q3pockdjYktHT05nZzlITjUzQ3EzVkZScHczWHRySDhLN0Zjc0NxRVZIUjdGSWlzXzRQMy1QWmJpX1dxcjlfYUQwNTdfX0oweEk2VmF6a2hXQ3IyeVc4ZTNheW1FeS1xb3kxWkV2a282MWxNRTNmeVN3RHludjB4ZmlVckJPaU4zV2l1Q0ZsU3BjZ2tXRjFJb09aSnlXcENobTh5R0hzYXRUbHFHeFZaWWp2OWVHWHVidktqeGlMTGxzSFNLYmVZQmgyV0QtV1ZpT05peG1lWWpJa1lBRVFzVHZTem5YU1VB?oc=5",
+  "news_headline": "Crude oil: Sensex falls over 320 points in early deals amid elevated crude oil prices, FII outflows - Mid-Day",
   "news_reasons": [
     {
-      "event": "RBI / rates",
-      "impact": -6.8,
-      "headline": "Markets Fall: Sensex Drops 460 Pts Amid Oil Spike, RBI Policy - Rediff MoneyWiz",
-      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxPdHY5ZkhOaWhMbWhDX2ZlendPaTR5bTFDRExZb2cyT2t1bjcwdlNEbTF1ZnNFeldLbzRQeXFUc3c4RkROczRvamUtTDZSSkJlX2JEY0l2V1hWdS1BVDl3MW4xNVhrSUp5TXJ5VFg2bTNtQXBOX1dNdzYzOEs1SUowTi1TRWFrX3Ftc1RuMEEtazR3dGt0WWVpRGtLLTM2N1diWFRuMFJzcWZqSVA2Vm5UTtIBtgFBVV95cUxOb2ZPNVViRGVEYnM4aGJVeTBxMlRXU1MzdW4yam0yWEptY1lwSUdteDJBQ1IxWGQ4bms3bXdRWmxBV21UWF9SNzZ5c2oySTRzTTlzS0NkczZFWHdPZHJsUFdEcFA5NjlkSDk1YW95VVpDZ2N4cFBOUWpuS29seHZQckJBUXl6cDB6UUphUHMyX2QwRkNoLWppRXYzM095S0tpUElyRnRjQnRkZFpjSVFWd3dBR05hQQ?oc=5"
-    },
-    {
-      "event": "RBI / rates",
-      "impact": -6.8,
-      "headline": "Sensex Falls 429 Pts as RBI Hikes Rates, Crude Prices Rise - Rediff MoneyWiz",
-      "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxQWjdrSDhLWU51cU5FQVlnQXRXNGhkLTBQZGlxOEZkY0Y2RXRFTXNuVVVQTkN6elFVXzhDd1E3Nml4a3M4M1JZbXY5cjJEbGxSUzFvRHdiLUc5MFBYdVdhd1J5c0pDU2xVN3hnYjJaSjZ4QUFjb29xVERmNVo1NE5tQllFYTVoU293NTdiQkVYZGs5MEdNWDhaTTJodnhUM0V6ajRVQnVpN0x3T3liVmQzYzE4b9IBswFBVV95cUxQWjdrSDhLWU51cU5FQVlnQXRXNGhkLTBQZGlxOEZkY0Y2RXRFTXNuVVVQTkN6elFVXzhDd1E3Nml4a3M4M1JZbXY5cjJEbGxSUzFvRHdiLUc5MFBYdVdhd1J5c0pDU2xVN3hnYjJaSjZ4QUFjb29xVERmNVo1NE5tQllFYTVoU293NTdiQkVYZGs5MEdNWDhaTTJodnhUM0V6ajRVQnVpN0x3T3liVmQzYzE4bw?oc=5"
+      "event": "Crude oil",
+      "impact": -7.6,
+      "headline": "Sensex falls over 320 points in early deals amid elevated crude oil prices, FII outflows - Mid-Day",
+      "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxPaTZDemhyR2NiS0dPTmdnOUhONTNDcTNWRlJwdzNYdHJIOEs3RmNzQ3FFVkhSN0ZJaXNfNFAzLVBaYmlfV3FyOV9hRDA1N19fSjB4STZWYXpraFdDcjJ5VzhlM2F5bUV5LXFveTFaRXZrbzYxbE1FM2Z5U3dEeW52MHhmaVVyQk9pTjNXaXVDRmxTcGNna1dGMUlvT1pKeVdwQ2htOHlHSHNhdFRscUd4VlpZanY5ZUdYdWJ2S2p4aUxMbHNIU0tiZVlCaDJXRC1XVmlPTml4bWVZaklrWUFFUXNUdlN6blhTVUHSAeoBQVVfeXFMT2k2Q3pockdjYktHT05nZzlITjUzQ3EzVkZScHczWHRySDhLN0Zjc0NxRVZIUjdGSWlzXzRQMy1QWmJpX1dxcjlfYUQwNTdfX0oweEk2VmF6a2hXQ3IyeVc4ZTNheW1FeS1xb3kxWkV2a282MWxNRTNmeVN3RHludjB4ZmlVckJPaU4zV2l1Q0ZsU3BjZ2tXRjFJb09aSnlXcENobTh5R0hzYXRUbHFHeFZaWWp2OWVHWHVidktqeGlMTGxzSFNLYmVZQmgyV0QtV1ZpT05peG1lWWpJa1lBRVFzVHZTem5YU1VB?oc=5"
     },
     {
       "event": "RBI / rates",
@@ -29,17 +23,26 @@
     {
       "event": "RBI / rates",
       "impact": -5.8,
-      "headline": "RBI Rate Hike Triggers Market Sell-Off; Sensex Drops 429 Pts, Nifty Slips Below 22,650 - The Indian Awaaz",
-      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQQnJqYVVYNmM1RVNSX2J4UlVsY3p1aVpNUVpBQ0M0Rm01NFZTUm9naldKS21HakZTWE5IMjViSm1Td214X21OX1RxVUoxLWtHWU4zMWV5T2dTUFBaQzdfMlhrdXhTRV9hRWtVYzBLVnR4UThCeHBuaU5xeU82VUdYU2Q4SU5HdDJYTjVVOTlmT0VXclgzWVIxZ3ZueGtaQUplTHpISDk5WWJUYmJWa1dmeg?oc=5"
+      "headline": "Sensex falls 400 pts, Nifty below 22,500 as D-Street digests RBI\u2019s calibrated tightening stance. What can - The Economic Times",
+      "url": "https://news.google.com/rss/articles/CBMiogJBVV95cUxQMTRkWHRHZHpIYVMzUXVseW9tcUZrZVJxVi0xck9yc3VjR3gyaU01TXA2MkFTSzNXYWNxLXBteHdvdWJPSVVleEw5aWFSTkJWVkVueld0em9Wb1BKWGZKODJxcWJ4WFlLYklMM2ZvR3FIN0ppY2JLVXBDbEpmaFBLMGNPRk5ybXJWWE5nQnA3T3lqV0RISDlJZzE1NVpicGlISHV5Wm9oV2NfVjRLMTJhbmNoVWxERlowWjRWeGxGV0hiQk9WS1A4Z1ZBNWFpM1hmVUUtS1NDNzYybUFLanprM2VKSEhCb0w5aTRxbHFyLXhPcENseElCcDRJcHo1VHdCNk9sNUZTcmw0TEIxWmdzWTlKcWlnWGM5UWdOc21mME9PUdIBogJBVV95cUxQMTRkWHRHZHpIYVMzUXVseW9tcUZrZVJxVi0xck9yc3VjR3gyaU01TXA2MkFTSzNXYWNxLXBteHdvdWJPSVVleEw5aWFSTkJWVkVueld0em9Wb1BKWGZKODJxcWJ4WFlLYklMM2ZvR3FIN0ppY2JLVXBDbEpmaFBLMGNPRk5ybXJWWE5nQnA3T3lqV0RISDlJZzE1NVpicGlISHV5Wm9oV2NfVjRLMTJhbmNoVWxERlowWjRWeGxGV0hiQk9WS1A4Z1ZBNWFpM1hmVUUtS1NDNzYybUFLanprM2VKSEhCb0w5aTRxbHFyLXhPcENseElCcDRJcHo1VHdCNk9sNUZTcmw0TEIxWmdzWTlKcWlnWGM5UWdOc21mME9PUQ?oc=5"
     },
     {
       "event": "RBI / rates",
-      "impact": -5.8,
-      "headline": "SENSEX, NIFTY50 resume decline after a two-day breather as RBI hikes repo rate - Upstox",
-      "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxQVkQ1RHAyY25jUnkzam00ZWNITk04djZaSzRSZVh2VVFSV1hrNjd2NlFpNjh2VTVwV2tVbC1GQjVLbWpCbmlSS2J4ZlpxLU01cTZfUm1sOE5RalBMT1RhejBEa0JmM1hvN3U0WFFrbjlxZDcyNnZjR2ltOWF6dktfUURGaXdac3lXaDNFXzNPM0c0d3BpY29JckRvczU2Yk13Y1AwaGRJaENXTE1vV3hYSjdfemZfSjRPTlpOT1o0SUVRcEpKbjA5YkI3UFhjRFhBdl8w?oc=5"
+      "impact": -3.4,
+      "headline": "Sensex Plunges 1,045 Points, Nifty Hits 52-Week Low Amid FII Selling, RBI Tightening - Rediff",
+      "url": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQTzlTcjZJdzhXaXg4Nmh4UXB2cjFBbFpMVlYxTjFaWUVtLWFKcWFsUmh4cGZnQ2EtYmtCdndZdWxDQVdOYnB3Nzl6cFdMUUllZFk4aW1rYWhJc3ZDeFFaX3RXZVI4dkFpN1NsSFhEdVVjbEhRVE1tMTZKeWk2NWNBUEpIRVFrRTVFT1lvYlkzREtjVXgwLVlaM1gxd2JJNWdfYW91NWlJZV9JYlpwVElFNW5PUnY4akRWMVF4V3BVdzNNVGl1RU95QmNDTkRhUjdzZTVPLWxB0gHYAUFVX3lxTE93RzN0WDJnOEZxTi0xdm9KSTdwY1d0emlMSF80YUpGeld0aDVfOWxtMEMxT0szbUEtTGY2QVJ2ZFRZUUFMVms2UWlVbU9SZElYaDJCY2hGb25IVzFERkZzSXRoRVhmdWFUdVpyMUY3azZ5Ukk0V0VjdGI4aUN1YWk4ZUNRZnpFT0Y0dV92d3BBYkE5RXhCWjl3MUVHMVQzZnotVUptRFJKc3MxUGx6aWVqdHViX3ZHNmJ2MGVvTHFCN09HTUNFUkIzWDJnT0dmaDJueWlMd1RoMA?oc=5"
+    },
+    {
+      "event": "Crude oil",
+      "impact": -3.3,
+      "headline": "Stock Markets Today: Sensex, Nifty Deciline Amid Rising Crude & FII Selling - ETV Bharat",
+      "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPZTlEVU9DaUlSR3hjbHRvYXRWalhIOGQ5cm5PNTRSbFluWU9nbDZMa3FvaXJYamZ0ajRyaTVELXdSQUxsaUp2SW5hV25LM2QtQjZINTNVUHNmSGhWTk1WS3FUdnI4QW5GOE5KTVlzN2lNN25WNUJuNDVMcFRBYVF0emk3WlE2UWlZMkJzdHNoZ0RETTJzVDlZUktfcUpDcGpWTjdvX1M0STJmbFYzMjVqVW9rWEM2QlVyTFptMVdZV3czalNWVlHSAcsBQVVfeXFMUFEzT2NsWGJ2ckFnVEc0WXdFZmhUQjVibXA4UnNGNzhCZm5vLXo2SlBOQnM4NGZzZDZGemJWUDN5eWtpN1hUVGlBUG1YeFN3RXM1bVpaLVZOQ3l4SjhhZkxDNzU5ODdUZXBobFBEOUhYU2dabVBkMmlnQmRlQWRzYzNKSlp0M3ZiWTZCU2ZrdkthM0k5aDkxZVFtZDltY01QczVGT3gzU0d2bDdpX1JqcTdMdkRqa05VNHNCS1ZzbEV3UDhtNEROeWRvWk0?oc=5"
     }
   ],
-  "market_intelligence_score": 35.665399239543724,
-  "risk_level": "NEUTRAL",
-  "breadth_pct_above_sma20": 28.32699619771863
+  "market_intelligence_score": 7.509505703422055,
+  "risk_level": "RISK_OFF",
+  "market_confidence": 0.3170209125475285,
+  "data_quality": "LOW",
+  "index_data_available": false,
+  "breadth_pct_above_sma20": 15.019011406844108
 }

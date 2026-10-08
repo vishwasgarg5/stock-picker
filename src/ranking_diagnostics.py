@@ -15,7 +15,7 @@ SECTOR_OUTPUT = DATA / "ranking_validation_sector_risk.csv"
 
 RANK_BUCKETS = [0, 10, 20]
 RANK_LABELS = ["1-10", "11-20"]
-HORIZONS = (1, 5, 10, 20)
+HORIZONS = (1, 3, 5, 10, 20)
 
 
 def _empty() -> pd.DataFrame:

@@ -57,3 +57,28 @@ def sector_impacts(headlines: list[dict]) -> dict[str,float]:
         for sector,impact in classify_headline(item.get("headline",""))["sector_impacts"].items():
             totals[sector]=totals.get(sector,0.0)+float(impact)
     return totals
+
+def sector_news_score(sector: str, impacts: dict[str,float]) -> float:
+    s=str(sector or "").strip().lower()
+    aliases={
+        "information technology":["information technology","technology","software","it"],
+        "financial":["financial","bank","insurance"],
+        "airlines":["airline","airlines","aerospace"],
+        "paints":["paint"],
+        "chemicals":["chemical"],
+        "tyres":["tyre","tire"],
+        "oil & gas":["oil & gas","oil and gas","energy"],
+        "real estate":["real estate"],
+        "auto":["auto","automobile","vehicle"],
+        "pharma":["pharma","drug","biotech"],
+        "defence":["defence","defense"],
+    }
+    total=0.0
+    for key,terms in aliases.items():
+        if any(t in s for t in terms):
+            total=max(total, float(impacts.get(key,0.0)))
+            if key=="information technology":
+                total=max(total,float(impacts.get("it",0.0)))
+            if key=="financial":
+                total=max(total,float(impacts.get("bank",0.0)),float(impacts.get("financial",0.0)))
+    return total

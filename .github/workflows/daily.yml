@@ -95,6 +95,9 @@ jobs:
       - name: Run Phase 2 performance optimizer in shadow mode
         run: python -m src.phase2_optimizer
 
+      - name: Build index intelligence and market regime
+        run: python -m src.index_intelligence
+
       - name: Run Phase 4 adaptive performance optimizer
         run: python -m src.phase4_optimizer
 

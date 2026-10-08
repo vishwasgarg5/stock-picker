@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import pandas as pd
 import numpy as np
+from .advanced_governance import promotion_gate
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -190,19 +191,20 @@ def evaluate_promotion() -> dict:
         return_lift_ci_low = -float("inf")
         dd_gate = False
 
+    advanced_gate = promotion_gate({
+        "sessions": common_sessions,
+        "trades": v2_trades,
+        "return_lift_pct": return_lift,
+        "session_win_rate_pct": session_win_rate,
+        "return_lift_ci_low_pct": return_lift_ci_low,
+        "confidence_evidence": confidence_promoted,
+        "governance_safe": governance_safe and phase4_safe and float(governance.get("bootstrap_ci_low_pct", -float("inf"))) >= MIN_RETURN_LIFT_CI_LOW_PCT,
+        "no_drawdown_breach": dd_gate,
+    })
     promote = bool(
-        enough
+        advanced_gate["promotion_eligible"]
         and phase2_enabled
-        and confidence_promoted
         and directional_promoted
-        and pnl_lift > 0
-        and return_lift >= MIN_RETURN_LIFT_PCT
-        and return_lift_ci_low >= MIN_RETURN_LIFT_CI_LOW_PCT
-        and session_win_rate >= MIN_SESSION_WIN_RATE_PCT
-        and dd_gate
-        and governance_safe
-        and phase4_safe
-        and float(governance.get("bootstrap_ci_low_pct", -float("inf"))) >= MIN_RETURN_LIFT_CI_LOW_PCT
     )
 
     current = str(state.get("production_strategy", "V1"))
@@ -260,6 +262,8 @@ def evaluate_promotion() -> dict:
         "phase4_confidence_floor_percentile": phase4.get("confidence_floor_percentile", np.nan),
         "phase4_min_expected_return_pct": phase4.get("min_expected_return_pct", np.nan),
         "phase4_bootstrap_ci_low_pct": phase4.get("bootstrap_ci_low_pct", -float("inf")),
+        "advanced_promotion_eligible": advanced_gate["promotion_eligible"],
+        "advanced_promotion_checks": json.dumps(advanced_gate["checks"], sort_keys=True),
     }
 
     pd.DataFrame([comparison]).to_csv(AB_FILE, index=False)

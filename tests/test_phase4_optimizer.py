@@ -65,10 +65,11 @@ def test_index_intelligence_overlay_is_conservative():
 
 def test_index_news_reason_scoring_is_deterministic():
     from src.index_intelligence import score_news
-    score, headline, sentiment, url = score_news([
+    score, headline, sentiment, url, reasons = score_news([
         {"headline": "Nifty falls as crude oil rises and RBI tightens policy", "url": "x"}
     ])
     assert score < 0
     assert sentiment == "BEARISH"
     assert headline
     assert url == "x"
+    assert reasons and reasons[0]["event"] in {"RBI / rates", "Crude oil", "General market", "Inflation", "Geopolitics"}

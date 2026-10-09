@@ -63,7 +63,18 @@ def _merge_evidence(evaluations: pd.DataFrame, candidates: pd.DataFrame) -> pd.D
     c = c[cols].drop_duplicates(["prediction_date", "symbol"], keep="last")
     overlap = [x for x in c.columns if x not in {"prediction_date", "symbol"} and x in e.columns]
     e = e.drop(columns=overlap, errors="ignore")
-    return e.merge(c, on=["prediction_date", "symbol"], how="left")
+    e = e.merge(c, on=["prediction_date", "symbol"], how="left")
+    fundamentals = _read(DATA / "fundamentals.csv")
+    if not fundamentals.empty and {"symbol", "sector"}.issubset(fundamentals.columns):
+        fundamentals["symbol"] = fundamentals["symbol"].astype(str).str.upper().str.strip()
+        sector_map = fundamentals[["symbol", "sector"]].drop_duplicates("symbol", keep="last")
+        e = e.merge(sector_map.rename(columns={"sector": "_fundamentals_sector"}), on="symbol", how="left")
+        if "sector" in e.columns:
+            e["sector"] = e["sector"].fillna(e["_fundamentals_sector"])
+        else:
+            e["sector"] = e["_fundamentals_sector"]
+        e = e.drop(columns=["_fundamentals_sector"], errors="ignore")
+    return e
 
 
 def _slice_report(df: pd.DataFrame) -> pd.DataFrame:

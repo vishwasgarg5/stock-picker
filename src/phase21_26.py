@@ -114,6 +114,18 @@ def leakage_audit(evaluations: pd.DataFrame, candidates: pd.DataFrame, history: 
         # Target/label columns may legitimately exist in a historical training table; flag for review only.
         add("candidate_future_named_columns", "REVIEW" if suspicious else "PASS", len(suspicious),
             "review columns: " + ", ".join(suspicious) if suspicious else "no obviously future/label-named candidate columns")
+        published_cols = [col for col in c.columns if re.search(r"(news|article).*(published|timestamp|datetime)|(published|timestamp|datetime).*(news|article)", col, re.I)]
+        if published_cols and "prediction_timestamp" in c.columns:
+            pred_ts = pd.to_datetime(c["prediction_timestamp"], errors="coerce", utc=True)
+            future_count = 0
+            for col in published_cols:
+                pub_ts = pd.to_datetime(c[col], errors="coerce", utc=True)
+                future_count += int((pub_ts.notna() & pred_ts.notna() & (pub_ts > pred_ts)).sum())
+            add("news_available_before_prediction", "WARN" if future_count else "PASS", future_count,
+                "published news timestamps must not exceed prediction_timestamp")
+        elif published_cols:
+            add("news_timestamp_traceability", "REVIEW", len(published_cols),
+                "news timestamp columns exist but prediction_timestamp is absent; manually verify no post-prediction news was used")
     if not history.empty and {"date", "symbol"}.issubset(history.columns):
         h = history.copy()
         h["date"] = pd.to_datetime(h["date"], errors="coerce")
@@ -207,6 +219,9 @@ def news_impact_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) -> p
             "direction_accuracy_pct":np.nan,"close_mape_pct":np.nan,"status":"NO_NEWS_FEATURES"}])
     use=["prediction_date","symbol"]+signals
     x=e.merge(c[use].drop_duplicates(["prediction_date","symbol"],keep="last"),on=["prediction_date","symbol"],how="inner")
+    for col in ["close_direction_correct", "close_abs_pct_error"]:
+        if col not in x:
+            x[col] = np.nan
     numeric(x,signals+["close_direction_correct","close_abs_pct_error"])
     rows=[]
     for signal in signals:

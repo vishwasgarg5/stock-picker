@@ -133,6 +133,9 @@ jobs:
       - name: Run consolidated performance audit
         run: python -m src.performance_audit
 
+      - name: Run Phase 20 accuracy recovery diagnostics (analysis-only)
+        run: python -m src.phase20_accuracy
+
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison
 

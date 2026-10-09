@@ -95,8 +95,8 @@ def leakage_audit(evaluations: pd.DataFrame, candidates: pd.DataFrame, history: 
         add("evaluation_data", "BLOCKED", 0, "evaluations.csv missing or empty")
     else:
         e = evaluations.copy()
-        p = pd.to_datetime(e.get("prediction_date"), errors="coerce")
-        t = pd.to_datetime(e.get("target_date"), errors="coerce")
+        p = pd.to_datetime(e["prediction_date"] if "prediction_date" in e else pd.Series(pd.NaT, index=e.index), errors="coerce")
+        t = pd.to_datetime(e["target_date"] if "target_date" in e else pd.Series(pd.NaT, index=e.index), errors="coerce")
         bad = int((p.isna() | t.isna() | (p.dt.normalize() >= t.dt.normalize())).sum())
         add("prediction_before_target", "PASS" if bad == 0 else "WARN", bad,
             "prediction_date must be valid and earlier than target_date")
@@ -164,6 +164,9 @@ def drift_report(evaluations: pd.DataFrame) -> pd.DataFrame:
                               "recommended_action":"Keep V1; collect evaluation data"}], columns=cols)
     x = evaluations.copy()
     x["target_date"] = pd.to_datetime(x["target_date"], errors="coerce").dt.normalize()
+    for col in ["close_direction_correct", "close_abs_pct_error", "baseline_close_abs_pct_error"]:
+        if col not in x:
+            x[col] = np.nan
     numeric(x, ["close_direction_correct", "close_abs_pct_error", "baseline_close_abs_pct_error"])
     daily = x.dropna(subset=["target_date"]).groupby("target_date", as_index=False).agg(
         direction=("close_direction_correct", "mean"),

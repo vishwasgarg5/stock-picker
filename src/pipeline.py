@@ -276,9 +276,33 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
     fresh_parts = [download_history([s for s, value in starts.items() if value == start], start) for start in sorted(set(starts.values()))]
     fresh = pd.concat(fresh_parts, ignore_index=True) if fresh_parts else pd.DataFrame(columns=EMPTY_HISTORY)
     combined = pd.concat([existing, fresh], ignore_index=True)
-    combined["date"] = pd.to_datetime(combined["date"], errors="coerce")
-    combined = combined.dropna(subset=["date", "symbol", "close"]).drop_duplicates(["date", "symbol"], keep="last").sort_values(["symbol", "date"]).reset_index(drop=True)
-    combined.to_csv(HISTORY_FILE, index=False)
+    combined["date"] = pd.to_datetime(combined["date"], errors="coerce").dt.normalize()
+    combined["symbol"] = combined["symbol"].astype(str).str.upper().str.strip()
+    for column in ["open", "high", "low", "close", "volume"]:
+        if column in combined:
+            combined[column] = pd.to_numeric(combined[column], errors="coerce")
+    combined = combined.dropna(subset=["date", "symbol", "close"])
+    combined = combined[combined["symbol"].ne("") & combined["close"].gt(0)]
+    # Validate OHLC integrity before persistence; reject invalid fresh rows rather
+    # than allowing a partial download to poison future features/backtests.
+    if {"open", "high", "low", "close"}.issubset(combined.columns):
+        valid = (
+            combined[["open", "high", "low", "close"]].notna().all(axis=1)
+            & combined["high"].ge(combined[["open", "close"]].max(axis=1))
+            & combined["low"].le(combined[["open", "close"]].min(axis=1))
+            & combined["low"].gt(0)
+        )
+        invalid_count = int((~valid).sum())
+        if invalid_count:
+            print(f"Incremental OHLCV store: dropping {invalid_count} rows with invalid OHLC values")
+            combined = combined.loc[valid].copy()
+    combined = combined.drop_duplicates(["date", "symbol"], keep="last").sort_values(["symbol", "date"]).reset_index(drop=True)
+    # Atomic replacement avoids leaving a truncated 70+ MB history file if a run
+    # is interrupted while writing. Keep the existing CSV schema for consumers.
+    temporary = HISTORY_FILE.with_suffix(".csv.tmp")
+    combined.to_csv(temporary, index=False)
+    temporary.replace(HISTORY_FILE)
+    print(f"Incremental OHLCV store: {len(combined):,} unique symbol/date rows")
     return combined
 
 

@@ -80,3 +80,19 @@ def test_unknown_regime_is_never_counted_as_evidence():
     assert len(out) == 1
     assert out.iloc[0]["market_regime"] == "UNKNOWN"
     assert out.iloc[0]["evidence_status"] == "UNKNOWN_REGIME"
+
+
+def test_mixed_date_formats_do_not_create_false_invalid_keys_or_missing_confidence():
+    evaluations = pd.DataFrame([
+        {"prediction_date": "2026-10-09 00:00:00", "symbol": "ABC"}
+    ])
+    candidates = pd.DataFrame([
+        {"prediction_date": "2026-09-30", "target_date": "2026-10-01",
+         "symbol": "ABC", "confidence_score": 70},
+        {"prediction_date": "2026-10-09 00:00:00", "target_date": "2026-10-12 00:00:00",
+         "symbol": "XYZ", "confidence_score": 80},
+    ])
+    out = integrity_report(evaluations, candidates).set_index("check")
+    assert out.loc["candidate_history_invalid_keys", "affected_rows"] == 0
+    assert out.loc["candidate_confidence_current_cohort", "affected_rows"] == 0
+

@@ -1,0 +1,3 @@
+news_signal,bucket,rows,sessions,direction_accuracy_pct,close_mape_pct,status
+stock_news_score,NEUTRAL_OR_MISSING,10,1,50.0,1.3144041347578999,INSUFFICIENT_SAMPLE
+sector_news_score,NEUTRAL_OR_MISSING,10,1,50.0,1.3144041347578999,INSUFFICIENT_SAMPLE

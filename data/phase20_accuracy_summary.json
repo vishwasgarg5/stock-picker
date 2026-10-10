@@ -1,0 +1,21 @@
+{
+  "phase": 20,
+  "as_of": "2026-10-09",
+  "status": "PASS",
+  "analysis_only": true,
+  "production_model_changed": false,
+  "evaluation_rows": 150,
+  "evaluation_sessions": 15,
+  "direction_accuracy_pct": 44.0,
+  "close_mape_pct": 1.9177321609511633,
+  "baseline_close_mape_pct": 1.9010122036691408,
+  "unstable_symbols_flagged": 10,
+  "stable_feature_candidates": 0,
+  "feature_evidence_status": "NO_STABLE_FEATURES_IDENTIFIED",
+  "reports": {
+    "error_slices": "data/phase20_error_slices.csv",
+    "symbol_stability": "data/phase20_symbol_stability.csv",
+    "feature_stability": "data/phase20_feature_stability.csv"
+  },
+  "guardrail": "No feature selection, production ranking, risk setting, or promotion state is changed by Phase 20."
+}

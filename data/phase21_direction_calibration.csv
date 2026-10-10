@@ -1,0 +1,2 @@
+confidence_bucket,rows,sessions,direction_accuracy_pct,close_mape_pct,baseline_mape_pct,mape_lift_pct,calibration_status
+UNKNOWN,150,15,44.0,1.9177321609511633,1.9010122036691408,-0.8795291923824216,EVIDENCE_ONLY

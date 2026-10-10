@@ -1,0 +1,2 @@
+common_sessions,v1_net_pnl,v2_net_pnl,v2_minus_v1_pnl,v1_win_rate_pct,v2_win_rate_pct,v1_trade_count,v2_trade_count,evidence_gate,production_champion
+11,-4018.5941150364015,0.0,4018.5941150364015,36.36363636363637,0.0,150,110,COLLECTING_MATCHED_SESSIONS,V1

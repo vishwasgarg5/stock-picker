@@ -1,0 +1,7 @@
+check,status,affected_rows,detail
+prediction_before_target,PASS,0,prediction_date must be valid and earlier than target_date
+unique_prediction_key,PASS,0,duplicate prediction_date/symbol rows
+candidate_history_unique_key,WARN,131,duplicate candidate history keys
+candidate_future_named_columns,REVIEW,1,review columns: target_date
+ohlcv_future_dates,PASS,0,OHLCV dates after current calendar date
+ohlcv_duplicate_keys,PASS,0,duplicate date/symbol records

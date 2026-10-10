@@ -1,5 +1,5 @@
 {
-  "files": 33,
+  "files": 35,
   "sha256": {
     "src/advanced_governance.py": "0dcf2f6d211bc3ef4f914d0d7bd734ae17c31c2c7f72f0c6a20a8417391b6c6d",
     "src/confidence.py": "22c48932fe9d10c5c5ccd5f915c281176e1720f7bc5ae61cc5d8abfede44d08e",
@@ -16,10 +16,12 @@
     "src/paper_trading_v2.py": "62e673f14f3a9a67343ca90a566adce163c7f1cc6415d49d0193d3f51e577a25",
     "src/performance_audit.py": "6aa6d26cf448e0fed7c45db578fc4ea9804ef971a762f29b9c351d02335ba288",
     "src/performance_history.py": "d3206b0360f533fb333725fc842a4e769191d0ea8ba8b6815827fb200142b074",
+    "src/phase20_accuracy.py": "9cdc1c228d122381a889eb7bef8891b3fdd64ecd81a1b95df13fc76c244345a0",
+    "src/phase21_26.py": "66b4eba7375e8a5cd5db53ee5b0efd998e44b1d276612d1dd8b055c59c6071ab",
     "src/phase2_dashboard.py": "2b799129504235a0811e120747c70eed7b8ca9aef47569f0d17d6ad8d8e1e798",
     "src/phase2_optimizer.py": "65d27d14af8793ca770375df85f7aee5a63ba4c71be0e42480acbdbcfbb5f2dc",
     "src/phase4_optimizer.py": "34e5a5d243597c514bf1a2799bb97ffeff701f98d5b537b986b11dc9ad2b48c2",
-    "src/pipeline.py": "0ea1aef26e10a24a9c46a7b6d3c303c9102c89ed57d4e5ee70751b821e6f940f",
+    "src/pipeline.py": "39f7f0dcfce92aa90a9e4a2fddbc0a03d75639b2622cb39a6a5452696a4270d7",
     "src/portfolio_comparison.py": "c4637d4c5e6f6323c7e4bdaef8172a9c232da0e69e00915b9969d7146e8d70aa",
     "src/ranking_diagnostics.py": "31f63139e10640ac713df564420f4823dbbff82ac11c4c02731a31588cf5875f",
     "src/ranking_model.py": "58fd15e9a244dbaa5d4aec072fcc07187caa79226276d089d126bcffb6b3c13c",
@@ -33,7 +35,7 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "fb06c3b4553c4d642d9ca44ca7efe45e9a9d724669a35c74199ee510b87d2e01"
+    ".github/workflows/daily.yml": "f3e3ac561a584eb9ab2bf87fc43e7a1ac28822a3bf5d1394cd1cb44fd3cd1e92"
   },
   "manifest_version": "governance_v1"
 }

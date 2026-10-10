@@ -1,7 +1,7 @@
 {
   "version": "index_intelligence_v3",
-  "market_regime": "NEUTRAL",
-  "risk_multiplier": 0.8,
+  "market_regime": "BEAR",
+  "risk_multiplier": 0.55,
   "news_sentiment": "BEARISH",
   "news_score": 0.2,
   "market_reason": "Crude oil: GIFT Nifty jumps 100 pts, signals positive start for Sensex, Nifty; crude oil, FII selling remain key... - Moneycontrol.com",
@@ -39,18 +39,18 @@
       "url": "https://news.google.com/rss/articles/CBMikwJBVV95cUxPLU5kS01NYzN6ZjllY2RLOV9xS3V6US1lNUYwanhHMGxEcjNxSWJkU1dwQ25KdzNkYmotZ3RtVk8waFAxc1NrUTZJUjA4VTgtR2VhXzJ1ak1PNF9jVkRIVGJyWDhYQ2wxQTZ1WGJZcUdVVDRKVTRTcl9saWx3c1BEUDk1ZHREVk85SENYUEd4dDdxZlI4cllmS2dOakxmam16UEJ1NWt6RUFqX1dvekQ4UTZjYlRKa01nM2hrMUkzM1owQzhFWi1aT082QmFpaVN1cFZUQjM0U3duNHVXZHFLd1V1QUE3RlNPMms3UG1YUDRXcHJGT1hsUGtOWDNrNlRkMEwwQnM2U1ZGYW5NR3BvOVdsa9IBmAJBVV95cUxPMmhGQWtXeDZseGFzVllXU21ZS2xDRjlFaUFDekZ0U2xHM3ZuY1VwRmxwQ2ZQUWFqTDY0V2t1eFFCdzRTRTdQS3Y1dE5Xc21GVGtoZzBHLVBnbW91YnlUOEFMMDJwYzZSVGF4Q1dZUWJ3ZGU0ZTcxQXo3MkplellLR19PZ24zWDBXWFBIM05jNUt1SWlDNzN1cHFQdS1ETko3Z1p4OFhlU0o4QXBQYVh0UHZCcFpZMjhqUXRfOEJUVTcwWlpVWnJnZEJZQlNPaWxIZ0YwQUpBdWFZNHBlQXlxSkdlSTJQYjNjRzdMdENhYlMxNGV1NF9BdWNFZnBPVVJIZ3U4OFZwY0dfbFkwa3hGekh5S1plMmdJ?oc=5"
     }
   ],
-  "market_intelligence_score": 44.31239543726236,
-  "risk_level": "NEUTRAL",
-  "market_confidence": 0.6011884410646388,
+  "market_intelligence_score": 34.592395437262354,
+  "risk_level": "RISK_OFF",
+  "market_confidence": 0.6886684410646389,
   "data_quality": "HIGH",
   "index_data_available": true,
   "breadth_pct_above_sma20": 19.96197718631179,
   "sector_news_impacts": {
-    "airlines": 2.0,
-    "paints": 1.6,
-    "chemicals": 1.2,
-    "tyres": 1.2,
-    "oil & gas": -1.6,
+    "airlines": 1.0,
+    "paints": 0.8,
+    "chemicals": 0.6,
+    "tyres": 0.6,
+    "oil & gas": -0.8,
     "information technology": 0.6,
     "it": 0.6,
     "pharma": 0.3

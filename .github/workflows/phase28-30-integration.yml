@@ -1,6 +1,14 @@
 name: Phase 28-30 Integrated Diagnostics
 
 on:
+  push:
+    branches:
+      - phase28-30-data-quality-accuracy
+    paths:
+      - "src/phase21_26.py"
+      - "src/phase31_walk_forward.py"
+      - "tests/test_phase21_26.py"
+      - ".github/workflows/phase28-30-integration.yml"
   pull_request:
     paths:
       - "src/phase21_26.py"

@@ -95,7 +95,14 @@ def build_index_intelligence(hist: pd.DataFrame | None = None) -> pd.DataFrame:
         if s.empty:
             continue
         r = _signal(s)
-        r.update({"index": name, "as_of": str(s.index[-1].date())})
+        last_close = float(s.iloc[-1])
+        change_1d_pct = float((s.iloc[-1] / s.iloc[-2] - 1) * 100) if len(s) > 1 and float(s.iloc[-2]) != 0 else np.nan
+        r.update({
+            "index": name,
+            "as_of": str(s.index[-1].date()),
+            "last_close": last_close,
+            "change_1d_pct": change_1d_pct,
+        })
         rows.append(r)
     out = pd.DataFrame(rows)
     if out.empty:
@@ -152,6 +159,7 @@ def _breadth(hist: pd.DataFrame) -> tuple[float, float]:
 def _market_score(out: pd.DataFrame, news_score: float, breadth_pct: float) -> tuple[float, str, float, str, bool]:
     weights = {"NIFTY50": .40, "BANKNIFTY": .25, "NIFTYFIN": .15, "NIFTYIT": .10, "NIFTYAUTO": .10}
     valid = []
+    valid_indexes = set()
     if not out.empty and {"index", "direction", "confidence"}.issubset(out.columns):
         for _, row in out.iterrows():
             idx = str(row["index"])
@@ -162,8 +170,10 @@ def _market_score(out: pd.DataFrame, news_score: float, breadth_pct: float) -> t
                 continue
             d = {"BUY": 1.0, "HOLD": 0.0, "AVOID": -1.0}.get(str(row["direction"]), 0.0)
             valid.append((weights[idx], d, float(conf)))
-    index_available = bool(valid)
-    if index_available:
+            valid_indexes.add(idx)
+    # Partial index coverage must not be reported as complete availability.
+    index_available = valid_indexes == set(weights)
+    if valid:
         denom = sum(w for w, _, _ in valid)
         price_score = 50.0 + 45.0 * sum(w * d * conf for w, d, conf in valid) / max(denom, .01)
     else:

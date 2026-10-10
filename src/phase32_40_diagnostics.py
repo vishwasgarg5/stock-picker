@@ -382,6 +382,7 @@ def run() -> dict[str, Any]:
             lagged = lagged.dropna(subset=["as_of", "change_1d_pct"]).drop_duplicates(["index", "as_of"], keep="last").sort_values(["index", "as_of"])
             lagged["next_session_change_pct"] = lagged.groupby("index")["change_1d_pct"].shift(-1)
             comparable_news = lagged.dropna(subset=["next_session_change_pct"])
+            comparable_news = comparable_news[comparable_news["_sentiment_sign"].ne(0)]
             alignment_rows = int(len(comparable_news))
             if alignment_rows:
                 alignment_correct = int((

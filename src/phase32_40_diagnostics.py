@@ -379,7 +379,7 @@ def run() -> dict[str, Any]:
                 [sentiment.str.contains("BULL"), sentiment.str.contains("BEAR")],
                 [1, -1], default=0
             )
-            lagged = lagged.dropna(subset=["as_of", "change_1d_pct"]).sort_values(["index", "as_of"])
+            lagged = lagged.dropna(subset=["as_of", "change_1d_pct"]).drop_duplicates(["index", "as_of"], keep="last").sort_values(["index", "as_of"])
             lagged["next_session_change_pct"] = lagged.groupby("index")["change_1d_pct"].shift(-1)
             comparable_news = lagged.dropna(subset=["next_session_change_pct"])
             alignment_rows = int(len(comparable_news))
@@ -410,10 +410,12 @@ def run() -> dict[str, Any]:
         daily["close_mape_pct"] = daily["close_mape"] * 100
         daily["baseline_close_mape_pct"] = daily["baseline_close_mape"] * 100
         daily["drift_flag"] = False
+        daily["early_context_close_mape_baseline_pct"] = np.nan
         if len(daily) >= 8:
             early = daily["close_mape"].iloc[:max(3, len(daily) // 2)].mean()
-            recent = daily["close_mape"].iloc[-max(3, len(daily) // 2):].mean()
-            daily["drift_flag"] = bool(pd.notna(early) and early > 0 and recent > early * 1.25)
+            daily["early_context_close_mape_baseline_pct"] = float(early * 100) if pd.notna(early) else np.nan
+            if pd.notna(early) and early > 0:
+                daily["drift_flag"] = daily["rolling_5_session_close_mape_pct"] > (early * 100 * 1.25)
         drift = daily.drop(columns=["close_mape", "direction_accuracy", "baseline_close_mape"])
     if drift.empty:
         drift = pd.DataFrame([{"status": "INSUFFICIENT_DATA", "drift_flag": False,

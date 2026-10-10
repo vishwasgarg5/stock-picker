@@ -19,7 +19,9 @@ def _parse_dates(values: pd.Series) -> pd.Series:
     try:
         return pd.to_datetime(values, errors="coerce", format="mixed")
     except (TypeError, ValueError):
-        return pd.to_datetime(values, errors="coerce")
+        # Older pandas versions infer one format for the whole Series. Parse
+        # each value independently so mixed legacy strings remain valid.
+        return values.map(lambda value: pd.to_datetime(value, errors="coerce"))
 
 
 ROOT = Path(__file__).resolve().parents[1]

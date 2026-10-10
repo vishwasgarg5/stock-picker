@@ -189,12 +189,28 @@ def _phase35_trade_metrics(trades: pd.DataFrame, model: str) -> dict[str, Any]:
         pnl = pd.Series(0.0, index=x.index)
     cost_col = "trading_cost" if "trading_cost" in x else ("costs" if "costs" in x else None)
     costs = _safe_num(x[cost_col]).fillna(0) if cost_col else pd.Series(0.0, index=x.index)
+    gross_col = "gross_profit_loss" if "gross_profit_loss" in x else None
+    gross = _safe_num(x[gross_col]).fillna(0) if gross_col else pnl + costs
+    ordered = x.copy()
+    ordered["_net_pnl"] = pnl
+    if "target_date" in ordered:
+        ordered["_date"] = pd.to_datetime(ordered["target_date"], errors="coerce")
+        ordered = ordered.sort_values("_date")
+    ordered["_portfolio_value"] = 100000.0 + ordered["_net_pnl"].cumsum()
+    peak = ordered["_portfolio_value"].cummax()
+    drawdown_pct = (ordered["_portfolio_value"] / peak - 1.0) * 100 if len(ordered) else pd.Series(dtype=float)
+    net_total = float(pnl.sum())
+    cost_total = float(costs.sum())
     out: dict[str, Any] = {
-        "model": model, "executed_trades": int(len(x)), "net_pnl": float(pnl.sum()),
-        "recorded_costs": float(costs.sum()), "win_rate_pct": float((pnl > 0).mean() * 100) if len(x) else None,
+        "model": model, "executed_trades": int(len(x)), "gross_pnl": float(gross.sum()),
+        "net_pnl": net_total, "recorded_costs": cost_total,
+        "net_pnl_with_50pct_extra_cost_stress": net_total - 0.5 * cost_total,
+        "net_pnl_with_100pct_extra_cost_stress": net_total - cost_total,
+        "max_trade_sequence_drawdown_pct": float(drawdown_pct.min()) if len(drawdown_pct) else None,
+        "win_rate_pct": float((pnl > 0).mean() * 100) if len(x) else None,
         "expectancy_per_trade": float(pnl.mean()) if len(x) else None,
         "status": "SMALL_SAMPLE" if len(x) < MIN_V2_EXECUTED_TRADES else "SAMPLE_GATE_MET",
-        "costs_note": "Uses recorded costs and net profit_loss; does not subtract costs a second time",
+        "costs_note": "Uses recorded costs and net profit_loss; stress cases subtract only additional assumed costs",
     }
     if "return_pct" in x:
         returns = _safe_num(x["return_pct"]).dropna()
@@ -271,7 +287,7 @@ def run() -> dict[str, Any]:
     v2_holdout = phase31.get("holdout_v2_net_pnl")
     comparable = v1_holdout is not None and v2_holdout is not None
     evidence_ready = (matched >= MIN_MATCHED_SESSIONS and v2_executed >= MIN_V2_EXECUTED_TRADES
-                      and comparable and float(v2_holdout) > float(v1_holdout))
+                      and comparable and float(v2_holdout) > 0 and float(v2_holdout) > float(v1_holdout))
     promotion = {
         "matched_sessions": matched, "minimum_matched_sessions": MIN_MATCHED_SESSIONS,
         "v2_executed_trades": v2_executed, "minimum_v2_executed_trades": MIN_V2_EXECUTED_TRADES,
@@ -330,6 +346,35 @@ def run() -> dict[str, Any]:
             {"check": "duplicate_headlines", "status": "WARN" if headlines[headlines.ne("")].duplicated().any() else "PASS",
              "affected_rows": int(headlines[headlines.ne("")].duplicated(keep=False).sum()), "detail": "exact duplicate headline text; not proof of duplicate event"},
         ])
+        # Exploratory next-session sentiment check; no predictive claim unless the
+        # source history has enough distinct dates per index to evaluate out of sample.
+        alignment_rows = 0
+        alignment_correct = 0
+        if {"index", "as_of", "change_1d_pct", "news_sentiment"}.issubset(index_news.columns):
+            lagged = index_news.copy()
+            lagged["as_of"] = pd.to_datetime(lagged["as_of"], errors="coerce").dt.normalize()
+            lagged["change_1d_pct"] = _safe_num(lagged["change_1d_pct"])
+            sentiment = lagged["news_sentiment"].astype(str).str.upper()
+            lagged["_sentiment_sign"] = np.select(
+                [sentiment.str.contains("BULL"), sentiment.str.contains("BEAR")],
+                [1, -1], default=0
+            )
+            lagged = lagged.dropna(subset=["as_of", "change_1d_pct"]).sort_values(["index", "as_of"])
+            lagged["next_session_change_pct"] = lagged.groupby("index")["change_1d_pct"].shift(-1)
+            comparable_news = lagged.dropna(subset=["next_session_change_pct"])
+            alignment_rows = int(len(comparable_news))
+            if alignment_rows:
+                alignment_correct = int((
+                    (comparable_news["_sentiment_sign"] > 0) & (comparable_news["next_session_change_pct"] > 0)
+                    | (comparable_news["_sentiment_sign"] < 0) & (comparable_news["next_session_change_pct"] < 0)
+                ).sum())
+        news_report = pd.concat([news_report, pd.DataFrame([{
+            "check": "exploratory_next_session_sentiment_alignment",
+            "status": "INSUFFICIENT_DATA" if alignment_rows < 20 else "DESCRIPTIVE_ONLY",
+            "affected_rows": alignment_rows,
+            "detail": (f"{alignment_correct}/{alignment_rows} directional matches; not used for model decisions"
+                       if alignment_rows else "Need at least 20 as-of index/date pairs; source timestamp quality must be verified")
+        }])], ignore_index=True)
     _write(news_report, "phase38_news_source_audit.csv")
 
     # Phase 39: date-ordered rolling error/drift report.
@@ -372,7 +417,11 @@ def run() -> dict[str, Any]:
         "phase39_drift_rows": int(len(drift)),
         "production_champion": "V1", "v2_promoted": False,
         "production_model_changed": False, "ranking_or_risk_changed": False,
-        "status": "REVIEW_REQUIRED" if any(x.get("status") in {"BLOCK", "WARN", "REVIEW", "INSUFFICIENT_DATA"} for x in data_checks + news_report.to_dict("records")) else "DIAGNOSTICS_GENERATED",
+        "status": "REVIEW_REQUIRED" if (
+            prediction_summary.get("status") != "SCORED"
+            or promotion.get("status") != "ELIGIBLE_FOR_HUMAN_REVIEW"
+            or any(x.get("status") in {"BLOCK", "WARN", "REVIEW", "INSUFFICIENT_DATA"} for x in data_checks + news_report.to_dict("records"))
+        ) else "DIAGNOSTICS_GENERATED",
         "status_counts": status_counts,
     }
     (DATA / "phase40_dashboard.json").write_text(json.dumps(dashboard, indent=2, default=str), encoding="utf-8")

@@ -102,3 +102,13 @@ def test_phase31_evidence_gate_requires_sessions_and_executed_v2_trades():
     assert summary["v2_executed_trades"] == 50
     assert summary["evidence_gate"] == "EVIDENCE_SUFFICIENT_FOR_REVIEW"
     assert summary["v2_promoted"] is False
+
+
+def test_phase31_empty_history_cannot_pass_evidence_gate():
+    daily, summary = chronological_comparison(
+        pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+    )
+    assert daily.empty
+    assert summary["matched_sessions"] == 0
+    assert summary["evidence_gate"] == "INSUFFICIENT_EVIDENCE"
+    assert summary["v2_promoted"] is False

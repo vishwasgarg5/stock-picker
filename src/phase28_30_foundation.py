@@ -97,6 +97,19 @@ def data_quality_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) -> 
         add(name, "business_keys_unique", "WARN" if dup_rows else "PASS", dup_rows,
             f"{excess} excess rows across duplicate valid {key_date}/symbol keys; invalid keys excluded")
 
+    if not candidates.empty:
+        if {"prediction_date", "target_date"}.issubset(candidates.columns):
+            prediction = parse_dates(candidates["prediction_date"]).dt.normalize()
+            target = parse_dates(candidates["target_date"]).dt.normalize()
+            invalid_order = int((prediction.notna() & target.notna() & (prediction >= target)).sum())
+            missing_order = int((prediction.isna() | target.isna()).sum())
+            add("candidates", "prediction_precedes_target",
+                "WARN" if invalid_order or missing_order else "PASS", invalid_order + missing_order,
+                f"{invalid_order} rows have prediction_date >= target_date; {missing_order} rows have an unparseable date")
+        else:
+            add("candidates", "prediction_precedes_target", "BLOCKED", len(candidates),
+                "prediction_date and target_date are required")
+
     if not evaluations.empty:
         if {"prediction_date", "target_date"}.issubset(evaluations.columns):
             prediction = parse_dates(evaluations["prediction_date"]).dt.normalize()
@@ -158,7 +171,10 @@ def historical_dataset_audit(evaluations: pd.DataFrame, candidates: pd.DataFrame
             "latest_prediction_date": str(pred.max().date()) if pred.notna().any() else None,
             "first_target_date": str(target.min().date()) if target.notna().any() else None,
             "latest_target_date": str(target.max().date()) if target.notna().any() else None,
-            "audit_status": "PASS" if valid_rows == len(frame) and duplicate_rows == 0 else "REVIEW",
+            "audit_status": (
+                "PASS" if pred.notna().all() and target.notna().all()
+                and valid_rows == len(frame) and duplicate_rows == 0 else "REVIEW"
+            ),
         })
     return pd.DataFrame(rows)
 

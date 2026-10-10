@@ -94,7 +94,7 @@ def chronological_comparison(
     matched["difference_cumulative_pnl"] = matched["v2_minus_v1_pnl"].cumsum()
 
     # Strict chronological holdout: earliest 60% is context; latest 40% is holdout.
-    holdout_start_idx = min(len(matched) - 1, max(0, int(np.floor(len(matched) * 0.60))))
+    holdout_start_idx = min(len(matched) - 1, max(0, int(np.ceil(len(matched) * 0.60))))
     matched["period"] = np.where(
         np.arange(len(matched)) < holdout_start_idx, "EARLY_CONTEXT", "CHRONOLOGICAL_HOLDOUT"
     )

@@ -218,6 +218,37 @@ def _phase35_trade_metrics(trades: pd.DataFrame, model: str) -> dict[str, Any]:
     return out
 
 
+def promotion_gate(
+    matched_sessions: int,
+    v2_executed_trades: int,
+    v1_holdout_net_pnl: float | None,
+    v2_holdout_net_pnl: float | None,
+    min_matched_sessions: int = MIN_MATCHED_SESSIONS,
+    min_v2_executed_trades: int = MIN_V2_EXECUTED_TRADES,
+) -> dict[str, Any]:
+    comparable = v1_holdout_net_pnl is not None and v2_holdout_net_pnl is not None
+    evidence_ready = (
+        matched_sessions >= min_matched_sessions
+        and v2_executed_trades >= min_v2_executed_trades
+        and comparable
+        and float(v2_holdout_net_pnl) > 0
+        and float(v2_holdout_net_pnl) > float(v1_holdout_net_pnl)
+    )
+    return {
+        "matched_sessions": int(matched_sessions),
+        "minimum_matched_sessions": int(min_matched_sessions),
+        "v2_executed_trades": int(v2_executed_trades),
+        "minimum_v2_executed_trades": int(min_v2_executed_trades),
+        "holdout_comparison_available": comparable,
+        "holdout_v1_net_pnl": v1_holdout_net_pnl,
+        "holdout_v2_net_pnl": v2_holdout_net_pnl,
+        "status": "ELIGIBLE_FOR_HUMAN_REVIEW" if evidence_ready else "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE",
+        "production_champion": "V1",
+        "v2_promoted": False,
+        "automatic_promotion": False,
+    }
+
+
 def run() -> dict[str, Any]:
     DATA.mkdir(exist_ok=True)
     candidates = _read("prediction_candidates_history.csv")
@@ -285,18 +316,7 @@ def run() -> dict[str, Any]:
     v2_executed = int(v2_metric.get("executed_trades", 0) or 0)
     v1_holdout = phase31.get("holdout_v1_net_pnl")
     v2_holdout = phase31.get("holdout_v2_net_pnl")
-    comparable = v1_holdout is not None and v2_holdout is not None
-    evidence_ready = (matched >= MIN_MATCHED_SESSIONS and v2_executed >= MIN_V2_EXECUTED_TRADES
-                      and comparable and float(v2_holdout) > 0 and float(v2_holdout) > float(v1_holdout))
-    promotion = {
-        "matched_sessions": matched, "minimum_matched_sessions": MIN_MATCHED_SESSIONS,
-        "v2_executed_trades": v2_executed, "minimum_v2_executed_trades": MIN_V2_EXECUTED_TRADES,
-        "holdout_comparison_available": comparable,
-        "holdout_v1_net_pnl": v1_holdout, "holdout_v2_net_pnl": v2_holdout,
-        "status": "ELIGIBLE_FOR_HUMAN_REVIEW" if evidence_ready else "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE",
-        "production_champion": "V1", "v2_promoted": False,
-        "automatic_promotion": False,
-    }
+    promotion = promotion_gate(matched, v2_executed, v1_holdout, v2_holdout)
     (DATA / "phase36_promotion_gate.json").write_text(json.dumps(promotion, indent=2, default=str), encoding="utf-8")
 
     # Phase 37: input integrity and freshness checks.

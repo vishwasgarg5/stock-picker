@@ -142,6 +142,9 @@ jobs:
       - name: Run Phase 27 data integrity and regime accuracy diagnostics (analysis-only)
         run: python -m src.phase27_data_quality
 
+      - name: Run Phases 28-30 data quality, historical audit and accuracy diagnostics (analysis-only)
+        run: python -m src.phase28_30_foundation
+
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison
 

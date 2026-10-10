@@ -36,5 +36,8 @@ jobs:
       - name: Compile diagnostics modules
         run: python -m py_compile src/phase27_data_quality.py src/phase28_30_foundation.py
 
+      - name: Run diagnostics against checked-in historical data
+        run: python -m src.phase28_30_foundation
+
       - name: Run data quality regression tests
         run: pytest -q tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py

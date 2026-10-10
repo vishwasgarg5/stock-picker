@@ -11,6 +11,7 @@ on:
       - "src/paper_trading_v2.py"
       - "tests/test_phase21_26.py"
       - "tests/test_phase32_40_diagnostics.py"
+      - ".github/workflows/daily.yml"
       - ".github/workflows/phase28-30-integration.yml"
   pull_request:
     paths:
@@ -22,6 +23,10 @@ on:
       - "tests/test_phase21_26.py"
       - "tests/test_phase27_data_quality.py"
       - "tests/test_phase28_30_foundation.py"
+      - "src/phase32_40_diagnostics.py"
+      - "src/paper_trading_v2.py"
+      - "tests/test_phase32_40_diagnostics.py"
+      - ".github/workflows/daily.yml"
       - ".github/workflows/phase28-30-integration.yml"
   workflow_dispatch:
     inputs:

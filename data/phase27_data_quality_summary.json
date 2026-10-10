@@ -3,10 +3,10 @@
   "as_of": "2026-10-10",
   "evaluation_rows": 150,
   "candidate_rows": 240,
-  "integrity_checks": 7,
+  "integrity_checks": 9,
   "warnings_or_blocks": 3,
-  "regime_buckets": 0,
-  "regime_buckets_with_sufficient_evidence": 0,
+  "regime_buckets": 1,
+  "regime_buckets_with_sufficient_evidence": 1,
   "production_model_changed": false,
   "ranking_or_risk_changed": false,
   "automatic_promotion": false,
@@ -15,5 +15,5 @@
     "data/phase27_data_integrity.csv",
     "data/phase27_regime_accuracy.csv"
   ],
-  "note": "Resolve duplicate and timestamp warnings at source; regime metrics are descriptive and do not change selection."
+  "note": "Diagnostics are descriptive; resolve genuine key/timestamp issues at source. Legacy missing confidence is reported separately from the latest cohort."
 }

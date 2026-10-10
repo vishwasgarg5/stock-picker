@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-10-10T02:43:19.946473+00:00",
+  "as_of": "2026-10-10T03:47:55.799598+00:00",
   "target_threshold_current_pct": 0.15,
   "target_threshold_candidates_pct": "0.1,0.15,0.25,0.5",
   "target_threshold_best_coverage_pct": 0.1,

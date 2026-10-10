@@ -197,7 +197,7 @@ def _phase35_trade_metrics(trades: pd.DataFrame, model: str) -> dict[str, Any]:
         ordered["_date"] = pd.to_datetime(ordered["target_date"], errors="coerce")
         ordered = ordered.sort_values("_date")
     ordered["_portfolio_value"] = 100000.0 + ordered["_net_pnl"].cumsum()
-    peak = ordered["_portfolio_value"].cummax()
+    peak = ordered["_portfolio_value"].cummax().clip(lower=100000.0)
     drawdown_pct = (ordered["_portfolio_value"] / peak - 1.0) * 100 if len(ordered) else pd.Series(dtype=float)
     net_total = float(pnl.sum())
     cost_total = float(costs.sum())

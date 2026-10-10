@@ -22,11 +22,13 @@ OHLC_FIELDS = ("open", "high", "low", "close")
 def parse_dates(values: pd.Series) -> pd.Series:
     """Parse mixed legacy date formats consistently, including older pandas versions."""
     try:
-        return pd.to_datetime(values, errors="coerce", format="mixed")
+        parsed = pd.to_datetime(values, errors="coerce", format="mixed")
     except (TypeError, ValueError):
-        # Per-value parsing avoids pandas' older first-value format inference
-        # turning later valid values into NaT when formats differ.
-        return values.map(lambda value: pd.to_datetime(value, errors="coerce"))
+        parsed = pd.Series(pd.NaT, index=values.index, dtype="datetime64[ns]")
+    # Some older pandas versions accept format="mixed" as a literal format
+    # without raising. Fall back if per-value parsing recognizes more dates.
+    fallback = values.map(lambda value: pd.to_datetime(value, errors="coerce"))
+    return fallback if fallback.notna().sum() > parsed.notna().sum() else parsed
 
 
 def read_csv(name: str) -> pd.DataFrame:

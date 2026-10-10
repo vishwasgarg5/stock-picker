@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+from html import escape
 from pathlib import Path
 
 import numpy as np
@@ -128,6 +129,83 @@ def _fmt_pct(value: object) -> str:
         return "-"
 
 
+def _index_market_lines(target_date: pd.Timestamp) -> list[str]:
+    """Return a resilient, mobile-readable market-index section for Telegram."""
+    summary_file = DATA / "index_intelligence_summary.csv"
+    config_file = DATA / "index_intelligence_config.json"
+    labels = {
+        "NIFTY50": "NIFTY 50",
+        "BANKNIFTY": "BANK NIFTY",
+        "NIFTYIT": "NIFTY IT",
+        "NIFTYAUTO": "NIFTY AUTO",
+        "NIFTYFIN": "NIFTY FIN",
+    }
+    try:
+        config = pd.read_json(config_file, typ="series").to_dict() if config_file.exists() else {}
+    except Exception:
+        config = {}
+    try:
+        frame = pd.read_csv(summary_file) if summary_file.exists() else pd.DataFrame()
+    except Exception:
+        frame = pd.DataFrame()
+    if not frame.empty and "index" in frame.columns:
+        frame["index"] = frame["index"].astype(str).str.upper().str.strip()
+        frame = frame.drop_duplicates("index", keep="last").set_index("index", drop=False)
+    else:
+        frame = pd.DataFrame()
+
+    lines = [
+        "",
+        "<b>📈 MARKET INDEX INTELLIGENCE</b>",
+        f"Regime: <b>{escape(str(config.get('market_regime', 'UNKNOWN')))}</b> | "
+        f"Risk: <b>{escape(str(config.get('risk_level', 'UNKNOWN')))}</b> "
+        f"| Score: {_fmt(config.get('market_intelligence_score'))}/100",
+        "<pre>",
+        "Index      | Close      | 1D       | 5D       | 20D      | Trend",
+        "----------------------------------------------------------------",
+    ]
+    dates = []
+    for key, label in labels.items():
+        row = frame.loc[key] if key in frame.index else None
+        if isinstance(row, pd.DataFrame):
+            row = row.iloc[-1]
+        if row is None:
+            lines.append(f"{label:<10} | {'-':>10} | {'-':>8} | {'-':>8} | {'-':>8} | NO DATA")
+            continue
+        as_of = str(row.get("as_of", "-"))
+        if as_of and as_of != "nan" and as_of != "-":
+            dates.append(as_of)
+        close = _fmt(row.get("last_close"))
+        one_day = _fmt_pct(row.get("change_1d_pct"))
+        five_day = _fmt_pct(row.get("return_5d_pct"))
+        twenty_day = _fmt_pct(row.get("return_20d_pct"))
+        trend = str(row.get("regime", "UNKNOWN"))
+        lines.append(
+            f"{label:<10} | {close:>10} | {one_day:>8} | {five_day:>8} | "
+            f"{twenty_day:>8} | {trend[:8]}"
+        )
+    lines.append("</pre>")
+    if dates:
+        latest = max(dates)
+        lines.append(f"Index data as of: <b>{escape(latest)}</b>")
+        try:
+            age_days = (pd.Timestamp(target_date).normalize() - pd.Timestamp(latest).normalize()).days
+            if age_days > 4:
+                lines.append(f"⚠️ Index data may be stale ({age_days} calendar days old).")
+        except Exception:
+            pass
+    else:
+        lines.append("⚠️ Index data unavailable; check index_intelligence_summary.csv.")
+    headline = config.get("news_headline") or config.get("market_reason")
+    if headline:
+        lines.append(f"Market news: {escape(str(headline))}")
+    lines.append(
+        f"Data quality: <b>{escape(str(config.get('data_quality', 'UNKNOWN')))}</b> | "
+        f"All indices available: <b>{'YES' if config.get('index_data_available') is True else 'NO'}</b>"
+    )
+    return lines
+
+
 def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) -> str:
     rows = predictions[predictions["target_date"].dt.normalize() == target_date.normalize()].sort_values("rank").head(10)
     if len(rows) < 10:
@@ -150,6 +228,7 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
         "<b>STOCK PICKER</b>",
         f"{target_date:%d-%b-%Y} | TOP 10 / {total_stocks}",
         f"<b>Selection:</b> {selection_method}",
+        *_index_market_lines(target_date),
         "",
         "<pre>",
         "Index   | Open      | High      | Low       | Close     | O→PC %",

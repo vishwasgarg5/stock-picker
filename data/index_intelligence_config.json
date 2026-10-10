@@ -1,7 +1,7 @@
 {
   "version": "index_intelligence_v3",
-  "market_regime": "BEAR",
-  "risk_multiplier": 0.55,
+  "market_regime": "NEUTRAL",
+  "risk_multiplier": 0.8,
   "news_sentiment": "BEARISH",
   "news_score": 0.2,
   "market_reason": "Crude oil: GIFT Nifty jumps 100 pts, signals positive start for Sensex, Nifty; crude oil, FII selling remain key... - Moneycontrol.com",
@@ -23,14 +23,14 @@
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Sensex jumps 1,000 points: 3 reasons why markets are rising today - India Today",
-      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxPUTlHaXlPRkNaMWhsbVNGcU4yVHZpZWlrNTN5cWxQMGVySzdyRU5fS0JYbHZYNzROdkxYU3h6N1hPSlpaSTYxYmFrSTNyVzExemoxN3ZKb1NheDlhckdpWlBTSzV0WW11UGpXM0ZaM0JScXk4c2x2cTRnaGFqWUxGVzdxdVhjbGhpTUFmN1VBWjBZZWx3TzdaTXpmRmVCVXJENEVWWE5vM25seDdjMzRMaUtyZlJwMnJfek1PcHlHMWJ6WUtpaEdadUxXcnBHVFk3cWkxNW1YdWY0WXpDenJz0gHkAUFVX3lxTE9BWERGeHo5LVFxME84RFd2NTB4aEJyZTd5WGxSaVprZXdFdVpmNzVRakZtWmh2emFWd1ZzR0lSbzlacFlLNGV4cGU4VnNVSWJsRWtKcmpENE8tTUxvQ1BkaERJM1ZLcFNfMmhHMENUdDhVU19RWFlqU3k2c05RVkd5c2JjalRpX2hEOTQ2ampSZkhBSUFMVy1MNVAxWW9WOHRnSXBDLUVlblZKZ2lyd2FyYWl4Y0w2WDc3SGlVTXFFcEJNRmswME8wTXc1VWEzZ2Z1cHNCUnNGOWU5QXRYN3FIY2xoWg?oc=5"
+      "headline": "Sensex shoots up 800 points; reclaims 72,000 mark: Nifty rises over 1%; IT stocks lead market rally despite... - Bhaskar English",
+      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNei1NRlNka1pGX3RsMGdwenBlR0R4a1l1WTVmMU5rU1hSdVlKRmJmck54TUZIeUNtVFdUeUROamJQMGlGSnpnN2xXOEZySmd4Y2p0clNWb2xval8zLV9pTGxwVkN4OFNnTDdIeC1NbHVRWkt0VWJ4b3haY1BiT29tYXZRUVJzazlJQjZLVWNVazNuSTM1WGlRWDNRNEVqMkJtUjJidWFFUC1ZdkdKMzhvbdIBsAFBVV95cUxNei1NRlNka1pGX3RsMGdwenBlR0R4a1l1WTVmMU5rU1hSdVlKRmJmck54TUZIeUNtVFdUeUROamJQMGlGSnpnN2xXOEZySmd4Y2p0clNWb2xval8zLV9pTGxwVkN4OFNnTDdIeC1NbHVRWkt0VWJ4b3haY1BiT29tYXZRUVJzazlJQjZLVWNVazNuSTM1WGlRWDNRNEVqMkJtUjJidWFFUC1ZdkdKMzhvbQ?oc=5"
     },
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Sensex shoots up 800 points; reclaims 72,000 mark: Nifty rises over 1%; IT stocks lead market rally despite... - Bhaskar English",
-      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxNei1NRlNka1pGX3RsMGdwenBlR0R4a1l1WTVmMU5rU1hSdVlKRmJmck54TUZIeUNtVFdUeUROamJQMGlGSnpnN2xXOEZySmd4Y2p0clNWb2xval8zLV9pTGxwVkN4OFNnTDdIeC1NbHVRWkt0VWJ4b3haY1BiT29tYXZRUVJzazlJQjZLVWNVazNuSTM1WGlRWDNRNEVqMkJtUjJidWFFUC1ZdkdKMzhvbdIBsAFBVV95cUxNei1NRlNka1pGX3RsMGdwenBlR0R4a1l1WTVmMU5rU1hSdVlKRmJmck54TUZIeUNtVFdUeUROamJQMGlGSnpnN2xXOEZySmd4Y2p0clNWb2xval8zLV9pTGxwVkN4OFNnTDdIeC1NbHVRWkt0VWJ4b3haY1BiT29tYXZRUVJzazlJQjZLVWNVazNuSTM1WGlRWDNRNEVqMkJtUjJidWFFUC1ZdkdKMzhvbQ?oc=5"
+      "headline": "Sensex jumps 1,000 points: 3 reasons why markets are rising today - India Today",
+      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxPUTlHaXlPRkNaMWhsbVNGcU4yVHZpZWlrNTN5cWxQMGVySzdyRU5fS0JYbHZYNzROdkxYU3h6N1hPSlpaSTYxYmFrSTNyVzExemoxN3ZKb1NheDlhckdpWlBTSzV0WW11UGpXM0ZaM0JScXk4c2x2cTRnaGFqWUxGVzdxdVhjbGhpTUFmN1VBWjBZZWx3TzdaTXpmRmVCVXJENEVWWE5vM25seDdjMzRMaUtyZlJwMnJfek1PcHlHMWJ6WUtpaEdadUxXcnBHVFk3cWkxNW1YdWY0WXpDenJz0gHkAUFVX3lxTE9BWERGeHo5LVFxME84RFd2NTB4aEJyZTd5WGxSaVprZXdFdVpmNzVRakZtWmh2emFWd1ZzR0lSbzlacFlLNGV4cGU4VnNVSWJsRWtKcmpENE8tTUxvQ1BkaERJM1ZLcFNfMmhHMENUdDhVU19RWFlqU3k2c05RVkd5c2JjalRpX2hEOTQ2ampSZkhBSUFMVy1MNVAxWW9WOHRnSXBDLUVlblZKZ2lyd2FyYWl4Y0w2WDc3SGlVTXFFcEJNRmswME8wTXc1VWEzZ2Z1cHNCUnNGOWU5QXRYN3FIY2xoWg?oc=5"
     },
     {
       "event": "General market",
@@ -39,9 +39,9 @@
       "url": "https://news.google.com/rss/articles/CBMikwJBVV95cUxPLU5kS01NYzN6ZjllY2RLOV9xS3V6US1lNUYwanhHMGxEcjNxSWJkU1dwQ25KdzNkYmotZ3RtVk8waFAxc1NrUTZJUjA4VTgtR2VhXzJ1ak1PNF9jVkRIVGJyWDhYQ2wxQTZ1WGJZcUdVVDRKVTRTcl9saWx3c1BEUDk1ZHREVk85SENYUEd4dDdxZlI4cllmS2dOakxmam16UEJ1NWt6RUFqX1dvekQ4UTZjYlRKa01nM2hrMUkzM1owQzhFWi1aT082QmFpaVN1cFZUQjM0U3duNHVXZHFLd1V1QUE3RlNPMms3UG1YUDRXcHJGT1hsUGtOWDNrNlRkMEwwQnM2U1ZGYW5NR3BvOVdsa9IBmAJBVV95cUxPMmhGQWtXeDZseGFzVllXU21ZS2xDRjlFaUFDekZ0U2xHM3ZuY1VwRmxwQ2ZQUWFqTDY0V2t1eFFCdzRTRTdQS3Y1dE5Xc21GVGtoZzBHLVBnbW91YnlUOEFMMDJwYzZSVGF4Q1dZUWJ3ZGU0ZTcxQXo3MkplellLR19PZ24zWDBXWFBIM05jNUt1SWlDNzN1cHFQdS1ETko3Z1p4OFhlU0o4QXBQYVh0UHZCcFpZMjhqUXRfOEJUVTcwWlpVWnJnZEJZQlNPaWxIZ0YwQUpBdWFZNHBlQXlxSkdlSTJQYjNjRzdMdENhYlMxNGV1NF9BdWNFZnBPVVJIZ3U4OFZwY0dfbFkwa3hGekh5S1plMmdJ?oc=5"
     }
   ],
-  "market_intelligence_score": 34.592395437262354,
-  "risk_level": "RISK_OFF",
-  "market_confidence": 0.6886684410646389,
+  "market_intelligence_score": 44.31239543726236,
+  "risk_level": "NEUTRAL",
+  "market_confidence": 0.6011884410646388,
   "data_quality": "HIGH",
   "index_data_available": true,
   "breadth_pct_above_sma20": 19.96197718631179,

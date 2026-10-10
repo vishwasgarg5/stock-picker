@@ -1,12 +1,12 @@
 {
-  "files": 35,
+  "files": 36,
   "sha256": {
     "src/advanced_governance.py": "0dcf2f6d211bc3ef4f914d0d7bd734ae17c31c2c7f72f0c6a20a8417391b6c6d",
     "src/confidence.py": "22c48932fe9d10c5c5ccd5f915c281176e1720f7bc5ae61cc5d8abfede44d08e",
     "src/confidence_validation.py": "630dd2b06345da52ed3efc7806931592c7cea341b50bc7be0b960dcb9c10f978",
     "src/directional_model.py": "d6a546edd7ee6435cb4fcd40626c11c8971c6f2cb71d48a1d74c8b858fae65fc",
     "src/final_validation.py": "7b28eb38d275e92b556e608977f8db60fd618100446c077cf794f3d921d03e25",
-    "src/index_intelligence.py": "3741449e7ccfa6d65cab8d3b2b3529916a0153816d56b5089514cecc9242ea5a",
+    "src/index_intelligence.py": "5d630377a3b67cc6a4f929ae4ee3841aceb19af9906d610898ba5882530a62a1",
     "src/integration_check.py": "9266ff8f61295290aa38eb0181ad44e55ab20954951b81d94dad5f063e0e220a",
     "src/model_governance.py": "6ae4c29e774675baadba66eeea7eb09c2e6e7dabb52eb464160cc8a7ff07a21b",
     "src/new_listing_model.py": "dd51412fa28c2a393811a4839e23764df5079c40ccf4cf93c6896f2fd931142c",
@@ -18,6 +18,7 @@
     "src/performance_history.py": "d3206b0360f533fb333725fc842a4e769191d0ea8ba8b6815827fb200142b074",
     "src/phase20_accuracy.py": "9cdc1c228d122381a889eb7bef8891b3fdd64ecd81a1b95df13fc76c244345a0",
     "src/phase21_26.py": "66b4eba7375e8a5cd5db53ee5b0efd998e44b1d276612d1dd8b055c59c6071ab",
+    "src/phase27_data_quality.py": "65ed5d1aeb79b32173eed79b40d8a327021e293d8329e8abd8c788cfe7e1a9fb",
     "src/phase2_dashboard.py": "2b799129504235a0811e120747c70eed7b8ca9aef47569f0d17d6ad8d8e1e798",
     "src/phase2_optimizer.py": "65d27d14af8793ca770375df85f7aee5a63ba4c71be0e42480acbdbcfbb5f2dc",
     "src/phase4_optimizer.py": "34e5a5d243597c514bf1a2799bb97ffeff701f98d5b537b986b11dc9ad2b48c2",
@@ -30,12 +31,12 @@
     "src/strategy_ab_report.py": "81b63845ef95182bc77d6b050b451783602eaf21784a38e28db18a3cd26f24ac",
     "src/strategy_governor.py": "e3c8f15d6e2c32ac62b9e2550306a66983e94c604e5a408c4b66bbd1d263486c",
     "src/system_health.py": "09150a2e4c638f9bf9fbd690c6ff2f810e41e972ce9018e37c06615c619963d0",
-    "src/telegram.py": "4f7df2c13195fd8dcd5eb9925718f2ccaa3b82513cc97d72ce63931587983aa9",
+    "src/telegram.py": "510251b01ef179272d0a806ca8db09679334b30fe40999ae9c8d7e7d78a7cbf0",
     "src/trade_quality_model.py": "be70706038043e573d5b92ce1c78f8c2e0cb9d533f4ffa8b5a74a7698b6190ba",
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "f3e3ac561a584eb9ab2bf87fc43e7a1ac28822a3bf5d1394cd1cb44fd3cd1e92"
+    ".github/workflows/daily.yml": "2cb4e08e0a8146715601be9f3105c7ecb23ddd3bf679b4139af15e15372e8728"
   },
   "manifest_version": "governance_v1"
 }

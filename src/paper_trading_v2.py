@@ -93,8 +93,6 @@ def run_paper_trading_v2() -> pd.DataFrame:
             p[col] = pd.to_numeric(p[col], errors="coerce")
 
     p = _phase2_confidence(p)
-    record("phase2_join", len(p), int(p["phase2_selected"].eq(1).sum()) if "phase2_selected" in p.columns else 0,
-           "Output count is Phase 2 selected candidates after join")
     if "confidence_v3" not in p.columns:
         p["confidence_v3"] = p["confidence_score"]
     p["confidence_v3"] = pd.to_numeric(p["confidence_v3"], errors="coerce").fillna(
@@ -102,6 +100,8 @@ def run_paper_trading_v2() -> pd.DataFrame:
     )
     p["phase2_score"] = pd.to_numeric(p.get("phase2_score"), errors="coerce")
     p["phase2_selected"] = pd.to_numeric(p.get("phase2_selected"), errors="coerce").fillna(0)
+    record("phase2_join", len(p), int(p["phase2_selected"].eq(1).sum()) if "phase2_selected" in p.columns else 0,
+           "Output count is Phase 2 selected candidates after join")
 
     actual = h.rename(columns={
         "date": "target_date",

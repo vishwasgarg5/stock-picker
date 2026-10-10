@@ -13,6 +13,15 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+
+def _parse_dates(values: pd.Series) -> pd.Series:
+    """Parse mixed legacy date formats consistently across pandas versions."""
+    try:
+        return pd.to_datetime(values, errors="coerce", format="mixed")
+    except (TypeError, ValueError):
+        return pd.to_datetime(values, errors="coerce")
+
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 
@@ -27,7 +36,7 @@ def read_csv(name: str) -> pd.DataFrame:
 
 def _keys(frame: pd.DataFrame, date_col: str) -> pd.DataFrame:
     x = frame.copy()
-    x[date_col] = pd.to_datetime(x[date_col], errors="coerce").dt.normalize()
+    x[date_col] = _parse_dates(x[date_col]).dt.normalize()
     x["symbol"] = x["symbol"].astype(str).str.upper().str.strip()
     return x
 
@@ -35,7 +44,7 @@ def _keys(frame: pd.DataFrame, date_col: str) -> pd.DataFrame:
 def _candidate_date_column(frame: pd.DataFrame) -> str | None:
     """Prefer prediction date, but use target date for legacy rows with gaps."""
     for col in ("prediction_date", "target_date"):
-        if col in frame.columns and pd.to_datetime(frame[col], errors="coerce").notna().any():
+        if col in frame.columns and _parse_dates(frame[col]).notna().any():
             return col
     return None
 
@@ -90,7 +99,7 @@ def integrity_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) -> pd.
             invalid_prediction = int((c[date_col].isna() | c["symbol"].isin(["", "NAN", "NONE"])).sum())
             # Pipeline history is intentionally unique by target_date + symbol.
             business_date_col = "target_date" if "target_date" in c.columns else date_col
-            c[business_date_col] = pd.to_datetime(c[business_date_col], errors="coerce").dt.normalize()
+            c[business_date_col] = _parse_dates(c[business_date_col]).dt.normalize()
             invalid_business_mask = c[business_date_col].isna() | c["symbol"].isin(["", "NAN", "NONE"])
             invalid_business = int(invalid_business_mask.sum())
             # Never count malformed rows as duplicate business keys: NaT/blank values
@@ -115,7 +124,7 @@ def integrity_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) -> pd.
                 vals = vals * 100
             date_col = _candidate_date_column(candidates)
             if date_col:
-                dates = pd.to_datetime(candidates[date_col], errors="coerce")
+                dates = _parse_dates(candidates[date_col])
                 latest = dates.max()
                 current_mask = dates.eq(latest)
             else:
@@ -176,9 +185,9 @@ def regime_accuracy_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) 
         return pd.DataFrame(columns=columns)
     c = _keys(candidates, candidate_date)
     c["market_regime"] = candidates.apply(_extract_regime, axis=1)
-    c["prediction_date"] = pd.to_datetime(candidates.get("prediction_date", candidates[candidate_date]), errors="coerce").dt.normalize()
+    c["prediction_date"] = _parse_dates(candidates.get("prediction_date", candidates[candidate_date])).dt.normalize()
     if candidate_date == "target_date" and "prediction_date" not in candidates:
-        c["prediction_date"] = pd.to_datetime(candidates[candidate_date], errors="coerce").dt.normalize()
+        c["prediction_date"] = _parse_dates(candidates[candidate_date]).dt.normalize()
     c["symbol"] = candidates["symbol"].astype(str).str.upper().str.strip()
     # Preserve UNKNOWN rows when no verified regime is recorded; the report
     # should make the evidence gap visible rather than silently omit it.
@@ -188,7 +197,7 @@ def regime_accuracy_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) 
             e[col] = np.nan
         e[col] = pd.to_numeric(e[col], errors="coerce")
     join_date = "prediction_date" if "prediction_date" in candidates else candidate_date
-    c["join_date"] = pd.to_datetime(candidates[join_date], errors="coerce").dt.normalize()
+    c["join_date"] = _parse_dates(candidates[join_date]).dt.normalize()
     # Evaluation prediction_date corresponds to the date the forecast was made.
     merged = e.merge(c[["join_date", "symbol", "market_regime"]].drop_duplicates(["join_date", "symbol"], keep="last"),
                      left_on=["prediction_date", "symbol"], right_on=["join_date", "symbol"], how="left")

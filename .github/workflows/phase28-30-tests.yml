@@ -1,0 +1,43 @@
+name: Phase 28-30 Data Quality Tests
+
+on:
+  pull_request:
+    paths:
+      - "src/phase27_data_quality.py"
+      - "src/phase28_30_foundation.py"
+      - "tests/test_phase27_data_quality.py"
+      - "tests/test_phase28_30_foundation.py"
+      - ".github/workflows/phase28-30-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONPATH: ${{ github.workspace }}
+
+jobs:
+  data-quality-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pandas numpy pytest
+
+      - name: Compile diagnostics modules
+        run: python -m py_compile src/phase27_data_quality.py src/phase28_30_foundation.py
+
+      - name: Run diagnostics against checked-in historical data
+        run: python -m src.phase28_30_foundation
+
+      - name: Run data quality regression tests
+        run: pytest -q tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py

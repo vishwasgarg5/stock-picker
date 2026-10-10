@@ -72,7 +72,9 @@ def test_phase35_uses_net_profit_loss_without_double_subtracting_costs():
     assert out["executed_trades"] == 2
     assert out["net_pnl"] == 70
     assert out["recorded_costs"] == 7
-    assert "does not subtract costs a second time" in out["costs_note"]
+    assert "does not subtract costs a second time" in out["costs_note"] or "stress cases subtract only additional assumed costs" in out["costs_note"]
+    assert out["net_pnl_with_50pct_extra_cost_stress"] == 66.5
+    assert out["net_pnl_with_100pct_extra_cost_stress"] == 63
 
 
 def test_phase32_funnel_does_not_claim_internal_stages_from_trade_history():

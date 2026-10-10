@@ -1,4 +1,4 @@
-name: Daily stock prediction and self-retraining
+name: Stock Picker — Main Workflow
 
 on:
   workflow_dispatch:

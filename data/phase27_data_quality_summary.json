@@ -3,10 +3,22 @@
   "as_of": "2026-10-10",
   "evaluation_rows": 150,
   "candidate_rows": 240,
+  "inputs": {
+    "data/evaluations.csv": {
+      "exists": true,
+      "sha256": "ca3d15da0aa70c3c891bb883274853404aba6022fafc88ade80ea2b9d6570220",
+      "bytes": 72670
+    },
+    "data/prediction_candidates_history.csv": {
+      "exists": true,
+      "sha256": "b5d1493405c69e6c8f4bb3d927f30bf0c7a609c1e7b0fdde325ee28225eaf53e",
+      "bytes": 84733
+    }
+  },
   "integrity_checks": 9,
-  "warnings_or_blocks": 3,
+  "warnings_or_blocks": 2,
   "regime_buckets": 1,
-  "regime_buckets_with_sufficient_evidence": 1,
+  "regime_buckets_with_sufficient_evidence": 0,
   "production_model_changed": false,
   "ranking_or_risk_changed": false,
   "automatic_promotion": false,
@@ -15,5 +27,5 @@
     "data/phase27_data_integrity.csv",
     "data/phase27_regime_accuracy.csv"
   ],
-  "note": "Diagnostics are descriptive; resolve genuine key/timestamp issues at source. Legacy missing confidence is reported separately from the latest cohort."
+  "note": "Diagnostics are descriptive and analysis-only. Input SHA-256 fingerprints identify the exact source files; UNKNOWN regimes never count as verified evidence. Legacy confidence gaps are reported separately from the latest cohort."
 }

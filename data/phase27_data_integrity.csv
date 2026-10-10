@@ -1,8 +1,8 @@
 check,status,affected_rows,detail
 evaluation_invalid_keys,PASS,0,rows with invalid prediction_date or blank symbol
 evaluation_duplicate_key_rows,PASS,0,0 excess rows across prediction_date/symbol keys
-candidate_history_invalid_keys,WARN,220,date key=target_date; 220 rows lack a usable prediction_date/symbol key
-candidate_history_duplicate_key_rows,WARN,184,131 excess rows across target_date/symbol keys (the pipeline's history uniqueness key)
+candidate_history_invalid_keys,WARN,220,220/240 rows have an invalid target_date/symbol business key; 220 rows have an invalid prediction_date/symbol prediction key
+candidate_history_duplicate_key_rows,PASS,0,0 excess rows among valid target_date/symbol keys; invalid keys excluded
 candidate_confidence_current_cohort,WARN,20,adjusted_confidence_score: 20/20 missing in latest date cohort; 140 missing in older rows
 candidate_confidence_range,PASS,0,confidence should be on a 0-100 scale after normalization
 candidate_future_named_fields,PASS,0,no obviously future/label-named fields found

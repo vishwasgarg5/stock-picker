@@ -91,3 +91,12 @@ def test_phase32_no_trade_history_marks_funnel_as_awaiting_observation(monkeypat
     funnel, summary = _phase32_funnel(pd.DataFrame())
     assert summary["status"] == "AWAITING_NEXT_V2_RUN"
     assert "Awaiting next V2 run" in funnel.iloc[0]["detail"]
+
+
+def test_phase33_requires_minimum_holdout_dates_and_rows():
+    scored, summary = score_historical_predictions(
+        _candidates(), _actuals(), min_holdout_dates=10
+    )
+    assert len(scored) == 5
+    assert summary["holdout_target_dates"] < 10
+    assert summary["status"] == "INSUFFICIENT_HOLDOUT"

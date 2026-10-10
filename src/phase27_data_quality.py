@@ -5,6 +5,7 @@ from __future__ import annotations
 Reports are analysis-only. This module never changes ranking, model weights,
 risk settings, production champion, or trading decisions.
 """
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -86,18 +87,23 @@ def integrity_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) -> pd.
                 "no usable prediction_date/target_date and symbol columns")
         else:
             c = _keys(candidates, date_col)
-            invalid = int((c[date_col].isna() | c["symbol"].isin(["", "NAN", "NONE"])).sum())
+            invalid_prediction = int((c[date_col].isna() | c["symbol"].isin(["", "NAN", "NONE"])).sum())
             # Pipeline history is intentionally unique by target_date + symbol.
             business_date_col = "target_date" if "target_date" in c.columns else date_col
             c[business_date_col] = pd.to_datetime(c[business_date_col], errors="coerce").dt.normalize()
-            invalid_business = int((c[business_date_col].isna() | c["symbol"].isin(["", "NAN", "NONE"])).sum())
-            dup_mask = c.duplicated([business_date_col, "symbol"], keep=False)
+            invalid_business_mask = c[business_date_col].isna() | c["symbol"].isin(["", "NAN", "NONE"])
+            invalid_business = int(invalid_business_mask.sum())
+            # Never count malformed rows as duplicate business keys: NaT/blank values
+            # are data-quality failures, not evidence of repeated candidate records.
+            valid_business = c.loc[~invalid_business_mask]
+            dup_mask = valid_business.duplicated([business_date_col, "symbol"], keep=False)
             dup_rows = int(dup_mask.sum())
-            excess = int(c.duplicated([business_date_col, "symbol"]).sum())
+            excess = int(valid_business.duplicated([business_date_col, "symbol"]).sum())
             add("candidate_history_invalid_keys", "WARN" if invalid_business else "PASS", invalid_business,
-                f"date key={business_date_col}; {invalid} rows lack a usable {date_col}/symbol key")
+                f"{invalid_business}/{len(c)} rows have an invalid {business_date_col}/symbol business key; "
+                f"{invalid_prediction} rows have an invalid {date_col}/symbol prediction key")
             add("candidate_history_duplicate_key_rows", "WARN" if dup_rows else "PASS", dup_rows,
-                f"{excess} excess rows across {business_date_col}/symbol keys (the pipeline's history uniqueness key)")
+                f"{excess} excess rows among valid {business_date_col}/symbol keys; invalid keys excluded")
 
         confidence_col = next((c for c in (
             "adjusted_confidence_score", "confidence_score", "confidence"
@@ -201,7 +207,13 @@ def regime_accuracy_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) 
             "direction_accuracy_pct": float(direction.mean() * 100) if len(direction) else np.nan,
             "close_mape_pct": m, "baseline_mape_pct": b,
             "mape_improvement_pct": float((b - m) / b * 100) if np.isfinite(m) and np.isfinite(b) and b > 0 else np.nan,
-            "evidence_status": "EVIDENCE_ONLY" if sessions >= 10 and len(g) >= 30 else "INSUFFICIENT_SAMPLE",
+            # UNKNOWN is not a verified market regime and must never be treated
+            # as evidence for regime-specific conclusions.
+            "evidence_status": (
+                "UNKNOWN_REGIME" if str(regime).upper() in {"UNKNOWN", "", "NAN", "NONE"}
+                else "EVIDENCE_ONLY" if sessions >= 10 and len(g) >= 30
+                else "INSUFFICIENT_SAMPLE"
+            ),
         })
     return pd.DataFrame(out, columns=columns).sort_values("market_regime")
 
@@ -215,11 +227,22 @@ def run() -> dict:
     integrity.to_csv(DATA / "phase27_data_integrity.csv", index=False)
     regimes.to_csv(DATA / "phase27_regime_accuracy.csv", index=False)
     warnings = int(integrity["status"].isin(["WARN", "BLOCKED", "REVIEW"]).sum()) if not integrity.empty else 1
+    def input_fingerprint(name: str) -> dict:
+        path = DATA / name
+        if not path.exists():
+            return {"exists": False, "sha256": None, "bytes": 0}
+        raw = path.read_bytes()
+        return {"exists": True, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
+
     summary = {
         "phase": 27,
         "as_of": str(pd.Timestamp.now().date()),
         "evaluation_rows": int(len(evaluations)),
         "candidate_rows": int(len(candidates)),
+        "inputs": {
+            "data/evaluations.csv": input_fingerprint("evaluations.csv"),
+            "data/prediction_candidates_history.csv": input_fingerprint("prediction_candidates_history.csv"),
+        },
         "integrity_checks": int(len(integrity)),
         "warnings_or_blocks": warnings,
         "regime_buckets": int(len(regimes)),
@@ -229,7 +252,7 @@ def run() -> dict:
         "automatic_promotion": False,
         "production_champion": "V1",
         "reports": ["data/phase27_data_integrity.csv", "data/phase27_regime_accuracy.csv"],
-        "note": "Diagnostics are descriptive; resolve genuine key/timestamp issues at source. Legacy missing confidence is reported separately from the latest cohort.",
+        "note": "Diagnostics are descriptive and analysis-only. Input SHA-256 fingerprints identify the exact source files; UNKNOWN regimes never count as verified evidence. Legacy confidence gaps are reported separately from the latest cohort.",
     }
     (DATA / "phase27_data_quality_summary.json").write_text(json.dumps(summary, indent=2, allow_nan=False))
     print(json.dumps(summary, indent=2, allow_nan=False))

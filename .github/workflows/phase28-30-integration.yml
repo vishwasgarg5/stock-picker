@@ -89,3 +89,22 @@ jobs:
               "accuracy_metric_rows"
           )}, indent=2))
           PY
+
+      - name: Upload diagnostic reports for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase28-30-integrated-diagnostic-reports
+          path: |
+            data/phase21_26_summary.json
+            data/phase22_leakage_audit.csv
+            data/phase23_matched_evidence.csv
+            data/phase25_drift_monitor.csv
+            data/phase26_news_impact.csv
+            data/phase27_data_quality.csv
+            data/phase28_data_quality.csv
+            data/phase29_dataset_audit.csv
+            data/phase30_accuracy_metrics.csv
+            data/phase28_30_summary.json
+          if-no-files-found: warn
+          retention-days: 14

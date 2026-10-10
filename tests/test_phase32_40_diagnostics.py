@@ -4,6 +4,7 @@ from src.phase32_40_diagnostics import (
     _phase32_funnel,
     _phase35_trade_metrics,
     score_historical_predictions,
+    promotion_gate,
 )
 
 
@@ -100,3 +101,27 @@ def test_phase33_requires_minimum_holdout_dates_and_rows():
     assert len(scored) == 5
     assert summary["holdout_target_dates"] < 10
     assert summary["status"] == "INSUFFICIENT_HOLDOUT"
+
+
+
+def test_phase36_zero_v2_holdout_pnl_cannot_pass_even_if_v1_loses():
+    result = promotion_gate(
+        matched_sessions=30,
+        v2_executed_trades=100,
+        v1_holdout_net_pnl=-500.0,
+        v2_holdout_net_pnl=0.0,
+    )
+    assert result["status"] == "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE"
+    assert result["production_champion"] == "V1"
+    assert result["v2_promoted"] is False
+
+
+def test_phase36_requires_minimum_sessions_and_trade_count():
+    result = promotion_gate(
+        matched_sessions=19,
+        v2_executed_trades=49,
+        v1_holdout_net_pnl=100.0,
+        v2_holdout_net_pnl=200.0,
+    )
+    assert result["status"] == "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE"
+    assert result["automatic_promotion"] is False

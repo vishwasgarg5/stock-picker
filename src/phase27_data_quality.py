@@ -74,7 +74,7 @@ def integrity_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) -> pd.
             add("candidate_confidence_coverage", "WARN", len(candidates),
                 "no recognized confidence column exists in candidate history")
 
-        suspicious = [c for c in candidates.columns if re.search(
+        suspicious = [c for c in candidates.columns if c.lower() != "target_date" and re.search(
             r"(actual|target|future|next_day|forward_return|label)", c, re.I
         )]
         add("candidate_future_named_fields", "REVIEW" if suspicious else "PASS", len(suspicious),

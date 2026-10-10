@@ -180,9 +180,8 @@ def regime_accuracy_report(evaluations: pd.DataFrame, candidates: pd.DataFrame) 
     if candidate_date == "target_date" and "prediction_date" not in candidates:
         c["prediction_date"] = pd.to_datetime(candidates[candidate_date], errors="coerce").dt.normalize()
     c["symbol"] = candidates["symbol"].astype(str).str.upper().str.strip()
-    # If the source has only target_date, translate to the evaluation target date.
-    if c["market_regime"].notna().sum() == 0:
-        return pd.DataFrame(columns=columns)
+    # Preserve UNKNOWN rows when no verified regime is recorded; the report
+    # should make the evidence gap visible rather than silently omit it.
     metric_cols = ["close_direction_correct", "close_abs_pct_error", "baseline_close_abs_pct_error"]
     for col in metric_cols:
         if col not in e:

@@ -9,6 +9,15 @@ on:
       - "tests/test_phase28_30_foundation.py"
       - ".github/workflows/phase28-30-tests.yml"
   workflow_dispatch:
+    inputs:
+      test_branch:
+        description: "Branch containing the Phase 28-30 implementation to test"
+        required: true
+        type: choice
+        default: phase28-30-data-quality-accuracy
+        options:
+          - phase28-30-data-quality-accuracy
+          - main
 
 permissions:
   contents: read
@@ -23,6 +32,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.test_branch || github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v6

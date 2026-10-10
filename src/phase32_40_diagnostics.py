@@ -129,10 +129,13 @@ def score_historical_predictions(
 
     context = scored[scored["period"] == "EARLY_CONTEXT"]
     holdout = scored[scored["period"] == "CHRONOLOGICAL_HOLDOUT"]
+    holdout_date_count = int(holdout["target_date"].nunique())
     summary = {
-        "status": "SCORED" if len(holdout) >= 20 and holdout_start is not None else "INSUFFICIENT_HOLDOUT",
+        "status": "SCORED" if len(holdout) >= 20 and holdout_date_count >= min_holdout_dates and holdout_start is not None else "INSUFFICIENT_HOLDOUT",
         "scored_rows": int(len(scored)),
         "unique_target_dates": int(scored["target_date"].nunique()),
+        "holdout_target_dates": holdout_date_count,
+        "minimum_holdout_target_dates_required": int(min_holdout_dates),
         "invalid_prediction_order_rows": invalid_order_rows,
         "first_target_date": scored["target_date"].min().date().isoformat(),
         "last_target_date": scored["target_date"].max().date().isoformat(),

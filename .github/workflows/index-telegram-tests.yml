@@ -32,4 +32,6 @@ jobs:
       - name: Compile changed modules
         run: python -m py_compile src/telegram.py src/index_intelligence.py
       - name: Run index Telegram regression tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: pytest -q tests/test_telegram_index_summary.py

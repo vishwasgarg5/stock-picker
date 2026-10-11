@@ -1,0 +1,2 @@
+target_date,rows,rolling_5_session_close_mape_pct,rolling_5_session_direction_accuracy_pct,close_mape_pct,baseline_close_mape_pct,drift_flag,early_context_close_mape_baseline_pct
+2026-09-24,20,,,4.243790119551498,4.217775849938186,False,

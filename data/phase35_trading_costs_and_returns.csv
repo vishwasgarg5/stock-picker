@@ -1,0 +1,3 @@
+model,executed_trades,gross_pnl,net_pnl,recorded_costs,net_pnl_with_50pct_extra_cost_stress,net_pnl_with_100pct_extra_cost_stress,max_trade_sequence_drawdown_pct,win_rate_pct,expectancy_per_trade,status,costs_note,mean_trade_return_pct
+V1,34,0.0,246.55841064453125,0.0,246.55841064453125,246.55841064453125,-3.0482224358337473,47.05882352941176,7.251717960133272,SMALL_SAMPLE,Uses recorded costs and net profit_loss; stress cases subtract only additional assumed costs,-0.0030371000998825094
+V2,0,0.0,0.0,0.0,0.0,0.0,,,,SMALL_SAMPLE,Uses recorded costs and net profit_loss; stress cases subtract only additional assumed costs,

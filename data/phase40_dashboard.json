@@ -1,0 +1,166 @@
+{
+  "phases": "32-40",
+  "diagnostics_only": true,
+  "phase32_selection_funnel": {
+    "status": "OBSERVED",
+    "stages": 8,
+    "final_selected_rows": 0
+  },
+  "phase33_chronological_prediction_replay": {
+    "status": "INSUFFICIENT_HOLDOUT",
+    "scored_rows": 20,
+    "unique_target_dates": 1,
+    "holdout_target_dates": 0,
+    "minimum_holdout_target_dates_required": 5,
+    "invalid_prediction_order_rows": 0,
+    "first_target_date": "2026-09-24",
+    "last_target_date": "2026-09-24",
+    "holdout_start_date": null,
+    "context_metrics": {
+      "rows": 0,
+      "status": "INSUFFICIENT_DATA"
+    },
+    "holdout_metrics": {
+      "rows": 0,
+      "status": "INSUFFICIENT_DATA"
+    },
+    "holdout_baseline_close_mape_pct": null,
+    "holdout_prediction_close_mape_pct": null,
+    "method": "chronological replay of already-recorded predictions; no model refit performed",
+    "promotion_allowed": false
+  },
+  "phase34_regime_accuracy_rows": 1,
+  "phase35_trade_metrics": [
+    {
+      "model": "V1",
+      "executed_trades": 34,
+      "gross_pnl": 0.0,
+      "net_pnl": 246.55841064453125,
+      "recorded_costs": 0.0,
+      "net_pnl_with_50pct_extra_cost_stress": 246.55841064453125,
+      "net_pnl_with_100pct_extra_cost_stress": 246.55841064453125,
+      "max_trade_sequence_drawdown_pct": -3.0482224358337473,
+      "win_rate_pct": 47.05882352941176,
+      "expectancy_per_trade": 7.251717960133272,
+      "status": "SMALL_SAMPLE",
+      "costs_note": "Uses recorded costs and net profit_loss; stress cases subtract only additional assumed costs",
+      "mean_trade_return_pct": -0.0030371000998825094
+    },
+    {
+      "model": "V2",
+      "executed_trades": 0,
+      "gross_pnl": 0.0,
+      "net_pnl": 0.0,
+      "recorded_costs": 0.0,
+      "net_pnl_with_50pct_extra_cost_stress": 0.0,
+      "net_pnl_with_100pct_extra_cost_stress": 0.0,
+      "max_trade_sequence_drawdown_pct": NaN,
+      "win_rate_pct": NaN,
+      "expectancy_per_trade": NaN,
+      "status": "SMALL_SAMPLE",
+      "costs_note": "Uses recorded costs and net profit_loss; stress cases subtract only additional assumed costs",
+      "mean_trade_return_pct": NaN
+    }
+  ],
+  "phase36_promotion_gate": {
+    "matched_sessions": 11,
+    "minimum_matched_sessions": 20,
+    "v2_executed_trades": 0,
+    "minimum_v2_executed_trades": 50,
+    "holdout_comparison_available": true,
+    "holdout_v1_net_pnl": -874.3209228515625,
+    "holdout_v2_net_pnl": 0.0,
+    "status": "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE",
+    "production_champion": "V1",
+    "v2_promoted": false,
+    "automatic_promotion": false
+  },
+  "phase37_data_checks": [
+    {
+      "check": "ohlcv_available",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "943189 OHLCV rows read"
+    },
+    {
+      "check": "ohlcv_valid_dates",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "date must parse"
+    },
+    {
+      "check": "ohlcv_unique_symbol_date",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "duplicate date/symbol rows"
+    },
+    {
+      "check": "ohlcv_positive_prices",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "OHLC prices must be numeric and positive"
+    },
+    {
+      "check": "ohlc_consistency",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "high/low must bound open, close and range"
+    },
+    {
+      "check": "ohlcv_freshness",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "latest date=2026-10-09 00:00:00; calendar age days=2; weekends/holidays not adjusted"
+    }
+  ],
+  "phase38_news_checks": [
+    {
+      "check": "news_rows",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "5 index-intelligence rows"
+    },
+    {
+      "check": "headline_present",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "headline field is populated"
+    },
+    {
+      "check": "source_url_present",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "source URLs must be HTTP(S)"
+    },
+    {
+      "check": "news_asof_date_parseable",
+      "status": "PASS",
+      "affected_rows": 0,
+      "detail": "as_of timestamp/date parses"
+    },
+    {
+      "check": "duplicate_headlines",
+      "status": "WARN",
+      "affected_rows": 5,
+      "detail": "exact duplicate headline text; not proof of duplicate event"
+    },
+    {
+      "check": "exploratory_next_session_sentiment_alignment",
+      "status": "INSUFFICIENT_DATA",
+      "affected_rows": 0,
+      "detail": "Need at least 20 as-of index/date pairs; source timestamp quality must be verified"
+    }
+  ],
+  "phase39_drift_rows": 1,
+  "production_champion": "V1",
+  "v2_promoted": false,
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "status": "REVIEW_REQUIRED",
+  "status_counts": {
+    "PASS": 4,
+    "WARN": 1,
+    "INSUFFICIENT_DATA": 1,
+    "SCORED": 1
+  }
+}

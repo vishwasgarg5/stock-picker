@@ -7,15 +7,15 @@
     25,
     26
   ],
-  "as_of": "2026-10-10",
+  "as_of": "2026-10-11",
   "phase21": {
     "calibration_buckets": 1,
     "evaluation_rows": 150
   },
   "phase22": {
     "checks": 6,
-    "warnings_or_blocks": 1,
-    "status": "REVIEW"
+    "warnings_or_blocks": 0,
+    "status": "CHECKS_PASS"
   },
   "phase23": {
     "matched_sessions": 11,

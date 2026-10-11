@@ -1,0 +1,23 @@
+{
+  "status": "INSUFFICIENT_HOLDOUT",
+  "scored_rows": 20,
+  "unique_target_dates": 1,
+  "holdout_target_dates": 0,
+  "minimum_holdout_target_dates_required": 5,
+  "invalid_prediction_order_rows": 0,
+  "first_target_date": "2026-09-24",
+  "last_target_date": "2026-09-24",
+  "holdout_start_date": null,
+  "context_metrics": {
+    "rows": 0,
+    "status": "INSUFFICIENT_DATA"
+  },
+  "holdout_metrics": {
+    "rows": 0,
+    "status": "INSUFFICIENT_DATA"
+  },
+  "holdout_baseline_close_mape_pct": null,
+  "holdout_prediction_close_mape_pct": null,
+  "method": "chronological replay of already-recorded predictions; no model refit performed",
+  "promotion_allowed": false
+}

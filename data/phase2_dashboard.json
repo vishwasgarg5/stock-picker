@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-10-10",
+  "as_of": "2026-10-11",
   "production_strategy": "V1",
   "phase2_status": "shadow",
   "phase2_reason": "insufficient_evidence",
@@ -15,8 +15,8 @@
   "v2_ab_return_lift_pct": 0.0,
   "v2_ab_session_win_rate_pct": 0.0,
   "v2_ab_drawdown_gate": false,
-  "directional_challenger_accuracy_pct": 51.61658169708041,
-  "directional_challenger_lift_pct": 0.68496285125802,
+  "directional_challenger_accuracy_pct": 51.61653537984492,
+  "directional_challenger_lift_pct": 0.6849466284699542,
   "directional_challenger_ready": false,
   "return_lift_ci_low_pct": -Infinity,
   "promotion_safe": false,

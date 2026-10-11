@@ -1,0 +1,9 @@
+stage,input_rows,output_rows,rejected_rows,detail
+predictions_loaded,160,160,0,Raw prediction rows loaded
+phase2_join,160,8,152,Output count is Phase 2 selected candidates after join
+actual_data_join_and_validation,160,110,50,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history
+confidence_percentile_gate,110,66,44,Required percentile >= 0.50
+phase2_selected_gate,66,6,60,Phase 2 selected flag equals 1
+phase4_eligibility_gate,6,0,6,phase4_eligible flag true
+atr_sanity_gate,0,0,0,ATR percent <= 8.00; missing ATR is currently allowed
+daily_trade_cap,0,0,0,Maximum 5 selected rows per target date

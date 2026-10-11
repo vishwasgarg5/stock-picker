@@ -1,0 +1,17 @@
+dataset,check,status,affected_rows,detail
+evaluations,input_available,PASS,0,150 rows loaded
+evaluations,symbol_values,PASS,0,blank or null-like symbols after normalization
+evaluations,prediction_dates_parseable,PASS,0,0/150 prediction_date values are invalid
+evaluations,business_keys_valid,PASS,0,0/150 rows have invalid prediction_date/symbol keys
+evaluations,business_keys_unique,PASS,0,0 excess rows across duplicate valid prediction_date/symbol keys; invalid keys excluded
+candidates,input_available,PASS,0,240 rows loaded
+candidates,symbol_values,PASS,0,blank or null-like symbols after normalization
+candidates,prediction_dates_parseable,PASS,0,0/240 prediction_date values are invalid
+candidates,business_keys_valid,PASS,0,0/240 rows have invalid target_date/symbol keys
+candidates,business_keys_unique,PASS,0,0 excess rows across duplicate valid target_date/symbol keys; invalid keys excluded
+candidates,prediction_precedes_target,PASS,0,0 rows have prediction_date >= target_date; 0 rows have an unparseable date
+evaluations,prediction_precedes_target,PASS,0,0 rows have prediction_date >= target_date; 0 rows have an unparseable date
+evaluations,open_price_values,PASS,0,0 missing/non-finite predicted or actual values; 0 non-positive actual prices
+evaluations,high_price_values,PASS,0,0 missing/non-finite predicted or actual values; 0 non-positive actual prices
+evaluations,low_price_values,PASS,0,0 missing/non-finite predicted or actual values; 0 non-positive actual prices
+evaluations,close_price_values,PASS,0,0 missing/non-finite predicted or actual values; 0 non-positive actual prices

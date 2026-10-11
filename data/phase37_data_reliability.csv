@@ -1,0 +1,7 @@
+check,status,affected_rows,detail
+ohlcv_available,PASS,0,943189 OHLCV rows read
+ohlcv_valid_dates,PASS,0,date must parse
+ohlcv_unique_symbol_date,PASS,0,duplicate date/symbol rows
+ohlcv_positive_prices,PASS,0,OHLC prices must be numeric and positive
+ohlc_consistency,PASS,0,"high/low must bound open, close and range"
+ohlcv_freshness,PASS,0,latest date=2026-10-09 00:00:00; calendar age days=2; weekends/holidays not adjusted

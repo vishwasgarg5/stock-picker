@@ -1,0 +1,3 @@
+group,candidates,target_dates,mean_realized_close_return_pct,median_realized_close_return_pct,realized_positive_rate_pct,prediction_direction_accuracy_pct,mean_abs_prediction_return_pct
+REJECTED,10,1,-4.888574162869246,-1.8354531007507058,10.0,30.0,0.05274486989031546
+SELECTED,10,1,-0.9611295334442005,-0.5905306462537563,30.0,40.0,0.04213572857505343

@@ -138,6 +138,7 @@ def test_phase35_flags_missing_gross_and_cost_ledger():
     ])
     out = _phase35_trade_metrics(trades, "V1")
     assert out["pnl_reconciliation_status"] == "MISSING_GROSS_OR_COST_LEDGER"
+    assert out["pnl_reconciliation_incomplete_rows"] == 1
 
 
 def test_phase35_flags_gross_net_cost_mismatch():
@@ -171,6 +172,24 @@ def test_phase33_uses_recorded_evaluation_actuals_when_ohlcv_is_missing():
     assert source.startswith("evaluations.csv actual OHLC fallback")
     assert list(actuals.columns) == ["date", "symbol", "open", "high", "low", "close"]
     assert actuals.iloc[0]["close"] == 101
+
+
+def test_phase33_supplements_partial_ohlcv_with_missing_evaluation_dates():
+    from src.phase32_40_diagnostics import _actuals_for_scoring
+
+    ohlcv = pd.DataFrame([
+        {"date": "2026-09-02", "symbol": "ABC", "open": 100, "high": 104, "low": 98, "close": 101},
+    ])
+    evaluations = pd.DataFrame([
+        {"target_date": "2026-09-02", "symbol": "ABC", "actual_open": 100, "actual_high": 104,
+         "actual_low": 98, "actual_close": 101},
+        {"target_date": "2026-09-03", "symbol": "ABC", "actual_open": 102, "actual_high": 106,
+         "actual_low": 100, "actual_close": 103},
+    ])
+    actuals, source = _actuals_for_scoring(ohlcv, evaluations)
+    assert len(actuals) == 2
+    assert "supplementing missing date/symbol keys" in source
+    assert set(pd.to_datetime(actuals["date"]).dt.strftime("%Y-%m-%d")) == {"2026-09-02", "2026-09-03"}
 
 
 def test_phase35_falls_back_to_shares_when_quantity_column_is_blank():

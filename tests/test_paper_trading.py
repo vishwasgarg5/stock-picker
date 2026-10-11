@@ -108,3 +108,43 @@ def test_training_rows_only_use_matching_actual_session():
     assert len(rows) == 1
     assert rows.iloc[0]["actual_open"] == pytest.approx(102.0)
     assert rows.iloc[0]["close_return"] == pytest.approx(104 / 102 - 1)
+
+
+
+def test_accounting_ledger_audit_passes_complete_reconciled_rows():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "entry_price": 100.0, "exit_price": 110.0,
+         "shares": 100.0, "allocated_capital": 10000.0,
+         "gross_profit_loss": 1000.0, "costs": 10.0,
+         "profit_loss": 990.0, "return_pct": 9.9},
+    ])
+    audit = pt._accounting_ledger_audit(trades)
+    assert audit["status"] == "PASS"
+    assert audit["complete_ledger_rows"] == 1
+    assert audit["reconciliation_mismatch_rows"] == 0
+
+
+def test_accounting_ledger_audit_blocks_missing_values_without_backfill():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "entry_price": 100.0, "exit_price": 110.0,
+         "shares": 100.0, "allocated_capital": 10000.0,
+         "gross_profit_loss": float("nan"), "costs": float("nan"),
+         "profit_loss": 990.0, "return_pct": 9.9},
+    ])
+    audit = pt._accounting_ledger_audit(trades)
+    assert audit["status"] == "BLOCK"
+    assert audit["incomplete_ledger_rows"] == 1
+    assert '"gross_profit_loss": 1' in audit["missing_by_field_json"]
+    assert '"costs": 1' in audit["missing_by_field_json"]
+
+
+def test_accounting_ledger_audit_blocks_net_pnl_mismatch():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "entry_price": 100.0, "exit_price": 110.0,
+         "shares": 100.0, "allocated_capital": 10000.0,
+         "gross_profit_loss": 1000.0, "costs": 10.0,
+         "profit_loss": 995.0, "return_pct": 9.95},
+    ])
+    audit = pt._accounting_ledger_audit(trades)
+    assert audit["status"] == "BLOCK"
+    assert audit["reconciliation_mismatch_rows"] == 1

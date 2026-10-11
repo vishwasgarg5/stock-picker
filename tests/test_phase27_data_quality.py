@@ -1,6 +1,7 @@
 import pandas as pd
 
 from src.phase27_data_quality import integrity_report, regime_accuracy_report
+from src.phase21_26 import leakage_audit
 
 
 def test_integrity_report_flags_duplicate_keys_and_missing_confidence():
@@ -96,3 +97,35 @@ def test_mixed_date_formats_do_not_create_false_invalid_keys_or_missing_confiden
     assert out.loc["candidate_history_invalid_keys", "affected_rows"] == 0
     assert out.loc["candidate_confidence_current_cohort", "affected_rows"] == 0
 
+
+
+
+def test_phase22_candidate_history_key_uses_target_date_and_symbol():
+    evaluations = pd.DataFrame([
+        {"prediction_date": "2026-10-01", "target_date": "2026-10-02", "symbol": "ABC"},
+    ])
+    candidates = pd.DataFrame([
+        {"prediction_date": "2026-10-01", "target_date": "2026-10-02", "symbol": "abc"},
+        {"prediction_date": "2026-10-01", "target_date": "2026-10-03", "symbol": "ABC"},
+    ])
+    out = leakage_audit(evaluations, candidates, pd.DataFrame()).set_index("check")
+
+    # Candidate history is keyed by target_date + symbol, not prediction_date + symbol.
+    assert out.loc["candidate_history_unique_key", "status"] == "PASS"
+    assert out.loc["candidate_history_unique_key", "affected_rows"] == 0
+    # target_date is a valid business-key field, not leakage evidence by itself.
+    assert out.loc["candidate_future_named_columns", "status"] == "PASS"
+
+
+def test_phase22_candidate_history_flags_real_target_date_symbol_duplicates():
+    evaluations = pd.DataFrame([
+        {"prediction_date": "2026-10-01", "target_date": "2026-10-02", "symbol": "ABC"},
+    ])
+    candidates = pd.DataFrame([
+        {"prediction_date": "2026-10-01", "target_date": "2026-10-02", "symbol": "abc"},
+        {"prediction_date": "2026-10-01 00:00:00", "target_date": "2026-10-02", "symbol": "ABC"},
+    ])
+    out = leakage_audit(evaluations, candidates, pd.DataFrame()).set_index("check")
+
+    assert out.loc["candidate_history_unique_key", "status"] == "WARN"
+    assert out.loc["candidate_history_unique_key", "affected_rows"] == 2

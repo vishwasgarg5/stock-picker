@@ -17,9 +17,13 @@ import pandas as pd
 def _parse_dates(values: pd.Series) -> pd.Series:
     """Parse mixed legacy date formats consistently across pandas versions."""
     try:
-        return pd.to_datetime(values, errors="coerce", format="mixed")
+        parsed = pd.to_datetime(values, errors="coerce", format="mixed")
     except (TypeError, ValueError):
-        return pd.to_datetime(values, errors="coerce")
+        parsed = pd.Series(pd.NaT, index=values.index, dtype="datetime64[ns]")
+    # Some older pandas versions accept format="mixed" as a literal format
+    # without raising, which can silently turn valid dates into NaT.
+    fallback = values.map(lambda value: pd.to_datetime(value, errors="coerce"))
+    return fallback if fallback.notna().sum() > parsed.notna().sum() else parsed
 
 
 ROOT = Path(__file__).resolve().parents[1]

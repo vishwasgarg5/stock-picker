@@ -47,7 +47,7 @@ jobs:
         run: python -m compileall -q src
 
       - name: Run Phase 2 and directional regression tests
-        run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py tests/test_model_governance.py tests/test_phase4_optimizer.py tests/test_pipeline_data_quality.py tests/test_news_context.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_pipeline_ranking.py tests/test_advanced_governance.py tests/test_phase20_accuracy.py tests/test_phase21_26.py tests/test_telegram_index_summary.py tests/test_phase27_data_quality.py
+        run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py tests/test_model_governance.py tests/test_phase4_optimizer.py tests/test_pipeline_data_quality.py tests/test_news_context.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_pipeline_ranking.py tests/test_advanced_governance.py tests/test_phase20_accuracy.py tests/test_phase21_26.py tests/test_telegram_index_summary.py tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py tests/test_phase32_40_diagnostics.py tests/test_phase41_43_diagnostics.py
 
       - name: Preflight end-to-end integration wiring
         if: always()
@@ -141,6 +141,18 @@ jobs:
 
       - name: Run Phase 27 data integrity and regime accuracy diagnostics (analysis-only)
         run: python -m src.phase27_data_quality
+
+      - name: Run Phases 28-30 data quality, historical audit and accuracy diagnostics (analysis-only)
+        run: python -m src.phase28_30_foundation
+
+      - name: Run Phase 31 chronological V1/V2 evidence replay (analysis-only)
+        run: python -m src.phase31_walk_forward
+
+      - name: Run Phases 32-40 diagnostics and evidence gates (analysis-only)
+        run: python -m src.phase32_40_diagnostics
+
+      - name: Run Phases 41-43 V2 diagnosis and offline sensitivity reports (analysis-only)
+        run: python -m src.phase41_43_diagnostics
 
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison

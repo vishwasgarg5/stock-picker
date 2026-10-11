@@ -17,6 +17,7 @@ CONF_SUMMARY = DATA / "confidence_validation_summary.csv"
 PHASE2_FILE = DATA / "phase2_optimized_candidates.csv"
 TRADES_FILE = DATA / "paper_trades_v2.csv"
 PORTFOLIO_FILE = DATA / "portfolio_v2_daily.csv"
+FUNNEL_FILE = DATA / "phase32_v2_selection_funnel.csv"
 
 CAPITAL = 100000.0
 COST_RATE = 0.0005
@@ -74,6 +75,11 @@ def run_paper_trading_v2() -> pd.DataFrame:
         return pd.DataFrame()
 
     p = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date", "target_date"])
+    funnel = []
+    def record(stage: str, input_rows: int, output_rows: int, detail: str = "") -> None:
+        funnel.append({"stage": stage, "input_rows": int(input_rows), "output_rows": int(output_rows),
+                       "rejected_rows": int(max(0, input_rows - output_rows)), "detail": detail})
+    record("predictions_loaded", len(p), len(p), "Raw prediction rows loaded")
     h = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
     if p.empty or h.empty or "confidence_score" not in p.columns:
         return pd.DataFrame()
@@ -94,6 +100,8 @@ def run_paper_trading_v2() -> pd.DataFrame:
     )
     p["phase2_score"] = pd.to_numeric(p.get("phase2_score"), errors="coerce")
     p["phase2_selected"] = pd.to_numeric(p.get("phase2_selected"), errors="coerce").fillna(0)
+    record("phase2_join", len(p), int(p["phase2_selected"].eq(1).sum()) if "phase2_selected" in p.columns else 0,
+           "Output count is Phase 2 selected candidates after join")
 
     actual = h.rename(columns={
         "date": "target_date",
@@ -109,7 +117,9 @@ def run_paper_trading_v2() -> pd.DataFrame:
     x = x.merge(latest_atr, on=["symbol", "prediction_date"], how="left")
     x = x.dropna(subset=["confidence_score", "actual_open", "actual_close", "base_close"])
     x = x[x["target_date"] <= h["date"].max()].copy()
+    record("actual_data_join_and_validation", len(p), len(x), "Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history")
     if x.empty:
+        pd.DataFrame(funnel).to_csv(FUNNEL_FILE, index=False)
         return pd.DataFrame()
 
     confidence_promoted = _confidence_gate()
@@ -117,10 +127,12 @@ def run_paper_trading_v2() -> pd.DataFrame:
     # Evidence collection is independent of production promotion. V2 benchmarks
     # the Phase-2 selector itself; production remains protected by the governor.
     x["confidence_pct"] = x.groupby("target_date")["confidence_v3"].rank(pct=True, method="first")
-    eligible = x[
-        (x["confidence_pct"] >= SHADOW_CONFIDENCE_PERCENTILE)
-        & x["phase2_selected"].eq(1)
-    ].copy()
+    confidence_eligible = x[x["confidence_pct"] >= SHADOW_CONFIDENCE_PERCENTILE].copy()
+    record("confidence_percentile_gate", len(x), len(confidence_eligible),
+           f"Required percentile >= {SHADOW_CONFIDENCE_PERCENTILE:.2f}")
+    eligible = confidence_eligible[confidence_eligible["phase2_selected"].eq(1)].copy()
+    record("phase2_selected_gate", len(confidence_eligible), len(eligible),
+           "Phase 2 selected flag equals 1")
 
     eligible["expected_return_pct"] = (
         eligible["predicted_close"] / eligible["base_close"].replace(0, np.nan) - 1.0
@@ -147,18 +159,22 @@ def run_paper_trading_v2() -> pd.DataFrame:
         pct=True, method="first"
     )
     eligible = apply_phase4(eligible)
-    eligible = apply_index_overlay(eligible)
+    phase4_eligible = eligible[eligible["phase4_eligible"]].copy()
+    record("phase4_eligibility_gate", len(eligible), len(phase4_eligible), "phase4_eligible flag true")
+    eligible = apply_index_overlay(phase4_eligible)
 
     # Shadow benchmark is not a production risk gate. Apply only the Phase-4
     # eligibility rules and a hard ATR sanity bound.
-    eligible = eligible[
-        eligible["phase4_eligible"]
-        & (eligible["atr_pct"].isna() | eligible["atr_pct"].le(MAX_SHADOW_ATR_PCT))
-    ].copy()
+    atr_eligible = eligible[eligible["atr_pct"].isna() | eligible["atr_pct"].le(MAX_SHADOW_ATR_PCT)].copy()
+    record("atr_sanity_gate", len(eligible), len(atr_eligible),
+           f"ATR percent <= {MAX_SHADOW_ATR_PCT:.2f}; missing ATR is currently allowed")
+    eligible = atr_eligible
     selected = eligible.sort_values(
         ["target_date", "phase4_score", "phase2_score", "confidence_v3"],
         ascending=[True, False, False, False]
     ).groupby("target_date", group_keys=False).head(MAX_TRADES).copy()
+    record("daily_trade_cap", len(eligible), len(selected), f"Maximum {MAX_TRADES} selected rows per target date")
+    pd.DataFrame(funnel).to_csv(FUNNEL_FILE, index=False)
 
     x["strategy"] = "V2_SHADOW_BENCHMARK" if not confidence_promoted else "V2_CONFIDENCE_BENCHMARK"
     x["signal"] = "SKIP"

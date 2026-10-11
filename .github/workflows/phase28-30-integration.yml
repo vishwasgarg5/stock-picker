@@ -9,6 +9,8 @@ on:
       - "src/phase31_walk_forward.py"
       - "src/phase32_40_diagnostics.py"
       - "src/paper_trading_v2.py"
+      - "src/phase41_43_diagnostics.py"
+      - "tests/test_phase41_43_diagnostics.py"
       - "tests/test_phase21_26.py"
       - "tests/test_phase32_40_diagnostics.py"
       - ".github/workflows/daily.yml"
@@ -70,7 +72,7 @@ jobs:
         run: python -m compileall -q src
 
       - name: Run Phase 27 and Phase 28-30 regression tests
-        run: pytest -q tests/test_phase21_26.py tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py tests/test_phase32_40_diagnostics.py
+        run: pytest -q tests/test_phase21_26.py tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py tests/test_phase32_40_diagnostics.py tests/test_phase41_43_diagnostics.py
 
       - name: Check integration wiring (preflight only)
         run: python -m src.integration_check --preflight
@@ -89,6 +91,9 @@ jobs:
 
       - name: Run Phases 32-40 diagnostics and evidence gates
         run: python -m src.phase32_40_diagnostics
+
+      - name: Run Phases 41-43 V2 diagnosis and offline sensitivity reports
+        run: python -m src.phase41_43_diagnostics
 
       - name: Verify diagnostic output and production safety guardrails
         run: |
@@ -158,6 +163,10 @@ jobs:
             data/phase39_prediction_drift.csv
             data/phase40_dashboard.json
             data/phase40_dashboard.md
+            data/phase41_43_summary.json
+            data/phase41_v2_funnel_audit.csv
+            data/phase42_selected_vs_rejected.csv
+            data/phase43_threshold_sensitivity.csv
             data/phase28_30_summary.json
           if-no-files-found: warn
           retention-days: 14

@@ -216,6 +216,14 @@ def run_paper_trading_v2() -> pd.DataFrame:
                 x.at[row_idx, "no_trade_reason"] = "phase4_ineligible"
             elif key not in atr_pass_keys:
                 x.at[row_idx, "no_trade_reason"] = "atr_sanity_limit"
+    phase4_reason_lookup = {
+        (row["symbol"], row["target_date"]): row["phase4_reject_reason"]
+        for _, row in eligible.iterrows()
+    }
+    x["phase4_reject_reason"] = [
+        phase4_reason_lookup.get((row["symbol"], row["target_date"]), "")
+        for _, row in x.iterrows()
+    ]
     if not selected.empty:
         selected_idx = pd.MultiIndex.from_frame(selected[["symbol", "target_date"]])
         x_idx = pd.MultiIndex.from_frame(x[["symbol", "target_date"]])

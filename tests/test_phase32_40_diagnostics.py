@@ -212,3 +212,24 @@ def test_phase35_does_not_treat_blank_ledger_values_as_zero():
     ])
     out = _phase35_trade_metrics(trades, "V1")
     assert out["pnl_reconciliation_status"] == "MISSING_GROSS_OR_COST_LEDGER"
+
+
+
+def test_phase33_falls_back_to_recorded_evaluation_forecasts_when_history_match_is_too_narrow():
+    from src.phase32_40_diagnostics import _score_with_evaluation_fallback
+
+    candidates = _candidates().iloc[:1].copy()
+    actuals = _actuals()
+    evaluations = _candidates().merge(
+        actuals.rename(columns={"date": "target_date", "open": "actual_open",
+                                "high": "actual_high", "low": "actual_low", "close": "actual_close"}),
+        on=["target_date", "symbol"],
+        how="inner",
+    )
+    scored, summary = _score_with_evaluation_fallback(
+        candidates, evaluations, actuals, "ohlcv.csv", min_holdout_dates=1
+    )
+    assert summary["unique_target_dates"] == 5
+    assert len(scored) == 5
+    assert summary["prediction_source"].startswith("evaluations.csv paired saved forecasts/outcomes")
+    assert summary["actuals_source"] == "evaluations.csv paired actual OHLC"

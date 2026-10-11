@@ -30,7 +30,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: stock-picker-daily
+  # Keep production runs separate from CI runs so a long daily job cannot queue PR validation.
+  group: stock-picker-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
 
 env:

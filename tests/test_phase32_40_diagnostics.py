@@ -138,6 +138,7 @@ def test_phase35_flags_missing_gross_and_cost_ledger():
     ])
     out = _phase35_trade_metrics(trades, "V1")
     assert out["pnl_reconciliation_status"] == "MISSING_GROSS_OR_COST_LEDGER"
+    assert out["pnl_reconciliation_incomplete_rows"] == 1
 
 
 def test_phase35_flags_gross_net_cost_mismatch():
@@ -158,3 +159,79 @@ def test_phase35_marks_reconciled_ledger():
     out = _phase35_trade_metrics(trades, "V1")
     assert out["pnl_reconciliation_status"] == "RECONCILED"
     assert out["pnl_reconciliation_delta"] == 0.0
+
+
+def test_phase33_uses_recorded_evaluation_actuals_when_ohlcv_is_missing():
+    from src.phase32_40_diagnostics import _actuals_for_scoring
+
+    evaluations = pd.DataFrame([
+        {"target_date": "2026-09-02", "symbol": "ABC", "actual_open": 100,
+         "actual_high": 104, "actual_low": 98, "actual_close": 101},
+    ])
+    actuals, source = _actuals_for_scoring(pd.DataFrame(), evaluations)
+    assert source.startswith("evaluations.csv actual OHLC fallback")
+    assert list(actuals.columns) == ["date", "symbol", "open", "high", "low", "close"]
+    assert actuals.iloc[0]["close"] == 101
+
+
+def test_phase33_supplements_partial_ohlcv_with_missing_evaluation_dates():
+    from src.phase32_40_diagnostics import _actuals_for_scoring
+
+    ohlcv = pd.DataFrame([
+        {"date": "2026-09-02", "symbol": "ABC", "open": 100, "high": 104, "low": 98, "close": 101},
+    ])
+    evaluations = pd.DataFrame([
+        {"target_date": "2026-09-02", "symbol": "ABC", "actual_open": 100, "actual_high": 104,
+         "actual_low": 98, "actual_close": 101},
+        {"target_date": "2026-09-03", "symbol": "ABC", "actual_open": 102, "actual_high": 106,
+         "actual_low": 100, "actual_close": 103},
+    ])
+    actuals, source = _actuals_for_scoring(ohlcv, evaluations)
+    assert len(actuals) == 2
+    assert "supplementing missing date/symbol keys" in source
+    assert set(pd.to_datetime(actuals["date"]).dt.strftime("%Y-%m-%d")) == {"2026-09-02", "2026-09-03"}
+
+
+def test_phase35_falls_back_to_shares_when_quantity_column_is_blank():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": float("nan"), "shares": 2,
+         "profit_loss": 90, "gross_profit_loss": 100, "costs": 10},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["executed_trades"] == 1
+    assert out["gross_pnl"] == 100
+    assert out["net_pnl"] == 90
+    assert out["recorded_costs"] == 10
+    assert out["pnl_reconciliation_status"] == "RECONCILED"
+
+
+def test_phase35_does_not_treat_blank_ledger_values_as_zero():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": 1, "profit_loss": 90,
+         "gross_profit_loss": float("nan"), "trading_cost": 10},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["pnl_reconciliation_status"] == "MISSING_GROSS_OR_COST_LEDGER"
+
+
+
+def test_phase33_falls_back_to_recorded_evaluation_forecasts_when_history_match_is_too_narrow():
+    from src.phase32_40_diagnostics import _score_with_evaluation_fallback
+
+    candidates = _candidates().iloc[:1].copy()
+    actuals = _actuals()
+    eval_actuals = actuals.copy()
+    eval_actuals["symbol"] = eval_actuals["symbol"].astype(str).str.upper()
+    evaluations = _candidates().merge(
+        eval_actuals.rename(columns={"date": "target_date", "open": "actual_open",
+                                     "high": "actual_high", "low": "actual_low", "close": "actual_close"}),
+        on=["target_date", "symbol"],
+        how="inner",
+    )
+    scored, summary = _score_with_evaluation_fallback(
+        candidates, evaluations, actuals, "ohlcv.csv", min_holdout_dates=1
+    )
+    assert summary["unique_target_dates"] == 5
+    assert len(scored) == 5
+    assert summary["prediction_source"].startswith("evaluations.csv paired saved forecasts/outcomes")
+    assert summary["actuals_source"] == "evaluations.csv paired actual OHLC"

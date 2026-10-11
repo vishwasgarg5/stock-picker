@@ -179,18 +179,28 @@ def _phase35_trade_metrics(trades: pd.DataFrame, model: str) -> dict[str, Any]:
     if trades.empty or "signal" not in trades:
         return {"model": model, "executed_trades": 0, "status": "NO_DATA"}
     x = trades[trades["signal"].astype(str).str.upper().eq("BUY")].copy()
-    qty_col = "quantity" if "quantity" in x else ("shares" if "shares" in x else None)
-    if qty_col:
-        x = x[_safe_num(x[qty_col]).fillna(0) > 0]
+    # Legacy V1 rows may have a blank quantity column while shares is populated.
+    # Coalesce per row so an empty newer-schema column does not erase valid trades.
+    quantity = _safe_num(x["quantity"]) if "quantity" in x else pd.Series(np.nan, index=x.index)
+    shares = _safe_num(x["shares"]) if "shares" in x else pd.Series(np.nan, index=x.index)
+    quantity = quantity.where(quantity.fillna(0) > 0, shares)
+    if "quantity" in x or "shares" in x:
+        x = x[quantity.fillna(0) > 0]
     pnl_col = "profit_loss" if "profit_loss" in x else None
     if pnl_col:
         pnl = _safe_num(x[pnl_col]).fillna(0)
     else:
         pnl = pd.Series(0.0, index=x.index)
     cost_col = "trading_cost" if "trading_cost" in x else ("costs" if "costs" in x else None)
-    costs = _safe_num(x[cost_col]).fillna(0) if cost_col else pd.Series(0.0, index=x.index)
+    costs = _safe_num(x[cost_col]) if cost_col else pd.Series(np.nan, index=x.index)
+    if "costs" in x:
+        costs = costs.where(costs.notna(), _safe_num(x["costs"]))
     gross_col = "gross_profit_loss" if "gross_profit_loss" in x else None
-    gross = _safe_num(x[gross_col]).fillna(0) if gross_col else pnl + costs
+    gross = _safe_num(x[gross_col]) if gross_col else pd.Series(np.nan, index=x.index)
+    has_gross_ledger = gross_col is not None and gross.notna().all()
+    has_cost_ledger = cost_col is not None and costs.notna().all()
+    # Missing values stay visible to the reconciliation gate; they are not silently
+    # converted to zero or inferred from net P&L.
     ordered = x.copy()
     ordered["_net_pnl"] = pnl
     if "target_date" in ordered:
@@ -202,21 +212,25 @@ def _phase35_trade_metrics(trades: pd.DataFrame, model: str) -> dict[str, Any]:
     net_total = float(pnl.sum())
     cost_total = float(costs.sum())
     gross_total = float(gross.sum())
-    # Explicitly surface ledger inconsistencies rather than presenting an
-    # apparently valid return metric when gross/net/cost fields disagree.
-    reconciliation_delta = gross_total - cost_total - net_total
-    has_gross_ledger = gross_col is not None
-    has_cost_ledger = cost_col is not None
+    # Reconcile only rows with all three ledger components; never compare sums
+    # drawn from different subsets of trades when some values are missing.
+    complete_ledger = gross.notna() & costs.notna() & pnl.notna()
+    reconciliation_rows = int(complete_ledger.sum())
+    incomplete_ledger_rows = int((~complete_ledger).sum())
+    reconciliation_delta = float((gross[complete_ledger] - costs[complete_ledger] - pnl[complete_ledger]).sum())
     reconciliation_status = (
-        "RECONCILED" if has_gross_ledger and has_cost_ledger
-        and abs(reconciliation_delta) <= 0.01
-        else "MISSING_GROSS_OR_COST_LEDGER" if not (has_gross_ledger and has_cost_ledger)
+        "MISSING_GROSS_OR_COST_LEDGER" if (
+            not has_gross_ledger or not has_cost_ledger or incomplete_ledger_rows > 0
+        )
+        else "RECONCILED" if abs(reconciliation_delta) <= 0.01
         else "MISMATCH_GROSS_MINUS_COSTS_VS_NET"
     )
     out: dict[str, Any] = {
         "model": model, "executed_trades": int(len(x)), "gross_pnl": gross_total,
         "net_pnl": net_total, "recorded_costs": cost_total,
         "pnl_reconciliation_delta": reconciliation_delta,
+        "pnl_reconciliation_rows": reconciliation_rows,
+        "pnl_reconciliation_incomplete_rows": incomplete_ledger_rows,
         "pnl_reconciliation_status": reconciliation_status,
         "net_pnl_with_50pct_extra_cost_stress": net_total - 0.5 * cost_total,
         "net_pnl_with_100pct_extra_cost_stress": net_total - cost_total,
@@ -263,12 +277,98 @@ def promotion_gate(
     }
 
 
+def _actuals_for_scoring(
+    ohlcv: pd.DataFrame, evaluations: pd.DataFrame
+) -> tuple[pd.DataFrame, str]:
+    """Prefer OHLCV rows and supplement missing date/symbol keys from recorded actuals."""
+    columns = ["date", "symbol", "open", "high", "low", "close"]
+    required = set(columns)
+    primary = ohlcv[columns].copy() if not ohlcv.empty and required.issubset(ohlcv.columns) else pd.DataFrame(columns=columns)
+    eval_required = {"target_date", "symbol", "actual_open", "actual_high", "actual_low", "actual_close"}
+    fallback = pd.DataFrame(columns=columns)
+    if not evaluations.empty and eval_required.issubset(evaluations.columns):
+        fallback = evaluations[
+            ["target_date", "symbol", "actual_open", "actual_high", "actual_low", "actual_close"]
+        ].rename(columns={
+            "target_date": "date", "actual_open": "open", "actual_high": "high",
+            "actual_low": "low", "actual_close": "close",
+        })[columns]
+    if primary.empty and fallback.empty:
+        return primary, "unavailable: neither OHLCV nor evaluation actuals contain required fields"
+    if primary.empty:
+        return fallback, "evaluations.csv actual OHLC fallback (ohlcv.csv unavailable)"
+    if fallback.empty:
+        return primary, "ohlcv.csv (no evaluation fallback available)"
+
+    # Normalize only the join keys and preserve OHLCV as the preferred source
+    # for any date/symbol already present there.
+    primary["_date_key"] = pd.to_datetime(primary["date"], errors="coerce").dt.normalize()
+    fallback["_date_key"] = pd.to_datetime(fallback["date"], errors="coerce").dt.normalize()
+    primary["_symbol_key"] = primary["symbol"].astype(str).str.upper().str.strip()
+    fallback["_symbol_key"] = fallback["symbol"].astype(str).str.upper().str.strip()
+    known = set(zip(primary["_date_key"], primary["_symbol_key"]))
+    missing = ~pd.Series(list(zip(fallback["_date_key"], fallback["_symbol_key"])), index=fallback.index).isin(known)
+    supplemental = fallback.loc[missing, columns]
+    combined = pd.concat([primary[columns], supplemental], ignore_index=True)
+    if supplemental.empty:
+        return combined, "ohlcv.csv (evaluation actuals did not add missing date/symbol keys)"
+    return combined, f"ohlcv.csv + {len(supplemental)} evaluation actual rows supplementing missing date/symbol keys"
+
+
+def _score_with_evaluation_fallback(
+    candidates: pd.DataFrame,
+    evaluations: pd.DataFrame,
+    actuals: pd.DataFrame,
+    actuals_source: str,
+    min_holdout_dates: int = MIN_HOLDOUT_DATES,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Score candidate history first; fall back to recorded forecast/outcome pairs if coverage is too narrow."""
+    scored, summary = score_historical_predictions(candidates, actuals, min_holdout_dates)
+    summary["prediction_source"] = "prediction_candidates_history.csv"
+    summary["actuals_source"] = actuals_source
+    required = {
+        "prediction_date", "target_date", "symbol", "base_close",
+        "predicted_open", "predicted_high", "predicted_low", "predicted_close",
+        "actual_open", "actual_high", "actual_low", "actual_close",
+    }
+    unique_dates = int(summary.get("unique_target_dates", 0) or 0)
+    if unique_dates >= min_holdout_dates + 1 or evaluations.empty or not required.issubset(evaluations.columns):
+        return scored, summary
+
+    # Evaluations already store the forecast and the subsequently observed OHLC
+    # for each symbol/session. Replay those recorded pairs without refitting.
+    eval_candidates = evaluations[
+        ["prediction_date", "target_date", "symbol", "base_close",
+         "predicted_open", "predicted_high", "predicted_low", "predicted_close"]
+    ].copy()
+    eval_actuals = evaluations[
+        ["target_date", "symbol", "actual_open", "actual_high", "actual_low", "actual_close"]
+    ].rename(columns={
+        "target_date": "date", "actual_open": "open", "actual_high": "high",
+        "actual_low": "low", "actual_close": "close",
+    })
+    eval_scored, eval_summary = score_historical_predictions(
+        eval_candidates, eval_actuals, min_holdout_dates
+    )
+    fallback_dates = int(eval_summary.get("unique_target_dates", 0) or 0)
+    if fallback_dates > unique_dates:
+        eval_summary["prediction_source"] = (
+            "evaluations.csv paired saved forecasts/outcomes "
+            "(fallback because candidate-history match coverage was insufficient)"
+        )
+        eval_summary["actuals_source"] = "evaluations.csv paired actual OHLC"
+        return eval_scored, eval_summary
+    return scored, summary
+
+
 def run() -> dict[str, Any]:
     DATA.mkdir(exist_ok=True)
     candidates = _read("prediction_candidates_history.csv")
     if candidates.empty:
         candidates = _read("predictions.csv")
-    actuals = _read("ohlcv.csv", ["date", "symbol", "open", "high", "low", "close"])
+    raw_actuals = _read("ohlcv.csv", ["date", "symbol", "open", "high", "low", "close"])
+    evaluation_actuals = _read("evaluations.csv")
+    actuals, actuals_source = _actuals_for_scoring(raw_actuals, evaluation_actuals)
     v1_trades = _read("paper_trades.csv")
     v2_trades = _read("paper_trades_v2.csv")
     v1_daily = _read("portfolio_daily.csv")
@@ -280,7 +380,9 @@ def run() -> dict[str, Any]:
     _write(funnel, "phase32_selection_funnel_report.csv")
 
     # Phase 33: leakage-checked chronological scoring of historical predictions.
-    scored, prediction_summary = score_historical_predictions(candidates, actuals)
+    scored, prediction_summary = _score_with_evaluation_fallback(
+        candidates, evaluation_actuals, actuals, actuals_source
+    )
     _write(scored, "phase33_chronological_prediction_scores.csv")
     (DATA / "phase33_prediction_summary.json").write_text(json.dumps(prediction_summary, indent=2, default=str), encoding="utf-8")
 

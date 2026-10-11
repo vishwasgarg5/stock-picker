@@ -178,7 +178,18 @@ def run_paper_trading_v2() -> pd.DataFrame:
 
     x["strategy"] = "V2_SHADOW_BENCHMARK" if not confidence_promoted else "V2_CONFIDENCE_BENCHMARK"
     x["signal"] = "SKIP"
-    x["no_trade_reason"] = "shadow_selection_filter"
+    x["no_trade_reason"] = "daily_trade_cap"
+    # Attribute the first observed failed stage to each candidate. This is
+    # reporting-only: the original eligibility masks and selected rows are unchanged.
+    x.loc[~confidence_pass, "no_trade_reason"] = "confidence_percentile"
+    x.loc[confidence_pass & ~phase2_pass, "no_trade_reason"] = "phase2_not_selected"
+    for row_idx, row in x.iterrows():
+        key = (row["symbol"], row["target_date"])
+        if bool(confidence_pass.loc[row_idx]) and bool(phase2_pass.loc[row_idx]):
+            if key not in phase4_pass_keys:
+                x.at[row_idx, "no_trade_reason"] = "phase4_ineligible"
+            elif key not in atr_pass_keys:
+                x.at[row_idx, "no_trade_reason"] = "atr_sanity_limit"
     if not selected.empty:
         selected_idx = pd.MultiIndex.from_frame(selected[["symbol", "target_date"]])
         x_idx = pd.MultiIndex.from_frame(x[["symbol", "target_date"]])

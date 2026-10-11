@@ -212,19 +212,25 @@ def _phase35_trade_metrics(trades: pd.DataFrame, model: str) -> dict[str, Any]:
     net_total = float(pnl.sum())
     cost_total = float(costs.sum())
     gross_total = float(gross.sum())
-    # Explicitly surface ledger inconsistencies rather than presenting an
-    # apparently valid return metric when gross/net/cost fields disagree.
-    reconciliation_delta = gross_total - cost_total - net_total
+    # Reconcile only rows with all three ledger components; never compare sums
+    # drawn from different subsets of trades when some values are missing.
+    complete_ledger = gross.notna() & costs.notna() & pnl.notna()
+    reconciliation_rows = int(complete_ledger.sum())
+    incomplete_ledger_rows = int((~complete_ledger).sum())
+    reconciliation_delta = float((gross[complete_ledger] - costs[complete_ledger] - pnl[complete_ledger]).sum())
     reconciliation_status = (
-        "RECONCILED" if has_gross_ledger and has_cost_ledger
-        and abs(reconciliation_delta) <= 0.01
-        else "MISSING_GROSS_OR_COST_LEDGER" if not (has_gross_ledger and has_cost_ledger)
+        "MISSING_GROSS_OR_COST_LEDGER" if (
+            not has_gross_ledger or not has_cost_ledger or incomplete_ledger_rows > 0
+        )
+        else "RECONCILED" if abs(reconciliation_delta) <= 0.01
         else "MISMATCH_GROSS_MINUS_COSTS_VS_NET"
     )
     out: dict[str, Any] = {
         "model": model, "executed_trades": int(len(x)), "gross_pnl": gross_total,
         "net_pnl": net_total, "recorded_costs": cost_total,
         "pnl_reconciliation_delta": reconciliation_delta,
+        "pnl_reconciliation_rows": reconciliation_rows,
+        "pnl_reconciliation_incomplete_rows": incomplete_ledger_rows,
         "pnl_reconciliation_status": reconciliation_status,
         "net_pnl_with_50pct_extra_cost_stress": net_total - 0.5 * cost_total,
         "net_pnl_with_100pct_extra_cost_stress": net_total - cost_total,
@@ -274,20 +280,39 @@ def promotion_gate(
 def _actuals_for_scoring(
     ohlcv: pd.DataFrame, evaluations: pd.DataFrame
 ) -> tuple[pd.DataFrame, str]:
-    """Use OHLCV as the primary actuals source, with recorded evaluation actuals as fallback."""
-    required = {"date", "symbol", "open", "high", "low", "close"}
-    if not ohlcv.empty and required.issubset(ohlcv.columns):
-        return ohlcv, "ohlcv.csv"
+    """Prefer OHLCV rows and supplement missing date/symbol keys from recorded actuals."""
+    columns = ["date", "symbol", "open", "high", "low", "close"]
+    required = set(columns)
+    primary = ohlcv[columns].copy() if not ohlcv.empty and required.issubset(ohlcv.columns) else pd.DataFrame(columns=columns)
     eval_required = {"target_date", "symbol", "actual_open", "actual_high", "actual_low", "actual_close"}
+    fallback = pd.DataFrame(columns=columns)
     if not evaluations.empty and eval_required.issubset(evaluations.columns):
-        actuals = evaluations[
+        fallback = evaluations[
             ["target_date", "symbol", "actual_open", "actual_high", "actual_low", "actual_close"]
         ].rename(columns={
             "target_date": "date", "actual_open": "open", "actual_high": "high",
             "actual_low": "low", "actual_close": "close",
-        })
-        return actuals, "evaluations.csv actual OHLC fallback (ohlcv.csv unavailable)"
-    return ohlcv, "unavailable: neither OHLCV nor evaluation actuals contain required fields"
+        })[columns]
+    if primary.empty and fallback.empty:
+        return primary, "unavailable: neither OHLCV nor evaluation actuals contain required fields"
+    if primary.empty:
+        return fallback, "evaluations.csv actual OHLC fallback (ohlcv.csv unavailable)"
+    if fallback.empty:
+        return primary, "ohlcv.csv (no evaluation fallback available)"
+
+    # Normalize only the join keys and preserve OHLCV as the preferred source
+    # for any date/symbol already present there.
+    primary["_date_key"] = pd.to_datetime(primary["date"], errors="coerce").dt.normalize()
+    fallback["_date_key"] = pd.to_datetime(fallback["date"], errors="coerce").dt.normalize()
+    primary["_symbol_key"] = primary["symbol"].astype(str).str.upper().str.strip()
+    fallback["_symbol_key"] = fallback["symbol"].astype(str).str.upper().str.strip()
+    known = set(zip(primary["_date_key"], primary["_symbol_key"]))
+    missing = ~pd.Series(list(zip(fallback["_date_key"], fallback["_symbol_key"])), index=fallback.index).isin(known)
+    supplemental = fallback.loc[missing, columns]
+    combined = pd.concat([primary[columns], supplemental], ignore_index=True)
+    if supplemental.empty:
+        return combined, "ohlcv.csv (evaluation actuals did not add missing date/symbol keys)"
+    return combined, f"ohlcv.csv + {len(supplemental)} evaluation actual rows supplementing missing date/symbol keys"
 
 
 def run() -> dict[str, Any]:

@@ -315,6 +315,52 @@ def _actuals_for_scoring(
     return combined, f"ohlcv.csv + {len(supplemental)} evaluation actual rows supplementing missing date/symbol keys"
 
 
+def _score_with_evaluation_fallback(
+    candidates: pd.DataFrame,
+    evaluations: pd.DataFrame,
+    actuals: pd.DataFrame,
+    actuals_source: str,
+    min_holdout_dates: int = MIN_HOLDOUT_DATES,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Score candidate history first; fall back to recorded forecast/outcome pairs if coverage is too narrow."""
+    scored, summary = score_historical_predictions(candidates, actuals, min_holdout_dates)
+    summary["prediction_source"] = "prediction_candidates_history.csv"
+    summary["actuals_source"] = actuals_source
+    required = {
+        "prediction_date", "target_date", "symbol", "base_close",
+        "predicted_open", "predicted_high", "predicted_low", "predicted_close",
+        "actual_open", "actual_high", "actual_low", "actual_close",
+    }
+    unique_dates = int(summary.get("unique_target_dates", 0) or 0)
+    if unique_dates >= min_holdout_dates + 1 or evaluations.empty or not required.issubset(evaluations.columns):
+        return scored, summary
+
+    # Evaluations already store the forecast and the subsequently observed OHLC
+    # for each symbol/session. Replay those recorded pairs without refitting.
+    eval_candidates = evaluations[
+        ["prediction_date", "target_date", "symbol", "base_close",
+         "predicted_open", "predicted_high", "predicted_low", "predicted_close"]
+    ].copy()
+    eval_actuals = evaluations[
+        ["target_date", "symbol", "actual_open", "actual_high", "actual_low", "actual_close"]
+    ].rename(columns={
+        "target_date": "date", "actual_open": "open", "actual_high": "high",
+        "actual_low": "low", "actual_close": "close",
+    })
+    eval_scored, eval_summary = score_historical_predictions(
+        eval_candidates, eval_actuals, min_holdout_dates
+    )
+    fallback_dates = int(eval_summary.get("unique_target_dates", 0) or 0)
+    if fallback_dates > unique_dates:
+        eval_summary["prediction_source"] = (
+            "evaluations.csv paired saved forecasts/outcomes "
+            "(fallback because candidate-history match coverage was insufficient)"
+        )
+        eval_summary["actuals_source"] = "evaluations.csv paired actual OHLC"
+        return eval_scored, eval_summary
+    return scored, summary
+
+
 def run() -> dict[str, Any]:
     DATA.mkdir(exist_ok=True)
     candidates = _read("prediction_candidates_history.csv")
@@ -334,8 +380,9 @@ def run() -> dict[str, Any]:
     _write(funnel, "phase32_selection_funnel_report.csv")
 
     # Phase 33: leakage-checked chronological scoring of historical predictions.
-    scored, prediction_summary = score_historical_predictions(candidates, actuals)
-    prediction_summary["actuals_source"] = actuals_source
+    scored, prediction_summary = _score_with_evaluation_fallback(
+        candidates, evaluation_actuals, actuals, actuals_source
+    )
     _write(scored, "phase33_chronological_prediction_scores.csv")
     (DATA / "phase33_prediction_summary.json").write_text(json.dumps(prediction_summary, indent=2, default=str), encoding="utf-8")
 

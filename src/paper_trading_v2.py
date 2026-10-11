@@ -175,6 +175,10 @@ def run_paper_trading_v2() -> pd.DataFrame:
     eligible.loc[~cooldown_mask & confidence_fail, "phase4_reject_reason"] = "phase4_confidence_floor"
     eligible.loc[~cooldown_mask & ~confidence_fail & return_fail, "phase4_reject_reason"] = "minimum_expected_return"
     eligible.loc[eligible["phase4_eligible"].fillna(False), "phase4_reject_reason"] = ""
+    phase4_reason_lookup = {
+        (row["symbol"], row["target_date"]): row["phase4_reject_reason"]
+        for _, row in eligible.iterrows()
+    }
     for reason, count in eligible.loc[~eligible["phase4_eligible"].fillna(False), "phase4_reject_reason"].value_counts().items():
         record(f"phase4_reject:{reason or 'unclassified'}", len(eligible), len(eligible) - int(count),
                f"{int(count)} candidates rejected for {reason or 'unclassified'}; diagnostic only")
@@ -216,10 +220,6 @@ def run_paper_trading_v2() -> pd.DataFrame:
                 x.at[row_idx, "no_trade_reason"] = "phase4_ineligible"
             elif key not in atr_pass_keys:
                 x.at[row_idx, "no_trade_reason"] = "atr_sanity_limit"
-    phase4_reason_lookup = {
-        (row["symbol"], row["target_date"]): row["phase4_reject_reason"]
-        for _, row in eligible.iterrows()
-    }
     x["phase4_reject_reason"] = [
         phase4_reason_lookup.get((row["symbol"], row["target_date"]), "")
         for _, row in x.iterrows()

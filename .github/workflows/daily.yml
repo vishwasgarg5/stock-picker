@@ -11,6 +11,20 @@ on:
   schedule:
     # 15:15 IST = 09:45 UTC, Monday-Friday.
     - cron: '45 9 * * 1-5'
+  pull_request:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/**"
+      - "requirements.txt"
+  push:
+    branches:
+      - phase28-30-data-quality-accuracy
+    paths:
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/**"
+      - "requirements.txt"
 
 permissions:
   contents: write
@@ -24,6 +38,9 @@ env:
 
 jobs:
   daily:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -103,6 +120,38 @@ jobs:
 
       - name: Run Paper Trading V2 confidence-filtered benchmark with Phase 4 overlay
         run: python -m src.paper_trading_v2
+
+      - name: Validate V2 shadow trade reasons and funnel
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+
+          trades_path = Path("data/paper_trades_v2.csv")
+          funnel_path = Path("data/phase32_v2_selection_funnel.csv")
+          if not trades_path.exists() or not funnel_path.exists():
+              raise SystemExit("V2 engine must produce both trade history and selection funnel reports")
+          trades = pd.read_csv(trades_path, low_memory=False)
+          required = {"signal", "no_trade_reason", "symbol", "target_date"}
+          missing = required.difference(trades.columns)
+          if missing:
+              raise SystemExit(f"V2 trade report missing columns: {sorted(missing)}")
+          signal = trades["signal"].astype(str).str.upper().str.strip()
+          skips = trades.loc[signal.eq("SKIP")]
+          reasons = skips["no_trade_reason"].fillna("").astype(str).str.strip()
+          if reasons.eq("").any():
+              examples = skips.loc[reasons.eq(""), ["target_date", "symbol"]].head(10)
+              raise SystemExit(f"SKIP rows without reasons: {examples.to_dict(orient='records')}")
+          buys = trades.loc[signal.eq("BUY")]
+          if buys["no_trade_reason"].fillna("").astype(str).str.strip().ne("").any():
+              raise SystemExit("BUY rows must not carry a no-trade rejection reason")
+          funnel = pd.read_csv(funnel_path)
+          if funnel.empty or not {"stage", "input_rows", "output_rows", "rejected_rows"}.issubset(funnel.columns):
+              raise SystemExit("V2 funnel is empty or missing required count columns")
+          print(f"V2 reason audit passed: rows={len(trades)}, BUY={len(buys)}, SKIP={len(skips)}")
+          print("SKIP reason counts:", reasons.value_counts().to_dict())
+          print("V2 funnel stages recorded:", len(funnel))
+          PY
 
       - name: Refresh Phase 2 evidence after V2 paper trading
         run: python -m src.phase2_optimizer
@@ -220,3 +269,128 @@ jobs:
 
           echo "Unable to push generated data after 3 attempts."
           exit 1
+
+  diagnostics:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      - name: Checkout source under test
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pytest
+      - name: Compile source
+        run: python -m compileall -q src
+      - name: Run consolidated regression tests
+        run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py tests/test_model_governance.py tests/test_phase4_optimizer.py tests/test_pipeline_data_quality.py tests/test_news_context.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_pipeline_ranking.py tests/test_advanced_governance.py tests/test_phase20_accuracy.py tests/test_phase21_26.py tests/test_telegram_index_summary.py tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py tests/test_phase32_40_diagnostics.py tests/test_phase41_43_diagnostics.py
+      - name: Preflight integration wiring only
+        run: python -m src.integration_check --preflight
+      - name: Run Phases 21-26 diagnostics
+        run: python -m src.phase21_26
+      - name: Run Phase 27 diagnostics
+        run: python -m src.phase27_data_quality
+      - name: Run Phases 28-30 diagnostics
+        run: python -m src.phase28_30_foundation
+      - name: Run V2 shadow engine and validate reason coverage
+        run: |
+          python -m src.paper_trading_v2
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+          trades_path = Path("data/paper_trades_v2.csv")
+          funnel_path = Path("data/phase32_v2_selection_funnel.csv")
+          if not trades_path.exists() or not funnel_path.exists():
+              raise SystemExit("V2 engine did not produce required trade and funnel reports")
+          trades = pd.read_csv(trades_path, low_memory=False)
+          required = {"signal", "no_trade_reason", "symbol", "target_date"}
+          missing = required.difference(trades.columns)
+          if missing:
+              raise SystemExit(f"Missing V2 trade columns: {sorted(missing)}")
+          signals = trades["signal"].astype(str).str.upper().str.strip()
+          skips = trades.loc[signals.eq("SKIP")]
+          reasons = skips["no_trade_reason"].fillna("").astype(str).str.strip()
+          if reasons.eq("").any():
+              raise SystemExit("At least one V2 SKIP row has no no_trade_reason")
+          buys = trades.loc[signals.eq("BUY")]
+          if buys["no_trade_reason"].fillna("").astype(str).str.strip().ne("").any():
+              raise SystemExit("V2 BUY rows must not have a no_trade_reason")
+          funnel = pd.read_csv(funnel_path)
+          if funnel.empty or not {"stage", "input_rows", "output_rows", "rejected_rows"}.issubset(funnel.columns):
+              raise SystemExit("V2 funnel is empty or missing required count columns")
+          print(f"V2 reason audit passed: rows={len(trades)}, BUY={len(buys)}, SKIP={len(skips)}")
+          print("SKIP reason counts:", reasons.value_counts().to_dict())
+          print("Funnel stages:", len(funnel))
+          PY
+      - name: Run Phase 31 chronological replay
+        run: python -m src.phase31_walk_forward
+      - name: Run Phases 32-40 diagnostics
+        run: python -m src.phase32_40_diagnostics
+      - name: Run Phases 41-43 diagnostics
+        run: python -m src.phase41_43_diagnostics
+      - name: Verify reports and production safety
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          phase28 = json.loads(Path("data/phase28_30_summary.json").read_text(encoding="utf-8"))
+          phase31 = json.loads(Path("data/phase31_summary.json").read_text(encoding="utf-8"))
+          phase40 = json.loads(Path("data/phase40_dashboard.json").read_text(encoding="utf-8"))
+          for name, report in (("Phase 28-30", phase28), ("Phase 31", phase31), ("Phase 32-40", phase40)):
+              assert report.get("v2_promoted") is False, f"{name} unexpectedly promoted V2"
+              assert report.get("production_model_changed") is False, f"{name} changed production model"
+              assert report.get("ranking_or_risk_changed") is False, f"{name} changed ranking/risk"
+          print("Diagnostic reports exist; production model and V2 promotion remain unchanged.")
+          print("Phase 31 evidence gate:", phase31.get("evidence_gate"),
+                "| matched sessions:", phase31.get("matched_sessions"),
+                "| V2 executed trades:", phase31.get("v2_executed_trades"))
+          print("Phase 40 status:", phase40.get("status"))
+          PY
+      - name: Upload integrated diagnostic reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stock-picker-integrated-diagnostics
+          path: |
+            data/phase21_26_summary.json
+            data/phase22_leakage_audit.csv
+            data/phase23_matched_evidence.csv
+            data/phase25_drift_monitor.csv
+            data/phase26_news_impact.csv
+            data/phase27_data_quality.csv
+            data/phase28_data_quality.csv
+            data/phase29_dataset_audit.csv
+            data/phase30_accuracy_metrics.csv
+            data/phase31_chronological_comparison.csv
+            data/phase31_summary.json
+            data/phase32_v2_selection_funnel.csv
+            data/phase32_selection_funnel_report.csv
+            data/phase33_chronological_prediction_scores.csv
+            data/phase33_prediction_summary.json
+            data/phase34_regime_accuracy.csv
+            data/phase35_trading_costs_and_returns.csv
+            data/phase36_promotion_gate.json
+            data/phase37_data_reliability.csv
+            data/phase38_news_source_audit.csv
+            data/phase39_prediction_drift.csv
+            data/phase40_dashboard.json
+            data/phase40_dashboard.md
+            data/phase41_43_summary.json
+            data/phase41_v2_funnel_audit.csv
+            data/phase42_selected_vs_rejected.csv
+            data/phase43_threshold_sensitivity.csv
+            data/phase28_30_summary.json
+          if-no-files-found: warn
+          retention-days: 14

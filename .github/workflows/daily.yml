@@ -151,6 +151,9 @@ jobs:
       - name: Run Phases 32-40 diagnostics and evidence gates (analysis-only)
         run: python -m src.phase32_40_diagnostics
 
+      - name: Run Phases 41-43 V2 diagnosis and offline sensitivity reports (analysis-only)
+        run: python -m src.phase41_43_diagnostics
+
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison
 

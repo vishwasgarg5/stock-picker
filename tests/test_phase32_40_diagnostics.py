@@ -77,7 +77,9 @@ def test_phase35_uses_net_profit_loss_without_double_subtracting_costs():
     assert out["net_pnl_with_100pct_extra_cost_stress"] == 63
 
 
-def test_phase32_funnel_does_not_claim_internal_stages_from_trade_history():
+def test_phase32_funnel_does_not_claim_internal_stages_from_trade_history(monkeypatch, tmp_path):
+    import src.phase32_40_diagnostics as diagnostics
+    monkeypatch.setattr(diagnostics, "DATA", tmp_path)
     trades = pd.DataFrame([
         {"signal": "SKIP", "no_trade_reason": "shadow_selection_filter"},
         {"signal": "BUY", "no_trade_reason": ""},

@@ -220,9 +220,11 @@ def test_phase33_falls_back_to_recorded_evaluation_forecasts_when_history_match_
 
     candidates = _candidates().iloc[:1].copy()
     actuals = _actuals()
+    eval_actuals = actuals.copy()
+    eval_actuals["symbol"] = eval_actuals["symbol"].astype(str).str.upper()
     evaluations = _candidates().merge(
-        actuals.rename(columns={"date": "target_date", "open": "actual_open",
-                                "high": "actual_high", "low": "actual_low", "close": "actual_close"}),
+        eval_actuals.rename(columns={"date": "target_date", "open": "actual_open",
+                                     "high": "actual_high", "low": "actual_low", "close": "actual_close"}),
         on=["target_date", "symbol"],
         how="inner",
     )

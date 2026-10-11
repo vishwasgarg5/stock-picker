@@ -286,7 +286,7 @@ def run_paper_trading_v2() -> pd.DataFrame:
         "phase4_weight", "phase4_stop_atr_multiplier", "phase4_target_stop_multiple",
                     "index_market_regime", "index_risk_multiplier", "index_adjusted_score",
         "no_trade_reason", "phase4_reject_reason", "phase4_confidence_floor",
-        "phase4_min_expected_return_pct", "cooldown", "confidence_pct", "expected_return_pct",
+        "phase4_min_expected_return_pct", "cooldown", "confidence_pct",
         "entry_price", "exit_price", "return_pct", "gross_profit_loss",
         "trading_cost", "profit_loss",
     ]

@@ -201,9 +201,23 @@ def _phase35_trade_metrics(trades: pd.DataFrame, model: str) -> dict[str, Any]:
     drawdown_pct = (ordered["_portfolio_value"] / peak - 1.0) * 100 if len(ordered) else pd.Series(dtype=float)
     net_total = float(pnl.sum())
     cost_total = float(costs.sum())
+    gross_total = float(gross.sum())
+    # Explicitly surface ledger inconsistencies rather than presenting an
+    # apparently valid return metric when gross/net/cost fields disagree.
+    reconciliation_delta = gross_total - cost_total - net_total
+    has_gross_ledger = gross_col is not None
+    has_cost_ledger = cost_col is not None
+    reconciliation_status = (
+        "RECONCILED" if has_gross_ledger and has_cost_ledger
+        and abs(reconciliation_delta) <= 0.01
+        else "MISSING_GROSS_OR_COST_LEDGER" if not (has_gross_ledger and has_cost_ledger)
+        else "MISMATCH_GROSS_MINUS_COSTS_VS_NET"
+    )
     out: dict[str, Any] = {
-        "model": model, "executed_trades": int(len(x)), "gross_pnl": float(gross.sum()),
+        "model": model, "executed_trades": int(len(x)), "gross_pnl": gross_total,
         "net_pnl": net_total, "recorded_costs": cost_total,
+        "pnl_reconciliation_delta": reconciliation_delta,
+        "pnl_reconciliation_status": reconciliation_status,
         "net_pnl_with_50pct_extra_cost_stress": net_total - 0.5 * cost_total,
         "net_pnl_with_100pct_extra_cost_stress": net_total - cost_total,
         "max_trade_sequence_drawdown_pct": float(drawdown_pct.min()) if len(drawdown_pct) else None,

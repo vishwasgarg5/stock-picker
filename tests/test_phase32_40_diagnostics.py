@@ -77,7 +77,9 @@ def test_phase35_uses_net_profit_loss_without_double_subtracting_costs():
     assert out["net_pnl_with_100pct_extra_cost_stress"] == 63
 
 
-def test_phase32_funnel_does_not_claim_internal_stages_from_trade_history():
+def test_phase32_funnel_does_not_claim_internal_stages_from_trade_history(monkeypatch, tmp_path):
+    import src.phase32_40_diagnostics as diagnostics
+    monkeypatch.setattr(diagnostics, "DATA", tmp_path)
     trades = pd.DataFrame([
         {"signal": "SKIP", "no_trade_reason": "shadow_selection_filter"},
         {"signal": "BUY", "no_trade_reason": ""},
@@ -127,3 +129,32 @@ def test_phase36_requires_minimum_sessions_and_trade_count():
     )
     assert result["status"] == "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE"
     assert result["automatic_promotion"] is False
+
+
+
+def test_phase35_flags_missing_gross_and_cost_ledger():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": 10, "profit_loss": 95},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["pnl_reconciliation_status"] == "MISSING_GROSS_OR_COST_LEDGER"
+
+
+def test_phase35_flags_gross_net_cost_mismatch():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": 10, "gross_profit_loss": 100,
+         "trading_cost": 5, "profit_loss": 98},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["pnl_reconciliation_status"] == "MISMATCH_GROSS_MINUS_COSTS_VS_NET"
+    assert out["pnl_reconciliation_delta"] == -3.0
+
+
+def test_phase35_marks_reconciled_ledger():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": 10, "gross_profit_loss": 100,
+         "trading_cost": 5, "profit_loss": 95},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["pnl_reconciliation_status"] == "RECONCILED"
+    assert out["pnl_reconciliation_delta"] == 0.0

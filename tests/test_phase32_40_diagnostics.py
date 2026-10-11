@@ -158,3 +158,38 @@ def test_phase35_marks_reconciled_ledger():
     out = _phase35_trade_metrics(trades, "V1")
     assert out["pnl_reconciliation_status"] == "RECONCILED"
     assert out["pnl_reconciliation_delta"] == 0.0
+
+
+def test_phase33_uses_recorded_evaluation_actuals_when_ohlcv_is_missing():
+    from src.phase32_40_diagnostics import _actuals_for_scoring
+
+    evaluations = pd.DataFrame([
+        {"target_date": "2026-09-02", "symbol": "ABC", "actual_open": 100,
+         "actual_high": 104, "actual_low": 98, "actual_close": 101},
+    ])
+    actuals, source = _actuals_for_scoring(pd.DataFrame(), evaluations)
+    assert source.startswith("evaluations.csv actual OHLC fallback")
+    assert list(actuals.columns) == ["date", "symbol", "open", "high", "low", "close"]
+    assert actuals.iloc[0]["close"] == 101
+
+
+def test_phase35_falls_back_to_shares_when_quantity_column_is_blank():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": float("nan"), "shares": 2,
+         "profit_loss": 90, "gross_profit_loss": 100, "costs": 10},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["executed_trades"] == 1
+    assert out["gross_pnl"] == 100
+    assert out["net_pnl"] == 90
+    assert out["recorded_costs"] == 10
+    assert out["pnl_reconciliation_status"] == "RECONCILED"
+
+
+def test_phase35_does_not_treat_blank_ledger_values_as_zero():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": 1, "profit_loss": 90,
+         "gross_profit_loss": float("nan"), "trading_cost": 10},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["pnl_reconciliation_status"] == "MISSING_GROSS_OR_COST_LEDGER"

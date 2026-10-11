@@ -228,6 +228,39 @@ def _build_portfolio(trades: pd.DataFrame) -> pd.DataFrame:
     return trades, daily
 
 
+
+def _accounting_ledger_audit(trades: pd.DataFrame) -> dict:
+    """Fail-closed audit for settled BUY rows; never infer missing historical values."""
+    buys = trades[trades.get("signal", pd.Series("", index=trades.index)).astype(str).str.upper().eq("BUY")].copy()
+    required = ["entry_price", "exit_price", "shares", "allocated_capital",
+                "gross_profit_loss", "costs", "profit_loss", "return_pct"]
+    missing_columns = [column for column in required if column not in buys.columns]
+    missing_by_field = {
+        column: (int(len(buys)) if column in missing_columns else
+                 int(pd.to_numeric(buys[column], errors="coerce").isna().sum()))
+        for column in required
+    }
+    if missing_columns:
+        complete = pd.Series(False, index=buys.index)
+        delta = pd.Series(dtype=float)
+    else:
+        numeric = buys[required].apply(pd.to_numeric, errors="coerce")
+        complete = numeric.notna().all(axis=1)
+        delta = numeric["gross_profit_loss"] - numeric["costs"] - numeric["profit_loss"]
+    bad_reconciliation = int((delta.abs() > 0.01).sum()) if not delta.empty else 0
+    missing_rows = int((~complete).sum()) if len(complete) else 0
+    return {
+        "status": "PASS" if missing_rows == 0 and bad_reconciliation == 0 else "BLOCK",
+        "buy_rows": int(len(buys)),
+        "complete_ledger_rows": int(complete.sum()) if len(complete) else 0,
+        "incomplete_ledger_rows": missing_rows,
+        "reconciliation_mismatch_rows": bad_reconciliation,
+        "max_abs_reconciliation_delta": float(delta.abs().max()) if not delta.empty else None,
+        "missing_by_field_json": __import__("json").dumps(missing_by_field, sort_keys=True),
+        "policy": "missing historical values are not backfilled or inferred",
+    }
+
+
 def run_paper_trading() -> pd.DataFrame:
     if not PREDICTIONS_FILE.exists() or not HISTORY_FILE.exists():
         print("Paper trading skipped: predictions or history file missing.")
@@ -284,6 +317,13 @@ def run_paper_trading() -> pd.DataFrame:
     # even when this job is rerun. Equal capital is allocated across BUY signals
     # for each session using the portfolio value entering that session.
     trades, daily = _build_portfolio(trades)
+    audit = _accounting_ledger_audit(trades)
+    pd.DataFrame([audit]).to_csv(DATA / "paper_trading_ledger_audit.csv", index=False)
+    if audit["status"] != "PASS":
+        raise ValueError(
+            "Paper-trading accounting ledger failed integrity audit; "
+            "outputs were not overwritten. See data/paper_trading_ledger_audit.csv"
+        )
     trades.to_csv(TRADES_FILE, index=False)
     daily.to_csv(PORTFOLIO_FILE, index=False)
 

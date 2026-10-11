@@ -26,13 +26,25 @@ def main(preflight: bool = False) -> int:
 
     if WORKFLOW.exists():
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        if "push:" in workflow or "pull_request:" in workflow:
+        has_ci_triggers = "push:" in workflow or "pull_request:" in workflow
+        # CI triggers are safe only when production execution is isolated to scheduled/manual events,
+        # and the PR/push diagnostics job is explicitly read-only.
+        safe_event_split = (
+            "daily:\n    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'" in workflow
+            and "diagnostics:\n    if: github.event_name == 'pull_request' || github.event_name == 'push'\n    permissions:\n      contents: read" in workflow
+        )
+        if has_ci_triggers and not safe_event_split:
             failures.append("workflow_has_unwanted_push_or_pull_request_trigger")
         if "schedule:" not in workflow or "45 9 * * 1-5" not in workflow:
             failures.append("workflow_schedule_is_not_15_15_IST_weekdays")
         if "workflow_dispatch:" not in workflow or "reuse_stored_data" not in workflow:
             failures.append("workflow_dispatch_reuse_input_missing")
-        if "concurrency:" not in workflow or "stock-picker-daily" not in workflow:
+        if "concurrency:" not in workflow or not any(
+            marker in workflow for marker in (
+                "stock-picker-daily",
+                "stock-picker-${{ github.event_name }}-${{ github.ref }}",
+            )
+        ):
             failures.append("workflow_concurrency_guard_missing")
         if workflow.count("src.phase2_optimizer") < 2:
             failures.append("phase2_optimizer_refresh_after_v2_missing")

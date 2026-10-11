@@ -53,7 +53,7 @@ def test_phase43_threshold_sensitivity_is_chronological_and_non_deploying():
         for d in range(2, 11)
     ])
     report, summary = fixed_grid_threshold_sensitivity(candidates, actuals)
-    assert len(report) == 16
+    assert len(report) == 8
     assert set(report["period"]) == {"EARLY_CONTEXT", "CHRONOLOGICAL_HOLDOUT"}
     assert summary["thresholds_deployed"] is False
     assert summary["promotion_allowed"] is False

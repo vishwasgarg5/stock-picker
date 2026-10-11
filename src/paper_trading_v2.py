@@ -127,7 +127,9 @@ def run_paper_trading_v2() -> pd.DataFrame:
     # Evidence collection is independent of production promotion. V2 benchmarks
     # the Phase-2 selector itself; production remains protected by the governor.
     x["confidence_pct"] = x.groupby("target_date")["confidence_v3"].rank(pct=True, method="first")
-    confidence_eligible = x[x["confidence_pct"] >= SHADOW_CONFIDENCE_PERCENTILE].copy()
+    confidence_pass = x["confidence_pct"] >= SHADOW_CONFIDENCE_PERCENTILE
+    phase2_pass = x["phase2_selected"].eq(1)
+    confidence_eligible = x[confidence_pass].copy()
     record("confidence_percentile_gate", len(x), len(confidence_eligible),
            f"Required percentile >= {SHADOW_CONFIDENCE_PERCENTILE:.2f}")
     eligible = confidence_eligible[confidence_eligible["phase2_selected"].eq(1)].copy()
@@ -159,13 +161,20 @@ def run_paper_trading_v2() -> pd.DataFrame:
         pct=True, method="first"
     )
     eligible = apply_phase4(eligible)
+    phase4_pass_keys = set(
+        map(tuple, eligible.loc[eligible["phase4_eligible"].fillna(False), ["symbol", "target_date"]].to_numpy())
+    )
     phase4_eligible = eligible[eligible["phase4_eligible"]].copy()
     record("phase4_eligibility_gate", len(eligible), len(phase4_eligible), "phase4_eligible flag true")
     eligible = apply_index_overlay(phase4_eligible)
 
     # Shadow benchmark is not a production risk gate. Apply only the Phase-4
     # eligibility rules and a hard ATR sanity bound.
-    atr_eligible = eligible[eligible["atr_pct"].isna() | eligible["atr_pct"].le(MAX_SHADOW_ATR_PCT)].copy()
+    atr_mask = eligible["atr_pct"].isna() | eligible["atr_pct"].le(MAX_SHADOW_ATR_PCT)
+    atr_pass_keys = set(
+        map(tuple, eligible.loc[atr_mask, ["symbol", "target_date"]].to_numpy())
+    )
+    atr_eligible = eligible[atr_mask].copy()
     record("atr_sanity_gate", len(eligible), len(atr_eligible),
            f"ATR percent <= {MAX_SHADOW_ATR_PCT:.2f}; missing ATR is currently allowed")
     eligible = atr_eligible

@@ -161,6 +161,23 @@ def run_paper_trading_v2() -> pd.DataFrame:
         pct=True, method="first"
     )
     eligible = apply_phase4(eligible)
+    # Preserve the exact Phase-4 rejection cause for diagnostics. This is
+    # telemetry only: it does not alter eligibility or any threshold.
+    eligible["phase4_reject_reason"] = ""
+    cooldown_mask = eligible["cooldown"].fillna(False).astype(bool)
+    confidence_fail = pd.to_numeric(eligible["confidence_pct"], errors="coerce").lt(
+        pd.to_numeric(eligible["phase4_confidence_floor"], errors="coerce")
+    )
+    return_fail = pd.to_numeric(eligible["expected_return_pct"], errors="coerce").lt(
+        pd.to_numeric(eligible["phase4_min_expected_return_pct"], errors="coerce")
+    )
+    eligible.loc[cooldown_mask, "phase4_reject_reason"] = "symbol_cooldown"
+    eligible.loc[~cooldown_mask & confidence_fail, "phase4_reject_reason"] = "phase4_confidence_floor"
+    eligible.loc[~cooldown_mask & ~confidence_fail & return_fail, "phase4_reject_reason"] = "minimum_expected_return"
+    eligible.loc[eligible["phase4_eligible"].fillna(False), "phase4_reject_reason"] = ""
+    for reason, count in eligible.loc[~eligible["phase4_eligible"].fillna(False), "phase4_reject_reason"].value_counts().items():
+        record(f"phase4_reject:{reason or 'unclassified'}", len(eligible), len(eligible) - int(count),
+               f"{int(count)} candidates rejected for {reason or 'unclassified'}; diagnostic only")
     phase4_pass_keys = set(
         map(tuple, eligible.loc[eligible["phase4_eligible"].fillna(False), ["symbol", "target_date"]].to_numpy())
     )
@@ -260,7 +277,8 @@ def run_paper_trading_v2() -> pd.DataFrame:
         "stop_distance_pct", "trade_quality_probability", "phase4_score",
         "phase4_weight", "phase4_stop_atr_multiplier", "phase4_target_stop_multiple",
                     "index_market_regime", "index_risk_multiplier", "index_adjusted_score",
-        "no_trade_reason",
+        "no_trade_reason", "phase4_reject_reason", "phase4_confidence_floor",
+        "phase4_min_expected_return_pct", "cooldown", "confidence_pct", "expected_return_pct",
         "entry_price", "exit_price", "return_pct", "gross_profit_loss",
         "trading_cost", "profit_loss",
     ]

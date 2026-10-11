@@ -106,11 +106,21 @@ def leakage_audit(evaluations: pd.DataFrame, candidates: pd.DataFrame, history: 
             add("unique_prediction_key", "PASS" if dup == 0 else "WARN", dup, "duplicate prediction_date/symbol rows")
     if not candidates.empty and {"prediction_date", "symbol"}.issubset(candidates.columns):
         c = candidates.copy()
-        dates = pd.to_datetime(c["prediction_date"], errors="coerce")
-        dup = int(c.assign(symbol=c["symbol"].astype(str).str.upper().str.strip(),
-                           prediction_date=dates.dt.normalize()).duplicated(["prediction_date", "symbol"]).sum())
-        add("candidate_history_unique_key", "PASS" if dup == 0 else "WARN", dup, "duplicate candidate history keys")
-        suspicious = [col for col in c.columns if re.search(r"(actual|target|future|next_day|forward_return|label)", col, re.I)]
+        # Candidate history is keyed by target_date + symbol, matching the
+        # pipeline's historical business key and Phases 27-30 audit semantics.
+        # prediction_date alone is not the business key for this table.
+        business_date_col = "target_date" if "target_date" in c.columns else "prediction_date"
+        business_dates = pd.to_datetime(c[business_date_col], errors="coerce").dt.normalize()
+        symbols = c["symbol"].astype(str).str.upper().str.strip()
+        valid = business_dates.notna() & ~symbols.isin(["", "NAN", "NONE"])
+        keyed = pd.DataFrame({
+            "business_date": business_dates.loc[valid],
+            "symbol": symbols.loc[valid],
+        })
+        dup = int(keyed.duplicated(["business_date", "symbol"], keep=False).sum())
+        add("candidate_history_unique_key", "PASS" if dup == 0 else "WARN", dup,
+            f"duplicate valid {business_date_col}/symbol business-key rows; invalid keys excluded")
+        suspicious = [col for col in c.columns if col.lower() != "target_date" and re.search(r"(actual|target|future|next_day|forward_return|label)", col, re.I)]
         # Target/label columns may legitimately exist in a historical training table; flag for review only.
         add("candidate_future_named_columns", "REVIEW" if suspicious else "PASS", len(suspicious),
             "review columns: " + ", ".join(suspicious) if suspicious else "no obviously future/label-named candidate columns")

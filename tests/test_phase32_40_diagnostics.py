@@ -127,3 +127,32 @@ def test_phase36_requires_minimum_sessions_and_trade_count():
     )
     assert result["status"] == "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE"
     assert result["automatic_promotion"] is False
+
+
+
+def test_phase35_flags_missing_gross_and_cost_ledger():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": 10, "profit_loss": 95},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["pnl_reconciliation_status"] == "MISSING_GROSS_OR_COST_LEDGER"
+
+
+def test_phase35_flags_gross_net_cost_mismatch():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": 10, "gross_profit_loss": 100,
+         "trading_cost": 5, "profit_loss": 98},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["pnl_reconciliation_status"] == "MISMATCH_GROSS_MINUS_COSTS_VS_NET"
+    assert out["pnl_reconciliation_delta"] == -3.0
+
+
+def test_phase35_marks_reconciled_ledger():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "quantity": 10, "gross_profit_loss": 100,
+         "trading_cost": 5, "profit_loss": 95},
+    ])
+    out = _phase35_trade_metrics(trades, "V1")
+    assert out["pnl_reconciliation_status"] == "RECONCILED"
+    assert out["pnl_reconciliation_delta"] == 0.0

@@ -17,6 +17,7 @@ def main(preflight: bool = False) -> int:
         "src/ranking_model.py", "src/strategy_governor.py",
         "src/performance_audit.py", "src/portfolio_comparison.py",
         "src/phase2_optimizer.py", "src/phase2_dashboard.py", "src/phase4_optimizer.py", "src/index_intelligence.py",
+        "src/phase63_72_readiness.py",
         "src/directional_model.py", "src/model_governance.py",
         "data/predictions.csv", "data/ohlcv.csv",
     ]
@@ -96,6 +97,7 @@ def main(preflight: bool = False) -> int:
         "phase4_no_future_data": "future actual prices" in (ROOT / "src/phase4_optimizer.py").read_text(encoding="utf-8"),
         "index_intelligence_module": "src/index_intelligence.py" in required,
         "index_to_v2": "apply_index_overlay" in v2 and "index_market_regime" in v2,
+        "phase63_72_readiness_wired": "src.phase63_72_readiness" in WORKFLOW.read_text(encoding="utf-8") and "src/phase63_72_readiness.py" in required,
     }
     failures.extend(f"link_broken:{name}" for name, ok in links.items() if not ok)
 
@@ -122,6 +124,8 @@ def main(preflight: bool = False) -> int:
         "data/regime_performance.csv",
         "data/stock_stability.csv",
         "data/feature_stability.csv",
+        "data/phase63_72_readiness_summary.json",
+        "data/phase63_72_readiness_summary.csv",
     ]
     if not preflight:
         failures.extend(f"missing_generated_report:{p}" for p in generated if not (ROOT / p).exists())

@@ -40,7 +40,7 @@ def _message_hash(message: str) -> str:
     return hashlib.sha256(message.encode("utf-8")).hexdigest()
 
 
-def _send(message: str) -> None:
+def _send(message: str) -> dict:
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
@@ -54,6 +54,16 @@ def _send(message: str) -> None:
     result = response.json()
     if not result.get("ok"):
         raise RuntimeError(f"Telegram API error: {result}")
+    sent = result.get("result") or {}
+    # A successful HTTP response alone is insufficient: require Telegram to
+    # confirm the message object and message_id before recording delivery.
+    if not isinstance(sent, dict) or not sent.get("message_id"):
+        raise RuntimeError("Telegram API returned ok=true without a confirmed message_id")
+    return {
+        "delivery_status": "TELEGRAM_API_CONFIRMED",
+        "telegram_message_id": str(sent["message_id"]),
+        "telegram_date_utc": str(sent.get("date", "")),
+    }
 
 
 def _already_sent(path: Path, target_date: pd.Timestamp, message: str, force: bool = False) -> bool:
@@ -69,15 +79,29 @@ def _already_sent(path: Path, target_date: pd.Timestamp, message: str, force: bo
     return ((dates == target) & sent["message_hash"].astype(str).eq(_message_hash(message))).any()
 
 
-def _record_sent(path: Path, target_date: pd.Timestamp, message: str) -> None:
-    columns = ["target_date", "message_hash"]
+def _record_sent(path: Path, target_date: pd.Timestamp, message: str, receipt: dict | None = None) -> None:
+    # This is API-level confirmation, not proof that a human opened/read it.
+    receipt = receipt or {"delivery_status": "LEGACY_UNVERIFIED", "telegram_message_id": "", "telegram_date_utc": ""}
+    columns = ["target_date", "message_hash", "delivery_status", "telegram_message_id", "telegram_date_utc"]
     if path.exists():
         sent = pd.read_csv(path)
-        if not set(columns).issubset(sent.columns):
+        # Preserve prior deduplication history when upgrading the CSV schema.
+        if not {"target_date", "message_hash"}.issubset(sent.columns):
             sent = pd.DataFrame(columns=columns)
+        else:
+            for column in columns:
+                if column not in sent.columns:
+                    sent[column] = "LEGACY_UNVERIFIED" if column == "delivery_status" else ""
+            sent = sent[columns]
     else:
         sent = pd.DataFrame(columns=columns)
-    new_row = pd.DataFrame({"target_date": [target_date.date().isoformat()], "message_hash": [_message_hash(message)]})
+    new_row = pd.DataFrame({
+        "target_date": [target_date.date().isoformat()],
+        "message_hash": [_message_hash(message)],
+        "delivery_status": [receipt.get("delivery_status", "UNKNOWN")],
+        "telegram_message_id": [str(receipt.get("telegram_message_id", ""))],
+        "telegram_date_utc": [str(receipt.get("telegram_date_utc", ""))],
+    })
     sent = pd.concat([sent, new_row], ignore_index=True).drop_duplicates(columns, keep="last")
     sent.to_csv(path, index=False)
 
@@ -280,8 +304,8 @@ def send_morning() -> None:
     if _already_sent(SENT_FILE, target_date, message, force=_force_telegram()):
         print(f"Morning Telegram already sent for {target_date.date()} with this exact message; skipping duplicate.")
         return
-    _send(message)
-    _record_sent(SENT_FILE, target_date, message)
+    receipt = _send(message)
+    _record_sent(SENT_FILE, target_date, message, receipt)
     print(f"Morning Telegram sent for {target_date.date()}")
 
 
@@ -378,8 +402,8 @@ def send_evening() -> None:
     if _already_sent(EVENING_SENT_FILE, target_date, message, force=_force_telegram()):
         print(f"Evening Telegram already sent for {target_date.date()} with this exact message; skipping duplicate.")
         return
-    _send(message)
-    _record_sent(EVENING_SENT_FILE, target_date, message)
+    receipt = _send(message)
+    _record_sent(EVENING_SENT_FILE, target_date, message, receipt)
     print(f"Evening Telegram sent for {target_date.date()}")
 
 
@@ -509,8 +533,8 @@ def send_paper_trading_v2() -> None:
     if _already_sent(V2_SENT_FILE, target_date, message, force=_force_telegram()):
         print(f"V2 Telegram already sent for {target_date.date()}; skipping duplicate.")
         return
-    _send(message)
-    _record_sent(V2_SENT_FILE, target_date, message)
+    receipt = _send(message)
+    _record_sent(V2_SENT_FILE, target_date, message, receipt)
     print(f"V2 Telegram sent for {target_date.date()}")
 
 def send_paper_trading() -> None:
@@ -529,8 +553,8 @@ def send_paper_trading() -> None:
     if _already_sent(PAPER_SENT_FILE, target_date, message, force=_force_telegram()):
         print(f"Paper trading Telegram already sent for {target_date.date()}; skipping duplicate.")
         return
-    _send(message)
-    _record_sent(PAPER_SENT_FILE, target_date, message)
+    receipt = _send(message)
+    _record_sent(PAPER_SENT_FILE, target_date, message, receipt)
     print(f"Paper trading Telegram sent for {target_date.date()}")
 
 

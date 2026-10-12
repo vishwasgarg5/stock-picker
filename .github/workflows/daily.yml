@@ -192,6 +192,9 @@ jobs:
       - name: Run Phases 48-52 ledger, forecast, funnel, stress and promotion evidence (analysis-only)
         run: python -m src.phase48_52_evidence
 
+      - name: Run Phases 58-62 accounting, forecast, V2, Telegram and promotion diagnostics (analysis-only)
+        run: python -m src.phase58_62_evidence
+
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison
 

@@ -254,7 +254,7 @@ def test_phase35_row_level_incomplete_ledger_diagnostics_explain_missing_fields(
     assert report.iloc[0]["symbol"] == "ABC"
     assert report.iloc[0]["missing_fields"] == "gross_profit_loss"
     assert bool(report.iloc[0]["has_quantity_column"]) is True
-    assert bool(report.iloc[0]["has_costs_column"]) is False
+    assert bool(report.iloc[0]["has_costs_column"]) is True
     assert bool(report.iloc[0]["has_trading_cost_column"]) is True
 
 

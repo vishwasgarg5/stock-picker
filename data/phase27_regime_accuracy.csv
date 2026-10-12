@@ -1,2 +1,3 @@
 market_regime,rows,sessions,direction_accuracy_pct,close_mape_pct,baseline_mape_pct,mape_improvement_pct,evidence_status
+NEUTRAL,10,1,40.0,1.4940302574309139,1.499564075513084,0.369028451170157,INSUFFICIENT_SAMPLE
 UNKNOWN,150,15,44.0,1.9177321609511633,1.9010122036691408,-0.8795291923824216,UNKNOWN_REGIME

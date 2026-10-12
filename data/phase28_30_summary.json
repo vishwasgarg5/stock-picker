@@ -4,22 +4,22 @@
     29,
     30
   ],
-  "evaluation_rows": 150,
-  "candidate_rows": 240,
+  "evaluation_rows": 160,
+  "candidate_rows": 260,
   "quality_checks": 16,
   "quality_warnings_or_blocks": 0,
   "datasets_needing_review": 0,
-  "accuracy_metric_rows": 64,
+  "accuracy_metric_rows": 68,
   "inputs": {
     "evaluations.csv": {
       "exists": true,
-      "sha256": "ca3d15da0aa70c3c891bb883274853404aba6022fafc88ade80ea2b9d6570220",
-      "bytes": 72670
+      "sha256": "5f0895328a127768fd7432cbd5db862d867c20fc5663d92af33ff375cf4beefb",
+      "bytes": 77521
     },
     "prediction_candidates_history.csv": {
       "exists": true,
-      "sha256": "b5d1493405c69e6c8f4bb3d927f30bf0c7a609c1e7b0fdde325ee28225eaf53e",
-      "bytes": 84733
+      "sha256": "cb92645a129ae6327145cbe6ffde2695d216c8f9c4c383de1a945ee005f718f6",
+      "bytes": 99845
     }
   },
   "production_model_changed": false,

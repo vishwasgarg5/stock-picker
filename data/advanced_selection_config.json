@@ -1,10 +1,10 @@
 {
-  "as_of": "2026-10-12T02:54:43.053807+00:00",
+  "as_of": "2026-10-12T11:51:03.495218+00:00",
   "advanced_control_version": "advanced_v1",
   "data_freshness": {
-    "status": "WARNING",
-    "age_days": 3,
-    "latest_date": "2026-10-09"
+    "status": "PASS",
+    "age_days": 0,
+    "latest_date": "2026-10-12"
   },
   "high_confidence_count": 5,
   "medium_confidence_count": 4,

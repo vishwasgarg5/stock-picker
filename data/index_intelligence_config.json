@@ -1,55 +1,62 @@
 {
   "version": "index_intelligence_v3",
-  "market_regime": "NEUTRAL",
-  "risk_multiplier": 0.8,
+  "market_regime": "BEAR",
+  "risk_multiplier": 0.55,
   "news_sentiment": "BEARISH",
-  "news_score": -0.44000000000000006,
-  "market_reason": "FII / DII flows: FII selling tops Rs 45,000 crore over six sessions in October, Rs 3.6 lakh crore sold-off this year - Moneycontrol.com",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMi-wFBVV95cUxQcUZwdnlHR1RZNVdLSDJGMkdoM1BxeTlMOXNjV3o2Q0lHZWpjWjVZMlpGM0RETUJXUkpBM25SU1Q3dVZOZHdqOFlMV1pHNkxIRGZpYmRNTkJRZ0lMdlZSbF9iTG5jSWNCN1YwM1ROUU8zcDRtUV9QRVRMZ3VjbHQ2MzNLLUFuUWRkcm56LS1RMDM1djZrWTFhTWR3bGNNSzFNOEdaWkpKbVFIXzNyUnU1TGlsY2tLZXBmMUUtSkhiWlpIY2tNWThXMDJoSkRCdzV0by1ndElmOXY5YkpXZUplVHBndHdHS2hxTzNhd0tGbjRCQVRQRzByMVpVRQ?oc=5",
-  "news_headline": "FII / DII flows: FII selling tops Rs 45,000 crore over six sessions in October, Rs 3.6 lakh crore sold-off this year - Moneycontrol.com",
+  "news_score": -0.53,
+  "market_reason": "FII / DII flows: Stock Markets Tumble: Sensex Drops 548 Pts on Oil, FII Outflows - Rediff MoneyWiz",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxOcGhUamxTUElzbFVSVzdiTnJWcFF4cC1qbjZvTHpJY18wYV81WEd6UWptZmJha2xnWko3MmF2Qi1ySXRuaDhlZlJpWFVlZEVmUzZOUThxQlZQbl9PYWhBUXNTdVBWNHl5cGFENDFpQmRaZTQxa0dQeENRalNob3l5LW1CQWlaUk5VSnNoOEhOeWdIQWJwbVZxV1FGSFUyTUVmanlodU9DUzZNSHgxMU52MzBxQdIBuAFBVV95cUxOV0IzNGJGd3RVNWpzYmlNeXloNlVEODZRUndFbkJ5UHhRSkhsNlNkWVlpTDBzT1hWMTBGWF9vZ2N3amZmUzVSeDU3eGNpLTdGSjgydnhmRnk0RDFOa0s2VUJtRDNvNE5ld2l4MzRXOUlEWWNuWmVhYllZdGp0WkV4VTVkblRad0lMSE1vby1vWlppR2ZzcjNaQUw5dVAtM1QxTVNQdkxEeTNCLWE3bjdsREtUQjZXN19M?oc=5",
+  "news_headline": "FII / DII flows: Stock Markets Tumble: Sensex Drops 548 Pts on Oil, FII Outflows - Rediff MoneyWiz",
   "news_reasons": [
     {
       "event": "FII / DII flows",
       "impact": -0.8,
-      "headline": "FII selling tops Rs 45,000 crore over six sessions in October, Rs 3.6 lakh crore sold-off this year - Moneycontrol.com",
-      "url": "https://news.google.com/rss/articles/CBMi-wFBVV95cUxQcUZwdnlHR1RZNVdLSDJGMkdoM1BxeTlMOXNjV3o2Q0lHZWpjWjVZMlpGM0RETUJXUkpBM25SU1Q3dVZOZHdqOFlMV1pHNkxIRGZpYmRNTkJRZ0lMdlZSbF9iTG5jSWNCN1YwM1ROUU8zcDRtUV9QRVRMZ3VjbHQ2MzNLLUFuUWRkcm56LS1RMDM1djZrWTFhTWR3bGNNSzFNOEdaWkpKbVFIXzNyUnU1TGlsY2tLZXBmMUUtSkhiWlpIY2tNWThXMDJoSkRCdzV0by1ndElmOXY5YkpXZUplVHBndHdHS2hxTzNhd0tGbjRCQVRQRzByMVpVRQ?oc=5"
+      "headline": "Stock Markets Tumble: Sensex Drops 548 Pts on Oil, FII Outflows - Rediff MoneyWiz",
+      "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxOcGhUamxTUElzbFVSVzdiTnJWcFF4cC1qbjZvTHpJY18wYV81WEd6UWptZmJha2xnWko3MmF2Qi1ySXRuaDhlZlJpWFVlZEVmUzZOUThxQlZQbl9PYWhBUXNTdVBWNHl5cGFENDFpQmRaZTQxa0dQeENRalNob3l5LW1CQWlaUk5VSnNoOEhOeWdIQWJwbVZxV1FGSFUyTUVmanlodU9DUzZNSHgxMU52MzBxQdIBuAFBVV95cUxOV0IzNGJGd3RVNWpzYmlNeXloNlVEODZRUndFbkJ5UHhRSkhsNlNkWVlpTDBzT1hWMTBGWF9vZ2N3amZmUzVSeDU3eGNpLTdGSjgydnhmRnk0RDFOa0s2VUJtRDNvNE5ld2l4MzRXOUlEWWNuWmVhYllZdGp0WkV4VTVkblRad0lMSE1vby1vWlppR2ZzcjNaQUw5dVAtM1QxTVNQdkxEeTNCLWE3bjdsREtUQjZXN19M?oc=5"
     },
     {
-      "event": "Inflation",
-      "impact": -0.35,
-      "headline": "Pre-Market Update: GIFT Nifty Signals Positive Start on October 12; CPI Inflation, FII Selling and RBI OMO Sale in Focus - Dalal Street Investment Journal",
-      "url": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxQMUFkRklKc092T05qcmhMNkx1MVlQbmhtMDZsUkJ4RXYxaEMxVTI2cGN5bFRoczBpeFRzVW5lYm9Dam9xcGtQdjZwSVE5Ri05eE5lRkdib3RLUXVQM1U3RW80ekZUQ1VjRHBmR0ZRN0RHTWQwaGF2UzhCTGM0d0pNdm9jT0xBWjNhRVVCTWdHeUFzaVl0LXBhVEdoUGdTd1gzRUkzVFYyQ2FGMDF2YkpGWDFOMXAtZFh3UUhFOEdZaVcwOWk4SlpSMlF3b0E4dGtJOExNVHkwcUlxckhCTXJiOTlnQjJrNHd0Q283MDBFTDd3dw?oc=5"
-    },
-    {
-      "event": "Crude oil",
-      "impact": -0.35,
-      "headline": "Dalal Street Week Ahead: Q2 earnings, US & India inflation, oil prices, FII mood, rupee among 10 key... - Moneycontrol.com",
-      "url": "https://news.google.com/rss/articles/CBMihgJBVV95cUxOZGdza2ZRcFd4NlpUaHQ0dzlwblJzUVVmYXFKcmV0dUxzandsQ2JlbndqLXBERXJ3SnVoMzRBTF9VRjNuY0EzejhNaGhabVphQUw2N1dmbjFDSjZoWHQ1U0t1R1R0RVRhN212M0VDdFdDU0l6N2ZfR2F4YUVyQWd6ZWIwZEFmX1BsNVNyUWFWNGtUMXpSX3YtMTRDbzVVSXA4S1RQb3VPZnBpRUZBcHVZdGFWTlh5bjJoX0JCSl9xRThEVVdLNFRzVlVlX3FsR2hsWFZwRkh6TW9aSkRqcTNXcng4SzZMcTktekNkbW1fRzNtdEJDWDZrYnhDMl9Qb0NnSmZONmNB0gGLAkFVX3lxTFAyYmZLeEhEMG5iYXpJSEJGN3Y0dmphZTB1MnlUMVoxQ1F3ckM2NTd4a3M2NmhIZmNMcGdIM3BQTHh2SzB3RXRacTFONHF3RjFuZ1V4cGFoUmszQXN5VFNpcUZraDdINnpOWDJDeGxsT2RyYlQ0RC1fXzU2MXFYdmFuUUJtUlNJVVRNZ0FUckRDMkpkWjJSb09US0txUXBCZmtuY0lwVWNjVi1Hc2lJLU82WDd4dHd5Zlh0ZnpWcVk4LUFuS1dWSkRLN2FzTFNGMVpSR0R2a19xWDh0VGp0TmdaNy1OS0RTS2l5LVpBVElGdmVmQmJubEhRU21rNGhnOF9HX2FVanJFVkV3NA?oc=5"
+      "event": "FII / DII flows",
+      "impact": -0.8,
+      "headline": "Why is Stock Market Falling Today? Sensex Slides 469 Points, Nifty Nears 22,400 Amid FII Outflows - APAC Media",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPXzhIekFnQmZBUFF2Ny1yQ0lCcXhac05EdGVENDZDbG9od1Q4YWxwWFE5NFlZMnE5d2VFTGdaa2hTMTNaRVJibDdaSmc5SUNINkRwakpFWGJEY24wLWRGWW4wTlJFaWNJeWYzZjNmczBSUTl4RzBnZGVPYlVkbDJQbDZ0VTdfZzUtdWdQT2NYSXFadzU3dFRYLQ?oc=5"
     },
     {
       "event": "Crude oil",
       "impact": -0.35,
-      "headline": "Q2 earnings, inflation data, oil prices may drive stock markets this week - Business Standard",
-      "url": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxNMXVaR3YwdXRYcHFBSFFaWGhrbmhSbE1obG9WMzlzTUhrQVB2TlpTTFdRTGp0UDA1YnpKQ2VnZ0FpelZNcVZMbFBnMkdoWHVEMmpScTJCY3QxT3BZSjlXQlBZQlJFY29RQlUwLTFsSmktN01qMkdxTmhjUEtvN3RuT2RtQTRfTFpZdlpzSmhJOVBmWkt4V0ZtY0ZfamYzdVA4VDVXMzhobGctZW1TajdVOHZid1BsdzZydnRjOEh0ZDZ0WGh5UnQ2Umw0LUJVMkl0U1ZnS9IB2gFBVV95cUxOX19vMHpiVHZZNXF3WUJHeTFhM3JJbGpEVFl5NVlNN3JNeGVlWEhKU1p0SmUzTEVFNDBSbEpIYVZYZGlrOFc4RHB6NFRZeldBTTZ6YzEtQ1p5OExwSDIxenZ3TndubmVyMXh1OGZud09XNU4xcVQta1oweUhpV1dTRHBWTEJBS0pfeWx0d3o3QnhRMFhSLWwySU80aVVXdnRyaG1vNEI5dl9tVkU2XzhwX3M0dlRJVTIyN3BPaE1aYVVCRjhXQmwzS1QyVnVvTlMtX0E4ZmZTbl9LUQ?oc=5"
+      "headline": "GIFT Nifty live today October 12: D-St Bulls Eye Extension as Oil Dips - Alice Blue",
+      "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE85ZnpBZjJXUkVzemg1eXFLUWJ4Qk02eWp6eUdSRklpLVR4aUEyc1JyaGROcmRDaHRNWkFKMkVFb3ZlQk96YTduNGQyZEJuWXJRN2tPRTJaSEtZLV9VT2ZUaGZMQXFtUkNTMHVuUXdaekhmYUU?oc=5"
     },
     {
-      "event": "Crude oil",
+      "event": "General market",
       "impact": -0.35,
-      "headline": "Q2 Earnings, Inflation And Oil Prices In Focus, Know- Will Nifty Extend Its Recovery This Week? - Free Press Journal",
-      "url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNdDVaNlBVckRldlV3SHVEMG9MZkpBdkdrY3RmS1VfM0IzMDhIVE41a2R4Q2pHQTZKTWRhYS00eTh3RDFJVG5lV0ZOdldIYjB5R2t4YjNQbzJIN1FVRTFSRndUcTdWbTViSUNWWE5SQ0xGSktFTHVXdDdsUjRCdWNxeVU4VEhnRERMc2FhRGx3eUdkcjdPWVN6WGgySjQwdVpoMFoyeEVOY0ZJbjEyVUh0R2g2ejQtUW9pTXhZclEtX05DVHZmRWFCVVhoUGh2RGo1clHSAdIBQVVfeXFMTXQ1WjZQVXJEZXZVd0h1RDBvTGZKQXZHa2N0ZktVXzNCMzA4SFRONWtkeENqR0E2Sk1kYWEtNHk4d0QxSVRuZVdGTnZXSGIweUdreGIzUG8ySDdRVUUxUkZ3VHE3Vm01YklDVlhOUkNMRkpLRUx1V3Q3bFI0QnVjcXlVOFRIZ0RETHNhYURsd3lHZHI3T1lTelhoMko0MHVaaDBaMnhFTmNGSW4xMlVIdEdoNno0LVFvaU14WXJRLV9OQ1R2ZkVhQlVYaFBodkRqNXJR?oc=5"
+      "headline": "Key Factors Behind Today\u2019s Market Decline - Equitypandit",
+      "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFBHdFVYWDVvLXJBbkJQZ2RWX1lwV3JWLWc0V190S0tRSVNianEyeGt4NVVtcGdYTV92ZUQ5dVktU2hYdmVvSXp0U3VDZTAwdHpWZHZtZVhHMHV5ZHdSVjNOZTA5WjVuNENMdG5EdzN0QVRSZDRFMDZSMENEeTJkdw?oc=5"
+    },
+    {
+      "event": "RBI / rates",
+      "impact": -0.35,
+      "headline": "Nifty Slips 150 Points: FII Selling, RBI Policy Weigh on Markets - Dalal Street Investment Journal",
+      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPajYzRXlXb2pVWlI5Z1VnN2UzY19udXAyMVdiZE9uNHdWTkpGd2I5YW5UVC1SQ2NPRTFyNlo2MHdwaFRRVlB4SG1IcEhIODRtTTloeWJxNnRaYUlLVUpCUVhkLXdiSUJTODhIMHVKYmVVU1JsbWNTX2tVWmpVYmp6MERYcTBPRVBhaTEzNGN6M3pkdjV6QXg1TTBNdWxHUUlxLUtfNHk4RURoTDg3U0dLNS1LMi1MWm5V?oc=5"
     }
   ],
-  "market_intelligence_score": 43.28839543726236,
-  "risk_level": "NEUTRAL",
-  "market_confidence": 0.6104044410646389,
+  "market_intelligence_score": 34.1468288973384,
+  "risk_level": "RISK_OFF",
+  "market_confidence": 0.6926785399239545,
   "data_quality": "HIGH",
   "index_data_available": true,
-  "breadth_pct_above_sma20": 19.96197718631179,
+  "breadth_pct_above_sma20": 23.574144486692013,
   "sector_news_impacts": {
-    "airlines": 3.0,
-    "paints": 2.4000000000000004,
-    "chemicals": 1.7999999999999998,
-    "tyres": 1.7999999999999998,
-    "oil & gas": -2.4000000000000004
+    "airlines": 1.0,
+    "paints": 0.8,
+    "chemicals": 0.6,
+    "tyres": 0.6,
+    "oil & gas": -0.8,
+    "bank": 2.4000000000000004,
+    "financial": 2.4000000000000004,
+    "real estate": 2.0999999999999996,
+    "auto": 1.2000000000000002,
+    "information technology": 0.6,
+    "it": 0.6,
+    "pharma": 0.3
   }
 }

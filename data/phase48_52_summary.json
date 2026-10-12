@@ -1,0 +1,72 @@
+{
+  "phases": [
+    48,
+    49,
+    50,
+    51,
+    52
+  ],
+  "phase48_ledger": {
+    "v1": {
+      "model": "V1",
+      "rows": 160,
+      "executed_trades": 38,
+      "incomplete_rows": 38,
+      "reconciliation_mismatch_rows": 0,
+      "ledger_status": "INCOMPLETE_OR_MISMATCH",
+      "gross_pnl": null,
+      "net_pnl": -593.8418579101562,
+      "recorded_costs": null,
+      "missing_values_imputed": false
+    },
+    "v2": {
+      "model": "V2",
+      "rows": 120,
+      "executed_trades": 0,
+      "incomplete_rows": 0,
+      "reconciliation_mismatch_rows": 0,
+      "ledger_status": "NO_EXECUTED_TRADES",
+      "gross_pnl": 0.0,
+      "net_pnl": 0.0,
+      "recorded_costs": 0.0,
+      "missing_values_imputed": false
+    }
+  },
+  "phase49_forecast": {
+    "status": "SCORED",
+    "scored_rows": 160,
+    "target_dates": 16,
+    "close_mape_pct": 1.8912507919811483,
+    "baseline_close_mape_pct": 1.8759216956593876,
+    "forecast_beats_baseline": false,
+    "method": "saved chronological predictions versus base-close baseline; no refit"
+  },
+  "phase50_rejection_reason_rows": 5,
+  "phase51_stress_scenarios": 6,
+  "phase52_promotion_gate": {
+    "phase": 52,
+    "status": "NOT_ELIGIBLE",
+    "gate_checks": {
+      "minimum_matched_sessions_met": false,
+      "minimum_v2_executed_trades_met": false,
+      "both_ledgers_complete": false,
+      "v2_net_pnl_exceeds_v1": true,
+      "forecast_beats_baseline": false
+    },
+    "matched_sessions": 12,
+    "minimum_matched_sessions": 20,
+    "v2_executed_trades": 0,
+    "minimum_v2_executed_trades": 50,
+    "v1_ledger_status": "INCOMPLETE_OR_MISMATCH",
+    "v2_ledger_status": "NO_EXECUTED_TRADES",
+    "production_champion": "V1",
+    "v2_promoted": false,
+    "automatic_promotion": false,
+    "production_settings_changed": false,
+    "ranking_or_risk_changed": false,
+    "warning": "Eligibility only permits human review; it never deploys a model automatically."
+  },
+  "production_champion": "V1",
+  "v2_promoted": false,
+  "production_settings_changed": false
+}

@@ -1,0 +1,23 @@
+{
+  "phase": 52,
+  "status": "NOT_ELIGIBLE",
+  "gate_checks": {
+    "minimum_matched_sessions_met": false,
+    "minimum_v2_executed_trades_met": false,
+    "both_ledgers_complete": false,
+    "v2_net_pnl_exceeds_v1": true,
+    "forecast_beats_baseline": false
+  },
+  "matched_sessions": 12,
+  "minimum_matched_sessions": 20,
+  "v2_executed_trades": 0,
+  "minimum_v2_executed_trades": 50,
+  "v1_ledger_status": "INCOMPLETE_OR_MISMATCH",
+  "v2_ledger_status": "NO_EXECUTED_TRADES",
+  "production_champion": "V1",
+  "v2_promoted": false,
+  "automatic_promotion": false,
+  "production_settings_changed": false,
+  "ranking_or_risk_changed": false,
+  "warning": "Eligibility only permits human review; it never deploys a model automatically."
+}

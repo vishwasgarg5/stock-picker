@@ -36,12 +36,12 @@
     "src/strategy_ab_report.py": "81b63845ef95182bc77d6b050b451783602eaf21784a38e28db18a3cd26f24ac",
     "src/strategy_governor.py": "e3c8f15d6e2c32ac62b9e2550306a66983e94c604e5a408c4b66bbd1d263486c",
     "src/system_health.py": "09150a2e4c638f9bf9fbd690c6ff2f810e41e972ce9018e37c06615c619963d0",
-    "src/telegram.py": "510251b01ef179272d0a806ca8db09679334b30fe40999ae9c8d7e7d78a7cbf0",
+    "src/telegram.py": "da8c283fcfed96976e10f480af1b6a7f020c8651b44621d67bb8dc10b4fbd14c",
     "src/trade_quality_model.py": "be70706038043e573d5b92ce1c78f8c2e0cb9d533f4ffa8b5a74a7698b6190ba",
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "f42b5c7c3bc3b0e5bb457ff79d16b3b8711790527e65ef397a35b4be797858cd"
+    ".github/workflows/daily.yml": "1128a05dafee9e2d798fa79260ece36d8aa17e4804db42461e45a36f36b07be8"
   },
   "manifest_version": "governance_v1"
 }

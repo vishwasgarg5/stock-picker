@@ -204,6 +204,13 @@ def _index_market_lines(target_date: pd.Timestamp) -> list[str]:
         five_day = _fmt_pct(row.get("return_5d_pct"))
         twenty_day = _fmt_pct(row.get("return_20d_pct"))
         trend = str(row.get("regime", "UNKNOWN"))
+        return_values = [row.get("change_1d_pct"), row.get("return_5d_pct"), row.get("return_20d_pct")]
+        try:
+            returns_complete = all(np.isfinite(float(value)) for value in return_values)
+        except (TypeError, ValueError):
+            returns_complete = False
+        if not returns_complete:
+            trend = "DATA GAP"
         lines.append(
             f"{label:<10} | {close:>10} | {one_day:>8} | {five_day:>8} | "
             f"{twenty_day:>8} | {trend[:8]}"
@@ -252,6 +259,7 @@ def build_morning_message(predictions: pd.DataFrame, target_date: pd.Timestamp) 
         "<b>STOCK PICKER</b>",
         f"{target_date:%d-%b-%Y} | TOP 10 / {total_stocks}",
         f"<b>Selection:</b> {selection_method}",
+        "<i>Ranked candidates, not automatic BUY approvals. Apply risk/no-trade gates before trading.</i>",
         *_index_market_lines(target_date),
         "",
         "<pre>",

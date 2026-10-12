@@ -90,8 +90,13 @@ def build_index_intelligence(hist: pd.DataFrame | None = None) -> pd.DataFrame:
     rows = []
     for name, aliases in INDEXES.items():
         s = _series(hist, aliases)
-        if s.empty:
-            s = _download_index_series(name)
+        # A one-row/short alias series is not enough to calculate 1D/5D/20D
+        # returns. Prefer the full index feed instead of silently reporting NaN
+        # returns while treating the index as neutral.
+        if len(s) < 21:
+            downloaded = _download_index_series(name)
+            if len(downloaded) > len(s):
+                s = downloaded
         if s.empty:
             continue
         r = _signal(s)
@@ -166,7 +171,11 @@ def _market_score(out: pd.DataFrame, news_score: float, breadth_pct: float) -> t
             if idx not in weights:
                 continue
             conf = pd.to_numeric(row["confidence"], errors="coerce")
-            if pd.isna(conf):
+            returns = pd.to_numeric(
+                pd.Series([row.get("change_1d_pct"), row.get("return_5d_pct"), row.get("return_20d_pct")]),
+                errors="coerce",
+            )
+            if pd.isna(conf) or not np.isfinite(returns.to_numpy(dtype=float)).all():
                 continue
             d = {"BUY": 1.0, "HOLD": 0.0, "AVOID": -1.0}.get(str(row["direction"]), 0.0)
             valid.append((weights[idx], d, float(conf)))
@@ -200,7 +209,7 @@ def _market_score(out: pd.DataFrame, news_score: float, breadth_pct: float) -> t
         level = "RISK_OFF"
     else:
         level = "NEUTRAL"
-    quality = "HIGH" if coverage >= .95 else "MEDIUM" if coverage >= .75 else "LOW"
+    quality = "HIGH" if coverage >= .95 and index_available else "MEDIUM" if coverage >= .75 else "LOW"
     return score, level, confidence, quality, index_available
 
 def apply_index_overlay(candidates: pd.DataFrame) -> pd.DataFrame:

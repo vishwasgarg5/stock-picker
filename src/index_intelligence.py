@@ -34,26 +34,38 @@ INDEXES = {
     "NIFTYAUTO": ["^CNXAUTO", "NIFTYAUTO", "NIFTY AUTO"],
     "NIFTYFIN": ["^CNXFIN", "NIFTYFIN", "NIFTY FINANCIAL SERVICES"],
 }
-INDEX_TICKERS = {"NIFTY50": "^NSEI", "BANKNIFTY": "^NSEBANK", "NIFTYIT": "^CNXIT", "NIFTYAUTO": "^CNXAUTO", "NIFTYFIN": "^CNXFIN"}
+INDEX_TICKERS = {
+    "NIFTY50": ["^NSEI"],
+    "BANKNIFTY": ["^NSEBANK"],
+    "NIFTYIT": ["^CNXIT"],
+    "NIFTYAUTO": ["^CNXAUTO"],
+    # Yahoo Finance has used both names for the Nifty Financial Services index.
+    "NIFTYFIN": ["^CNXFINANCE", "^CNXFIN"],
+}
 
 def _download_index_series(name: str) -> pd.Series:
-    ticker = INDEX_TICKERS.get(name)
-    if not ticker:
+    tickers = INDEX_TICKERS.get(name, [])
+    if isinstance(tickers, str):
+        tickers = [tickers]
+    if not tickers:
         return pd.Series(dtype=float)
-    try:
-        raw = yf.Ticker(ticker).history(period="6mo", interval="1d", auto_adjust=False)
-        if raw.empty or "Close" not in raw.columns:
-            return pd.Series(dtype=float)
-        s = pd.to_numeric(raw["Close"], errors="coerce").dropna()
-        s.index = pd.to_datetime(s.index, errors="coerce").tz_localize(None).normalize()
-        s = s[~s.index.duplicated(keep="last")].sort_index()
-        now = datetime.now(ZoneInfo("Asia/Kolkata"))
-        if (now.hour, now.minute, now.second) < (15, 30, 0):
-            s = s[s.index < pd.Timestamp(now.date())]
-        return s
-    except Exception as exc:
-        print(f"Index data unavailable for {name}: {exc}")
-        return pd.Series(dtype=float)
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    for ticker in tickers:
+        try:
+            raw = yf.Ticker(ticker).history(period="6mo", interval="1d", auto_adjust=False)
+            if raw.empty or "Close" not in raw.columns:
+                continue
+            s = pd.to_numeric(raw["Close"], errors="coerce").dropna()
+            s.index = pd.to_datetime(s.index, errors="coerce").tz_localize(None).normalize()
+            s = s[~s.index.duplicated(keep="last")].sort_index()
+            if (now.hour, now.minute, now.second) < (15, 30, 0):
+                s = s[s.index < pd.Timestamp(now.date())]
+            if len(s) >= 21:
+                return s
+        except Exception as exc:
+            print(f"Index ticker unavailable for {name} ({ticker}): {exc}")
+    print(f"Index data unavailable for {name}: no ticker returned at least 21 daily closes")
+    return pd.Series(dtype=float)
 
 def _series(hist: pd.DataFrame, names: list[str]) -> pd.Series:
     if hist.empty or not {"date", "symbol", "close"}.issubset(hist.columns):

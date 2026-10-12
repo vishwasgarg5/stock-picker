@@ -1,2 +1,2 @@
-bucket_field,bucket,period,rows,open_mape_pct,high_mape_pct,low_mape_pct,close_mape_pct,close_direction_accuracy_pct,status
-prediction_spread,LOW_SPREAD,ALL,20,1.4207256824706078,1.6645295412953973,3.7243530648230108,4.243790119551498,35.0,SCORED
+bucket_field,bucket,status,rows
+none,unavailable,INSUFFICIENT_DATA,0

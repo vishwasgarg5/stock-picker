@@ -21,7 +21,7 @@
   "v2_promoted": false,
   "interpretation": "Recorded-outcome replay only; not a model-refit walk-forward test. Review evidence only when both sample gates pass; this report never promotes a model.",
   "phase": 31,
-  "as_of": "2026-10-11",
+  "as_of": "2026-10-12",
   "production_model_changed": false,
   "ranking_or_risk_changed": false
 }

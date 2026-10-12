@@ -6,7 +6,7 @@
   ],
   "phase41_funnel": {
     "status": "OBSERVED",
-    "observed_stages": 8,
+    "observed_stages": 10,
     "stage_counts_consistent": true,
     "inconsistent_stages": [],
     "final_selected_rows": 0,

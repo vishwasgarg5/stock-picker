@@ -85,8 +85,14 @@ def _record_sent(path: Path, target_date: pd.Timestamp, message: str, receipt: d
     columns = ["target_date", "message_hash", "delivery_status", "telegram_message_id", "telegram_date_utc"]
     if path.exists():
         sent = pd.read_csv(path)
-        if not set(columns).issubset(sent.columns):
+        # Preserve prior deduplication history when upgrading the CSV schema.
+        if not {"target_date", "message_hash"}.issubset(sent.columns):
             sent = pd.DataFrame(columns=columns)
+        else:
+            for column in columns:
+                if column not in sent.columns:
+                    sent[column] = "LEGACY_UNVERIFIED" if column == "delivery_status" else ""
+            sent = sent[columns]
     else:
         sent = pd.DataFrame(columns=columns)
     new_row = pd.DataFrame({

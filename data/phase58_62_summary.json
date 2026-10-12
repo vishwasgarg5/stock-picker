@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-10-12T18:38:27.407623+00:00",
+  "as_of": "2026-10-12T19:33:33.908990+00:00",
   "phase58_accounting": {
     "status": "INCOMPLETE",
     "rows_examined": 160,
@@ -51,14 +51,14 @@
   },
   "phase61_telegram": {
     "status": "PASS",
-    "rows_across_logs": 75,
-    "api_confirmed_rows": 2,
+    "rows_across_logs": 76,
+    "api_confirmed_rows": 3,
     "legacy_unverified_rows": 27,
     "missing_status_rows": 46,
     "by_file": {
       "telegram_sent.csv": {
-        "rows": 29,
-        "confirmed": 2,
+        "rows": 30,
+        "confirmed": 3,
         "legacy_unverified": 27,
         "missing_status": 0
       },

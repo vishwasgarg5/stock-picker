@@ -138,7 +138,7 @@
       "check": "news_rows",
       "status": "PASS",
       "affected_rows": 0,
-      "detail": "5 index-intelligence rows"
+      "detail": "3 index-intelligence rows"
     },
     {
       "check": "headline_present",
@@ -161,7 +161,7 @@
     {
       "check": "duplicate_headlines",
       "status": "WARN",
-      "affected_rows": 5,
+      "affected_rows": 3,
       "detail": "exact duplicate headline text; not proof of duplicate event"
     },
     {

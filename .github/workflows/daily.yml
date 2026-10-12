@@ -189,6 +189,9 @@ jobs:
       - name: Run Phases 41-43 V2 diagnosis and offline sensitivity reports (analysis-only)
         run: python -m src.phase41_43_diagnostics
 
+      - name: Run Phases 48-52 ledger, forecast, funnel, stress and promotion evidence (analysis-only)
+        run: python -m src.phase48_52_evidence
+
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison
 

@@ -235,3 +235,34 @@ def test_phase33_falls_back_to_recorded_evaluation_forecasts_when_history_match_
     assert len(scored) == 5
     assert summary["prediction_source"].startswith("evaluations.csv paired saved forecasts/outcomes")
     assert summary["actuals_source"] == "evaluations.csv paired actual OHLC"
+
+
+
+def test_phase35_row_level_incomplete_ledger_diagnostics_explain_missing_fields():
+    from src.phase32_40_diagnostics import _phase35_incomplete_ledger_rows
+
+    trades = pd.DataFrame([
+        {"target_date": "2026-10-01", "symbol": "ABC", "signal": "BUY",
+         "quantity": 10, "profit_loss": 95, "trading_cost": 5},
+        {"target_date": "2026-10-02", "symbol": "XYZ", "signal": "BUY",
+         "shares": 4, "profit_loss": 20, "gross_profit_loss": 25, "costs": 5},
+        {"target_date": "2026-10-03", "symbol": "SKIP", "signal": "SKIP",
+         "quantity": 0, "profit_loss": 0},
+    ])
+    report = _phase35_incomplete_ledger_rows(trades)
+    assert len(report) == 1
+    assert report.iloc[0]["symbol"] == "ABC"
+    assert report.iloc[0]["missing_fields"] == "gross_profit_loss"
+    assert bool(report.iloc[0]["has_quantity_column"]) is True
+    assert bool(report.iloc[0]["has_costs_column"]) is True
+    assert bool(report.iloc[0]["has_trading_cost_column"]) is True
+
+
+def test_phase35_row_level_incomplete_ledger_report_empty_when_complete():
+    from src.phase32_40_diagnostics import _phase35_incomplete_ledger_rows
+
+    trades = pd.DataFrame([
+        {"target_date": "2026-10-01", "symbol": "ABC", "signal": "BUY",
+         "quantity": 10, "profit_loss": 95, "gross_profit_loss": 100, "costs": 5},
+    ])
+    assert _phase35_incomplete_ledger_rows(trades).empty

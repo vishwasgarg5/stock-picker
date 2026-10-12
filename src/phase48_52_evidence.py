@@ -40,20 +40,32 @@ def _ledger(frame: pd.DataFrame, model: str, gross_col: str, cost_col: str, net_
         return {"model": model, "rows": 0, "executed_trades": 0, "incomplete_rows": 0, "ledger_status": "MISSING_LEDGER", "gross_pnl": None, "net_pnl": None, "recorded_costs": None}, empty
     x = frame.copy().reset_index(drop=True)
     signal = x.get("signal", pd.Series("BUY", index=x.index)).astype(str).str.upper().str.strip()
-    qty_col = next((c for c in ("quantity", "shares") if c in x.columns and pd.to_numeric(x[c], errors="coerce").fillna(0).gt(0).any()), None)
-    qty = _num(x, qty_col) if qty_col else pd.Series(1.0, index=x.index)
+    # Resolve quantity row-by-row: newer rows use quantity, older rows use shares.
+    qty = _num(x, "quantity").where(_num(x, "quantity").gt(0), _num(x, "shares"))
+    if "quantity" not in x.columns and "shares" not in x.columns:
+        qty = pd.Series(np.nan, index=x.index, dtype=float)
     executed = ~signal.isin(["SKIP", "HOLD", "NONE", ""])
     executed &= qty.fillna(0).gt(0)
     x = x.loc[executed].copy()
+    qty = qty.loc[executed]
     gross, cost, net = _num(x, gross_col), _num(x, cost_col), _num(x, net_col)
+    gross_source = pd.Series("RECORDED", index=x.index, dtype=object)
+    # A missing gross value can be reconstructed from recorded entry/exit prices and quantity.
+    price_gross = (_num(x, "exit_price") - _num(x, "entry_price")) * qty
+    reconstructable = gross.isna() & price_gross.notna() & _num(x, "entry_price").gt(0) & _num(x, "exit_price").gt(0)
+    gross = gross.where(~reconstructable, price_gross)
+    gross_source.loc[reconstructable] = "DERIVED_FROM_RECORDED_ENTRY_EXIT_AND_QUANTITY"
     missing = gross.isna() | cost.isna() | net.isna()
     delta = gross - cost - net
+    status = np.where(missing, "MISSING_ACCOUNTING_FIELD",
+                      np.where(delta.abs() > 0.02, "RECONCILIATION_MISMATCH",
+                               np.where(gross_source.eq("RECORDED"), "RECONCILED", "RECONCILED_WITH_DERIVED_GROSS")))
     detail = pd.DataFrame({
         "model": model, "row_index": x.index, "symbol": x.get("symbol", pd.Series("", index=x.index)).astype(str),
         "target_date": x.get("target_date", pd.Series("", index=x.index)).astype(str),
-        "gross_pnl": gross, "recorded_costs": cost, "net_pnl": net,
-        "reconciliation_delta": delta,
-        "status": np.where(missing, "MISSING_ACCOUNTING_FIELD", np.where(delta.abs() > 0.02, "RECONCILIATION_MISMATCH", "RECONCILED")),
+        "quantity_used": qty, "gross_pnl": gross, "gross_pnl_source": gross_source,
+        "recorded_costs": cost, "net_pnl": net,
+        "reconciliation_delta": delta, "status": status,
     })
     incomplete = int(missing.sum())
     mismatch = int((~missing & delta.abs().gt(0.02)).sum())
@@ -61,11 +73,13 @@ def _ledger(frame: pd.DataFrame, model: str, gross_col: str, cost_col: str, net_
     summary = {
         "model": model, "rows": int(len(frame)), "executed_trades": int(len(x)),
         "incomplete_rows": incomplete, "reconciliation_mismatch_rows": mismatch,
+        "gross_rows_reconstructed_from_prices": int(reconstructable.sum()),
         "ledger_status": "RECONCILED" if complete else ("NO_EXECUTED_TRADES" if x.empty else "INCOMPLETE_OR_MISMATCH"),
         "gross_pnl": float(gross.sum()) if gross.notna().all() and len(gross) else (0.0 if x.empty else None),
         "net_pnl": float(net.sum()) if net.notna().all() and len(net) else (0.0 if x.empty else None),
         "recorded_costs": float(cost.sum()) if cost.notna().all() and len(cost) else (0.0 if x.empty else None),
         "missing_values_imputed": False,
+        "derived_gross_values_are_flagged": True,
     }
     return summary, detail
 

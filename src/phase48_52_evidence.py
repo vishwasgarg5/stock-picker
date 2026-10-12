@@ -166,7 +166,7 @@ def build_reports() -> dict[str, Any]:
         "interpretation": "Reasons are observed telemetry only. Do not weaken selection or risk gates based on counts alone.",
         "production_filters_changed": False,
     }
-    (DATA / "phase50_v2_rejection_summary.json").write_text(json.dumps(reason_summary, indent=2) + "\\n", encoding="utf-8")
+    (DATA / "phase50_v2_rejection_summary.json").write_text(json.dumps(reason_summary, indent=2) + "\n", encoding="utf-8")
 
     stress_rows = []
     for item in (v1, v2):

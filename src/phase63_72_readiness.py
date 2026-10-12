@@ -90,7 +90,21 @@ def forecast_baseline_audit() -> dict[str, Any]:
         return {"status": "INSUFFICIENT_DATA", "scored_rows": 0, "beats_baseline": False}
     model = float(x["close_ape"].mean() * 100)
     baseline = float(x["baseline_close_ape"].mean() * 100)
-    direction = _num(x, "close_direction_correct").dropna() if "close_direction_correct" in x else pd.Series(dtype=float)
+    direction = _num(x, "close_direction_correct") if "close_direction_correct" in x else pd.Series(np.nan, index=x.index)
+    dates = sorted(x["target_date"].dropna().unique())
+    recent_dates = dates[-5:]
+    recent = x[x["target_date"].isin(recent_dates)]
+    recent_model = float(recent["close_ape"].mean() * 100)
+    recent_baseline = float(recent["baseline_close_ape"].mean() * 100)
+    recent_direction = direction.loc[recent.index].dropna()
+    per_date = x.groupby("target_date", as_index=False).agg(
+        model_close_ape=("close_ape", "mean"),
+        baseline_close_ape=("baseline_close_ape", "mean"),
+        scored_rows=("close_ape", "size"),
+    )
+    per_date["model_close_mape_pct"] = per_date["model_close_ape"] * 100
+    per_date["baseline_close_mape_pct"] = per_date["baseline_close_ape"] * 100
+    per_date["error_delta_pct_points"] = per_date["model_close_mape_pct"] - per_date["baseline_close_mape_pct"]
     return {
         "status": "PASS" if model < baseline else "BASELINE_NOT_BEATEN",
         "scored_rows": int(len(x)),
@@ -99,7 +113,24 @@ def forecast_baseline_audit() -> dict[str, Any]:
         "baseline_close_mape_pct": baseline,
         "error_delta_pct_points": model - baseline,
         "beats_baseline": bool(model < baseline),
-        "directional_accuracy_pct": float(direction.mean() * 100) if not direction.empty else None,
+        "directional_accuracy_pct": float(direction.dropna().mean() * 100) if direction.notna().any() else None,
+        "recent_5_sessions": int(len(recent_dates)),
+        "recent_5_sessions_scored_rows": int(len(recent)),
+        "recent_5_sessions_model_close_mape_pct": recent_model,
+        "recent_5_sessions_baseline_close_mape_pct": recent_baseline,
+        "recent_5_sessions_error_delta_pct_points": recent_model - recent_baseline,
+        "recent_5_sessions_beats_baseline": bool(recent_model < recent_baseline),
+        "recent_5_sessions_directional_accuracy_pct": float(recent_direction.mean() * 100) if not recent_direction.empty else None,
+        "per_date_comparison": [
+            {
+                "target_date": str(row["target_date"].date()),
+                "scored_rows": int(row["scored_rows"]),
+                "model_close_mape_pct": float(row["model_close_mape_pct"]),
+                "baseline_close_mape_pct": float(row["baseline_close_mape_pct"]),
+                "error_delta_pct_points": float(row["error_delta_pct_points"]),
+            }
+            for _, row in per_date.iterrows()
+        ],
         "same_scored_rows_for_comparison": True,
         "production_model_changed": False,
     }
@@ -140,26 +171,43 @@ def telegram_receipt_audit() -> dict[str, Any]:
     duplicate_keys = 0
     confirmed = 0
     total = 0
+    rows_with_usable_keys = 0
     for name in names:
         x = _read(name)
         if x.empty:
-            per_file[name] = {"rows": 0, "confirmed": 0, "duplicate_message_keys": 0}
+            per_file[name] = {"rows": 0, "confirmed": 0, "duplicate_message_keys": 0,
+                              "rows_missing_message_key": 0}
             continue
         status = x.get("delivery_status", pd.Series("", index=x.index)).fillna("").astype(str).str.strip()
-        hashes = x.get("message_hash", pd.Series("", index=x.index)).fillna("").astype(str)
-        dates = x.get("target_date", pd.Series("", index=x.index)).fillna("").astype(str)
-        dup = int(pd.DataFrame({"date": dates, "hash": hashes}).duplicated().sum())
+        hashes = x.get("message_hash", pd.Series("", index=x.index)).fillna("").astype(str).str.strip()
+        dates = x.get("target_date", pd.Series("", index=x.index)).fillna("").astype(str).str.strip()
+        usable = hashes.ne("") & dates.ne("")
+        keys = pd.DataFrame({"date": dates[usable], "hash": hashes[usable]})
+        duplicate_mask = keys.duplicated(keep=False)
+        dup = int(keys.duplicated().sum())
         nconfirmed = int(status.eq("TELEGRAM_API_CONFIRMED").sum())
-        per_file[name] = {"rows": int(len(x)), "confirmed": nconfirmed,
-                          "legacy_unverified": int(status.eq("LEGACY_UNVERIFIED").sum()),
-                          "duplicate_message_keys": dup}
+        per_file[name] = {
+            "rows": int(len(x)),
+            "confirmed": nconfirmed,
+            "legacy_unverified": int(status.eq("LEGACY_UNVERIFIED").sum()),
+            "duplicate_message_keys": dup,
+            "rows_missing_message_key": int((~usable).sum()),
+            "rows_in_duplicate_key_groups": int(duplicate_mask.sum()),
+        }
         total += len(x)
         confirmed += nconfirmed
         duplicate_keys += dup
-    return {"status": "PASS" if confirmed > 0 and duplicate_keys == 0 else "REVIEW",
-            "rows": int(total), "api_confirmed_rows": int(confirmed),
-            "duplicate_message_keys": int(duplicate_keys), "by_file": per_file,
-            "human_read_receipt_proven": False}
+        rows_with_usable_keys += int(usable.sum())
+    return {
+        "status": "PASS" if confirmed > 0 and duplicate_keys == 0 else "REVIEW",
+        "rows": int(total),
+        "rows_with_usable_message_keys": int(rows_with_usable_keys),
+        "api_confirmed_rows": int(confirmed),
+        "duplicate_message_keys": int(duplicate_keys),
+        "by_file": per_file,
+        "human_read_receipt_proven": False,
+        "duplicate_definition": "Repeated non-empty (target_date, message_hash) keys within the same log file; blank legacy keys are excluded.",
+    }
 
 
 def v2_evidence_audit() -> dict[str, Any]:

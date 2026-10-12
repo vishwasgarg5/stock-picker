@@ -216,7 +216,7 @@ def build_reports() -> dict[str, Any]:
         except (OSError, ValueError):
             gate = {}
     report = {
-        "as_of": pd.Timestamp.utcnow().isoformat(),
+        "as_of": pd.Timestamp.now(tz="UTC").isoformat(),
         "phase58_accounting": ledger_summary,
         "phase59_forecast": forecast_summary,
         "phase60_v2": v2_summary,

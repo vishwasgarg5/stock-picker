@@ -1,0 +1,95 @@
+{
+  "as_of": "2026-10-12T17:26:54.441333+00:00",
+  "phase58_accounting": {
+    "status": "INCOMPLETE",
+    "rows_examined": 160,
+    "executed_rows_examined": 108,
+    "incomplete_rows": 38,
+    "missing_field_counts": {
+      "quantity": 0,
+      "entry_price": 0,
+      "exit_price": 0,
+      "gross_profit_loss": 38,
+      "costs": 38,
+      "profit_loss": 0
+    },
+    "missing_cost_rows": 38,
+    "missing_net_pnl_rows": 0,
+    "gross_reconstruction_possible_rows": 15,
+    "values_imputed": false,
+    "net_pnl_claim_safe": false
+  },
+  "phase59_forecast": {
+    "status": "PASS",
+    "scored_rows": 160,
+    "model_close_mape_pct": 1.8912507919811483,
+    "baseline_close_mape_pct": 1.8759216956593876,
+    "error_delta_pct_points": 0.015329096321760716,
+    "beats_baseline": false,
+    "chronological_dates": 16,
+    "symbol_breakdown_available": true,
+    "evaluation_source": "phase33_chronological_prediction_scores.csv",
+    "production_model_changed": false
+  },
+  "phase60_v2": {
+    "status": "PASS",
+    "rows": 120,
+    "buy_rows": 0,
+    "skip_rows": 120,
+    "missing_skip_reason_rows": 0,
+    "primary_reason_counts": {
+      "phase2_not_selected": 66,
+      "confidence_percentile": 48,
+      "phase4_ineligible": 6
+    },
+    "phase4_reason_counts": {
+      "NOT_RECORDED": 114,
+      "minimum_expected_return": 3,
+      "phase4_confidence_floor": 3
+    },
+    "production_filters_changed": false
+  },
+  "phase61_telegram": {
+    "status": "PASS",
+    "rows_across_logs": 74,
+    "api_confirmed_rows": 1,
+    "legacy_unverified_rows": 27,
+    "missing_status_rows": 46,
+    "by_file": {
+      "telegram_sent.csv": {
+        "rows": 28,
+        "confirmed": 1,
+        "legacy_unverified": 27,
+        "missing_status": 0
+      },
+      "telegram_evening_sent.csv": {
+        "rows": 18,
+        "confirmed": 0,
+        "legacy_unverified": 0,
+        "missing_status": 18
+      },
+      "telegram_paper_sent.csv": {
+        "rows": 19,
+        "confirmed": 0,
+        "legacy_unverified": 0,
+        "missing_status": 19
+      },
+      "telegram_paper_v2_sent.csv": {
+        "rows": 9,
+        "confirmed": 0,
+        "legacy_unverified": 0,
+        "missing_status": 9
+      }
+    },
+    "human_read_receipt_proven": false
+  },
+  "phase62_promotion": {
+    "existing_phase52_gate_readable": true,
+    "existing_promotion_safe": false,
+    "production_champion": "V1",
+    "v2_status": "SHADOW_ONLY",
+    "automatic_promotion": false,
+    "production_settings_changed": false,
+    "missing_accounting_blocks_net_pnl_claim": true
+  }
+}

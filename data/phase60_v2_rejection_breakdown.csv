@@ -1,0 +1,5 @@
+primary_reason,phase4_reason,rows
+confidence_percentile,NOT_RECORDED,48
+phase2_not_selected,NOT_RECORDED,66
+phase4_ineligible,minimum_expected_return,3
+phase4_ineligible,phase4_confidence_floor,3

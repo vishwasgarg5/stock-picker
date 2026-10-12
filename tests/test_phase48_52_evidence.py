@@ -64,6 +64,8 @@ def test_phase48_52_outputs_keep_v1_champion_and_no_auto_promotion(tmp_path, mon
     assert (tmp_path / "phase49_forecast_accuracy.csv").exists()
     assert (tmp_path / "phase50_v2_rejection_reasons.csv").exists()
     assert (tmp_path / "phase51_return_stress.csv").exists()
+    assert (tmp_path / "phase49_forecast_by_symbol.csv").exists()
+    assert (tmp_path / "phase50_v2_rejection_summary.json").exists()
 
 def test_ledger_uses_rowwise_quantity_fallback_and_reconstructs_gross():
     frame = pd.DataFrame([

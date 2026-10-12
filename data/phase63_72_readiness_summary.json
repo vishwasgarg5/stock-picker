@@ -1,0 +1,107 @@
+{
+  "as_of_utc": "2026-10-12T18:38:27.777544+00:00",
+  "status": "REVIEW_REQUIRED",
+  "blocking_or_review_sections": [
+    "forecast_baseline"
+  ],
+  "sections": {
+    "prediction_report": {
+      "status": "PASS",
+      "target_date": "2026-10-13",
+      "rows_for_target_date": 10,
+      "top10_rows": 10,
+      "top10_complete": true,
+      "invalid_price_rows": 0,
+      "invalid_ohlc_rows": 0,
+      "duplicate_symbol_rows": 0,
+      "top10_symbols": [
+        "PTCIL",
+        "CPPLUS",
+        "CARTRADE",
+        "CUPID",
+        "KARURVYSYA",
+        "PVRINOX",
+        "PNBHOUSING",
+        "BBOX",
+        "PERSISTENT",
+        "NUVAMA"
+      ],
+      "ranked_candidates_are_not_buy_approval": true
+    },
+    "forecast_baseline": {
+      "status": "BASELINE_NOT_BEATEN",
+      "scored_rows": 160,
+      "unique_dates": 16,
+      "model_close_mape_pct": 1.8912507919811483,
+      "baseline_close_mape_pct": 1.8759216956593876,
+      "error_delta_pct_points": 0.015329096321760716,
+      "beats_baseline": false,
+      "directional_accuracy_pct": 44.375,
+      "same_scored_rows_for_comparison": true,
+      "production_model_changed": false
+    },
+    "paper_ledger": {
+      "status": "PASS",
+      "rows": 160,
+      "executed_rows": 70,
+      "incomplete_executed_rows": 0,
+      "net_pnl_reconciliation_mismatch_rows": 0,
+      "unknown_values_imputed": false,
+      "net_pnl_claim_safe": true
+    },
+    "telegram_receipts": {
+      "status": "REVIEW",
+      "rows": 75,
+      "api_confirmed_rows": 2,
+      "duplicate_message_keys": 2,
+      "by_file": {
+        "telegram_sent.csv": {
+          "rows": 29,
+          "confirmed": 2,
+          "legacy_unverified": 27,
+          "duplicate_message_keys": 2
+        },
+        "telegram_evening_sent.csv": {
+          "rows": 18,
+          "confirmed": 0,
+          "legacy_unverified": 0,
+          "duplicate_message_keys": 0
+        },
+        "telegram_paper_sent.csv": {
+          "rows": 19,
+          "confirmed": 0,
+          "legacy_unverified": 0,
+          "duplicate_message_keys": 0
+        },
+        "telegram_paper_v2_sent.csv": {
+          "rows": 9,
+          "confirmed": 0,
+          "legacy_unverified": 0,
+          "duplicate_message_keys": 0
+        }
+      },
+      "human_read_receipt_proven": false
+    },
+    "v2_evidence": {
+      "status": "PASS",
+      "rows": 120,
+      "unique_sessions": 12,
+      "buy_rows": 0,
+      "skip_rows": 120,
+      "skip_rows_without_reason": 0,
+      "existing_promotion_safe": false,
+      "promotion_ready": false,
+      "production_champion": "V1",
+      "v2_mode": "SHADOW_ONLY",
+      "automatic_promotion": false
+    }
+  },
+  "safety": {
+    "production_champion": "V1",
+    "v2_mode": "SHADOW_ONLY",
+    "automatic_promotion": false,
+    "production_ranking_or_risk_changed": false,
+    "storage_settings_changed": false,
+    "unknown_accounting_values_imputed": false
+  }
+}

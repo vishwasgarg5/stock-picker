@@ -175,6 +175,54 @@ def _phase32_funnel(trades: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]]
     }
 
 
+def _phase35_incomplete_ledger_rows(trades: pd.DataFrame, model: str = "V1") -> pd.DataFrame:
+    """Expose row-level ledger gaps for diagnosis without inferring or repairing values."""
+    columns = [
+        "model", "target_date", "symbol", "missing_fields",
+        "has_quantity_column", "has_shares_column", "has_gross_column",
+        "has_costs_column", "has_trading_cost_column", "profit_loss",
+    ]
+    if trades.empty or "signal" not in trades:
+        return pd.DataFrame(columns=columns)
+    x = trades[trades["signal"].astype(str).str.upper().eq("BUY")].copy()
+    quantity = _safe_num(x["quantity"]) if "quantity" in x else pd.Series(np.nan, index=x.index)
+    shares = _safe_num(x["shares"]) if "shares" in x else pd.Series(np.nan, index=x.index)
+    quantity = quantity.where(quantity.fillna(0) > 0, shares)
+    if "quantity" in x or "shares" in x:
+        x = x.loc[quantity.fillna(0) > 0].copy()
+    if x.empty:
+        return pd.DataFrame(columns=columns)
+    gross = _safe_num(x["gross_profit_loss"]) if "gross_profit_loss" in x else pd.Series(np.nan, index=x.index)
+    costs = _safe_num(x["trading_cost"]) if "trading_cost" in x else pd.Series(np.nan, index=x.index)
+    if "costs" in x:
+        costs = costs.where(costs.notna(), _safe_num(x["costs"]))
+    net = _safe_num(x["profit_loss"]) if "profit_loss" in x else pd.Series(np.nan, index=x.index)
+    missing = []
+    for idx in x.index:
+        fields = []
+        if pd.isna(gross.loc[idx]):
+            fields.append("gross_profit_loss")
+        if pd.isna(costs.loc[idx]):
+            fields.append("costs_or_trading_cost")
+        if pd.isna(net.loc[idx]):
+            fields.append("profit_loss")
+        if fields:
+            missing.append({
+                "model": model,
+                "target_date": x.loc[idx, "target_date"] if "target_date" in x else None,
+                "symbol": x.loc[idx, "symbol"] if "symbol" in x else None,
+                "missing_fields": "|".join(fields),
+                "has_quantity_column": "quantity" in x and pd.notna(_safe_num(x["quantity"]).loc[idx]),
+                "has_shares_column": "shares" in x and pd.notna(_safe_num(x["shares"]).loc[idx]),
+                "has_gross_column": "gross_profit_loss" in x,
+                "has_costs_column": "costs" in x,
+                "has_trading_cost_column": "trading_cost" in x,
+                "profit_loss": net.loc[idx],
+            })
+    return pd.DataFrame(missing)
+
+
+
 def _phase35_trade_metrics(trades: pd.DataFrame, model: str) -> dict[str, Any]:
     if trades.empty or "signal" not in trades:
         return {"model": model, "executed_trades": 0, "status": "NO_DATA"}
@@ -420,6 +468,8 @@ def run() -> dict[str, Any]:
         _phase35_trade_metrics(v2_trades, "V2"),
     ])
     _write(trade_report, "phase35_trading_costs_and_returns.csv")
+    incomplete_ledger = _phase35_incomplete_ledger_rows(v1_trades, "V1")
+    _write(incomplete_ledger, "phase35_v1_incomplete_ledger_rows.csv")
 
     # Phase 36: evidence gate only; it cannot promote a model.
     phase31_path = DATA / "phase31_summary.json"

@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-10-12T11:51:03.495218+00:00",
+  "as_of": "2026-10-12T13:24:49.098145+00:00",
   "advanced_control_version": "advanced_v1",
   "data_freshness": {
     "status": "PASS",
@@ -17,7 +17,7 @@
       "return_lift": false,
       "session_win_rate": false,
       "ci_low": false,
-      "confidence_evidence": false,
+      "confidence_evidence": true,
       "governance_safe": true,
       "no_drawdown_breach": true
     },

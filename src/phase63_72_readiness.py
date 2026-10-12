@@ -64,7 +64,7 @@ def prediction_report_audit() -> dict[str, Any]:
     top_invalid = top[price_cols].isna().any(axis=1) | top[price_cols].le(0).any(axis=1)
     duplicate_symbols = int(symbols.duplicated().sum())
     return {
-        "status": "PASS" if len(top) == 10 and not top_invalid.any() and not bad_ohlc.any() and duplicate_symbols == 0 else "BLOCK",
+        "status": "PASS" if len(top) == 10 and not top_invalid.any() and not invalid_prices.any() and not bad_ohlc.any() and duplicate_symbols == 0 else "BLOCK",
         "target_date": str(target.date()),
         "rows_for_target_date": int(len(day)),
         "top10_rows": int(len(top)),

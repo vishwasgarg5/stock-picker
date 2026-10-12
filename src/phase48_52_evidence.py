@@ -94,26 +94,51 @@ def build_reports() -> dict[str, Any]:
     forecast = _read("phase33_chronological_prediction_scores.csv")
     forecast_summary: dict[str, Any] = {"status": "INSUFFICIENT_DATA", "scored_rows": 0, "forecast_beats_baseline": False}
     forecast_report = pd.DataFrame()
+    symbol_report = pd.DataFrame()
     if not forecast.empty and {"target_date", "close_ape", "baseline_close_ape"}.issubset(forecast.columns):
         f = forecast.copy()
-        f["close_ape"] = pd.to_numeric(f["close_ape"], errors="coerce")
-        f["baseline_close_ape"] = pd.to_numeric(f["baseline_close_ape"], errors="coerce")
+        numeric_cols = [c for c in ("open_ape", "high_ape", "low_ape", "close_ape", "baseline_close_ape",
+                                     "predicted_close", "base_close", "actual_close", "close_direction_correct")
+                        if c in f.columns]
+        for col in numeric_cols:
+            f[col] = pd.to_numeric(f[col], errors="coerce")
         f["target_date"] = pd.to_datetime(f["target_date"], errors="coerce")
         f = f.dropna(subset=["target_date", "close_ape", "baseline_close_ape"])
         if not f.empty:
-            forecast_report = f.groupby("target_date", as_index=False).agg(
-                scored_rows=("close_ape", "size"), close_mape_pct=("close_ape", lambda s: float(s.mean() * 100)),
-                baseline_close_mape_pct=("baseline_close_ape", lambda s: float(s.mean() * 100)))
+            grouped = f.groupby("target_date", as_index=False)
+            aggregations = {"scored_rows": ("close_ape", "size"),
+                            "close_mape_pct": ("close_ape", lambda s: float(s.mean() * 100)),
+                            "baseline_close_mape_pct": ("baseline_close_ape", lambda s: float(s.mean() * 100))}
+            for col in ("open_ape", "high_ape", "low_ape"):
+                if col in f.columns:
+                    aggregations[f"{col.removesuffix('_ape')}_mape_pct"] = (col, lambda s: float(s.mean() * 100))
+            if "close_direction_correct" in f.columns:
+                aggregations["directional_accuracy_pct"] = ("close_direction_correct", lambda s: float(pd.to_numeric(s, errors="coerce").mean() * 100))
+            forecast_report = grouped.agg(**aggregations)
             forecast_report["forecast_beats_baseline"] = forecast_report["close_mape_pct"] < forecast_report["baseline_close_mape_pct"]
+            if "symbol" in f.columns:
+                symbol_aggs = {"scored_rows": ("close_ape", "size"),
+                               "close_mape_pct": ("close_ape", lambda s: float(s.mean() * 100)),
+                               "baseline_close_mape_pct": ("baseline_close_ape", lambda s: float(s.mean() * 100))}
+                for col in ("open_ape", "high_ape", "low_ape"):
+                    if col in f.columns:
+                        symbol_aggs[f"{col.removesuffix('_ape')}_mape_pct"] = (col, lambda s: float(s.mean() * 100))
+                symbol_report = f.groupby("symbol", as_index=False).agg(**symbol_aggs).sort_values("close_mape_pct")
+                symbol_report["forecast_beats_baseline"] = symbol_report["close_mape_pct"] < symbol_report["baseline_close_mape_pct"]
             forecast_summary = {
                 "status": "SCORED" if len(f) >= 20 else "SMALL_SAMPLE", "scored_rows": int(len(f)),
                 "target_dates": int(f["target_date"].nunique()),
                 "close_mape_pct": float(f["close_ape"].mean() * 100),
                 "baseline_close_mape_pct": float(f["baseline_close_ape"].mean() * 100),
                 "forecast_beats_baseline": bool(f["close_ape"].mean() < f["baseline_close_ape"].mean()),
-                "method": "saved chronological predictions versus base-close baseline; no refit",
+                "ohlc_mape_pct": {col.removesuffix("_ape"): float(f[col].mean() * 100)
+                                  for col in ("open_ape", "high_ape", "low_ape", "close_ape") if col in f.columns},
+                "directional_accuracy_pct": (float(f["close_direction_correct"].mean() * 100)
+                                             if "close_direction_correct" in f.columns else None),
+                "method": "saved chronological predictions versus saved base-close baseline; no refit or production model changes",
             }
     forecast_report.to_csv(DATA / "phase49_forecast_accuracy.csv", index=False)
+    symbol_report.to_csv(DATA / "phase49_forecast_by_symbol.csv", index=False)
 
     trades2 = _read("paper_trades_v2.csv")
     reason_rows = []

@@ -152,6 +152,21 @@ def build_reports() -> dict[str, Any]:
                     reason_rows.extend({"reason_source": col, "reason": str(k), "rows": int(v)} for k, v in counts.items())
     reason_report = pd.DataFrame(reason_rows, columns=["reason_source", "reason", "rows"])
     reason_report.to_csv(DATA / "phase50_v2_rejection_reasons.csv", index=False)
+    total_v2_rows = int(len(trades2))
+    reason_summary = {
+        "phase": 50,
+        "candidate_rows": total_v2_rows,
+        "signal_counts": ({str(k): int(v) for k, v in trades2.get("signal", pd.Series(dtype=str)).astype(str).str.upper().value_counts().items()}
+                          if not trades2.empty else {}),
+        "reason_counts": [
+            {"source": str(row.reason_source), "reason": str(row.reason), "rows": int(row.rows),
+             "pct_of_candidate_rows": (float(row.rows) / total_v2_rows * 100.0 if total_v2_rows else None)}
+            for row in reason_report.itertuples(index=False)
+        ],
+        "interpretation": "Reasons are observed telemetry only. Do not weaken selection or risk gates based on counts alone.",
+        "production_filters_changed": False,
+    }
+    (DATA / "phase50_v2_rejection_summary.json").write_text(json.dumps(reason_summary, indent=2) + "\\n", encoding="utf-8")
 
     stress_rows = []
     for item in (v1, v2):
@@ -192,7 +207,7 @@ def build_reports() -> dict[str, Any]:
     (DATA / "phase52_promotion_gate.json").write_text(json.dumps(gate, indent=2) + "\n", encoding="utf-8")
     summary = {
         "phases": [48, 49, 50, 51, 52], "phase48_ledger": {"v1": v1, "v2": v2},
-        "phase49_forecast": forecast_summary, "phase50_rejection_reason_rows": int(len(reason_report)),
+        "phase49_forecast": forecast_summary, "phase50_rejection_reason_rows": int(len(reason_report)), "phase50_rejection_summary": reason_summary,
         "phase51_stress_scenarios": int(len(stress_report)), "phase52_promotion_gate": gate,
         "production_champion": "V1", "v2_promoted": False, "production_settings_changed": False,
     }

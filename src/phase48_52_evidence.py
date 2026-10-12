@@ -40,7 +40,7 @@ def _ledger(frame: pd.DataFrame, model: str, gross_col: str, cost_col: str, net_
         return {"model": model, "rows": 0, "executed_trades": 0, "incomplete_rows": 0, "ledger_status": "MISSING_LEDGER", "gross_pnl": None, "net_pnl": None, "recorded_costs": None}, empty
     x = frame.copy().reset_index(drop=True)
     signal = x.get("signal", pd.Series("BUY", index=x.index)).astype(str).str.upper().str.strip()
-    qty_col = next((c for c in ("quantity", "shares") if c in x.columns and pd.to_numeric(x[c], errors="coerce").notna().any()), None)
+    qty_col = next((c for c in ("quantity", "shares") if c in x.columns and pd.to_numeric(x[c], errors="coerce").fillna(0).gt(0).any()), None)
     qty = _num(x, qty_col) if qty_col else pd.Series(1.0, index=x.index)
     executed = ~signal.isin(["SKIP", "HOLD", "NONE", ""])
     executed &= qty.fillna(0).gt(0)

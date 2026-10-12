@@ -57,3 +57,23 @@ def test_record_sent_persists_receipt_metadata(tmp_path):
     assert saved.loc[0, "delivery_status"] == "TELEGRAM_API_CONFIRMED"
     assert str(saved.loc[0, "telegram_message_id"]) == "456"
     assert str(saved.loc[0, "telegram_date_utc"]) == "1791820800"
+
+
+def test_record_sent_preserves_legacy_deduplication_history(tmp_path):
+    path = tmp_path / "telegram_sent.csv"
+    pd.DataFrame([{
+        "target_date": "2026-10-09",
+        "message_hash": telegram._message_hash("older message"),
+    }]).to_csv(path, index=False)
+
+    telegram._record_sent(path, pd.Timestamp("2026-10-12"), "new message", {
+        "delivery_status": "TELEGRAM_API_CONFIRMED",
+        "telegram_message_id": "789",
+        "telegram_date_utc": "1791820800",
+    })
+    saved = pd.read_csv(path)
+
+    assert len(saved) == 2
+    assert saved.loc[0, "delivery_status"] == "LEGACY_UNVERIFIED"
+    assert saved.loc[0, "message_hash"] == telegram._message_hash("older message")
+    assert saved.loc[1, "delivery_status"] == "TELEGRAM_API_CONFIRMED"

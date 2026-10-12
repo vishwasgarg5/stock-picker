@@ -195,6 +195,9 @@ jobs:
       - name: Run Phases 58-62 accounting, forecast, V2, Telegram and promotion diagnostics (analysis-only)
         run: python -m src.phase58_62_evidence
 
+      - name: Run Phases 63-72 production readiness evidence audit (analysis-only)
+        run: python -m src.phase63_72_readiness
+
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison
 

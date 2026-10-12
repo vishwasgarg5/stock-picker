@@ -64,3 +64,19 @@ def test_phase48_52_outputs_keep_v1_champion_and_no_auto_promotion(tmp_path, mon
     assert (tmp_path / "phase49_forecast_accuracy.csv").exists()
     assert (tmp_path / "phase50_v2_rejection_reasons.csv").exists()
     assert (tmp_path / "phase51_return_stress.csv").exists()
+
+def test_ledger_uses_rowwise_quantity_fallback_and_reconstructs_gross():
+    frame = pd.DataFrame([
+        {"symbol": "OLD", "target_date": "2026-10-01", "signal": "BUY",
+         "quantity": None, "shares": 2, "entry_price": 10.0, "exit_price": 15.0,
+         "gross_profit_loss": None, "costs": 1.0, "profit_loss": 9.0},
+        {"symbol": "NEW", "target_date": "2026-10-02", "signal": "BUY",
+         "quantity": 3, "shares": None, "entry_price": 10.0, "exit_price": 12.0,
+         "gross_profit_loss": 6.0, "costs": 1.0, "profit_loss": 5.0},
+    ])
+    summary, detail = _ledger(frame, "V1", "gross_profit_loss", "costs", "profit_loss")
+    assert summary["executed_trades"] == 2
+    assert summary["gross_rows_reconstructed_from_prices"] == 1
+    assert summary["ledger_status"] == "RECONCILED"
+    assert detail["quantity_used"].tolist() == [2.0, 3.0]
+    assert detail.iloc[0]["gross_pnl_source"] == "DERIVED_FROM_RECORDED_ENTRY_EXIT_AND_QUANTITY"

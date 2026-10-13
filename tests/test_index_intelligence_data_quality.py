@@ -65,7 +65,7 @@ def test_financial_index_download_tries_fallback_ticker(monkeypatch):
 
         def history(self, **kwargs):
             calls.append(self.ticker)
-            if self.ticker == "^CNXFINANCE":
+            if self.ticker in {"NIFTY_FIN_SERVICE.NS", "^CNXFINANCE"}:
                 return pd.DataFrame()
             dates = pd.date_range("2026-07-01", periods=30, freq="D")
             return pd.DataFrame({"Close": np.linspace(100, 110, len(dates))}, index=dates)
@@ -73,6 +73,6 @@ def test_financial_index_download_tries_fallback_ticker(monkeypatch):
     monkeypatch.setattr(ii.yf, "Ticker", FakeTicker)
     series = ii._download_index_series("NIFTYFIN")
 
-    assert calls == ["^CNXFINANCE", "^CNXFIN"]
+    assert calls == ["NIFTY_FIN_SERVICE.NS", "^CNXFINANCE", "^CNXFIN"]
     assert len(series) >= 21
     assert np.isfinite(float(series.iloc[-1]))

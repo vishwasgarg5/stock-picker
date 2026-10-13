@@ -1,0 +1,59 @@
+{
+  "as_of_utc": "2026-10-13T15:35:24.429313+00:00",
+  "phases": [
+    73,
+    74,
+    75,
+    76
+  ],
+  "phase73_v2_zero_buy": {
+    "status": "ZERO_BUY_DIAGNOSED",
+    "rows": 130,
+    "buy_rows": 0,
+    "skip_rows": 130,
+    "skip_reason_counts": {
+      "phase2_not_selected": 72,
+      "confidence_percentile": 52,
+      "phase4_ineligible": 6
+    },
+    "missing_skip_reasons": 0,
+    "production_filters_changed": false,
+    "thresholds_deployed": false
+  },
+  "phase74_directional_quality": {
+    "status": "REVIEW_DIRECTION_QUALITY",
+    "scored_rows": 170,
+    "target_dates": 17,
+    "directional_accuracy_pct": 45.88235294117647,
+    "recent_5_directional_accuracy_pct": 44.0,
+    "production_model_changed": false,
+    "method": "saved chronological scores; no refit or threshold search"
+  },
+  "phase75_evidence": {
+    "status": "RECORDED",
+    "chronological_scoring": true,
+    "new_model_fit": false
+  },
+  "phase76_storage_audit": {
+    "status": "ABOVE_GITHUB_RECOMMENDED_SIZE",
+    "path": "data/ohlcv.csv",
+    "bytes": 80369890,
+    "size_mb": 76.65,
+    "rows": 944183,
+    "duplicate_symbol_date_keys": 0,
+    "date_span": {
+      "first": "2018-01-01",
+      "last": "2026-10-13"
+    },
+    "recommended_action": "Plan and test a staged compressed/partitioned storage migration with rollback; do not replace the source file in this diagnostic.",
+    "storage_changed": false,
+    "source_file_modified": false
+  },
+  "safety": {
+    "production_champion": "V1",
+    "v2_mode": "SHADOW_ONLY",
+    "automatic_promotion": false,
+    "ranking_or_risk_changed": false,
+    "storage_migrated": false
+  }
+}

@@ -1,3 +1,3 @@
 window,sessions,direction_accuracy_pct,close_mape_pct,baseline_mape_pct,mape_lift_pct,drift_status,recommended_action
-recent_5,5,38.0,1.8713183399798439,1.8538625782532336,-0.9415887634485608,MONITOR,Review and consider rollback if sustained degradation; no automatic model change
-prior_5,5,42.00000000000001,2.2404934420840292,2.221320089013188,-0.8631512930385021,MONITOR,Review and consider rollback if sustained degradation; no automatic model change
+recent_5,5,44.00000000000001,1.9448523337550323,1.935924601573789,-0.4611611513168239,MONITOR,Review and consider rollback if sustained degradation; no automatic model change
+prior_5,5,43.99999999999999,2.2228437130345675,2.200411959430378,-1.0194342703898176,MONITOR,Review and consider rollback if sustained degradation; no automatic model change

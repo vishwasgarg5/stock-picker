@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-13T02:58:21.752906+00:00",
+  "as_of_utc": "2026-10-13T15:35:22.867716+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -7,7 +7,7 @@
   "sections": {
     "prediction_report": {
       "status": "PASS",
-      "target_date": "2026-10-13",
+      "target_date": "2026-10-14",
       "rows_for_target_date": 10,
       "top10_rows": 10,
       "top10_complete": true,
@@ -15,35 +15,35 @@
       "invalid_ohlc_rows": 0,
       "duplicate_symbol_rows": 0,
       "top10_symbols": [
-        "PTCIL",
-        "CPPLUS",
-        "CARTRADE",
-        "CUPID",
-        "KARURVYSYA",
-        "PVRINOX",
-        "PNBHOUSING",
-        "BBOX",
         "PERSISTENT",
-        "NUVAMA"
+        "KARURVYSYA",
+        "CPPLUS",
+        "FSL",
+        "PTCIL",
+        "COFORGE",
+        "GESHIP",
+        "CUPID",
+        "PVRINOX",
+        "PNBHOUSING"
       ],
       "ranked_candidates_are_not_buy_approval": true
     },
     "forecast_baseline": {
       "status": "BASELINE_NOT_BEATEN",
-      "scored_rows": 160,
-      "unique_dates": 16,
-      "model_close_mape_pct": 1.8912507919811483,
-      "baseline_close_mape_pct": 1.8759216956593876,
-      "error_delta_pct_points": 0.015329096321760716,
+      "scored_rows": 170,
+      "unique_dates": 17,
+      "model_close_mape_pct": 1.9034898551734811,
+      "baseline_close_mape_pct": 1.8900541959217452,
+      "error_delta_pct_points": 0.013435659251735954,
       "beats_baseline": false,
-      "directional_accuracy_pct": 44.375,
+      "directional_accuracy_pct": 45.88235294117647,
       "recent_5_sessions": 5,
       "recent_5_sessions_scored_rows": 50,
-      "recent_5_sessions_model_close_mape_pct": 1.8713183399798445,
-      "recent_5_sessions_baseline_close_mape_pct": 1.8538625782532343,
-      "recent_5_sessions_error_delta_pct_points": 0.01745576172661023,
+      "recent_5_sessions_model_close_mape_pct": 1.9448523337550323,
+      "recent_5_sessions_baseline_close_mape_pct": 1.9359246015737894,
+      "recent_5_sessions_error_delta_pct_points": 0.008927732181242876,
       "recent_5_sessions_beats_baseline": false,
-      "recent_5_sessions_directional_accuracy_pct": 38.0,
+      "recent_5_sessions_directional_accuracy_pct": 44.0,
       "per_date_comparison": [
         {
           "target_date": "2026-09-18",
@@ -156,6 +156,13 @@
           "model_close_mape_pct": 1.494030257430913,
           "baseline_close_mape_pct": 1.4995640755130841,
           "error_delta_pct_points": -0.005533818082171127
+        },
+        {
+          "target_date": "2026-10-13",
+          "scored_rows": 10,
+          "model_close_mape_pct": 2.099314866250805,
+          "baseline_close_mape_pct": 2.116174200119465,
+          "error_delta_pct_points": -0.01685933386866001
         }
       ],
       "same_scored_rows_for_comparison": true,
@@ -163,7 +170,7 @@
     },
     "paper_ledger": {
       "status": "PASS",
-      "rows": 160,
+      "rows": 170,
       "executed_rows": 70,
       "incomplete_executed_rows": 0,
       "net_pnl_reconciliation_mismatch_rows": 0,
@@ -172,18 +179,18 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 78,
-      "rows_with_usable_message_keys": 78,
-      "api_confirmed_rows": 5,
-      "duplicate_message_keys": 2,
+      "rows": 79,
+      "rows_with_usable_message_keys": 79,
+      "api_confirmed_rows": 6,
+      "duplicate_message_keys": 3,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 32,
-          "confirmed": 5,
+          "rows": 33,
+          "confirmed": 6,
           "legacy_unverified": 27,
-          "duplicate_message_keys": 2,
+          "duplicate_message_keys": 3,
           "rows_missing_message_key": 0,
-          "rows_in_duplicate_key_groups": 3
+          "rows_in_duplicate_key_groups": 5
         },
         "telegram_evening_sent.csv": {
           "rows": 18,
@@ -215,10 +222,10 @@
     },
     "v2_evidence": {
       "status": "PASS",
-      "rows": 120,
-      "unique_sessions": 12,
+      "rows": 130,
+      "unique_sessions": 13,
       "buy_rows": 0,
-      "skip_rows": 120,
+      "skip_rows": 130,
       "skip_rows_without_reason": 0,
       "existing_promotion_safe": false,
       "promotion_ready": false,

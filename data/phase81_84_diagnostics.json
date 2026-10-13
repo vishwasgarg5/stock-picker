@@ -1,0 +1,123 @@
+{
+  "phases": [
+    81,
+    82,
+    83,
+    84
+  ],
+  "phase81_telegram_receipts": {
+    "rows": 84,
+    "confirmed": 11,
+    "legacy_unverified": 73,
+    "unknown_status": 0,
+    "duplicate_hash_rows": 7,
+    "confirmed_missing_message_id": 0,
+    "api_confirmed_pct": 13.1,
+    "status": "RECEIPTS_NEED_RECONCILIATION",
+    "per_file": {
+      "telegram_sent.csv": {
+        "rows": 35,
+        "confirmed": 8,
+        "legacy_unverified": 27,
+        "unknown_status": 0,
+        "duplicate_hash_rows": 7,
+        "confirmed_missing_message_id": 0
+      },
+      "telegram_evening_sent.csv": {
+        "rows": 19,
+        "confirmed": 1,
+        "legacy_unverified": 18,
+        "unknown_status": 0,
+        "duplicate_hash_rows": 0,
+        "confirmed_missing_message_id": 0
+      },
+      "telegram_paper_sent.csv": {
+        "rows": 20,
+        "confirmed": 1,
+        "legacy_unverified": 19,
+        "unknown_status": 0,
+        "duplicate_hash_rows": 0,
+        "confirmed_missing_message_id": 0
+      },
+      "telegram_paper_v2_sent.csv": {
+        "rows": 10,
+        "confirmed": 1,
+        "legacy_unverified": 9,
+        "unknown_status": 0,
+        "duplicate_hash_rows": 0,
+        "confirmed_missing_message_id": 0
+      }
+    },
+    "interpretation": "API confirmation is not proof a person read the message; legacy/unknown is not proof of delivery failure.",
+    "production_send_behavior_changed": false
+  },
+  "phase82_v2_rejection_diagnosis": {
+    "status": "ZERO_BUY",
+    "rows": 130,
+    "buy_rows": 0,
+    "skip_rows": 130,
+    "missing_reason_rows": 0,
+    "skip_reason_counts": {
+      "phase2_not_selected": 72,
+      "confidence_percentile": 52,
+      "phase4_ineligible": 6
+    },
+    "largest_reason": "phase2_not_selected",
+    "largest_recorded_drop_stage": "phase2_selected_gate",
+    "largest_recorded_drop_rows": 72,
+    "production_filters_changed": false,
+    "thresholds_deployed": false,
+    "warning": "Historical rejection counts are descriptive; do not relax filters without out-of-sample evidence."
+  },
+  "phase83_forecast_evidence": {
+    "status": "BASELINE_NOT_BEATEN",
+    "scored_rows": 170,
+    "target_dates": 17,
+    "model_mape_pct": 1.9034898551734813,
+    "baseline_mape_pct": 1.8900541959217447,
+    "delta_pct_points": 0.01343565925173662,
+    "beats_baseline": false,
+    "recent_sessions": 5,
+    "recent_model_mape_pct": 1.944852333755032,
+    "recent_baseline_mape_pct": 1.9359246015737894,
+    "recent_delta_pct_points": 0.008927732181242654,
+    "recent_beats_baseline": false,
+    "date_block_bootstrap_95pct_ci_delta_pct_points": [
+      -0.017169467858567707,
+      0.04798397291151778
+    ],
+    "ci_interpretation": "Negative delta favors the model; interval crossing zero is inconclusive.",
+    "same_scored_rows": true,
+    "model_changed": false,
+    "promotion_evidence_only": true
+  },
+  "phase84_storage_prototype": {
+    "status": "ROUNDTRIP_PARITY_PASS",
+    "source_path": "data/ohlcv.csv",
+    "source_bytes": 80369890,
+    "prototype_compressed_bytes": 18262732,
+    "prototype_compression_ratio_pct": 77.28,
+    "schema_equal": true,
+    "row_count_equal": true,
+    "dataframe_roundtrip_equal": true,
+    "unique_date_symbol_key_columns_present": true,
+    "duplicate_date_symbol_rows": 0,
+    "source_sha256_before": "301cb5c635655ae092f46468cb99cdf7d4b5aba790c7e64e30a2414ee33e7723",
+    "source_sha256_after": "301cb5c635655ae092f46468cb99cdf7d4b5aba790c7e64e30a2414ee33e7723",
+    "source_unchanged": true,
+    "prototype_written_to_repo": false,
+    "migration_executed": false,
+    "production_reader_switched": false,
+    "rollback_required": true
+  },
+  "safety": {
+    "production_champion": "V1",
+    "v2_mode": "SHADOW_ONLY",
+    "automatic_promotion": false,
+    "ranking_or_risk_changed": false,
+    "telegram_send_logic_changed": false,
+    "production_reader_switched": false,
+    "source_ohlcv_modified": false,
+    "workflow_triggers_changed": false
+  }
+}

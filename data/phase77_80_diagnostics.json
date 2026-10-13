@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-13T17:08:29.288640+00:00",
+  "as_of_utc": "2026-10-13T18:08:32.649133+00:00",
   "phases": [
     77,
     78,
@@ -8,19 +8,19 @@
   ],
   "phase77_delivery": {
     "status": "RECEIPT_AUDIT_INCOMPLETE",
-    "rows": 83,
-    "confirmed": 10,
+    "rows": 84,
+    "confirmed": 11,
     "legacy_unverified": 73,
     "missing_status": 0,
-    "duplicates": 3,
-    "confirmed_receipt_pct": 12.05,
+    "duplicates": 4,
+    "confirmed_receipt_pct": 13.1,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 34,
-        "confirmed": 7,
+        "rows": 35,
+        "confirmed": 8,
         "legacy_unverified": 27,
         "missing_status": 0,
-        "duplicate_keys": 3,
+        "duplicate_keys": 4,
         "rows_missing_message_key": 0
       },
       "telegram_evening_sent.csv": {

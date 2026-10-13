@@ -1,7 +1,7 @@
 {
   "version": "index_intelligence_v3",
   "market_regime": "BEAR",
-  "risk_multiplier": 0.8,
+  "risk_multiplier": 0.55,
   "news_sentiment": "BEARISH",
   "news_score": -0.6,
   "market_reason": "FII / DII flows: Stock Markets Tumble: Sensex Drops 548 Pts on Oil, FII Outflows - Rediff MoneyWiz",
@@ -39,9 +39,9 @@
       "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE85ZnpBZjJXUkVzemg1eXFLUWJ4Qk02eWp6eUdSRklpLVR4aUEyc1JyaGROcmRDaHRNWkFKMkVFb3ZlQk96YTduNGQyZEJuWXJRN2tPRTJaSEtZLV9VT2ZUaGZMQXFtUkNTMHVuUXdaekhmYUU?oc=5"
     }
   ],
-  "market_intelligence_score": 43.7548288973384,
-  "risk_level": "NEUTRAL",
-  "market_confidence": 0.6062065399239545,
+  "market_intelligence_score": 30.794828897338398,
+  "risk_level": "RISK_OFF",
+  "market_confidence": 0.7228465399239545,
   "data_quality": "MEDIUM",
   "index_data_available": false,
   "breadth_pct_above_sma20": 23.574144486692013,

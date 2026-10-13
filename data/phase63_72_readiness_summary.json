@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-12T19:33:34.273601+00:00",
+  "as_of_utc": "2026-10-13T01:53:57.000420+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -172,14 +172,14 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 76,
-      "rows_with_usable_message_keys": 76,
-      "api_confirmed_rows": 3,
+      "rows": 77,
+      "rows_with_usable_message_keys": 77,
+      "api_confirmed_rows": 4,
       "duplicate_message_keys": 2,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 30,
-          "confirmed": 3,
+          "rows": 31,
+          "confirmed": 4,
           "legacy_unverified": 27,
           "duplicate_message_keys": 2,
           "rows_missing_message_key": 0,

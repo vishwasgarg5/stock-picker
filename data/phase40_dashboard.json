@@ -130,7 +130,7 @@
       "check": "ohlcv_freshness",
       "status": "PASS",
       "affected_rows": 0,
-      "detail": "latest date=2026-10-12 00:00:00; calendar age days=0; weekends/holidays not adjusted"
+      "detail": "latest date=2026-10-12 00:00:00; calendar age days=1; weekends/holidays not adjusted"
     }
   ],
   "phase38_news_checks": [

@@ -40,7 +40,7 @@ INDEX_TICKERS = {
     "NIFTYIT": ["^CNXIT"],
     "NIFTYAUTO": ["^CNXAUTO"],
     # Yahoo Finance has used both names for the Nifty Financial Services index.
-    "NIFTYFIN": ["^CNXFINANCE", "^CNXFIN"],
+    "NIFTYFIN": ["NIFTY_FIN_SERVICE.NS", "^CNXFINANCE", "^CNXFIN"],
 }
 
 def _download_index_series(name: str) -> pd.Series:

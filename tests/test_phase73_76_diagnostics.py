@@ -18,7 +18,8 @@ def test_directional_recent_window_is_chronological(tmp_path, monkeypatch):
     pd.DataFrame([{"target_date":f"2026-10-{d:02d}","close_direction_correct":v} for d,v in [(1,1),(2,0),(3,0),(4,1),(5,0),(6,0)]]).to_csv(tmp_path / "phase33_chronological_prediction_scores.csv", index=False)
     summary, dates = diag.direction_diagnostic()
     assert summary["scored_rows"] == 6
-    assert summary["recent_5_directional_accuracy_pct"] == 40.0
+    # The latest five dates are Oct 2–6: only Oct 4 is correct (1/5 = 20%).
+    assert summary["recent_5_directional_accuracy_pct"] == 20.0
     assert summary["status"] == "REVIEW_DIRECTION_QUALITY"
     assert len(dates) == 6
 

@@ -1,5 +1,5 @@
 {
-  "files": 44,
+  "files": 45,
   "sha256": {
     "src/advanced_governance.py": "0dcf2f6d211bc3ef4f914d0d7bd734ae17c31c2c7f72f0c6a20a8417391b6c6d",
     "src/confidence.py": "22c48932fe9d10c5c5ccd5f915c281176e1720f7bc5ae61cc5d8abfede44d08e",
@@ -30,6 +30,7 @@
     "src/phase58_62_evidence.py": "1bc82ba938469d4d688997d2a9c0824eea2ada77f2d433b9ac564efc235b0f55",
     "src/phase63_72_readiness.py": "7a66ca0e3d30ffb43eb0a6f967d3e03a4515e47aed519b0a0706dd64738af91e",
     "src/phase73_76_diagnostics.py": "fb3b8bf043a4bf7926df1ab015eaa82a66b5f245fa8f3270f38d4d09b5b4dd30",
+    "src/phase77_80_diagnostics.py": "fe61c5656154d3c8a681c8c30146ba9ba9a97fccc4bd14c72c1d256bed1645b0",
     "src/pipeline.py": "39f7f0dcfce92aa90a9e4a2fddbc0a03d75639b2622cb39a6a5452696a4270d7",
     "src/portfolio_comparison.py": "05827dcd8cbf6d69e1721c3399a13dade47bafae50800bc47772f99fb91536f5",
     "src/ranking_diagnostics.py": "31f63139e10640ac713df564420f4823dbbff82ac11c4c02731a31588cf5875f",
@@ -44,7 +45,7 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "3b091f0fcd6c69ff58ed31c3a50f82d47b94e8eec776265c3c12ce7a948d3a34"
+    ".github/workflows/daily.yml": "254ed821d0e3afc74bd8b93425e7a38d9ed8cbcbbe40cfc5d6da4aa8ec065216"
   },
   "manifest_version": "governance_v1"
 }

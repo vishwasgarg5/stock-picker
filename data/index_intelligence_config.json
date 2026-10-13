@@ -46,10 +46,6 @@
   "index_data_available": false,
   "breadth_pct_above_sma20": 28.517110266159694,
   "sector_news_impacts": {
-    "bank": 0.8,
-    "financial": 0.8,
-    "real estate": 0.7,
-    "auto": 0.4,
     "airlines": 2.0,
     "paints": 1.6,
     "chemicals": 1.2,

@@ -81,7 +81,7 @@ def main():
         detail = {"latest_target_date":"","trades":0,"winners":0,"losers":0,"net_pnl":0.0,"symbols":""}
 
     summary = {
-        "as_of": pd.Timestamp.utcnow().strftime("%Y-%m-%d"),
+        "as_of": pd.Timestamp.now(tz="UTC").strftime("%Y-%m-%d"),
         "production_strategy":_production_strategy(),
         "latest_v1_date": str(v1["target_date"].iloc[-1]) if not v1.empty else "",
         "v1_portfolio_value": float(v1["portfolio_value"].iloc[-1]) if not v1.empty else 100000.0,

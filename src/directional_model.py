@@ -42,10 +42,13 @@ def _dataset(hist: pd.DataFrame) -> pd.DataFrame:
     x = x.merge(regimes, on="date", how="left")
     x["regime_code"] = pd.to_numeric(x["regime_code"], errors="coerce").fillna(0.0)
     g = x.groupby("symbol", group_keys=False)
-    next_return = g["close"].shift(-1) / x["close"] - 1.0
-    x["target_return"] = next_return
+    # Keep the realized label date so walk-forward validation can purge any
+    # training label whose outcome falls on or after the first test date.
+    x["target_date"] = g["date"].shift(-1)
+    next_close = g["close"].shift(-1)
+    x["target_return"] = next_close / x["close"] - 1.0
     # Exclude tiny moves from training because their direction is mostly noise.
-    x = x.dropna(subset=MODEL_FEATURES + ["target_return"]).copy()
+    x = x.dropna(subset=MODEL_FEATURES + ["target_return", "target_date"]).copy()
     x = x[x["target_return"].abs() >= TARGET_MOVE_THRESHOLD].copy()
     x["target_direction"] = (x["target_return"] > 0).astype(int)
     return x
@@ -65,7 +68,7 @@ def _fit(x: pd.DataFrame, y: pd.Series, regime: str = "ALL") -> dict:
     return {
         "models": [hgb, extra],
         "weights": [0.65, 0.35],
-        "version": "directional_challenger_v2_walkforward",
+        "version": "directional_challenger_v3_purged_walkforward",
         "regime": regime,
         "features": MODEL_FEATURES,
     }
@@ -123,6 +126,17 @@ def _walk_forward_splits(dates: list, min_train_sessions: int = MIN_TRAIN_SESSIO
         yield train_dates, test_dates
 
 
+def _purge_training_rows(train: pd.DataFrame, test: pd.DataFrame) -> pd.DataFrame:
+    """Remove training examples whose forward label overlaps the test period."""
+    if train.empty or test.empty:
+        return train.copy()
+    if "target_date" not in train.columns or "date" not in test.columns:
+        return train.iloc[0:0].copy()
+    first_test_date = pd.to_datetime(test["date"], errors="coerce").min()
+    label_dates = pd.to_datetime(train["target_date"], errors="coerce")
+    return train.loc[label_dates < first_test_date].copy()
+
+
 def train_challenger(hist: pd.DataFrame) -> dict:
     ds = _dataset(hist)
     if len(ds) < MIN_ROWS:
@@ -132,7 +146,9 @@ def train_challenger(hist: pd.DataFrame) -> dict:
     for train_dates, test_dates in _walk_forward_splits(ds["date"].tolist()):
         train = ds[ds["date"].isin(train_dates)].copy()
         test = ds[ds["date"].isin(test_dates)].copy()
-        if train.empty or test.empty:
+        # Purge boundary rows whose next-session return uses a test-period close.
+        train = _purge_training_rows(train, test)
+        if train.empty or test.empty or train["target_direction"].nunique() < 2:
             continue
         bundle = _fit(train[MODEL_FEATURES], train["target_direction"])
         baseline_prob = _baseline_prob(train["target_direction"])
@@ -145,7 +161,8 @@ def train_challenger(hist: pd.DataFrame) -> dict:
             rows.append({
                 "target_date": date,
                 "rows": len(g),
-                "train_end": max(train_dates),
+                "train_end": pd.to_datetime(train["date"]).max(),
+                "train_label_end": pd.to_datetime(train["target_date"]).max(),
                 **metrics,
             })
 
@@ -183,6 +200,7 @@ def train_challenger(hist: pd.DataFrame) -> dict:
         "baseline_brier": baseline_brier,
         "brier_lift": brier_lift,
         "walk_forward": True,
+        "purged_forward_labels": True,
         "production_ready": ready,
         "status": "promote" if ready else ("hold" if sessions >= MIN_SESSIONS else "collecting"),
         **recent,

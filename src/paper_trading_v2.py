@@ -100,8 +100,10 @@ def run_paper_trading_v2() -> pd.DataFrame:
     )
     p["phase2_score"] = pd.to_numeric(p.get("phase2_score"), errors="coerce")
     p["phase2_selected"] = pd.to_numeric(p.get("phase2_selected"), errors="coerce").fillna(0)
-    record("phase2_join", len(p), int(p["phase2_selected"].eq(1).sum()) if "phase2_selected" in p.columns else 0,
-           "Output count is Phase 2 selected candidates after join")
+    # This is a feature/metadata join, not an eligibility gate. Keep all
+    # prediction rows in the flow; the actual Phase-2 filter is recorded below.
+    record("phase2_join", len(p), len(p),
+           "Phase-2 metadata joined; selection flag is applied at phase2_selected_gate")
 
     actual = h.rename(columns={
         "date": "target_date",
@@ -180,8 +182,12 @@ def run_paper_trading_v2() -> pd.DataFrame:
         for _, row in eligible.iterrows()
     }
     for reason, count in eligible.loc[~eligible["phase4_eligible"].fillna(False), "phase4_reject_reason"].value_counts().items():
-        record(f"phase4_reject:{reason or 'unclassified'}", len(eligible), len(eligible) - int(count),
-               f"{int(count)} candidates rejected for {reason or 'unclassified'}; diagnostic only")
+        # Reason rows are reason-attribution diagnostics, not sequential funnel
+        # stages; report each reason's own rejected count to avoid overlapping
+        # "output" counts that look like separate passing populations.
+        count = int(count)
+        record(f"phase4_reject:{reason or 'unclassified'}", count, 0,
+               f"{count} candidates rejected for {reason or 'unclassified'}; diagnostic only")
     phase4_pass_keys = set(
         map(tuple, eligible.loc[eligible["phase4_eligible"].fillna(False), ["symbol", "target_date"]].to_numpy())
     )

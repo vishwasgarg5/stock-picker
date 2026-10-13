@@ -35,6 +35,22 @@ def test_walk_forward_split_is_chronological():
     assert max(train) < min(test)
 
 
+def test_training_labels_are_purged_at_test_boundary():
+    from src.directional_model import _purge_training_rows
+    train = pd.DataFrame({
+        "date": pd.to_datetime(["2026-01-01", "2026-01-02", "2026-01-03"]),
+        "target_date": pd.to_datetime(["2026-01-02", "2026-01-03", "2026-01-04"]),
+        "target_direction": [1, 0, 1],
+    })
+    test = pd.DataFrame({
+        "date": pd.to_datetime(["2026-01-04", "2026-01-05"]),
+        "target_date": pd.to_datetime(["2026-01-05", "2026-01-06"]),
+    })
+    purged = _purge_training_rows(train, test)
+    assert purged["date"].tolist() == [pd.Timestamp("2026-01-01"), pd.Timestamp("2026-01-02")]
+    assert purged["target_date"].max() < test["date"].min()
+
+
 def test_meaningful_move_target_excludes_tiny_moves():
     from src.directional_model import _dataset
     rows = []
@@ -49,5 +65,7 @@ def test_meaningful_move_target_excludes_tiny_moves():
     hist = pd.DataFrame(rows)
     out = _dataset(hist)
     assert "target_direction" in out.columns
+    assert "target_date" in out.columns
     assert len(out) < len(hist)
+    assert (out["target_date"] > out["date"]).all()
     assert (out["target_return"].abs() >= 0.0015).all()

@@ -27,16 +27,16 @@
       "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxQd180clhuYUVqd055NV81SnJGdDkyb2NwYXhUN1pGQlZMNWxlWFYxOHhNdGt4M0lkZEkybE1YVFRnQzJRZlAtUXB2blA5THhweGlPeWdhZHFROTYzLWlINF9ERGMwMlN1bHlDa3p4SDY2VjZESWFDNkNnV1g0YWI1cTdqc20wd0VXWFZsQThzWlNJNmdOOUsxbjM5dUZ1Yk5QT2luUGpHM2hPaWVyRWxVSmF6OF90MlVUWXJhNUxvOURCRVZ6aGF1SQ?oc=5"
     },
     {
-      "event": "RBI / rates",
-      "impact": -0.35,
-      "headline": "Nifty Slips 150 Points: FII Selling, RBI Policy Weigh on Markets - Dalal Street Investment Journal",
-      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPajYzRXlXb2pVWlI5Z1VnN2UzY19udXAyMVdiZE9uNHdWTkpGd2I5YW5UVC1SQ2NPRTFyNlo2MHdwaFRRVlB4SG1IcEhIODRtTTloeWJxNnRaYUlLVUpCUVhkLXdiSUJTODhIMHVKYmVVU1JsbWNTX2tVWmpVYmp6MERYcTBPRVBhaTEzNGN6M3pkdjV6QXg1TTBNdWxHUUlxLUtfNHk4RURoTDg3U0dLNS1LMi1MWm5V?oc=5"
-    },
-    {
       "event": "Crude oil",
       "impact": -0.35,
       "headline": "GIFT Nifty live today October 12: D-St Bulls Eye Extension as Oil Dips - Alice Blue",
       "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE85ZnpBZjJXUkVzemg1eXFLUWJ4Qk02eWp6eUdSRklpLVR4aUEyc1JyaGROcmRDaHRNWkFKMkVFb3ZlQk96YTduNGQyZEJuWXJRN2tPRTJaSEtZLV9VT2ZUaGZMQXFtUkNTMHVuUXdaekhmYUU?oc=5"
+    },
+    {
+      "event": "RBI / rates",
+      "impact": -0.35,
+      "headline": "Nifty Slips 150 Points: FII Selling, RBI Policy Weigh on Markets - Dalal Street Investment Journal",
+      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxPajYzRXlXb2pVWlI5Z1VnN2UzY19udXAyMVdiZE9uNHdWTkpGd2I5YW5UVC1SQ2NPRTFyNlo2MHdwaFRRVlB4SG1IcEhIODRtTTloeWJxNnRaYUlLVUpCUVhkLXdiSUJTODhIMHVKYmVVU1JsbWNTX2tVWmpVYmp6MERYcTBPRVBhaTEzNGN6M3pkdjV6QXg1TTBNdWxHUUlxLUtfNHk4RURoTDg3U0dLNS1LMi1MWm5V?oc=5"
     }
   ],
   "market_intelligence_score": 30.794828897338398,
@@ -46,15 +46,15 @@
   "index_data_available": false,
   "breadth_pct_above_sma20": 23.574144486692013,
   "sector_news_impacts": {
-    "bank": 1.6,
-    "financial": 1.6,
-    "real estate": 1.4,
-    "auto": 0.8,
     "airlines": 2.0,
     "paints": 1.6,
     "chemicals": 1.2,
     "tyres": 1.2,
     "oil & gas": -1.6,
+    "bank": 1.6,
+    "financial": 1.6,
+    "real estate": 1.4,
+    "auto": 0.8,
     "information technology": 0.6,
     "it": 0.6,
     "pharma": 0.3

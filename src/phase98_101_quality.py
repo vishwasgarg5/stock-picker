@@ -101,9 +101,15 @@ def _diagnose_forecasts(scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFram
         signed_error_pct=("model_error_pct", "mean"),
         overprediction_rate_pct=("bias", lambda s: float((s == "OVERPREDICT").mean() * 100)),
     ).reset_index()
+    ohlc_metrics = {}
+    for label in ("open", "high", "low", "close"):
+        pred_col, actual_col = f"predicted_{label}", f"actual_{label}"
+        if pred_col in x and actual_col in x:
+            ohlc_metrics[f"{label}_mape_pct"] = _mape(x[actual_col], x[pred_col])
     summary = {
         "status": "SCORED" if len(x) >= 20 else ("SMALL_SAMPLE" if len(x) else "INSUFFICIENT_DATA"),
         "scored_rows": int(len(x)), "symbols": int(x["symbol"].nunique()),
+        "ohlc_mape_pct": ohlc_metrics,
         "close_mape_pct": _mape(x["actual_close"], x["predicted_close"]),
         "mean_signed_error_pct": float(x["model_error_pct"].mean()) if len(x) else None,
         "overprediction_rows": int((x["bias"] == "OVERPREDICT").sum()),
@@ -244,15 +250,37 @@ def _selection_outcomes(v2: pd.DataFrame, history: pd.DataFrame) -> tuple[pd.Dat
         median_close_return_pct=("realized_close_return_pct", "median"),
         positive_close_rate_pct=("positive_close_outcome", lambda s: float(s.mean() * 100)),
     )
+    confidence_col = next((c for c in ("confidence_score", "confidence_v3", "confidence_pct") if c in x), None)
+    confidence_rows = pd.DataFrame()
+    if confidence_col:
+        x["confidence_value"] = pd.to_numeric(x[confidence_col], errors="coerce")
+        valid_conf = x.dropna(subset=["confidence_value", "realized_close_return_pct"]).copy()
+        if not valid_conf.empty:
+            # Rank-based quantiles tolerate different confidence-score scales and ties.
+            ranks = valid_conf["confidence_value"].rank(method="average", pct=True)
+            valid_conf["confidence_bucket"] = pd.cut(ranks, [0, .2, .4, .6, .8, 1.000001], labels=["Q1_LOW", "Q2", "Q3", "Q4", "Q5_HIGH"], include_lowest=True)
+            confidence_rows = valid_conf.groupby("confidence_bucket", observed=True, as_index=False).agg(
+                rows=("realized_close_return_pct", "size"),
+                mean_close_return_pct=("realized_close_return_pct", "mean"),
+                median_close_return_pct=("realized_close_return_pct", "median"),
+                positive_close_rate_pct=("positive_close_outcome", lambda s: float(s.mean() * 100)),
+                mean_confidence_score=("confidence_value", "mean"),
+            )
+            confidence_rows.insert(0, "report_type", "CONFIDENCE_OUTCOME_BUCKET")
+    if not grouped.empty:
+        grouped.insert(0, "report_type", "SELECTION_OUTCOME")
+    combined = pd.concat([grouped, confidence_rows], ignore_index=True, sort=False)
     summary = {
         "status": "SCORED" if len(x.dropna(subset=["realized_close_return_pct"])) >= 20 else "SMALL_SAMPLE",
         "rows": int(len(x)), "rows_with_actuals": int(x["realized_close_return_pct"].notna().sum()),
         "buy_rows": int((x["signal_group"] == "SELECTED_BUY").sum()),
         "skipped_rows": int((x["signal_group"] == "REJECTED_OR_SKIPPED").sum()),
-        "interpretation": "Skipped-name returns are diagnostic counterfactuals, not executable portfolio returns.",
+        "confidence_field_used": confidence_col,
+        "confidence_buckets_are_rank_quantiles_not_calibrated_probabilities": True,
+        "interpretation": "Skipped-name returns are diagnostic counterfactuals, not executable portfolio returns. Confidence buckets are descriptive, not calibrated probabilities.",
         "selection_gates_changed": False,
     }
-    return grouped, summary
+    return combined, summary
 
 
 def run() -> dict[str, Any]:
@@ -271,9 +299,10 @@ def run() -> dict[str, Any]:
     if not feature_report.empty:
         feature_report["feature_date_before_target"] = pd.to_datetime(feature_report["date"]) < pd.to_datetime(feature_report["target_date"])
         feature_report.to_csv(DATA / "phase99_point_in_time_feature_audit.csv", index=False)
+        has_target = feature_report["target_date"].notna()
         leakage_summary = {
             "status": "SCORED", "feature_rows": int(len(feature_report)),
-            "features": FEATURES, "feature_date_after_target_rows": int((~feature_report["feature_date_before_target"].fillna(False)).sum()),
+            "features": FEATURES, "feature_date_after_target_rows": int((has_target & ~feature_report["feature_date_before_target"].fillna(False)).sum()),
             "target_rows": int(feature_report["target_return"].notna().sum()),
             "point_in_time_rule": "Features use OHLCV available on feature_date; supervised label is the next observed close return.",
             "model_or_production_changed": False,

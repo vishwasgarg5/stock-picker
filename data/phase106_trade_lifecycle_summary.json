@@ -1,0 +1,59 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "risk_or_sizing_changed": false,
+  "missing_values_filled": false,
+  "automatic_promotion": false,
+  "status": "SCORED",
+  "rows": 180,
+  "field_presence": {
+    "symbol": true,
+    "entry_price": true,
+    "exit_price": true,
+    "entry_date": true,
+    "exit_date": false,
+    "quantity": true,
+    "pnl": true,
+    "exit_reason": true,
+    "status": true
+  },
+  "field_non_null_counts": {
+    "symbol": 180,
+    "entry_price": 125,
+    "exit_price": 125,
+    "entry_date": 180,
+    "exit_date": 0,
+    "quantity": 100,
+    "pnl": 180,
+    "exit_reason": 70,
+    "status": 180
+  },
+  "field_completeness_pct": {
+    "symbol": 100.0,
+    "entry_price": 69.4444,
+    "exit_price": 69.4444,
+    "entry_date": 100.0,
+    "exit_date": 0.0,
+    "quantity": 55.5556,
+    "pnl": 100.0,
+    "exit_reason": 38.8889,
+    "status": 100.0
+  },
+  "missing_core_fields": [],
+  "invalid_price_rows": 0,
+  "invalid_quantity_rows": 54,
+  "entry_after_exit_rows": 0,
+  "duplicate_symbol_entry_date_rows": 0,
+  "status_counts": {
+    "BUY": 125,
+    "SKIP": 55
+  },
+  "closed_trade_rows_detected": 0,
+  "closed_rows_missing_exit_price": 0,
+  "costs_subtracted_again": false,
+  "missing_facts_inferred": false,
+  "interpretation": "Use completeness gaps to improve upstream recording. Missing lifecycle values are not reconstructed; duplicate keys are flagged for review and are not automatically deleted."
+}

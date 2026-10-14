@@ -7,7 +7,7 @@
   ],
   "phase89_receipt_reconciliation": {
     "status": "REVIEW_REQUIRED",
-    "rows": 92,
+    "rows": 93,
     "repeated_hash_groups": 3,
     "confirmed_repeated_hash_groups": 3,
     "multiple_confirmed_message_id_groups": 3,

@@ -1,0 +1,32 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "thresholds_changed": false,
+  "automatic_promotion": false,
+  "status": "SCORED",
+  "executed_trade_rows": 125,
+  "pnl_source_field": "profit_loss",
+  "exit_reason_field_used": "exit_reason",
+  "reason_groups": 5,
+  "gross_loss_magnitude": 17534.31862985332,
+  "unknown_or_unrecorded_reason_rows": 55,
+  "unknown_or_unrecorded_reason_pct": 44.0,
+  "unknown_reason_losing_rows": 30,
+  "unknown_reason_net_pnl": -2918.3062166969885,
+  "unknown_reason_gross_loss": 12329.836961563806,
+  "unknown_reason_share_of_gross_loss_pct": 70.31831245824092,
+  "metadata_non_null_counts_all_trades": {
+    "entry_price": 125,
+    "exit_price": 125
+  },
+  "metadata_non_null_counts_unknown_reason_trades": {
+    "entry_price": 55,
+    "exit_price": 55
+  },
+  "costs_subtracted_again": false,
+  "missing_exit_reasons_inferred": false,
+  "interpretation": "Prioritize fixing exit-reason recording and inspect available metadata. This report does not infer unknown exits, blacklist symbols, or alter trading rules."
+}

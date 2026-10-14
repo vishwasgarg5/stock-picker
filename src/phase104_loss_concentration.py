@@ -9,7 +9,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +31,7 @@ def evaluate_loss_concentration(trades: pd.DataFrame, reference_equity: float = 
             "status": "INSUFFICIENT_DATA", "executed_trade_rows": int(len(x)),
             "reason": "Missing symbol or recorded P&L column",
             "production_model_changed": False, "ranking_or_risk_changed": False,
+            "automatic_promotion": False, "production_champion": "V1", "v2_mode": "SHADOW_ONLY",
         }
     x["net_pnl"] = pd.to_numeric(x[pnl_col], errors="coerce")
     x["symbol"] = x["symbol"].astype(str).str.upper().str.strip()
@@ -40,6 +40,7 @@ def evaluate_loss_concentration(trades: pd.DataFrame, reference_equity: float = 
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), {
             "status": "INSUFFICIENT_DATA", "executed_trade_rows": 0,
             "production_model_changed": False, "ranking_or_risk_changed": False,
+            "automatic_promotion": False, "production_champion": "V1", "v2_mode": "SHADOW_ONLY",
         }
     date_col = next((c for c in ("target_date", "date", "trade_date", "exit_date") if c in x), None)
     x["session_date"] = pd.to_datetime(x[date_col], errors="coerce").dt.normalize() if date_col else pd.NaT

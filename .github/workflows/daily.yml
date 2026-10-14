@@ -219,9 +219,6 @@ jobs:
       - name: Run Phase 97 forecast quality and baseline comparison (analysis-only)
         run: python -m src.phase97_forecast_quality
 
-      - name: Run Phase 97 forecast quality and baseline comparison (analysis-only)
-        run: python -m src.phase97_forecast_quality
-
       - name: Run Phases 98-101 root-cause, point-in-time features, walk-forward challenger and paper-performance audits (analysis-only)
         run: python -m src.phase98_101_quality
 

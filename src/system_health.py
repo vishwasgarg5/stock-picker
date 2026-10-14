@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import os
 import pandas as pd
 import numpy as np
@@ -12,6 +14,46 @@ DATA = ROOT / "data"
 MIN_COVERAGE = 0.95
 MAX_PREDICTED_MOVE = 0.40
 MIN_PREDICTIONS = 10
+
+
+def _session_is_complete(date: pd.Timestamp, now: datetime | None = None) -> bool:
+    """Only assess freshness against completed NSE sessions, never today's partial bars."""
+    candidate = pd.Timestamp(date).normalize()
+    current = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    today = pd.Timestamp(current.date())
+    if candidate < today:
+        return True
+    if candidate > today:
+        return False
+    return (current.hour, current.minute, current.second) >= (15, 30, 0)
+
+
+def _select_completed_market_date(hist: pd.DataFrame, symbols: list[str], now: datetime | None = None) -> pd.Timestamp:
+    """Find the newest completed session with >=95% valid universe OHLC coverage."""
+    if hist.empty or not {"date", "symbol", "open", "high", "low", "close"}.issubset(hist.columns):
+        return pd.NaT
+    x = hist.copy()
+    x["date"] = pd.to_datetime(x["date"], errors="coerce").dt.normalize()
+    x["symbol"] = x["symbol"].astype(str).str.upper().str.strip()
+    universe = {str(s).upper().strip() for s in symbols}
+    if not universe:
+        return pd.NaT
+    for candidate in sorted(x["date"].dropna().unique(), reverse=True):
+        candidate = pd.Timestamp(candidate)
+        if not _session_is_complete(candidate, now):
+            continue
+        latest = x[(x["date"] == candidate) & x["symbol"].isin(universe)].drop_duplicates("symbol", keep="last")
+        if len(latest) / len(universe) < MIN_COVERAGE:
+            continue
+        prices = latest[["open", "high", "low", "close"]].apply(pd.to_numeric, errors="coerce")
+        invalid = prices.isna().any(axis=1) | (
+            (prices["high"] < prices[["open", "close"]].max(axis=1)) |
+            (prices["low"] > prices[["open", "close"]].min(axis=1)) |
+            (prices["close"] <= 0)
+        )
+        if not invalid.any():
+            return candidate
+    return pd.NaT
 
 
 def _read(name: str) -> pd.DataFrame:
@@ -65,15 +107,22 @@ def run_health_check() -> dict:
     failures: list[str] = []
 
     symbols = universe["symbol"].dropna().astype(str).str.upper().str.strip().unique() if "symbol" in universe else []
-    latest_date = pd.to_datetime(hist["date"], errors="coerce").max() if "date" in hist else pd.NaT
-    latest = hist[pd.to_datetime(hist["date"], errors="coerce").eq(latest_date)] if not hist.empty and pd.notna(latest_date) else pd.DataFrame()
+    latest_date = _select_completed_market_date(hist, list(symbols))
+    latest = (
+        hist[pd.to_datetime(hist["date"], errors="coerce").dt.normalize().eq(latest_date)]
+        if not hist.empty and pd.notna(latest_date) and "date" in hist else pd.DataFrame()
+    )
+    if "symbol" in latest:
+        latest = latest[latest["symbol"].astype(str).str.upper().str.strip().isin(set(symbols))].drop_duplicates("symbol", keep="last")
     fresh = latest["symbol"].astype(str).str.upper().str.strip().nunique() if "symbol" in latest else 0
     coverage = fresh / max(len(symbols), 1)
 
-    if coverage < MIN_COVERAGE:
-        failures.append(f"OHLCV freshness {coverage:.1%} below {MIN_COVERAGE:.0%}")
     if hist.empty:
         failures.append("OHLCV history is empty")
+    elif pd.isna(latest_date):
+        failures.append("no completed NSE session has sufficient clean OHLC coverage")
+    elif coverage < MIN_COVERAGE:
+        failures.append(f"OHLCV freshness {coverage:.1%} below {MIN_COVERAGE:.0%}")
 
     latest_prediction_date = pd.NaT
     if not predictions.empty and "target_date" in predictions.columns:

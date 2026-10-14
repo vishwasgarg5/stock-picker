@@ -454,12 +454,12 @@ def run() -> dict[str, Any]:
     v1_by_symbol, v1_by_exit_reason, v1_loss_summary = _v1_loss_attribution(v1_trades)
     v1_by_symbol.to_csv(DATA / "phase102_v1_loss_by_symbol.csv", index=False)
     v1_by_exit_reason.to_csv(DATA / "phase102_v1_loss_by_exit_reason.csv", index=False)
-    (DATA / "phase102_v1_loss_attribution_summary.json").write_text(json.dumps(v1_loss_summary, indent=2, default=str) + "\\n", encoding="utf-8")
+    (DATA / "phase102_v1_loss_attribution_summary.json").write_text(json.dumps(v1_loss_summary, indent=2, default=str) + "\n", encoding="utf-8")
 
     v2_by_reason, v2_high_confidence, v2_rejection_summary = _v2_rejection_diagnostics(v2, history)
     v2_by_reason.to_csv(DATA / "phase102_v2_rejection_reason_outcomes.csv", index=False)
     v2_high_confidence.to_csv(DATA / "phase102_v2_high_confidence_skips.csv", index=False)
-    (DATA / "phase102_v2_rejection_summary.json").write_text(json.dumps(v2_rejection_summary, indent=2, default=str) + "\\n", encoding="utf-8")
+    (DATA / "phase102_v2_rejection_summary.json").write_text(json.dumps(v2_rejection_summary, indent=2, default=str) + "\n", encoding="utf-8")
 
     summary = {
         "phase98_forecast_root_cause": root_summary,

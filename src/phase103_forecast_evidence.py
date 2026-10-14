@@ -91,7 +91,7 @@ def run() -> dict[str, Any]:
         scores = pd.DataFrame()
     daily, summary = evaluate_forecast_evidence(scores)
     daily.to_csv(DATA / "phase103_forecast_session_evidence.csv", index=False)
-    (DATA / "phase103_forecast_evidence_summary.json").write_text(json.dumps(summary, indent=2, default=str) + "\\n", encoding="utf-8")
+    (DATA / "phase103_forecast_evidence_summary.json").write_text(json.dumps(summary, indent=2, default=str) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2, default=str))
     return summary
 

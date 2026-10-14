@@ -294,21 +294,40 @@ def run() -> dict[str, Any]:
     by_segment.to_csv(DATA / "phase98_forecast_root_cause_by_segment.csv", index=False)
     (DATA / "phase98_forecast_root_cause_summary.json").write_text(json.dumps(root_summary, indent=2, default=str) + "\n", encoding="utf-8")
 
-    feature_cols = [c for c in ["date", "target_date", "symbol"] + FEATURES + ["target_return"] if c in panel]
-    feature_report = panel[feature_cols].copy() if not panel.empty else pd.DataFrame()
+    feature_report = panel.copy() if not panel.empty else pd.DataFrame()
     if not feature_report.empty:
-        feature_report["feature_date_before_target"] = pd.to_datetime(feature_report["date"]) < pd.to_datetime(feature_report["target_date"])
-        feature_report.to_csv(DATA / "phase99_point_in_time_feature_audit.csv", index=False)
+        feature_report["feature_date_before_target"] = (
+            pd.to_datetime(feature_report["date"]) < pd.to_datetime(feature_report["target_date"])
+        )
         has_target = feature_report["target_date"].notna()
+        valid_target = feature_report.loc[has_target].copy()
+        # Keep this committed artifact compact: aggregated per-symbol feature coverage,
+        # never the full row-level OHLCV-derived feature panel.
+        summary_columns = [c for c in FEATURES + ["target_return"] if c in valid_target]
+        if not valid_target.empty and summary_columns:
+            compact = valid_target.groupby("symbol", as_index=False).agg(
+                feature_rows=("date", "size"),
+                first_feature_date=("date", "min"),
+                last_feature_date=("date", "max"),
+                **{f"{col}_mean": (col, "mean") for col in summary_columns},
+                **{f"{col}_missing_pct": (col, lambda s: float(s.isna().mean() * 100)) for col in summary_columns},
+            )
+            compact.to_csv(DATA / "phase99_feature_summary_by_symbol.csv", index=False)
         leakage_summary = {
             "status": "SCORED", "feature_rows": int(len(feature_report)),
-            "features": FEATURES, "feature_date_after_target_rows": int((has_target & ~feature_report["feature_date_before_target"].fillna(False)).sum()),
+            "features": FEATURES,
+            "feature_date_after_target_rows": int((has_target & ~feature_report["feature_date_before_target"].fillna(False)).sum()),
             "target_rows": int(feature_report["target_return"].notna().sum()),
             "point_in_time_rule": "Features use OHLCV available on feature_date; supervised label is the next observed close return.",
+            "row_level_feature_export_written": False,
+            "compact_symbol_summary_written": bool(not valid_target.empty),
             "model_or_production_changed": False,
         }
     else:
-        leakage_summary = {"status": "INSUFFICIENT_DATA", "feature_rows": 0, "features": FEATURES, "model_or_production_changed": False}
+        leakage_summary = {
+            "status": "INSUFFICIENT_DATA", "feature_rows": 0, "features": FEATURES,
+            "row_level_feature_export_written": False, "model_or_production_changed": False,
+        }
     (DATA / "phase99_feature_integrity_summary.json").write_text(json.dumps(leakage_summary, indent=2, default=str) + "\n", encoding="utf-8")
 
     candidate_rows, candidate_summary = _walk_forward_candidate(scores, panel)

@@ -21,6 +21,7 @@ def evaluate_loss_concentration(trades: pd.DataFrame, reference_equity: float = 
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), {
             "status": "INSUFFICIENT_DATA", "executed_trade_rows": 0,
             "production_model_changed": False, "ranking_or_risk_changed": False,
+            "automatic_promotion": False,
         }
     x = trades.copy()
     if "signal" in x:
@@ -79,7 +80,7 @@ def evaluate_loss_concentration(trades: pd.DataFrame, reference_equity: float = 
                                       "drawdown_pct_on_reference_equity"])
 
     gross_loss = float(-x.loc[x["net_pnl"] < 0, "net_pnl"].sum())
-    top3_losses = float(-by_symbol.head(3)["gross_losses"].sum()) if not by_symbol.empty else 0.0
+    top3_losses = float(-by_symbol.sort_values("gross_losses").head(3)["gross_losses"].sum()) if not by_symbol.empty else 0.0
     loss_rows = int((x["net_pnl"] < 0).sum())
     summary = {
         "status": "SCORED" if len(x) >= 20 else "SMALL_SAMPLE",

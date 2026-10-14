@@ -1,0 +1,24 @@
+{
+  "status": "INSUFFICIENT_HOLDOUT",
+  "scored_rows": 180,
+  "unique_symbols": 69,
+  "target_sessions": 18,
+  "model_close_mape_pct": 1.867617829144189,
+  "previous_close_baseline_mape_pct": 1.8553830837628298,
+  "relative_mape_improvement_pct": -0.6594188277574651,
+  "direction_accuracy_pct": 46.111111111111114,
+  "sessions_model_mape_beats_baseline": 6,
+  "sessions_baseline_beats_model": 12,
+  "session_cluster_bootstrap_95pct_ci_ape_improvement_pct_points": [
+    -0.044675130991889356,
+    0.017085129803559966
+  ],
+  "bootstrap_repeats": 2000,
+  "uncertainty_method": "deterministic bootstrap resampling target-session mean APE differences",
+  "promotion_allowed": false,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "interpretation": "Positive APE improvement favors the recorded model over previous-close baseline; descriptive evidence only, not executable P&L."
+}

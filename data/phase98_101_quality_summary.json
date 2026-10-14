@@ -37,7 +37,7 @@
     "candidate_rows": 180,
     "candidate_symbols": 69,
     "target_dates": 18,
-    "candidate_close_mape_pct": 1.9013209788231087,
+    "candidate_close_mape_pct": 1.9013209788231094,
     "previous_close_baseline_mape_pct": 1.8553830837628342,
     "candidate_beats_previous_close": false,
     "walk_forward": true,
@@ -79,6 +79,29 @@
     "status": "INSUFFICIENT_DATA",
     "trade_rows": 0,
     "source": "V2 paper_trades_v2.csv"
+  },
+  "phase102_v1_loss_attribution": {
+    "status": "SCORED",
+    "executed_trade_rows": 125,
+    "symbols": 51,
+    "net_pnl_sum": -5249.396100660379,
+    "loss_making_symbols": 38,
+    "worst_symbol": "AEGISLOG",
+    "worst_symbol_net_pnl": -1190.7996826171875,
+    "exit_reason_field_used": "exit_reason",
+    "diagnostic_only": true
+  },
+  "phase102_v2_rejection_diagnostics": {
+    "status": "SCORED",
+    "skipped_rows_with_actuals": 140,
+    "rejection_reasons": 3,
+    "confidence_field_used": "confidence_v3",
+    "high_confidence_skips": 28,
+    "high_confidence_mean_close_return_pct": 0.8191964847356684,
+    "high_confidence_positive_rate_pct": 53.57142857142857,
+    "counterfactuals_are_not_executable_pnl": true,
+    "selection_gates_changed": false,
+    "production_model_changed": false
   },
   "production_champion": "V1",
   "v2_mode": "SHADOW_ONLY",

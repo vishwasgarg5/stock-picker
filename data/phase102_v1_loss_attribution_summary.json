@@ -1,0 +1,11 @@
+{
+  "status": "SCORED",
+  "executed_trade_rows": 125,
+  "symbols": 51,
+  "net_pnl_sum": -5249.396100660379,
+  "loss_making_symbols": 38,
+  "worst_symbol": "AEGISLOG",
+  "worst_symbol_net_pnl": -1190.7996826171875,
+  "exit_reason_field_used": "exit_reason",
+  "diagnostic_only": true
+}

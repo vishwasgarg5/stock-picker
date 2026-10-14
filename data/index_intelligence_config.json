@@ -39,20 +39,20 @@
       "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxOMlFBcldWRXhJN29MNU1XN1VOZEZwU2k3dU1ZUFFTeTBjOFQyTlp2azg4VnNWMVFBQi1tbjJaejRDVU1HNk00VjhHTERxS3FNVDQ3eHBhMVgtWHhNQXU3aU9rU0RTQlduLWJZcWk3NGRoQ2xPUVlTbU5zNW9rZm8ycEM3eVFUQUNIYzlLXzMxZmlSeU5lYmpRY3ZnVlMwY01TNExxcjJ1aHRXaGRLWFJ4SDRLVDJ0Z1d2My1CbkpZcWlIbUt1eENuenlMQdIB2AFBVV95cUxQNXN4cGU2YTJKbndHWVB1NjhJeUhVNFc3cERmYmYweF9DZGRBaHJ5RFhTVXFqMy1KeXBRUDhCdnhCeUpHMFNKOUZwYUl4TFlPcVlRM0h2NWpyakNjbVI4OTY2XzY0bFhfZ1ZJcFlybDBzTGc0bS1KSUoyOG5RejFVV2c5cm5xMGVhZEtkLW9lQ2tkYzRzVUVuOWl2Z194SUZhelBpN0FtVzNONnFFRlFYaVVILVlYVGtRWmlCZ0oyeHEyOGlVUmRlUlF5WlM5aXVsOXFCdDk5OE8?oc=5"
     }
   ],
-  "market_intelligence_score": 50.00342205323194,
+  "market_intelligence_score": 50.04144486692015,
   "risk_level": "NEUTRAL",
-  "market_confidence": 0.5500307984790874,
+  "market_confidence": 0.5503730038022814,
   "data_quality": "MEDIUM",
   "index_data_available": false,
-  "breadth_pct_above_sma20": 28.517110266159694,
+  "breadth_pct_above_sma20": 28.707224334600763,
   "sector_news_impacts": {
-    "airlines": 2.0,
-    "paints": 1.6,
-    "chemicals": 1.2,
-    "tyres": 1.2,
-    "oil & gas": -1.6,
-    "information technology": 0.6,
-    "it": 0.6,
-    "pharma": 0.3
+    "airlines": 1.0,
+    "paints": 0.8,
+    "chemicals": 0.6,
+    "tyres": 0.6,
+    "oil & gas": -0.8,
+    "information technology": 1.2,
+    "it": 1.2,
+    "pharma": 0.6
   }
 }

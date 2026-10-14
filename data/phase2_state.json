@@ -1,7 +1,7 @@
 {
   "as_of": "2026-10-14 00:00:00",
-  "regime": "NEUTRAL",
-  "matched_sessions": 13,
+  "regime": "BEAR",
+  "matched_sessions": 14,
   "v2_trades": 0,
   "evaluated_shadow_sessions": 1,
   "direction_lift_pct": -12.5,

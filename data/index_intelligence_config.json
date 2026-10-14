@@ -3,7 +3,7 @@
   "market_regime": "NEUTRAL",
   "risk_multiplier": 0.8,
   "news_sentiment": "BULLISH",
-  "news_score": 0.1,
+  "news_score": 0.22999999999999998,
   "market_reason": "General market: Sensex, Nifty muted a day after sharp rally, IT stocks extend gains. What lies ahead for Dalal Street? - The Economic Times",
   "market_reason_url": "https://news.google.com/rss/articles/CBMihwJBVV95cUxQNDJCVExzNjBMenA5R1JtUE5PWFNlZnFNUE1JVVpwM2taSk00djBEV3dUSGFSbmIwSkJCZHh6YlMwemFCT2dDTWxFUHExLVFjUmNjZEwwaUh3eWhQbk5hUVNSQjVaN25xX0VLMzZfVUFuU2dhUGwxQk1sM0NMMFFmQ1IxMDVCeWxXLXpoZDJjZFdDa1ZIZk54LW93WmFXQ2ZvUmdoQmt1SndxRUp4dE9UdWhLSG5seVg1a3lsWUZteW1Vd3Q4WW4zTTYzUDBnUjdzMHlkSmpUa2dlenhLSnBVcVVGLUlNTE5mZ1N1cGpkdDgtem5WUEpfY1NmSGVRR2NURGJxaUtRWdIBhwJBVV95cUxQNDJCVExzNjBMenA5R1JtUE5PWFNlZnFNUE1JVVpwM2taSk00djBEV3dUSGFSbmIwSkJCZHh6YlMwemFCT2dDTWxFUHExLVFjUmNjZEwwaUh3eWhQbk5hUVNSQjVaN25xX0VLMzZfVUFuU2dhUGwxQk1sM0NMMFFmQ1IxMDVCeWxXLXpoZDJjZFdDa1ZIZk54LW93WmFXQ2ZvUmdoQmt1SndxRUp4dE9UdWhLSG5seVg1a3lsWUZteW1Vd3Q4WW4zTTYzUDBnUjdzMHlkSmpUa2dlenhLSnBVcVVGLUlNTE5mZ1N1cGpkdDgtem5WUEpfY1NmSGVRR2NURGJxaUtRWQ?oc=5",
   "news_headline": "General market: Sensex, Nifty muted a day after sharp rally, IT stocks extend gains. What lies ahead for Dalal Street? - The Economic Times",
@@ -27,21 +27,21 @@
       "url": "https://news.google.com/rss/articles/CBMigAJBVV95cUxQeVd5eUxIS05LTWl5X1VKeXpYOWRWV2I3eFQyWENrY0JGNVZhcjBwd3NWSnRvc291bWtFZ2s2WHRvdzV5RHY0VDZpNzdLNFFrc2doYVQwVTFhSDVxSW42UmVVWmRvTUx4Ql96U0o2aTNObDhRSjBITEdHTE9BM0RqenQwMUtrR080bkFJd3NaUHVGOUdTZzhwdWNteXVTQUMwY0RYLW9pTmhqMjA3d1EyOWd2WnBKOHVFQmdzbjNhNWI5WE5mYmlPY1RGWUROdGYtZmZhdjdVbHJzaXY5NUNtalg4Z2dfZFFod21JZWgxYjM4RnQ2SnoxWGRVNFJja0hI?oc=5"
     },
     {
-      "event": "Crude oil",
-      "impact": -1.0,
-      "headline": "Indian markets roughly unchanged; oil prices rise: Sensex remains afloat above 73,000 mark - Bhaskar English",
-      "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxObXF3YWpVcjl4V0FXeDZFajFlaG1CWE9ISmdjd0JGR05IdVY4QjVsQVRBdjhSUWVZY1Q1N210MU91a3F3emI1N1FTUzhzQzViWWg1NG5qMnc2MGg4TkhmTmtWbjdnMFJKR0dMbGN6S2p0U2FxaGc0TkxjNUdiMmZNSTAyaW4zVVd0RmwtYkxGd09VZlRCZGtMcldfenZ3QWlMZEhYUWVJYV94WHJrTEVyaXBCSEZvNUhOeDdpaWdyOXE1QkHSAcMBQVVfeXFMTm1xd2FqVXI5eFdBV3g2RWoxZWhtQlhPSEpnY3dCRkdOSHVWOEI1bEFUQXY4UlFlWWNUNTdtdDFPdWtxd3piNTdRU1M4c0M1YlloNTRuajJ3NjBoOE5IZk5rVm43ZzBSSkdHTGxjektqdFNhcWhnNE5MYzVHYjJmTUkwMmluM1VXdEZsLWJMRndPVWZUQmRrTHJXX3p2d0FpTGRIWFFlSWFfeFhya0xFcmlwQkhGbzVITng3aWlncjlxNUJB?oc=5"
-    },
-    {
       "event": "Currency",
       "impact": 0.5,
       "headline": "Rupee rises 19 paise to close at 95.17 against US dollar - Deccan Herald",
       "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxNRkVXNlBFUWZKczhRS1NabVVTU0p2VjBSMkxnZHB2Y3ZuajYwcGw1V240ODJTcVpzWHZvbFhrR0w3MTdiMVk1TmN0dHRFQUNBMVlMaERJbU1FLWZBcTI3eHRvM0R1XzhmbVVodE1qRERFWENZV2d6eHZQMkpvc0lTM19jWWdrYTRZSnNnQ2pkSHkwLWhpbm9mbjE2WmJkMmNNektacGpwNFZBeGhvbWxqVTZZSmxBdi1qNjRrSGxIV1Q?oc=5"
+    },
+    {
+      "event": "Crude oil",
+      "impact": -0.35,
+      "headline": "Indian Stocks Dip on High Crude, Rising Inflation & Profit-Taking - Rediff MoneyWiz",
+      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQRzY1UExENnBRZVZIenhBVm95eVkxeU84aEJHRlpEUk91OFdaak41SjFaTE5TN2NMWmVyYldac0o5eGVHeWlkSDFHWWhUQWpUMThHQVEwZTZjMXVVek84YVg2XzE0OEpVRnBpZWZIWUlxTUhmWVBOV0hsOVk3amJPcmN2MXFrSlYxdVhMSVd3VXJTN2RGY1ZKbnZFM3h2OU81RHJndW4tN0FTc1JpR3AxRkhVOGVma3VJMEHSAboBQVVfeXFMUEc2NVBMRDZwUWVWSHp4QVZveXlZMXlPOGhCR0ZaRFJPdThXWmpONUoxWkxOUzdjTFplcmJXWnNKOXhlR3lpZEgxR1loVEFqVDE4R0FRMGU2YzF1VXpPOGFYNl8xNDhKVUZwaWVmSFlJcU1IZllQTldIbDlZN2piT3JjdjFxa0pWMXVYTElXd1VyUzdkRmNWSm52RTN4djlPNURyZ3VuLTdBU3NSaUdwMUZIVThlZmt1STBB?oc=5"
     }
   ],
-  "market_intelligence_score": 49.43999391191301,
+  "market_intelligence_score": 49.647993911913005,
   "risk_level": "NEUTRAL",
-  "market_confidence": 0.555040054792783,
+  "market_confidence": 0.553168054792783,
   "data_quality": "MEDIUM",
   "index_data_available": false,
   "breadth_pct_above_sma20": 33.65019011406844,

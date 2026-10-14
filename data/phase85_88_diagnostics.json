@@ -7,16 +7,16 @@
   ],
   "phase85_receipt_anomaly_classification": {
     "status": "REVIEW_REQUIRED",
-    "rows": 91,
+    "rows": 92,
     "repeated_hash_rows": 8,
     "missing_hash_rows": 0,
     "hash_coverage_pct": 100.0,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 39,
+        "rows": 40,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 30.77,
+        "message_id_coverage_pct": 32.5,
         "repeated_hash_rows": 8,
         "unique_repeated_hashes": 3
       },
@@ -91,9 +91,9 @@
       "close",
       "volume"
     ],
-    "raw_read_seconds": 0.5929,
-    "gzip_read_seconds": 0.9045,
-    "gzip_read_time_delta_pct": 52.55,
+    "raw_read_seconds": 0.4782,
+    "gzip_read_seconds": 0.6605,
+    "gzip_read_time_delta_pct": 38.12,
     "raw_dataframe_memory_bytes": 161552204,
     "gzip_dataframe_memory_bytes": 161552204,
     "dataframe_memory_equal": true,

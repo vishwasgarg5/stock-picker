@@ -1,5 +1,5 @@
 {
-  "files": 52,
+  "files": 53,
   "sha256": {
     "src/advanced_governance.py": "0dcf2f6d211bc3ef4f914d0d7bd734ae17c31c2c7f72f0c6a20a8417391b6c6d",
     "src/confidence.py": "22c48932fe9d10c5c5ccd5f915c281176e1720f7bc5ae61cc5d8abfede44d08e",
@@ -17,6 +17,7 @@
     "src/performance_audit.py": "6aa6d26cf448e0fed7c45db578fc4ea9804ef971a762f29b9c351d02335ba288",
     "src/performance_history.py": "d3206b0360f533fb333725fc842a4e769191d0ea8ba8b6815827fb200142b074",
     "src/phase103_forecast_evidence.py": "ea9afd2b8d442fdc39ea7a08e2c36073af9d214c11c15ad09a4438d2a3d8885a",
+    "src/phase104_loss_concentration.py": "c41fcbead1112939dd96ff464e150a2bf85daa1a9a99dabf119663b5c5c7fcd5",
     "src/phase20_accuracy.py": "9cdc1c228d122381a889eb7bef8891b3fdd64ecd81a1b95df13fc76c244345a0",
     "src/phase21_26.py": "9d0bbfbdef64b0b9abc605476074c2e35dee139dcd2a61c476224fd58d6ea363",
     "src/phase27_data_quality.py": "e05782a65e5ed40b959da312323552f7f429c10f88bb9dc925e0f49cf6b04259",
@@ -52,7 +53,7 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "1d6896fbb1372dea5fcacbfc9bfd5e78efea475bccf6e03f386ae4523fbc7b73"
+    ".github/workflows/daily.yml": "fc7e2ba13bab32ded8f11266b7e60338e2f1be72c23dd56de98209ef46416940"
   },
   "manifest_version": "governance_v1"
 }

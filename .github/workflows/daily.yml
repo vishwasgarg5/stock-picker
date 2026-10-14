@@ -222,6 +222,9 @@ jobs:
       - name: Run Phases 98-101 root-cause, point-in-time features, walk-forward challenger and paper-performance audits (analysis-only)
         run: python -m src.phase98_101_quality
 
+      - name: Run Phase 103 chronological forecast evidence audit (analysis-only)
+        run: python -m src.phase103_forecast_evidence
+
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison
 

@@ -1,0 +1,119 @@
+{
+  "phases": [
+    85,
+    86,
+    87,
+    88
+  ],
+  "phase85_receipt_anomaly_classification": {
+    "status": "REVIEW_REQUIRED",
+    "rows": 85,
+    "repeated_hash_rows": 8,
+    "missing_hash_rows": 0,
+    "hash_coverage_pct": 100.0,
+    "per_file": {
+      "telegram_sent.csv": {
+        "rows": 36,
+        "hash_coverage_pct": 100.0,
+        "status_coverage_pct": 100.0,
+        "message_id_coverage_pct": 25.0,
+        "repeated_hash_rows": 8,
+        "unique_repeated_hashes": 3
+      },
+      "telegram_evening_sent.csv": {
+        "rows": 19,
+        "hash_coverage_pct": 100.0,
+        "status_coverage_pct": 100.0,
+        "message_id_coverage_pct": 5.26,
+        "repeated_hash_rows": 0,
+        "unique_repeated_hashes": 0
+      },
+      "telegram_paper_sent.csv": {
+        "rows": 20,
+        "hash_coverage_pct": 100.0,
+        "status_coverage_pct": 100.0,
+        "message_id_coverage_pct": 5.0,
+        "repeated_hash_rows": 0,
+        "unique_repeated_hashes": 0
+      },
+      "telegram_paper_v2_sent.csv": {
+        "rows": 10,
+        "hash_coverage_pct": 100.0,
+        "status_coverage_pct": 100.0,
+        "message_id_coverage_pct": 10.0,
+        "repeated_hash_rows": 0,
+        "unique_repeated_hashes": 0
+      }
+    },
+    "duplicate_interpretation": "Repeated hashes require content/time/retry review; they are not automatically classified as duplicate sends.",
+    "telegram_send_logic_changed": false,
+    "messages_resubmitted": false
+  },
+  "phase86_receipt_schema_readiness": {
+    "status": "SCHEMA_READY",
+    "files_checked": 4,
+    "files_with_required_columns": 4,
+    "required_columns": [
+      "delivery_status",
+      "message_hash",
+      "telegram_message_id"
+    ],
+    "note": "Audit only: no Telegram send path or receipt writer is modified by this phase.",
+    "send_path_changed": false,
+    "receipt_writer_changed": false
+  },
+  "phase87_rolling_forecast_evidence": {
+    "status": "BASELINE_NOT_BEATEN",
+    "target_dates": 17,
+    "scored_rows": 170,
+    "overall_model_mape_pct": 1.9034898551734813,
+    "overall_baseline_mape_pct": 1.890054195921745,
+    "overall_delta_pct_points": 0.013435659251736216,
+    "five_session_windows": 13,
+    "windows_model_beats_baseline": 1,
+    "windows_baseline_beats_or_ties": 12,
+    "model_or_threshold_changed": false,
+    "promotion_evidence_only": true
+  },
+  "phase88_storage_performance": {
+    "status": "BENCHMARK_PARITY_PASS",
+    "source_path": "data/ohlcv.csv",
+    "source_bytes": 80370378,
+    "gzip_bytes": 18263123,
+    "size_reduction_pct": 77.28,
+    "rows": 944187,
+    "columns": [
+      "date",
+      "symbol",
+      "open",
+      "high",
+      "low",
+      "close",
+      "volume"
+    ],
+    "raw_read_seconds": 0.6228,
+    "gzip_read_seconds": 0.8817,
+    "gzip_read_time_delta_pct": 41.58,
+    "raw_dataframe_memory_bytes": 161467229,
+    "gzip_dataframe_memory_bytes": 161467229,
+    "dataframe_memory_equal": true,
+    "dataframe_parity": true,
+    "sha256_before": "991b6b6dc3d3d525f48eb63769e76118dc9adf2d0fe0f478c75566af2d16c3bd",
+    "sha256_after": "991b6b6dc3d3d525f48eb63769e76118dc9adf2d0fe0f478c75566af2d16c3bd",
+    "source_unchanged": true,
+    "prototype_only": true,
+    "production_reader_switched": false,
+    "migration_executed": false
+  },
+  "safety": {
+    "production_champion": "V1",
+    "v2_mode": "SHADOW_ONLY",
+    "automatic_promotion": false,
+    "ranking_or_risk_changed": false,
+    "telegram_send_logic_changed": false,
+    "receipt_writer_changed": false,
+    "production_reader_switched": false,
+    "source_ohlcv_modified": false,
+    "workflow_triggers_changed": false
+  }
+}

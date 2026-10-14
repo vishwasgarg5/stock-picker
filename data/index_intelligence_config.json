@@ -1,17 +1,23 @@
 {
   "version": "index_intelligence_v3",
-  "market_regime": "NEUTRAL",
-  "risk_multiplier": 0.8,
+  "market_regime": "BEAR",
+  "risk_multiplier": 0.55,
   "news_sentiment": "BULLISH",
   "news_score": 1.0,
-  "market_reason": "General market: Sensex jumps over 600 points: 4 factors driving stock market rally - India Today",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxQU1lfMVFqM0dMTUMzMlVpNUJBbHV2aWpkUE1iNVgwNGVyOXplUHZlUFVCMGpZS3hUWlptRmYwRWc4ZkxzVDR5Qy01VnpIUll0WkN5U1ZGdEpxVkpwSDZ1LXBUc2xhaHJCeXYycllPME1uMV9HR084WjlZWGkyTDFUZXkyVVFWS3ljZmItZDRhOVl4TXpvSTZJU0p6Tnhuai0tcXQ4UlMwdmlKMmY5dERPc3JBV0tVSk1INW4tT2lURGVVMHdLTXE4YdIBzgFBVV95cUxNNW8yQ3BMa1hfQ3RzMWtzUDZ2T3Y2cG1EM3hMSG9IaGdubk5kSkF0X1dZQ0FnZ2pDSG5vVF80MXhLSi1ZZmd3alNwRk05SjAyamMzVHlEaXYzTTVHQWZhTjJ2ZjNYOW5DTm1pdmJGd2hhaXpfOU00RzVVY0tFanhkMEVGZUNWRWhJLVNwM3pINUVGTktleXJxclVoNFZTcUVveExTZlRZaFdmMm9lNF9HbEJjV3ZHZ0FCWENBZlVGazRWLXBqT0o2a3FtYzV0QQ?oc=5",
-  "news_headline": "General market: Sensex jumps over 600 points: 4 factors driving stock market rally - India Today",
+  "market_reason": "General market: Oct 13: Sensex surges 1,109 pts, Nifty reclaims 22,700 as IT stocks lead market rebound - The Indian Awaaz",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOLTVkVWd3MWt2ZGw2UV9LVWF6SmxPM0M4bXRSdUF1NzNFNDN1emlyMGZJbHN1c05jNXVQNV9aTGMxWm85ZFBSQWtJU1JScVNkX3dhQjF4aWFkVFF0aXVLRnBQc3MyTkJHY3pWNE1LR2U3dlZ2Wm9xcnFyaDlZcFNMcmdPQ2JOMlRCSDJnLWs1ellJRl9JYnJhanZjUnhFVGJBdmxiQUVNbkZvN2N4dVN2Sw?oc=5",
+  "news_headline": "General market: Oct 13: Sensex surges 1,109 pts, Nifty reclaims 22,700 as IT stocks lead market rebound - The Indian Awaaz",
   "news_reasons": [
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Sensex jumps over 600 points: 4 factors driving stock market rally - India Today",
+      "headline": "Oct 13: Sensex surges 1,109 pts, Nifty reclaims 22,700 as IT stocks lead market rebound - The Indian Awaaz",
+      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOLTVkVWd3MWt2ZGw2UV9LVWF6SmxPM0M4bXRSdUF1NzNFNDN1emlyMGZJbHN1c05jNXVQNV9aTGMxWm85ZFBSQWtJU1JScVNkX3dhQjF4aWFkVFF0aXVLRnBQc3MyTkJHY3pWNE1LR2U3dlZ2Wm9xcnFyaDlZcFNMcmdPQ2JOMlRCSDJnLWs1ellJRl9JYnJhanZjUnhFVGJBdmxiQUVNbkZvN2N4dVN2Sw?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": 1.0,
+      "headline": "Sensex jumps over 1,000 points: 4 factors driving stock market rally - India Today",
       "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxQU1lfMVFqM0dMTUMzMlVpNUJBbHV2aWpkUE1iNVgwNGVyOXplUHZlUFVCMGpZS3hUWlptRmYwRWc4ZkxzVDR5Qy01VnpIUll0WkN5U1ZGdEpxVkpwSDZ1LXBUc2xhaHJCeXYycllPME1uMV9HR084WjlZWGkyTDFUZXkyVVFWS3ljZmItZDRhOVl4TXpvSTZJU0p6Tnhuai0tcXQ4UlMwdmlKMmY5dERPc3JBV0tVSk1INW4tT2lURGVVMHdLTXE4YdIBzgFBVV95cUxNNW8yQ3BMa1hfQ3RzMWtzUDZ2T3Y2cG1EM3hMSG9IaGdubk5kSkF0X1dZQ0FnZ2pDSG5vVF80MXhLSi1ZZmd3alNwRk05SjAyamMzVHlEaXYzTTVHQWZhTjJ2ZjNYOW5DTm1pdmJGd2hhaXpfOU00RzVVY0tFanhkMEVGZUNWRWhJLVNwM3pINUVGTktleXJxclVoNFZTcUVveExTZlRZaFdmMm9lNF9HbEJjV3ZHZ0FCWENBZlVGazRWLXBqT0o2a3FtYzV0QQ?oc=5"
     },
     {
@@ -29,19 +35,13 @@
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Sensex soars over 680 points, Nifty gains over 200 points in early trade amid rally in IT stocks - Mid-Day",
-      "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxPRmJmT3FBTEtKSzZsejN0cnpYcWUzbUtKdDU3WEtLbGNKaXlZZnNUekdaQldxRUswUFYwRDlVZUNodzlUMUVhM3NXaDBsYjRKOS1lcjdTdlhyQld4THlRRTZkaUo2aUJkcndxSnQ2aWF4Y21GbmhjV3B0UjVtZi1OMW5lUnFPUDZaZUVoTEg1RHY3dU1RdDl1LVFqdC15MWNlYmppZEdRUy1DS1BESnI4VDZfWURMdGhVaktMam5raEhIUzNvOUhyRmRLUVVVenMzQ2VPeDBNazlOQ3B0cmV5RDBxUktYVGFFc0ZxcG5ISTF0dlNT0gH0AUFVX3lxTE9GYmZPcUFMS0pLNmx6M3RyelhxZTNtS0p0NTdYS0tsY0ppeVlmc1R6R1pCV3FFSzBQVjBEOVVlQ2h3OVQxRWEzc1doMGxiNEo5LWVyN1N2WHJCV3hMeVFFNmRpSjZpQmRyd3FKdDZpYXhjbUZuaGNXcHRSNW1mLU4xbmVScU9QNlplRWhMSDVEdjd1TVF0OXUtUWp0LXkxY2ViamlkR1FTLUNLUERKcjhUNl9ZREx0aFVqS0xqbmtoSEhTM285SHJGZEtRVVV6czNDZU94ME1rOU5DcHRyZXlEMHFSS1hUYUVzRnFwbkhJMXR2U1M?oc=5"
-    },
-    {
-      "event": "General market",
-      "impact": 1.0,
       "headline": "IT, realty stocks lead gains as Sensex and Nifty open flat - The Assam Tribune",
       "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQWE56X0hwd05MNUxWREdDWjJydGJjcUtSNTlRd2dKWENydFpJbGpMeWRXZDdHcW1LZk1WTThuWC1QWjVVbUhDaVRldlNaWTJqdExZQVc4LWpVeC1xb25qM3ZmS2RaeWFlYktUbzlHZ0VSMlZuLWF2V3lnRWlqWVJkMmNXeXBzb3JTT2o3dTFUYVRhNlNCVVhXWko2ZzJOMi1ZdmZwNXJn0gGmAUFVX3lxTFBYTnpfSHB3Tkw1TFZER0NaMnJ0YmNxS1I1OVF3Z0pYQ3J0Wklsakx5ZFdkN0dxbUtmTVZNOG5YLVBaNVVtSENpVGV2U1pZMmp0TFlBVzgtalV4LXFvbmozdmZLZFp5YWViS1RvOUdnRVIyVm4tYXZXeWdFaWpZUmQyY1d5cHNvclNPajd1MVRhVGE2U0JVWFdaSjZnMk4yLVl2ZnA1cmc?oc=5"
     }
   ],
-  "market_intelligence_score": 50.00342205323194,
-  "risk_level": "NEUTRAL",
-  "market_confidence": 0.5500307984790874,
+  "market_intelligence_score": 34.34342205323193,
+  "risk_level": "RISK_OFF",
+  "market_confidence": 0.6909092015209126,
   "data_quality": "MEDIUM",
   "index_data_available": false,
   "breadth_pct_above_sma20": 28.517110266159694,
@@ -51,8 +51,8 @@
     "chemicals": 1.2,
     "tyres": 1.2,
     "oil & gas": -1.6,
-    "information technology": 0.6,
-    "it": 0.6,
-    "pharma": 0.3
+    "information technology": 1.2,
+    "it": 1.2,
+    "pharma": 0.6
   }
 }

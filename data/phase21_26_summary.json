@@ -7,7 +7,7 @@
     25,
     26
   ],
-  "as_of": "2026-10-13",
+  "as_of": "2026-10-14",
   "phase21": {
     "calibration_buckets": 1,
     "evaluation_rows": 170
@@ -26,7 +26,7 @@
   },
   "phase24": {
     "status": "INCREMENTAL_HISTORY_MERGE_ALREADY_USED_BY_PIPELINE",
-    "history_rows": 944183,
+    "history_rows": 944187,
     "duplicate_date_symbol_rows": 0
   },
   "phase25": {

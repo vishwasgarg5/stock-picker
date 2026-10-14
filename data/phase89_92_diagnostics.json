@@ -1,0 +1,67 @@
+{
+  "phases": [
+    89,
+    90,
+    91,
+    92
+  ],
+  "phase89_receipt_reconciliation": {
+    "status": "REVIEW_REQUIRED",
+    "rows": 86,
+    "repeated_hash_groups": 3,
+    "confirmed_repeated_hash_groups": 3,
+    "multiple_confirmed_message_id_groups": 3,
+    "missing_message_id_rows": 0,
+    "note": "Repeated hashes are evidence for review, not proof of accidental duplicate delivery. No messages are resent.",
+    "send_logic_changed": false,
+    "receipt_writer_changed": false
+  },
+  "phase90_segmented_forecast": {
+    "status": "SEGMENTED_DIAGNOSTIC_ONLY",
+    "symbols_scored": 67,
+    "rows_scored": 170,
+    "symbols_model_beats_baseline": 26,
+    "symbols_baseline_beats_or_ties": 41,
+    "model_or_threshold_changed": false,
+    "promotion_evidence_only": true,
+    "note": "Per-symbol results are descriptive; no symbol-specific ranking or filter is changed."
+  },
+  "phase91_v2_rejection_analysis": {
+    "status": "DIAGNOSTIC_ONLY",
+    "rows": 130,
+    "buy_rows": 0,
+    "skip_rows": 130,
+    "skip_rows_with_reason": 130,
+    "unique_skip_reasons": 3,
+    "funnel_stages": 10,
+    "risk_thresholds_changed": false,
+    "signals_changed": false,
+    "note": "This report identifies rejection concentrations; it does not relax gates or create trades."
+  },
+  "phase92_storage_migration_readiness": {
+    "source_exists": true,
+    "source_sha256_recorded": true,
+    "source_size_bytes": 80370372,
+    "source_over_github_recommended_50mb": true,
+    "backup_and_restore_test_required": true,
+    "reader_compatibility_test_required": true,
+    "history_and_ci_access_test_required": true,
+    "rollback_plan_required": true,
+    "migration_executed": false,
+    "production_reader_switched": false,
+    "source_modified": false,
+    "status": "MIGRATION_PLANNING_REQUIRED",
+    "sha256": "56372771c7b632e2a8f3e1a053ea49326a24e74fcfaee48e1e735f93bbc01002"
+  },
+  "safety": {
+    "production_champion": "V1",
+    "v2_mode": "SHADOW_ONLY",
+    "automatic_promotion": false,
+    "ranking_or_risk_changed": false,
+    "telegram_send_logic_changed": false,
+    "receipt_writer_changed": false,
+    "production_reader_switched": false,
+    "source_ohlcv_modified": false,
+    "workflow_triggers_changed": false
+  }
+}

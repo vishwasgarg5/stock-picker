@@ -1,7 +1,7 @@
 {
   "version": "index_intelligence_v3",
-  "market_regime": "BEAR",
-  "risk_multiplier": 0.55,
+  "market_regime": "NEUTRAL",
+  "risk_multiplier": 0.8,
   "news_sentiment": "BULLISH",
   "news_score": 1.0,
   "market_reason": "General market: Oct 13: Sensex surges 1,109 pts, Nifty reclaims 22,700 as IT stocks lead market rebound - The Indian Awaaz",
@@ -29,19 +29,19 @@
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Sensex jumps nearly 700 points; Nifty rises 1% on IT rally, TCS, HCLTech, TechM, Infosys lead - Fortune India",
-      "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxOMlFBcldWRXhJN29MNU1XN1VOZEZwU2k3dU1ZUFFTeTBjOFQyTlp2azg4VnNWMVFBQi1tbjJaejRDVU1HNk00VjhHTERxS3FNVDQ3eHBhMVgtWHhNQXU3aU9rU0RTQlduLWJZcWk3NGRoQ2xPUVlTbU5zNW9rZm8ycEM3eVFUQUNIYzlLXzMxZmlSeU5lYmpRY3ZnVlMwY01TNExxcjJ1aHRXaGRLWFJ4SDRLVDJ0Z1d2My1CbkpZcWlIbUt1eENuenlMQdIB2AFBVV95cUxQNXN4cGU2YTJKbndHWVB1NjhJeUhVNFc3cERmYmYweF9DZGRBaHJ5RFhTVXFqMy1KeXBRUDhCdnhCeUpHMFNKOUZwYUl4TFlPcVlRM0h2NWpyakNjbVI4OTY2XzY0bFhfZ1ZJcFlybDBzTGc0bS1KSUoyOG5RejFVV2c5cm5xMGVhZEtkLW9lQ2tkYzRzVUVuOWl2Z194SUZhelBpN0FtVzNONnFFRlFYaVVILVlYVGtRWmlCZ0oyeHEyOGlVUmRlUlF5WlM5aXVsOXFCdDk5OE8?oc=5"
+      "headline": "Stock Markets Today: Sensex, Nifty Rebound; HCL Tech, HDFC Bank Drive Early Gains - Rediff",
+      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNU3AwdnItLWpTQl9sMHFjdDNRUF9STEYyMlpVbVlBbXZZempjV3EtWXcwWXZpN1VWS1Z5YzlXNzJWUnZORldUT0MxanJrSTk2cDV0dnVNSlIzOG1ZclZuRTYwejZRb292TDNpMjJNdGlQdDhPMFJfVmgtQXNZSEh4VnBIUFhLZDBfamdta1FwVWRlY2I1Q0J2LUV1SVpmQ2ZPQTJkT3FDRXhjcng0T3RfcU03dEJHMmNwN0FnSklsWmtJV09FUU9uWNIBywFBVV95cUxQbmpBZFVqcjRaWnl6cUh3d21tVTkxS3JqQmxhSnpCcjRBM09kNTAxeTVnaVFmRFRIZ0tNNmlyaEgtb0JORWhyN0FwXzduLTROM2xEWjZ1OWlXZVFiM2VHUnpqVldQeVZkNmxoekppWUw3cnltSEV5c3lsS05EOFpEWWlwaXVVdzJBUnZBcmhuRXJjd0pQZG5YTWJFT1BYQXN5VFRVOWFObEJteUluTXFoTmdtZDZiOE5QY1FUWXA5VTdGb0E3VTBKMEtUSQ?oc=5"
     },
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "IT, realty stocks lead gains as Sensex and Nifty open flat - The Assam Tribune",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQWE56X0hwd05MNUxWREdDWjJydGJjcUtSNTlRd2dKWENydFpJbGpMeWRXZDdHcW1LZk1WTThuWC1QWjVVbUhDaVRldlNaWTJqdExZQVc4LWpVeC1xb25qM3ZmS2RaeWFlYktUbzlHZ0VSMlZuLWF2V3lnRWlqWVJkMmNXeXBzb3JTT2o3dTFUYVRhNlNCVVhXWko2ZzJOMi1ZdmZwNXJn0gGmAUFVX3lxTFBYTnpfSHB3Tkw1TFZER0NaMnJ0YmNxS1I1OVF3Z0pYQ3J0Wklsakx5ZFdkN0dxbUtmTVZNOG5YLVBaNVVtSENpVGV2U1pZMmp0TFlBVzgtalV4LXFvbmozdmZLZFp5YWViS1RvOUdnRVIyVm4tYXZXeWdFaWpZUmQyY1d5cHNvclNPajd1MVRhVGE2U0JVWFdaSjZnMk4yLVl2ZnA1cmc?oc=5"
+      "headline": "Sensex jumps nearly 700 points; Nifty rises 1% on IT rally, TCS, HCLTech, TechM, Infosys lead - Fortune India",
+      "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxOMlFBcldWRXhJN29MNU1XN1VOZEZwU2k3dU1ZUFFTeTBjOFQyTlp2azg4VnNWMVFBQi1tbjJaejRDVU1HNk00VjhHTERxS3FNVDQ3eHBhMVgtWHhNQXU3aU9rU0RTQlduLWJZcWk3NGRoQ2xPUVlTbU5zNW9rZm8ycEM3eVFUQUNIYzlLXzMxZmlSeU5lYmpRY3ZnVlMwY01TNExxcjJ1aHRXaGRLWFJ4SDRLVDJ0Z1d2My1CbkpZcWlIbUt1eENuenlMQdIB2AFBVV95cUxQNXN4cGU2YTJKbndHWVB1NjhJeUhVNFc3cERmYmYweF9DZGRBaHJ5RFhTVXFqMy1KeXBRUDhCdnhCeUpHMFNKOUZwYUl4TFlPcVlRM0h2NWpyakNjbVI4OTY2XzY0bFhfZ1ZJcFlybDBzTGc0bS1KSUoyOG5RejFVV2c5cm5xMGVhZEtkLW9lQ2tkYzRzVUVuOWl2Z194SUZhelBpN0FtVzNONnFFRlFYaVVILVlYVGtRWmlCZ0oyeHEyOGlVUmRlUlF5WlM5aXVsOXFCdDk5OE8?oc=5"
     }
   ],
-  "market_intelligence_score": 34.34342205323193,
-  "risk_level": "RISK_OFF",
-  "market_confidence": 0.6909092015209126,
+  "market_intelligence_score": 50.00342205323194,
+  "risk_level": "NEUTRAL",
+  "market_confidence": 0.5500307984790874,
   "data_quality": "MEDIUM",
   "index_data_available": false,
   "breadth_pct_above_sma20": 28.517110266159694,
@@ -51,8 +51,8 @@
     "chemicals": 1.2,
     "tyres": 1.2,
     "oil & gas": -1.6,
-    "information technology": 1.2,
-    "it": 1.2,
-    "pharma": 0.6
+    "information technology": 0.6,
+    "it": 0.6,
+    "pharma": 0.3
   }
 }

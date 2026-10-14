@@ -35,6 +35,7 @@ telegram_sent.csv,32,TELEGRAM_API_CONFIRMED,True,True,True
 telegram_sent.csv,33,TELEGRAM_API_CONFIRMED,True,True,True
 telegram_sent.csv,34,TELEGRAM_API_CONFIRMED,True,True,True
 telegram_sent.csv,35,TELEGRAM_API_CONFIRMED,True,True,True
+telegram_sent.csv,36,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_evening_sent.csv,0,LEGACY_UNVERIFIED,True,False,False
 telegram_evening_sent.csv,1,LEGACY_UNVERIFIED,True,False,False
 telegram_evening_sent.csv,2,LEGACY_UNVERIFIED,True,False,False

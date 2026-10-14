@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-14T02:34:55.600838+00:00",
+  "as_of_utc": "2026-10-14T11:47:56.137398+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -7,7 +7,7 @@
   "sections": {
     "prediction_report": {
       "status": "PASS",
-      "target_date": "2026-10-14",
+      "target_date": "2026-10-15",
       "rows_for_target_date": 10,
       "top10_rows": 10,
       "top10_complete": true,
@@ -15,35 +15,35 @@
       "invalid_ohlc_rows": 0,
       "duplicate_symbol_rows": 0,
       "top10_symbols": [
-        "PERSISTENT",
-        "KARURVYSYA",
         "CPPLUS",
-        "FSL",
-        "PTCIL",
+        "PERSISTENT",
+        "IDBI",
         "COFORGE",
-        "GESHIP",
-        "CUPID",
-        "PVRINOX",
-        "PNBHOUSING"
+        "ICICIGI",
+        "BHEL",
+        "NETWEB",
+        "AEGISLOG",
+        "CYIENT",
+        "MRPL"
       ],
       "ranked_candidates_are_not_buy_approval": true
     },
     "forecast_baseline": {
       "status": "BASELINE_NOT_BEATEN",
-      "scored_rows": 170,
-      "unique_dates": 17,
-      "model_close_mape_pct": 1.9034898551734811,
-      "baseline_close_mape_pct": 1.8900541959217452,
-      "error_delta_pct_points": 0.013435659251735954,
+      "scored_rows": 180,
+      "unique_dates": 18,
+      "model_close_mape_pct": 1.867617829144189,
+      "baseline_close_mape_pct": 1.8553830837628298,
+      "error_delta_pct_points": 0.012234745381359158,
       "beats_baseline": false,
-      "directional_accuracy_pct": 45.88235294117647,
+      "directional_accuracy_pct": 46.111111111111114,
       "recent_5_sessions": 5,
       "recent_5_sessions_scored_rows": 50,
-      "recent_5_sessions_model_close_mape_pct": 1.9448523337550323,
-      "recent_5_sessions_baseline_close_mape_pct": 1.9359246015737894,
-      "recent_5_sessions_error_delta_pct_points": 0.008927732181242876,
-      "recent_5_sessions_beats_baseline": false,
-      "recent_5_sessions_directional_accuracy_pct": 44.0,
+      "recent_5_sessions_model_close_mape_pct": 1.860000060963399,
+      "recent_5_sessions_baseline_close_mape_pct": 1.866260007835967,
+      "recent_5_sessions_error_delta_pct_points": -0.006259946872567923,
+      "recent_5_sessions_beats_baseline": true,
+      "recent_5_sessions_directional_accuracy_pct": 52.0,
       "per_date_comparison": [
         {
           "target_date": "2026-09-18",
@@ -163,6 +163,13 @@
           "model_close_mape_pct": 2.099314866250805,
           "baseline_close_mape_pct": 2.116174200119465,
           "error_delta_pct_points": -0.01685933386866001
+        },
+        {
+          "target_date": "2026-10-14",
+          "scored_rows": 10,
+          "model_close_mape_pct": 1.2577933866462179,
+          "baseline_close_mape_pct": 1.2659741770612682,
+          "error_delta_pct_points": -0.008180790415050376
         }
       ],
       "same_scored_rows_for_comparison": true,
@@ -170,7 +177,7 @@
     },
     "paper_ledger": {
       "status": "PASS",
-      "rows": 170,
+      "rows": 180,
       "executed_rows": 70,
       "incomplete_executed_rows": 0,
       "net_pnl_reconciliation_mismatch_rows": 0,
@@ -179,14 +186,14 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 86,
-      "rows_with_usable_message_keys": 86,
-      "api_confirmed_rows": 13,
+      "rows": 87,
+      "rows_with_usable_message_keys": 87,
+      "api_confirmed_rows": 14,
       "duplicate_message_keys": 5,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 37,
-          "confirmed": 10,
+          "rows": 38,
+          "confirmed": 11,
           "legacy_unverified": 27,
           "duplicate_message_keys": 5,
           "rows_missing_message_key": 0,
@@ -222,10 +229,10 @@
     },
     "v2_evidence": {
       "status": "PASS",
-      "rows": 130,
-      "unique_sessions": 13,
+      "rows": 140,
+      "unique_sessions": 14,
       "buy_rows": 0,
-      "skip_rows": 130,
+      "skip_rows": 140,
       "skip_rows_without_reason": 0,
       "existing_promotion_safe": false,
       "promotion_ready": false,

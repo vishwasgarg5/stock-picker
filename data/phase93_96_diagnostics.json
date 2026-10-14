@@ -1,0 +1,124 @@
+{
+  "phase93_receipt_forensics": {
+    "groups_with_multiple_message_ids": 3,
+    "groups_with_timestamp_intervals": 3,
+    "hashed_rows": 87,
+    "note": "Receipt logs lack full message bodies; same hash with multiple API message IDs warrants manual review but does not prove an unintended resend.",
+    "repeated_hash_groups": 3,
+    "resends_performed": false,
+    "status": "REVIEW_REQUIRED"
+  },
+  "phase94_forecast_error_segments": {
+    "chronological_source": "phase33_chronological_prediction_scores.csv",
+    "periods_scored": 2,
+    "ranking_or_threshold_changed": false,
+    "rows_scored": 180,
+    "status": "SEGMENTED_DIAGNOSTIC_ONLY",
+    "symbols_better_than_baseline": 27,
+    "symbols_scored": 69,
+    "symbols_worse_than_baseline": 42,
+    "worst_symbols": [
+      {
+        "delta_pct_points": 1.369,
+        "rows": 2,
+        "symbol": "MTARTECH"
+      },
+      {
+        "delta_pct_points": 0.3876,
+        "rows": 1,
+        "symbol": "NIACL"
+      },
+      {
+        "delta_pct_points": 0.2606,
+        "rows": 1,
+        "symbol": "MEESHO"
+      },
+      {
+        "delta_pct_points": 0.1836,
+        "rows": 1,
+        "symbol": "CARTRADE"
+      },
+      {
+        "delta_pct_points": 0.152,
+        "rows": 2,
+        "symbol": "TATAINVEST"
+      },
+      {
+        "delta_pct_points": 0.1498,
+        "rows": 1,
+        "symbol": "AEGISLOG"
+      },
+      {
+        "delta_pct_points": 0.1346,
+        "rows": 1,
+        "symbol": "REDINGTON"
+      },
+      {
+        "delta_pct_points": 0.1246,
+        "rows": 6,
+        "symbol": "CPPLUS"
+      },
+      {
+        "delta_pct_points": 0.113,
+        "rows": 1,
+        "symbol": "AETHER"
+      },
+      {
+        "delta_pct_points": 0.1055,
+        "rows": 1,
+        "symbol": "SYRMA"
+      }
+    ]
+  },
+  "phase95_v2_earliest_rejection": {
+    "earliest_blocking_stage": "actual_data_join_and_validation",
+    "earliest_stage_input_rows": 190,
+    "earliest_stage_rejected_rows": 50,
+    "funnel_stages": 10,
+    "note": "The earliest stage with rejections is a funnel bottleneck candidate; later-stage counts are not additive unique candidates.",
+    "risk_thresholds_changed": false,
+    "signals_changed": false,
+    "stages_with_rejections": 6,
+    "status": "DIAGNOSTIC_ONLY",
+    "total_rejected_rows_stage_sum": 196
+  },
+  "phase96_storage_preflight": {
+    "backup_restore_tested": false,
+    "error_type": null,
+    "estimated_size_reduction_pct": 77.27,
+    "first_100_rows_parity": true,
+    "gzip_size_bytes": 18273619,
+    "migration_executed": false,
+    "next_required_steps": [
+      "full-file parity validation",
+      "reader compatibility tests",
+      "CI/history access test",
+      "backup and restore test",
+      "rollback rehearsal"
+    ],
+    "production_reader_switched": false,
+    "rollback_tested": false,
+    "source_sha256_after": "6b206e4b2b68ba963043a3ecd7d6f23104e6239b6a143fadff6d7efda084c147",
+    "source_sha256_before": "6b206e4b2b68ba963043a3ecd7d6f23104e6239b6a143fadff6d7efda084c147",
+    "source_size_bytes": 80411349,
+    "source_unchanged": true,
+    "status": "PREFLIGHT_PASSED_NO_MIGRATION"
+  },
+  "phases": [
+    93,
+    94,
+    95,
+    96
+  ],
+  "safety": {
+    "automatic_promotion": false,
+    "messages_resent": false,
+    "production_champion": "V1",
+    "production_reader_switched": false,
+    "ranking_or_risk_changed": false,
+    "source_ohlcv_modified": false,
+    "telegram_send_logic_changed": false,
+    "v2_mode": "SHADOW_ONLY",
+    "workflow_triggers_changed": false
+  }
+}

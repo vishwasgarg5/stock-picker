@@ -1,0 +1,11 @@
+stage,input_rows,output_rows,rejected_rows,detail,stage_order,retention_pct,is_earliest_rejection
+predictions_loaded,190,190,0,Raw prediction rows loaded,1,100.0,False
+phase2_join,190,190,0,Phase-2 metadata joined; selection flag is applied at phase2_selected_gate,2,100.0,False
+actual_data_join_and_validation,190,140,50,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history,3,73.68,True
+confidence_percentile_gate,140,84,56,Required percentile >= 0.50,4,60.0,False
+phase2_selected_gate,84,6,78,Phase 2 selected flag equals 1,5,7.14,False
+phase4_reject:phase4_confidence_floor,3,0,3,3 candidates rejected for phase4_confidence_floor; diagnostic only,6,0.0,False
+phase4_reject:minimum_expected_return,3,0,3,3 candidates rejected for minimum_expected_return; diagnostic only,7,0.0,False
+phase4_eligibility_gate,6,0,6,phase4_eligible flag true,8,0.0,False
+atr_sanity_gate,0,0,0,ATR percent <= 8.00; missing ATR is currently allowed,9,,False
+daily_trade_cap,0,0,0,Maximum 5 selected rows per target date,10,,False

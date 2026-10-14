@@ -1,0 +1,17 @@
+{
+  "status": "SCORED",
+  "feature_rows": 944684,
+  "features": [
+    "ret_1",
+    "ret_5",
+    "ret_20",
+    "volatility_20",
+    "volume_ratio_20"
+  ],
+  "feature_date_after_target_rows": 0,
+  "target_rows": 944158,
+  "point_in_time_rule": "Features use OHLCV available on feature_date; supervised label is the next observed close return.",
+  "row_level_feature_export_written": false,
+  "compact_symbol_summary_written": true,
+  "model_or_production_changed": false
+}

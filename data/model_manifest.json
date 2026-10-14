@@ -1,5 +1,5 @@
 {
-  "files": 49,
+  "files": 51,
   "sha256": {
     "src/advanced_governance.py": "0dcf2f6d211bc3ef4f914d0d7bd734ae17c31c2c7f72f0c6a20a8417391b6c6d",
     "src/confidence.py": "22c48932fe9d10c5c5ccd5f915c281176e1720f7bc5ae61cc5d8abfede44d08e",
@@ -35,6 +35,8 @@
     "src/phase85_88_diagnostics.py": "bff7972eb8dbc230dcc1461ca42a65183ca4fc75031b2610afc259cbab870768",
     "src/phase89_92_diagnostics.py": "bd7bfaacaf34237ce240c0a5486f3dbe823515bafe510db3f4f322b9ebadeacf",
     "src/phase93_96_diagnostics.py": "cf5b0494d73619728d57457b5483ff4527d7c12eb01f96ff7ec505e0445d3c5b",
+    "src/phase97_forecast_quality.py": "34f8d0c493c067f377f7bb4e0017be52c95e27e74dfd177c96c40147b02a239f",
+    "src/phase98_101_quality.py": "60a9e42f4106909e030da4bbb7ac2731c9008e0ad9b7cd2dc7d8b32fb799dbdd",
     "src/pipeline.py": "39f7f0dcfce92aa90a9e4a2fddbc0a03d75639b2622cb39a6a5452696a4270d7",
     "src/portfolio_comparison.py": "05827dcd8cbf6d69e1721c3399a13dade47bafae50800bc47772f99fb91536f5",
     "src/ranking_diagnostics.py": "31f63139e10640ac713df564420f4823dbbff82ac11c4c02731a31588cf5875f",
@@ -43,13 +45,13 @@
     "src/selection_validation.py": "1856ff968da7b4fe9bc552d02d7bd5450fa1a986a2922d034de2c522f4962300",
     "src/strategy_ab_report.py": "81b63845ef95182bc77d6b050b451783602eaf21784a38e28db18a3cd26f24ac",
     "src/strategy_governor.py": "e3c8f15d6e2c32ac62b9e2550306a66983e94c604e5a408c4b66bbd1d263486c",
-    "src/system_health.py": "09150a2e4c638f9bf9fbd690c6ff2f810e41e972ce9018e37c06615c619963d0",
+    "src/system_health.py": "36717c1efbc7663484bbea1e0af6661ed53b29cb3e23ff8c961bf92bbc10b167",
     "src/telegram.py": "690dc513b4a1beb71ba02cdf8764aaee1e4595279e890009a87a5bf811bb0298",
     "src/trade_quality_model.py": "be70706038043e573d5b92ce1c78f8c2e0cb9d533f4ffa8b5a74a7698b6190ba",
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "fa37affce33a8ca0f7d4b4a2925903316552fe46338927b03dcc9967b0960d02"
+    ".github/workflows/daily.yml": "0717af029cbe43ed490a727f6b28ba3d2344c1a52d3df3da03782bfa6013f9e3"
   },
   "manifest_version": "governance_v1"
 }

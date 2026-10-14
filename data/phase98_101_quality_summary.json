@@ -1,0 +1,89 @@
+{
+  "phase98_forecast_root_cause": {
+    "status": "SCORED",
+    "scored_rows": 180,
+    "symbols": 69,
+    "ohlc_mape_pct": {
+      "open_mape_pct": 0.641350187510379,
+      "high_mape_pct": 1.393558756853509,
+      "low_mape_pct": 1.3234069832484934,
+      "close_mape_pct": 1.8676178291441938
+    },
+    "close_mape_pct": 1.8676178291441938,
+    "mean_signed_error_pct": 0.3459543094080782,
+    "overprediction_rows": 105,
+    "underprediction_rows": 75,
+    "diagnostic_only": true
+  },
+  "phase99_feature_integrity": {
+    "status": "SCORED",
+    "feature_rows": 944684,
+    "features": [
+      "ret_1",
+      "ret_5",
+      "ret_20",
+      "volatility_20",
+      "volume_ratio_20"
+    ],
+    "feature_date_after_target_rows": 0,
+    "target_rows": 944158,
+    "point_in_time_rule": "Features use OHLCV available on feature_date; supervised label is the next observed close return.",
+    "row_level_feature_export_written": false,
+    "compact_symbol_summary_written": true,
+    "model_or_production_changed": false
+  },
+  "phase100_walk_forward_challenger": {
+    "status": "SCORED",
+    "candidate_rows": 180,
+    "candidate_symbols": 69,
+    "target_dates": 18,
+    "candidate_close_mape_pct": 1.9013209788231087,
+    "previous_close_baseline_mape_pct": 1.8553830837628342,
+    "candidate_beats_previous_close": false,
+    "walk_forward": true,
+    "expanding_window": true,
+    "minimum_training_rows": 250,
+    "training_labels_strictly_before_prediction_date": true,
+    "model_refit_production": false,
+    "ranking_or_risk_changed": false,
+    "production_champion": "V1",
+    "v2_mode": "SHADOW_ONLY",
+    "warning": "Candidate is exploratory and must beat baselines across repeated holdouts before promotion consideration."
+  },
+  "phase101_v2_selection_outcomes": {
+    "status": "SCORED",
+    "rows": 140,
+    "rows_with_actuals": 140,
+    "buy_rows": 0,
+    "skipped_rows": 140,
+    "confidence_field_used": "confidence_score",
+    "confidence_buckets_are_rank_quantiles_not_calibrated_probabilities": true,
+    "interpretation": "Skipped-name returns are diagnostic counterfactuals, not executable portfolio returns. Confidence buckets are descriptive, not calibrated probabilities.",
+    "selection_gates_changed": false
+  },
+  "phase101_v1_paper_performance": {
+    "status": "SCORED",
+    "source": "V1 paper_trades.csv",
+    "executed_trade_rows": 125,
+    "sessions": 18,
+    "net_pnl_sum": -5249.396100660379,
+    "win_rate_pct": 36.0,
+    "average_win": 272.9982784265098,
+    "average_loss": -230.71471881385946,
+    "profit_factor": 0.7006216088874455,
+    "reported_costs_sum_not_subtracted_again": 698.4754030268396,
+    "max_drawdown_pct_on_100k_reference_equity": -6.011454005090244,
+    "performance_is_paper_only": true
+  },
+  "phase101_v2_paper_performance": {
+    "status": "INSUFFICIENT_DATA",
+    "trade_rows": 0,
+    "source": "V2 paper_trades_v2.csv"
+  },
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "thresholds_changed": false,
+  "automatic_promotion": false
+}

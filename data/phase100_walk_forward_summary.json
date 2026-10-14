@@ -1,0 +1,18 @@
+{
+  "status": "SCORED",
+  "candidate_rows": 180,
+  "candidate_symbols": 69,
+  "target_dates": 18,
+  "candidate_close_mape_pct": 1.9013209788231087,
+  "previous_close_baseline_mape_pct": 1.8553830837628342,
+  "candidate_beats_previous_close": false,
+  "walk_forward": true,
+  "expanding_window": true,
+  "minimum_training_rows": 250,
+  "training_labels_strictly_before_prediction_date": true,
+  "model_refit_production": false,
+  "ranking_or_risk_changed": false,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "warning": "Candidate is exploratory and must beat baselines across repeated holdouts before promotion consideration."
+}

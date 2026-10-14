@@ -1,0 +1,16 @@
+{
+  "status": "SCORED",
+  "scored_rows": 180,
+  "symbols": 69,
+  "ohlc_mape_pct": {
+    "open_mape_pct": 0.641350187510379,
+    "high_mape_pct": 1.393558756853509,
+    "low_mape_pct": 1.3234069832484934,
+    "close_mape_pct": 1.8676178291441938
+  },
+  "close_mape_pct": 1.8676178291441938,
+  "mean_signed_error_pct": 0.3459543094080782,
+  "overprediction_rows": 105,
+  "underprediction_rows": 75,
+  "diagnostic_only": true
+}

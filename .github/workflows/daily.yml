@@ -212,6 +212,9 @@ jobs:
 
       - name: Run Phases 89-92 delivery, forecast, V2 and storage diagnostics (analysis-only)
         run: python -m src.phase89_92_diagnostics
+ 
+      - name: Run Phases 93-96 receipt, forecast, V2 bottleneck and storage preflight diagnostics (analysis-only)
+        run: python -m src.phase93_96_diagnostics
 
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison

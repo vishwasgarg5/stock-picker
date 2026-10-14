@@ -103,7 +103,7 @@ def receipt_schema_readiness() -> tuple[dict[str, Any], pd.DataFrame]:
     detail = pd.DataFrame(rows)
     ready = int(detail["schema_ready_for_future_receipts"].sum()) if not detail.empty else 0
     return {
-        "status": "SCHEMA_READY" if ready == len(required) and len(detail) == len(RECEIPT_FILES) else "SCHEMA_GAPS",
+        "status": "SCHEMA_READY" if ready == len(RECEIPT_FILES) and len(detail) == len(RECEIPT_FILES) else "SCHEMA_GAPS",
         "files_checked": int(len(detail)), "files_with_required_columns": ready,
         "required_columns": required,
         "note": "Audit only: no Telegram send path or receipt writer is modified by this phase.",

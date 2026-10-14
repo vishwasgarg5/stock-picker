@@ -225,6 +225,9 @@ jobs:
       - name: Run Phase 103 chronological forecast evidence audit (analysis-only)
         run: python -m src.phase103_forecast_evidence
 
+      - name: Run Phase 104 V1 loss concentration audit (analysis-only)
+        run: python -m src.phase104_loss_concentration
+
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison
 

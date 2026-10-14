@@ -222,6 +222,9 @@ jobs:
       - name: Run Phases 98-102 forecast, paper-loss and V2 rejection diagnostics (analysis-only)
         run: python -m src.phase98_101_quality
 
+      - name: Run Phase 103 chronological forecast evidence audit (analysis-only)
+        run: python -m src.phase103_forecast_evidence
+
       - name: Build detailed portfolio comparison
         run: python -m src.portfolio_comparison
 

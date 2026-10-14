@@ -283,6 +283,114 @@ def _selection_outcomes(v2: pd.DataFrame, history: pd.DataFrame) -> tuple[pd.Dat
     return combined, summary
 
 
+
+def _v1_loss_attribution(trades: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    """Attribute existing V1 paper net P&L by symbol and exit reason; analysis only."""
+    if trades.empty:
+        return pd.DataFrame(), pd.DataFrame(), {"status": "INSUFFICIENT_DATA", "trade_rows": 0}
+    x = trades.copy()
+    if "signal" in x:
+        x = x[x["signal"].astype(str).str.upper().isin(["BUY", "LONG", "EXECUTED"])].copy()
+    pnl_col = next((c for c in ("profit_loss", "net_pnl", "daily_profit_loss") if c in x), None)
+    if pnl_col is None or "symbol" not in x:
+        return pd.DataFrame(), pd.DataFrame(), {"status": "INSUFFICIENT_DATA", "trade_rows": int(len(x)), "reason": "Missing symbol or net P&L field"}
+    x["net_pnl"] = pd.to_numeric(x[pnl_col], errors="coerce")
+    x["symbol"] = x["symbol"].astype(str).str.upper().str.strip()
+    x = x.dropna(subset=["net_pnl"])
+    if x.empty:
+        return pd.DataFrame(), pd.DataFrame(), {"status": "INSUFFICIENT_DATA", "trade_rows": 0}
+    reason_col = next((c for c in ("exit_reason", "exit_type", "reason") if c in x), None)
+    x["exit_reason_group"] = x[reason_col].fillna("UNKNOWN").astype(str).str.strip() if reason_col else "NOT_RECORDED"
+    x.loc[x["exit_reason_group"].eq(""), "exit_reason_group"] = "UNKNOWN"
+    def aggregate(keys: list[str]) -> pd.DataFrame:
+        out = x.groupby(keys, dropna=False, as_index=False).agg(
+            trades=("net_pnl", "size"),
+            net_pnl=("net_pnl", "sum"),
+            mean_net_pnl=("net_pnl", "mean"),
+            win_rate_pct=("net_pnl", lambda s: float((s > 0).mean() * 100)),
+            loss_rows=("net_pnl", lambda s: int((s < 0).sum())),
+            gross_wins=("net_pnl", lambda s: float(s[s > 0].sum())),
+            gross_losses=("net_pnl", lambda s: float(s[s < 0].sum())),
+        )
+        out["profit_factor"] = out.apply(lambda r: r["gross_wins"] / abs(r["gross_losses"]) if r["gross_losses"] < 0 else (None if r["gross_wins"] == 0 else "NO_LOSSES_IN_GROUP"), axis=1)
+        return out.sort_values(["net_pnl", "trades"], ascending=[True, False])
+    by_symbol = aggregate(["symbol"])
+    by_reason = aggregate(["exit_reason_group"])
+    summary = {
+        "status": "SCORED" if len(x) >= 20 else "SMALL_SAMPLE",
+        "executed_trade_rows": int(len(x)),
+        "symbols": int(x["symbol"].nunique()),
+        "net_pnl_sum": float(x["net_pnl"].sum()),
+        "loss_making_symbols": int((by_symbol["net_pnl"] < 0).sum()),
+        "worst_symbol": str(by_symbol.iloc[0]["symbol"]) if not by_symbol.empty else None,
+        "worst_symbol_net_pnl": float(by_symbol.iloc[0]["net_pnl"]) if not by_symbol.empty else None,
+        "exit_reason_field_used": reason_col,
+        "diagnostic_only": True,
+    }
+    return by_symbol, by_reason, summary
+
+
+def _v2_rejection_diagnostics(v2: pd.DataFrame, history: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    """Summarize rejected candidate outcomes and surface high-confidence counterfactuals."""
+    required = {"target_date", "symbol", "signal", "reference_price"}
+    actual_required = {"date", "symbol", "close"}
+    if v2.empty or not required.issubset(v2.columns) or history.empty or not actual_required.issubset(history.columns):
+        return pd.DataFrame(), pd.DataFrame(), {"status": "INSUFFICIENT_DATA", "rows": 0}
+    x = v2.copy()
+    x["target_date"] = pd.to_datetime(x["target_date"], errors="coerce").dt.normalize()
+    x["symbol"] = x["symbol"].astype(str).str.upper().str.strip()
+    x["reference_price"] = pd.to_numeric(x["reference_price"], errors="coerce")
+    x["signal_norm"] = x["signal"].astype(str).str.upper().str.strip()
+    reason_col = next((c for c in ("no_trade_reason", "phase4_reject_reason") if c in x), None)
+    if reason_col:
+        primary = x[reason_col].fillna("").astype(str).str.strip()
+    else:
+        primary = pd.Series("", index=x.index)
+    if "phase4_reject_reason" in x and reason_col != "phase4_reject_reason":
+        secondary = x["phase4_reject_reason"].fillna("").astype(str).str.strip()
+        primary = primary.where(primary.ne(""), secondary)
+    x["rejection_reason"] = primary.where(primary.ne(""), "NOT_RECORDED")
+    x.loc[x["signal_norm"].eq("BUY"), "rejection_reason"] = "SELECTED_BUY"
+    h = history[["date", "symbol", "close"]].copy()
+    h["target_date"] = pd.to_datetime(h.pop("date"), errors="coerce").dt.normalize()
+    h["symbol"] = h["symbol"].astype(str).str.upper().str.strip()
+    h["actual_close"] = pd.to_numeric(h.pop("close"), errors="coerce")
+    h = h.dropna(subset=["target_date", "symbol"]).drop_duplicates(["target_date", "symbol"], keep="last")
+    x = x.merge(h, on=["target_date", "symbol"], how="left", validate="many_to_one")
+    x["counterfactual_close_return_pct"] = (x["actual_close"] / x["reference_price"] - 1) * 100
+    x["positive_counterfactual"] = x["counterfactual_close_return_pct"] > 0
+    conf_col = next((c for c in ("confidence_v3", "confidence_score", "confidence_pct") if c in x), None)
+    x["confidence_value"] = pd.to_numeric(x[conf_col], errors="coerce") if conf_col else np.nan
+    skipped = x.loc[~x["signal_norm"].eq("BUY") & x["counterfactual_close_return_pct"].notna()].copy()
+    if not skipped.empty and skipped["confidence_value"].notna().any():
+        ranks = skipped["confidence_value"].rank(method="average", pct=True)
+        skipped["confidence_bucket"] = pd.cut(ranks, [0, .2, .4, .6, .8, 1.000001], labels=["Q1_LOW", "Q2", "Q3", "Q4", "Q5_HIGH"], include_lowest=True).astype(str)
+    else:
+        skipped["confidence_bucket"] = "UNKNOWN"
+    by_reason = skipped.groupby("rejection_reason", as_index=False, dropna=False).agg(
+        rows=("counterfactual_close_return_pct", "size"),
+        mean_close_return_pct=("counterfactual_close_return_pct", "mean"),
+        median_close_return_pct=("counterfactual_close_return_pct", "median"),
+        positive_close_rate_pct=("positive_counterfactual", lambda s: float(s.mean() * 100)),
+        mean_confidence=("confidence_value", "mean"),
+    ).sort_values(["rows", "mean_close_return_pct"], ascending=[False, False])
+    high = skipped.loc[skipped["confidence_bucket"].eq("Q5_HIGH")].copy()
+    high = high.sort_values("counterfactual_close_return_pct", ascending=False)
+    summary = {
+        "status": "SCORED" if len(skipped) >= 20 else ("SMALL_SAMPLE" if len(skipped) else "INSUFFICIENT_DATA"),
+        "skipped_rows_with_actuals": int(len(skipped)),
+        "rejection_reasons": int(skipped["rejection_reason"].nunique()),
+        "confidence_field_used": conf_col,
+        "high_confidence_skips": int(len(high)),
+        "high_confidence_mean_close_return_pct": float(high["counterfactual_close_return_pct"].mean()) if len(high) else None,
+        "high_confidence_positive_rate_pct": float(high["positive_counterfactual"].mean() * 100) if len(high) else None,
+        "counterfactuals_are_not_executable_pnl": True,
+        "selection_gates_changed": False,
+        "production_model_changed": False,
+    }
+    keep = [c for c in ("prediction_date", "target_date", "symbol", "rank", "signal", "score", "confidence_value", "confidence_bucket", "rejection_reason", "reference_price", "actual_close", "counterfactual_close_return_pct") if c in high]
+    return by_reason, high[keep], summary
+
 def run() -> dict[str, Any]:
     DATA.mkdir(parents=True, exist_ok=True)
     scores = _read("phase33_chronological_prediction_scores.csv")
@@ -337,10 +445,22 @@ def run() -> dict[str, Any]:
     v2 = _read("paper_trades_v2.csv")
     v2_outcomes, v2_summary = _selection_outcomes(v2, history)
     v2_outcomes.to_csv(DATA / "phase101_v2_selection_outcomes.csv", index=False)
-    v1_daily, v1_summary = _paper_performance(_read("paper_trades.csv"), "V1 paper_trades.csv")
+    v1_trades = _read("paper_trades.csv")
+    v1_daily, v1_summary = _paper_performance(v1_trades, "V1 paper_trades.csv")
     v2_daily, v2_perf_summary = _paper_performance(v2, "V2 paper_trades_v2.csv")
     v1_daily.to_csv(DATA / "phase101_v1_paper_performance_daily.csv", index=False)
     v2_daily.to_csv(DATA / "phase101_v2_paper_performance_daily.csv", index=False)
+
+    v1_by_symbol, v1_by_exit_reason, v1_loss_summary = _v1_loss_attribution(v1_trades)
+    v1_by_symbol.to_csv(DATA / "phase102_v1_loss_by_symbol.csv", index=False)
+    v1_by_exit_reason.to_csv(DATA / "phase102_v1_loss_by_exit_reason.csv", index=False)
+    (DATA / "phase102_v1_loss_attribution_summary.json").write_text(json.dumps(v1_loss_summary, indent=2, default=str) + "\\n", encoding="utf-8")
+
+    v2_by_reason, v2_high_confidence, v2_rejection_summary = _v2_rejection_diagnostics(v2, history)
+    v2_by_reason.to_csv(DATA / "phase102_v2_rejection_reason_outcomes.csv", index=False)
+    v2_high_confidence.to_csv(DATA / "phase102_v2_high_confidence_skips.csv", index=False)
+    (DATA / "phase102_v2_rejection_summary.json").write_text(json.dumps(v2_rejection_summary, indent=2, default=str) + "\\n", encoding="utf-8")
+
     summary = {
         "phase98_forecast_root_cause": root_summary,
         "phase99_feature_integrity": leakage_summary,
@@ -348,6 +468,8 @@ def run() -> dict[str, Any]:
         "phase101_v2_selection_outcomes": v2_summary,
         "phase101_v1_paper_performance": v1_summary,
         "phase101_v2_paper_performance": v2_perf_summary,
+        "phase102_v1_loss_attribution": v1_loss_summary,
+        "phase102_v2_rejection_diagnostics": v2_rejection_summary,
         "production_champion": "V1", "v2_mode": "SHADOW_ONLY",
         "production_model_changed": False, "ranking_or_risk_changed": False,
         "thresholds_changed": False, "automatic_promotion": False,

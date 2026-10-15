@@ -109,3 +109,20 @@ def test_phase107_localizes_missing_accounting_by_field_and_session_without_infe
     persisted = json.loads((tmp_path / "phase107_pnl_reconciliation_summary.json").read_text())
     assert persisted["policy"].find("not treated as proof") >= 0
 
+
+
+def test_phase111_drawdown_includes_starting_capital_and_reports_risk_metrics(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    v1 = pd.DataFrame([
+        {"signal": "BUY", "target_date": "2026-01-02", "profit_loss": -10000.0},
+        {"signal": "BUY", "target_date": "2026-01-05", "profit_loss": 2000.0},
+    ])
+    v2 = pd.DataFrame(columns=["signal", "target_date", "profit_loss"])
+    result = module.phase111_chronological_replay(v1, v2)
+    assert result["status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["v1"]["max_drawdown_pct_from_100k_start"] == -10.0
+    assert result["v1"]["win_rate_pct"] == 50.0
+    assert result["v1"]["profit_factor"] == 0.2
+    assert result["v2"]["sessions"] == 0
+    assert result["v2"]["max_drawdown_pct_from_100k_start"] is None

@@ -265,7 +265,22 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
     cols = ["symbol", "target_date"] + [v for v in predicted.values() if v in pred.columns]
     if "base_close" in pred.columns:
         cols.append("base_close")
-    merged = pred[cols].merge(actual[["symbol", "target_date"] + [f"actual_{k}" for k in predicted]], on=["symbol", "target_date"], how="inner")
+    pred_key_duplicates = int(pred.duplicated(["symbol", "target_date"], keep=False).sum())
+    actual_key_duplicates = int(actual.duplicated(["symbol", "target_date"], keep=False).sum())
+    # A many-to-many merge would silently overweight duplicate records and make
+    # forecast accuracy look more precise than the underlying data supports.
+    if pred_key_duplicates or actual_key_duplicates:
+        return _write("phase110_forecast_accuracy_summary.json", {
+            "status": "BLOCKED_AMBIGUOUS_KEYS",
+            "matched_rows": 0,
+            "duplicate_prediction_key_rows": pred_key_duplicates,
+            "duplicate_actual_key_rows": actual_key_duplicates,
+            "metrics": {},
+            "close_directional_accuracy_pct": None,
+            "chronological_split_used_for_this_summary": False,
+            "note": "Duplicate symbol/target_date keys detected; ambiguous rows were not silently deduplicated or scored.",
+        })
+    merged = pred[cols].merge(actual[["symbol", "target_date"] + [f"actual_{k}" for k in predicted]], on=["symbol", "target_date"], how="inner", validate="one_to_one")
     metrics = {}
     for k, pcol in predicted.items():
         acol = f"actual_{k}"

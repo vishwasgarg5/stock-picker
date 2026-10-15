@@ -218,6 +218,23 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
         "phase2_selected_and_confidence_below_threshold_rows": int((phase2_flag.eq(1) & confidence_pct.lt(0.50)).sum()) if has_phase2_flag else None,
         "phase2_selected_and_confidence_at_least_threshold_rows": int((phase2_flag.eq(1) & confidence_pct.ge(0.50)).sum()) if has_phase2_flag else None,
     }
+    if len(buys):
+        zero_buy_bottleneck = "BUY_ROWS_PRESENT"
+    elif not funnel_valid:
+        zero_buy_bottleneck = "INSUFFICIENT_FUNNEL_DIAGNOSTICS"
+    elif int(confidence_stage.get("output_rows", 0)) == 0:
+        zero_buy_bottleneck = "CONFIDENCE_GATE_ZERO_OUTPUT"
+    elif int(phase2_stage.get("output_rows", 0)) == 0:
+        zero_buy_bottleneck = "PHASE2_SELECTED_GATE_ZERO_OUTPUT"
+    elif int(phase4_stage.get("output_rows", 0)) == 0:
+        zero_buy_bottleneck = "PHASE4_ELIGIBILITY_GATE_ZERO_OUTPUT"
+    elif int(stage_by_name.get("atr_sanity_gate", {}).get("output_rows", 0)) == 0:
+        zero_buy_bottleneck = "ATR_SANITY_GATE_ZERO_OUTPUT"
+    elif int(stage_by_name.get("daily_trade_cap", {}).get("output_rows", 0)) == 0:
+        zero_buy_bottleneck = "DAILY_TRADE_CAP_ZERO_OUTPUT"
+    else:
+        zero_buy_bottleneck = "NO_ZERO_OUTPUT_GATE_IDENTIFIED_CHECK_DECISION_MAPPING"
+
     reason_by_phase2 = {}
     if "no_trade_reason" in skips and has_phase2_flag:
         tmp = pd.DataFrame({"reason": skips["no_trade_reason"].fillna("").astype(str).str.strip(),
@@ -245,6 +262,7 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
         "skip_rows_without_reason": int(reasons.eq("").sum()),
         "skip_reason_counts": {str(k): int(v) for k, v in reasons.replace("", "NOT_RECORDED").value_counts().items()},
         "phase4_reject_reason_counts": phase4_reasons,
+        "zero_buy_bottleneck": zero_buy_bottleneck,
         "confidence_column_diagnostics": confidence_stats,
         "gate_overlap_diagnostics": gate_diagnostics,
         "skip_reasons_by_phase2_flag": reason_by_phase2,

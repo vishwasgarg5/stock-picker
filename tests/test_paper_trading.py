@@ -150,3 +150,16 @@ def test_accounting_ledger_audit_blocks_net_pnl_mismatch():
     audit = pt._accounting_ledger_audit(trades)
     assert audit["status"] == "BLOCK"
     assert audit["reconciliation_mismatch_rows"] == 1
+
+
+def test_all_skip_ledger_returns_empty_portfolio_without_false_pass():
+    trades = pd.DataFrame([{
+        "symbol": "AAA", "target_date": "2026-01-02", "rank": 1, "signal": "SKIP",
+        "entry_price": float("nan"), "exit_price": float("nan"),
+    }])
+    updated, daily = pt._build_portfolio(trades)
+    assert updated["signal"].tolist() == ["SKIP"]
+    assert daily.empty
+    audit = pt._accounting_ledger_audit(updated)
+    assert audit["status"] == "INSUFFICIENT_DATA"
+    assert audit["buy_rows"] == 0

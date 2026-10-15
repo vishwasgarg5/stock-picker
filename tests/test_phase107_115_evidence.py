@@ -61,8 +61,10 @@ def test_phase108_and_109_are_diagnostic_only(tmp_path, monkeypatch):
     assert funnel["confidence_column_diagnostics"]["confidence_pct"]["non_null_rows"] == 2
     assert funnel["funnel_stages"][0]["rejected_rows"] == 8
     assert funnel["production_model_changed"] is False
-    assert funnel["gate_overlap_diagnostics"]["phase2_flag_missing_or_invalid_rows"] == 2
-    assert funnel["skip_reasons_by_phase2_flag"]["NOT_RECORDED"]["nan"] == 1
+    assert funnel["gate_overlap_diagnostics"]["phase2_flag_persisted_in_decision_ledger"] is False
+    assert funnel["gate_overlap_diagnostics"]["phase2_gate_output_rows"] == 0
+    assert funnel["skip_reasons_by_phase2_flag"] == {}
+    assert funnel["skip_reason_cross_tab_status"].startswith("UNAVAILABLE_PHASE2_FLAG_NOT_PERSISTED")
 
 
 def test_phase113_requires_sustained_v2_evidence_and_gate_never_promotes(tmp_path, monkeypatch):

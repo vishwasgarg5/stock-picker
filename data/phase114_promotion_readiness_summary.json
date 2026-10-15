@@ -11,12 +11,15 @@
   "gates": {
     "pnl_reconciliation_pass": false,
     "selection_reasons_complete": true,
+    "selection_funnel_stage_coverage": true,
+    "exit_reason_attribution_complete": false,
     "forecast_metrics_available": true,
     "chronological_evidence_sufficient": false,
     "sustained_v2_sample_sufficient": false
   },
   "unmet_gates": [
     "pnl_reconciliation_pass",
+    "exit_reason_attribution_complete",
     "chronological_evidence_sufficient",
     "sustained_v2_sample_sufficient"
   ],

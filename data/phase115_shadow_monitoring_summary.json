@@ -8,6 +8,7 @@
   "automatic_promotion": false,
   "missing_facts_inferred": false,
   "status": "PASS",
+  "status_semantics": "PASS means all diagnostic reports were generated; it does not mean profitability or promotion readiness.",
   "phase_statuses": {
     "107_pnl": "BLOCKED",
     "108_losses": "SCORED",

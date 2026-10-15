@@ -102,8 +102,10 @@
   "reconciliation_mismatch_rows": 0,
   "accounting_identity": "gross_profit_loss - costs = profit_loss",
   "gross_pnl_identity": "shares * (exit_price - entry_price) = gross_profit_loss",
+  "return_identity": "profit_loss / allocated_capital * 100 = return_pct",
   "max_abs_accounting_delta": 8.526512829121202e-14,
   "max_abs_gross_delta": 5.684341886080802e-14,
+  "max_abs_return_delta_pct_points": 4.440892098500626e-16,
   "costs_subtracted_again": false,
   "policy": "Uses recorded values only; reports missing-field/session patterns for triage. No historical values are backfilled or inferred; session age alone is not treated as proof a row is legacy."
 }

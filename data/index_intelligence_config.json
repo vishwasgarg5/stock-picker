@@ -3,28 +3,22 @@
   "market_regime": "NEUTRAL",
   "risk_multiplier": 0.8,
   "news_sentiment": "BEARISH",
-  "news_score": 0.06999999999999999,
-  "market_reason": "FII / DII flows: Trade Setup for Today: Nikkei Slump and FII Selling Weigh on Sentiment; GIFT Nifty Points to Flat Opening as of October 15, 2026 - scanx.trade",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMigAJBVV95cUxPYUd2bndXdWpTYmFvSVQzaU84SjlSV2FVdnZ0Q0NQbEpoY3JzSS1xVGFIaG1xanhOUmxIQnpoM0ZJY0RlWWJ5UHNvdmpIcmgxTldCZnNXV0VUS3JDZ0lpSll1VnlheWtmWFVDTzNlaFVfUHBQUV9sUGVtUEY2d2I3bkU5Q3lpMFR1NFhQMnktOHBvRWcwMTZhalpDOHhGVXdqRnhuMEpKS2ptS1NtV1V4TWQ0Z3cyTllyTEhaY3UxcC0yaFp0a1BSaHc2Mm5xR2pVa0RZSHIxSEJ1MU9TWTRPNmdJZ0JvOXlqU0xvRG44YkNIdllndlI4WkJSUWxFdmZ2?oc=5",
-  "news_headline": "FII / DII flows: Trade Setup for Today: Nikkei Slump and FII Selling Weigh on Sentiment; GIFT Nifty Points to Flat Opening as of October 15, 2026 - scanx.trade",
+  "news_score": -0.23000000000000004,
+  "market_reason": "FII / DII flows: Indian markets trade in green amid hopes of LTCG relief and reversal in FII outflows - bfsi.economictimes.indiatimes.com",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMi9wFBVV95cUxNMUxVWEszZUZMNVBiZ0xVZVRQSzJhVXZwX0NGV3ljQzlrZ1BXVk0wMlZWd2xLdTM2c0Y2UnhlNk1wRnpBaFktR0dHcmE5N0lYbUY1ODJUbi1ZelV1VGpSc3kxVTZxazI2Q2V3dWJwQTNTSGN1S0t3UFJpWGpCU0ZvTG1TT09OSFB1RU1acDRpdFZpdkdZeHNneGtrWVlKRHFvQk1MRUVPZ19mWDY4WW9FR0RsT2dGM2cyamJKZDlCVXdxVUo3emQ3bjhqT2tSZ2Rxd3R1bGhESFpMRk5IZG1YckRKTTB5TXAxVm0tdFhlTE5uaXM4RzhR0gH3AUFVX3lxTE0xTFVYSzNlRkw1UGJnTFVlVFBLMmFVdnBfQ0ZXeWNDOWtnUFdWTTAyVlZ3bEt1MzZzRjZSeGU2TXBGekFoWS1HR0dyYTk3SVhtRjU4MlRuLVl6VXVUalJzeTFVNnFrMjZDZXd1YnBBM1NIY3VLS3dQUmlYakJTRm9MbVNPT05IUHVFTVpwNGl0Vml2R1l4c2d4a2tZWUpEcW9CTUxFRU9nX2ZYNjhZb0VHRGxPZ0YzZzJqYkpkOUJVd3FVSjd6ZDduOGpPa1JnZHF3dHVsaERIWkxGTkhkbVhyREpNMHlNcDFWbS10WGVMTm5pczhHOFE?oc=5",
+  "news_headline": "FII / DII flows: Indian markets trade in green amid hopes of LTCG relief and reversal in FII outflows - bfsi.economictimes.indiatimes.com",
   "news_reasons": [
+    {
+      "event": "FII / DII flows",
+      "impact": -0.8,
+      "headline": "Indian markets trade in green amid hopes of LTCG relief and reversal in FII outflows - bfsi.economictimes.indiatimes.com",
+      "url": "https://news.google.com/rss/articles/CBMi9wFBVV95cUxNMUxVWEszZUZMNVBiZ0xVZVRQSzJhVXZwX0NGV3ljQzlrZ1BXVk0wMlZWd2xLdTM2c0Y2UnhlNk1wRnpBaFktR0dHcmE5N0lYbUY1ODJUbi1ZelV1VGpSc3kxVTZxazI2Q2V3dWJwQTNTSGN1S0t3UFJpWGpCU0ZvTG1TT09OSFB1RU1acDRpdFZpdkdZeHNneGtrWVlKRHFvQk1MRUVPZ19mWDY4WW9FR0RsT2dGM2cyamJKZDlCVXdxVUo3emQ3bjhqT2tSZ2Rxd3R1bGhESFpMRk5IZG1YckRKTTB5TXAxVm0tdFhlTE5uaXM4RzhR0gH3AUFVX3lxTE0xTFVYSzNlRkw1UGJnTFVlVFBLMmFVdnBfQ0ZXeWNDOWtnUFdWTTAyVlZ3bEt1MzZzRjZSeGU2TXBGekFoWS1HR0dyYTk3SVhtRjU4MlRuLVl6VXVUalJzeTFVNnFrMjZDZXd1YnBBM1NIY3VLS3dQUmlYakJTRm9MbVNPT05IUHVFTVpwNGl0Vml2R1l4c2d4a2tZWUpEcW9CTUxFRU9nX2ZYNjhZb0VHRGxPZ0YzZzJqYkpkOUJVd3FVSjd6ZDduOGpPa1JnZHF3dHVsaERIWkxGTkhkbVhyREpNMHlNcDFWbS10WGVMTm5pczhHOFE?oc=5"
+    },
     {
       "event": "FII / DII flows",
       "impact": -0.8,
       "headline": "Trade Setup for Today: Nikkei Slump and FII Selling Weigh on Sentiment; GIFT Nifty Points to Flat Opening as of October 15, 2026 - scanx.trade",
       "url": "https://news.google.com/rss/articles/CBMigAJBVV95cUxPYUd2bndXdWpTYmFvSVQzaU84SjlSV2FVdnZ0Q0NQbEpoY3JzSS1xVGFIaG1xanhOUmxIQnpoM0ZJY0RlWWJ5UHNvdmpIcmgxTldCZnNXV0VUS3JDZ0lpSll1VnlheWtmWFVDTzNlaFVfUHBQUV9sUGVtUEY2d2I3bkU5Q3lpMFR1NFhQMnktOHBvRWcwMTZhalpDOHhGVXdqRnhuMEpKS2ptS1NtV1V4TWQ0Z3cyTllyTEhaY3UxcC0yaFp0a1BSaHc2Mm5xR2pVa0RZSHIxSEJ1MU9TWTRPNmdJZ0JvOXlqU0xvRG44YkNIdllndlI4WkJSUWxFdmZ2?oc=5"
-    },
-    {
-      "event": "Currency",
-      "impact": 0.5,
-      "headline": "Rupee rises 19 paise to close at 95.17 against US dollar - Deccan Herald",
-      "url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxNRkVXNlBFUWZKczhRS1NabVVTU0p2VjBSMkxnZHB2Y3ZuajYwcGw1V240ODJTcVpzWHZvbFhrR0w3MTdiMVk1TmN0dHRFQUNBMVlMaERJbU1FLWZBcTI3eHRvM0R1XzhmbVVodE1qRERFWENZV2d6eHZQMkpvc0lTM19jWWdrYTRZSnNnQ2pkSHkwLWhpbm9mbjE2WmJkMmNNektacGpwNFZBeGhvbWxqVTZZSmxBdi1qNjRrSGxIV1Q?oc=5"
-    },
-    {
-      "event": "Currency",
-      "impact": 0.5,
-      "headline": "Rupee Rises to 94.86 as RBI Steps Boost Currency - HDFC Sky",
-      "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxQLWV1T0ZPSnlfbTFMdXp3OHpENUlkVFhkM3c3MmdUckJMd3psLTJzQTBtVENlZmtsNHppT25JY0tTR29NZ3VqbTIwQW81Z1cxNHFxa0d4SVRNNDNPY2RRSl9yRTdoZDRudWFhODk3eWF2WmxaalhjNG9EdkZIWUJxYk1FNVlVQ1BWQkhjdVI0M2w?oc=5"
     },
     {
       "event": "Currency",
@@ -37,11 +31,17 @@
       "impact": -0.35,
       "headline": "Stock Markets Rebound: IT Firms Lead, Crude Prices Ease - Rediff MoneyWiz",
       "url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxOU3JyOU1OYWwtdzZVUEtoZWg3NUpEWXNmdG53cmhJeVpFaG5Ody11RmpLb2FIMHVQLXdFNTFHZnNwa0dWWVpVbXhaTXdRVlVWbHZtOWpFUFFxZHdUcVNkUUtFY0wzSUo5OTE0bE9HWHMyTmhiaElkQlFZTngwcDk3dy03bTFyUlFRRmoxNUV6RDU4VXlheEtOd3plZWJncmUyR1lld3FaSzBrSzBjMHfSAa4BQVVfeXFMTlNycjlNTmFsLXc2VVBLaGVoNzVKRFlzZnRud3JoSXlaRWhuTnctdUZqS29hSDB1UC13RTUxR2ZzcGtHVllaVW14Wk13UVZVVmx2bTlqRVBRcWR3VHFTZFFLRWNMM0lKOTkxNGxPR1hzMk5oYmhJZEJRWU54MHA5N3ctN20xclJRUUZqMTVFekQ1OFV5YXhLTnd6ZWViZ3JlMkdZZXdxWkswa0swYzB3?oc=5"
+    },
+    {
+      "event": "Crude oil",
+      "impact": 0.3,
+      "headline": "Sensex falls 252 points, Nifty slips to 22,622, as rising crude, FII selling weigh on markets - ChiniMandi",
+      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxQSVhLbVFxNmZfX1psUWNqdDU1X1V2ellXeW1URVhPVjlJQ1RheG16aW0yNldXYy1xVC1CWEVfT1ljMjl6dDJzTWtoSnMwaWdTeHpEMUJ5MndaYjVJbG85c3dlMFpGckE0dFhkZmhoWkxZWS1ENFdacnkwUmRGYVRQeFNJWkZsclVkRWpfN3BxV29GVm10QWVNVUlvOE5LdUxrNmR3U3dMOE4zTDljSFBMeTNsbVI4bTRWNWRv?oc=5"
     }
   ],
-  "market_intelligence_score": 49.04774144486692,
+  "market_intelligence_score": 48.56774144486692,
   "risk_level": "NEUTRAL",
-  "market_confidence": 0.5585703269961978,
+  "market_confidence": 0.5628903269961978,
   "data_quality": "MEDIUM",
   "index_data_available": false,
   "breadth_pct_above_sma20": 31.1787072243346,
@@ -51,8 +51,8 @@
     "chemicals": 2.4,
     "tyres": 2.4,
     "oil & gas": -3.2,
-    "information technology": 1.7999999999999998,
-    "it": 1.7999999999999998,
-    "pharma": 0.8999999999999999
+    "information technology": 0.6,
+    "it": 0.6,
+    "pharma": 0.3
   }
 }

@@ -188,6 +188,11 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
     stage_by_name = {
         str(row.get("stage", "")): row for row in funnel_stages
     }
+    required_gate_stages = {
+        "confidence_percentile_gate", "phase2_selected_gate", "phase4_eligibility_gate"
+    }
+    missing_required_gate_stages = sorted(required_gate_stages.difference(stage_by_name))
+    required_gate_stages_present = bool(funnel_valid and not missing_required_gate_stages)
     confidence_stage = stage_by_name.get("confidence_percentile_gate", {})
     phase2_stage = stage_by_name.get("phase2_selected_gate", {})
     phase4_stage = stage_by_name.get("phase4_eligibility_gate", {})
@@ -245,6 +250,8 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
         "skip_reasons_by_phase2_flag": reason_by_phase2,
         "skip_reason_cross_tab_status": "AVAILABLE" if has_phase2_flag else "UNAVAILABLE_PHASE2_FLAG_NOT_PERSISTED; USE_FUNNEL_STAGE_COUNTS",
         "existing_funnel_valid": funnel_valid,
+        "required_gate_stages_present": required_gate_stages_present,
+        "missing_required_gate_stages": missing_required_gate_stages,
         "funnel_stage_rows": int(len(funnel)) if funnel_valid else 0,
         "funnel_stages": funnel_stages,
         "interpretation": "Rejection counts describe the recorded shadow run; they do not prove a gate is miscalibrated. Review source-stage counts and confidence distributions before considering any threshold changes.",
@@ -372,7 +379,14 @@ def phase113_sustained_evidence(v1: pd.DataFrame, v2: pd.DataFrame) -> dict[str,
 
 
 def phase114_promotion_gate(recon: dict[str, Any], funnel: dict[str, Any], forecast: dict[str, Any], replay: dict[str, Any], sustained: dict[str, Any]) -> dict[str, Any]:
-    gates = {"pnl_reconciliation_pass": recon.get("status") == "PASS", "selection_reasons_complete": funnel.get("status") == "SCORED" and funnel.get("skip_rows_without_reason", 0) == 0, "forecast_metrics_available": forecast.get("status") == "SCORED", "chronological_evidence_sufficient": replay.get("status") == "SCORED", "sustained_v2_sample_sufficient": sustained.get("status") == "SCORED"}
+    gates = {
+        "pnl_reconciliation_pass": recon.get("status") == "PASS",
+        "selection_reasons_complete": funnel.get("status") == "SCORED" and funnel.get("skip_rows_without_reason", 0) == 0,
+        "selection_funnel_stage_coverage": funnel.get("existing_funnel_valid") is True and funnel.get("required_gate_stages_present") is True,
+        "forecast_metrics_available": forecast.get("status") == "SCORED",
+        "chronological_evidence_sufficient": replay.get("status") == "SCORED",
+        "sustained_v2_sample_sufficient": sustained.get("status") == "SCORED",
+    }
     failed = [name for name, passed in gates.items() if not passed]
     return _write("phase114_promotion_readiness_summary.json", {"status": "INSUFFICIENT_EVIDENCE" if failed else "REVIEW_REQUIRED", "gates": gates, "unmet_gates": failed, "v1_remains_production_champion": True, "v2_remains_shadow_only": True, "automatic_promotion": False, "production_changes_authorized": False, "note": "Even a clean diagnostic gate requires explicit human review; it never promotes V2 automatically."})
 

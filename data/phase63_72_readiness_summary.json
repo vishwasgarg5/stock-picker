@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-15T03:14:42.915542+00:00",
+  "as_of_utc": "2026-10-15T11:34:38.692744+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -7,7 +7,7 @@
   "sections": {
     "prediction_report": {
       "status": "PASS",
-      "target_date": "2026-10-15",
+      "target_date": "2026-10-16",
       "rows_for_target_date": 10,
       "top10_rows": 10,
       "top10_complete": true,
@@ -15,35 +15,35 @@
       "invalid_ohlc_rows": 0,
       "duplicate_symbol_rows": 0,
       "top10_symbols": [
-        "CPPLUS",
         "PERSISTENT",
-        "IDBI",
         "COFORGE",
+        "KARURVYSYA",
+        "TARIL",
+        "ELECON",
+        "CPPLUS",
         "ICICIGI",
-        "BHEL",
-        "NETWEB",
-        "AEGISLOG",
-        "CYIENT",
-        "MRPL"
+        "SHYAMMETL",
+        "ECLERX",
+        "KOTAKBANK"
       ],
       "ranked_candidates_are_not_buy_approval": true
     },
     "forecast_baseline": {
       "status": "BASELINE_NOT_BEATEN",
-      "scored_rows": 180,
-      "unique_dates": 18,
-      "model_close_mape_pct": 1.867617829144189,
-      "baseline_close_mape_pct": 1.8553830837628298,
-      "error_delta_pct_points": 0.012234745381359158,
+      "scored_rows": 190,
+      "unique_dates": 19,
+      "model_close_mape_pct": 2.00854361127533,
+      "baseline_close_mape_pct": 1.9966238081511243,
+      "error_delta_pct_points": 0.011919803124205597,
       "beats_baseline": false,
-      "directional_accuracy_pct": 46.111111111111114,
+      "directional_accuracy_pct": 46.8421052631579,
       "recent_5_sessions": 5,
       "recent_5_sessions_scored_rows": 50,
-      "recent_5_sessions_model_close_mape_pct": 1.860000060963399,
-      "recent_5_sessions_baseline_close_mape_pct": 1.866260007835967,
-      "recent_5_sessions_error_delta_pct_points": -0.006259946872567923,
+      "recent_5_sessions_model_close_mape_pct": 2.235640847778701,
+      "recent_5_sessions_baseline_close_mape_pct": 2.2466465763269885,
+      "recent_5_sessions_error_delta_pct_points": -0.011005728548287408,
       "recent_5_sessions_beats_baseline": true,
-      "recent_5_sessions_directional_accuracy_pct": 52.0,
+      "recent_5_sessions_directional_accuracy_pct": 56.00000000000001,
       "per_date_comparison": [
         {
           "target_date": "2026-09-18",
@@ -170,6 +170,13 @@
           "model_close_mape_pct": 1.2577933866462179,
           "baseline_close_mape_pct": 1.2659741770612682,
           "error_delta_pct_points": -0.008180790415050376
+        },
+        {
+          "target_date": "2026-10-15",
+          "scored_rows": 10,
+          "model_close_mape_pct": 4.545207689635868,
+          "baseline_close_mape_pct": 4.538956847140428,
+          "error_delta_pct_points": 0.006250842495440168
         }
       ],
       "same_scored_rows_for_comparison": true,
@@ -177,7 +184,7 @@
     },
     "paper_ledger": {
       "status": "PASS",
-      "rows": 180,
+      "rows": 190,
       "executed_rows": 70,
       "incomplete_executed_rows": 0,
       "net_pnl_reconciliation_mismatch_rows": 0,
@@ -186,14 +193,14 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 94,
-      "rows_with_usable_message_keys": 94,
-      "api_confirmed_rows": 21,
+      "rows": 95,
+      "rows_with_usable_message_keys": 95,
+      "api_confirmed_rows": 22,
       "duplicate_message_keys": 5,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 42,
-          "confirmed": 15,
+          "rows": 43,
+          "confirmed": 16,
           "legacy_unverified": 27,
           "duplicate_message_keys": 5,
           "rows_missing_message_key": 0,
@@ -229,10 +236,10 @@
     },
     "v2_evidence": {
       "status": "PASS",
-      "rows": 140,
-      "unique_sessions": 14,
+      "rows": 150,
+      "unique_sessions": 15,
       "buy_rows": 0,
-      "skip_rows": 140,
+      "skip_rows": 150,
       "skip_rows_without_reason": 0,
       "existing_promotion_safe": false,
       "promotion_ready": false,

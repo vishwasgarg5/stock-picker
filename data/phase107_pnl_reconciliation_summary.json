@@ -9,15 +9,101 @@
   "missing_facts_inferred": false,
   "status": "BLOCKED",
   "source": "data/paper_trades.csv",
-  "buy_rows": 125,
+  "buy_rows": 130,
   "missing_columns": [],
   "complete_rows": 70,
-  "incomplete_rows": 55,
+  "incomplete_rows": 60,
+  "missing_values_by_field": {
+    "entry_price": 0,
+    "exit_price": 0,
+    "shares": 60,
+    "allocated_capital": 60,
+    "gross_profit_loss": 60,
+    "costs": 60,
+    "profit_loss": 0,
+    "return_pct": 0
+  },
+  "incomplete_rows_by_signal": {
+    "BUY": 60
+  },
+  "incomplete_rows_by_session": [
+    {
+      "target_date": "2026-09-29",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-09-30",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-01",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-05",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-06",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-07",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-08",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-09",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-12",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-13",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-14",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-15",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    }
+  ],
+  "first_complete_session": "2026-09-18",
+  "last_complete_session": "2026-09-28",
+  "first_incomplete_session": "2026-09-29",
+  "last_incomplete_session": "2026-10-15",
+  "record_vintage_classification": "EXPLICIT_METADATA_WHEN_AVAILABLE; OTHERWISE_UNCLASSIFIED",
+  "record_vintage_counts": {
+    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 130
+  },
+  "incomplete_rows_by_record_vintage": {
+    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 60
+  },
   "reconciliation_mismatch_rows": 0,
   "accounting_identity": "gross_profit_loss - costs = profit_loss",
   "gross_pnl_identity": "shares * (exit_price - entry_price) = gross_profit_loss",
   "max_abs_accounting_delta": 8.526512829121202e-14,
   "max_abs_gross_delta": 5.684341886080802e-14,
   "costs_subtracted_again": false,
-  "policy": "Uses recorded values only; no historical values are backfilled or inferred."
+  "policy": "Uses recorded values only; reports missing-field/session patterns for triage. No historical values are backfilled or inferred; session age alone is not treated as proof a row is legacy."
 }

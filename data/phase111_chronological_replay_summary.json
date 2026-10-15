@@ -9,12 +9,12 @@
   "missing_facts_inferred": false,
   "status": "INSUFFICIENT_EVIDENCE",
   "v1": {
-    "rows": 125,
-    "sessions": 18,
-    "net_pnl": -5249.396100660379,
-    "max_drawdown_pct_from_100k_start": -6.011454005090244,
+    "rows": 130,
+    "sessions": 19,
+    "net_pnl": -9398.404492994363,
+    "max_drawdown_pct_from_100k_start": -9.851179903009466,
     "first_session": "2026-09-18",
-    "last_session": "2026-10-14",
+    "last_session": "2026-10-15",
     "chronological_order": true,
     "costs_source": "recorded net profit_loss; costs are not subtracted again"
   },

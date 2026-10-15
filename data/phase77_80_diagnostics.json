@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-15T03:14:44.845584+00:00",
+  "as_of_utc": "2026-10-15T11:34:40.721240+00:00",
   "phases": [
     77,
     78,
@@ -8,16 +8,16 @@
   ],
   "phase77_delivery": {
     "status": "RECEIPT_AUDIT_INCOMPLETE",
-    "rows": 94,
-    "confirmed": 21,
+    "rows": 95,
+    "confirmed": 22,
     "legacy_unverified": 73,
     "missing_status": 0,
     "duplicates": 5,
-    "confirmed_receipt_pct": 22.34,
+    "confirmed_receipt_pct": 23.16,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 42,
-        "confirmed": 15,
+        "rows": 43,
+        "confirmed": 16,
         "legacy_unverified": 27,
         "missing_status": 0,
         "duplicate_keys": 5,
@@ -53,12 +53,12 @@
   },
   "phase78_v2_funnel": {
     "status": "ZERO_BUY",
-    "rows": 140,
+    "rows": 150,
     "buy_rows": 0,
-    "skip_rows": 140,
+    "skip_rows": 150,
     "skip_reason_counts": {
-      "phase2_not_selected": 78,
-      "confidence_percentile": 56,
+      "phase2_not_selected": 84,
+      "confidence_percentile": 60,
       "phase4_ineligible": 6
     },
     "missing_skip_reason_rows": 0,
@@ -67,20 +67,20 @@
     "largest_recorded_drop_stage": "phase2_selected_gate",
     "production_filters_changed": false,
     "thresholds_deployed": false,
-    "largest_recorded_drop_rows": 78
+    "largest_recorded_drop_rows": 84
   },
   "phase79_forecast_evidence": {
     "status": "BASELINE_NOT_BEATEN",
-    "scored_rows": 180,
-    "target_dates": 18,
-    "model_mape_pct": 1.8676178291441885,
-    "baseline_mape_pct": 1.8553830837628298,
-    "delta_pct_points": 0.012234745381358714,
+    "scored_rows": 190,
+    "target_dates": 19,
+    "model_mape_pct": 2.0085436112753294,
+    "baseline_mape_pct": 1.9966238081511243,
+    "delta_pct_points": 0.011919803124205153,
     "beats_baseline": false,
     "recent_sessions": 5,
-    "recent_model_mape_pct": 1.860000060963399,
-    "recent_baseline_mape_pct": 1.8662600078359677,
-    "recent_delta_pct_points": -0.006259946872568589,
+    "recent_model_mape_pct": 2.2356408477787015,
+    "recent_baseline_mape_pct": 2.246646576326988,
+    "recent_delta_pct_points": -0.01100572854828652,
     "recent_beats_baseline": true,
     "same_scored_rows": true,
     "model_changed": false,
@@ -89,8 +89,8 @@
   "phase80_storage_migration_plan": {
     "status": "PLAN_REQUIRED",
     "source_path": "data/ohlcv.csv",
-    "source_bytes": 80411312,
-    "source_mib": 76.69,
+    "source_bytes": 80452900,
+    "source_mib": 76.73,
     "steps": [
       "Create a checksum and row/date/symbol baseline before any change.",
       "Prototype compressed or partitioned output beside the original file.",

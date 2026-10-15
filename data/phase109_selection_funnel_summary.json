@@ -8,16 +8,137 @@
   "automatic_promotion": false,
   "missing_facts_inferred": false,
   "status": "SCORED",
-  "v2_rows": 140,
+  "v2_rows": 150,
   "buy_rows": 0,
-  "skip_rows": 140,
+  "skip_rows": 150,
   "skip_rows_without_reason": 0,
   "skip_reason_counts": {
-    "phase2_not_selected": 78,
-    "confidence_percentile": 56,
+    "phase2_not_selected": 84,
+    "confidence_percentile": 60,
     "phase4_ineligible": 6
+  },
+  "phase4_reject_reason_counts": {
+    "minimum_expected_return": 3,
+    "phase4_confidence_floor": 3
+  },
+  "confidence_column_diagnostics": {
+    "confidence_pct": {
+      "non_null_rows": 150,
+      "min": 0.1,
+      "median": 0.55,
+      "max": 1.0
+    },
+    "confidence_v3": {
+      "non_null_rows": 150,
+      "min": 0.0,
+      "median": 27.991380016674636,
+      "max": 95.0
+    },
+    "confidence_score": {
+      "non_null_rows": 150,
+      "min": 0.0,
+      "median": 27.87220915914493,
+      "max": 95.0
+    }
+  },
+  "gate_overlap_diagnostics": {
+    "phase2_selected_rows": 0,
+    "phase2_not_selected_rows": 0,
+    "phase2_flag_missing_or_invalid_rows": 150,
+    "confidence_pct_non_null_rows": 150,
+    "confidence_pct_missing_rows": 0,
+    "shadow_confidence_percentile_threshold": 0.5,
+    "confidence_pct_below_shadow_percentile_rows": 60,
+    "phase4_confidence_floor_available_rows": 0,
+    "phase4_confidence_floor_fail_rows": 0,
+    "phase2_selected_and_confidence_below_threshold_rows": 0,
+    "phase2_selected_and_confidence_at_least_threshold_rows": 0
+  },
+  "skip_reasons_by_phase2_flag": {
+    "confidence_percentile": {
+      "nan": 60
+    },
+    "phase2_not_selected": {
+      "nan": 84
+    },
+    "phase4_ineligible": {
+      "nan": 6
+    }
   },
   "existing_funnel_valid": true,
   "funnel_stage_rows": 10,
+  "funnel_stages": [
+    {
+      "stage": "predictions_loaded",
+      "input_rows": 200,
+      "output_rows": 200,
+      "rejected_rows": 0,
+      "detail": "Raw prediction rows loaded"
+    },
+    {
+      "stage": "phase2_join",
+      "input_rows": 200,
+      "output_rows": 200,
+      "rejected_rows": 0,
+      "detail": "Phase-2 metadata joined; selection flag is applied at phase2_selected_gate"
+    },
+    {
+      "stage": "actual_data_join_and_validation",
+      "input_rows": 200,
+      "output_rows": 150,
+      "rejected_rows": 50,
+      "detail": "Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history"
+    },
+    {
+      "stage": "confidence_percentile_gate",
+      "input_rows": 150,
+      "output_rows": 90,
+      "rejected_rows": 60,
+      "detail": "Required percentile >= 0.50"
+    },
+    {
+      "stage": "phase2_selected_gate",
+      "input_rows": 90,
+      "output_rows": 6,
+      "rejected_rows": 84,
+      "detail": "Phase 2 selected flag equals 1"
+    },
+    {
+      "stage": "phase4_reject:phase4_confidence_floor",
+      "input_rows": 3,
+      "output_rows": 0,
+      "rejected_rows": 3,
+      "detail": "3 candidates rejected for phase4_confidence_floor; diagnostic only"
+    },
+    {
+      "stage": "phase4_reject:minimum_expected_return",
+      "input_rows": 3,
+      "output_rows": 0,
+      "rejected_rows": 3,
+      "detail": "3 candidates rejected for minimum_expected_return; diagnostic only"
+    },
+    {
+      "stage": "phase4_eligibility_gate",
+      "input_rows": 6,
+      "output_rows": 0,
+      "rejected_rows": 6,
+      "detail": "phase4_eligible flag true"
+    },
+    {
+      "stage": "atr_sanity_gate",
+      "input_rows": 0,
+      "output_rows": 0,
+      "rejected_rows": 0,
+      "detail": "ATR percent <= 8.00; missing ATR is currently allowed"
+    },
+    {
+      "stage": "daily_trade_cap",
+      "input_rows": 0,
+      "output_rows": 0,
+      "rejected_rows": 0,
+      "detail": "Maximum 5 selected rows per target date"
+    }
+  ],
+  "interpretation": "Rejection counts describe the recorded shadow run; they do not prove a gate is miscalibrated. Review source-stage counts and confidence distributions before considering any threshold changes.",
   "production_rules_changed": false
 }

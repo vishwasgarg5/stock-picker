@@ -220,8 +220,8 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
     }
     if len(buys):
         zero_buy_bottleneck = "BUY_ROWS_PRESENT"
-    elif not funnel_valid:
-        zero_buy_bottleneck = "INSUFFICIENT_FUNNEL_DIAGNOSTICS"
+    elif not required_gate_stages_present:
+        zero_buy_bottleneck = "INCOMPLETE_FUNNEL_STAGE_DIAGNOSTICS"
     elif int(confidence_stage.get("output_rows", 0)) == 0:
         zero_buy_bottleneck = "CONFIDENCE_GATE_ZERO_OUTPUT"
     elif int(phase2_stage.get("output_rows", 0)) == 0:

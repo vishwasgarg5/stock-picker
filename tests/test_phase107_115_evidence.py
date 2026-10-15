@@ -46,11 +46,20 @@ def test_phase108_and_109_are_diagnostic_only(tmp_path, monkeypatch):
     summary = phase108_loss_concentration(v1)
     assert summary["gross_loss"] == 5
     v2 = pd.DataFrame([
-        {"signal": "SKIP", "no_trade_reason": "", "symbol": "AAA", "target_date": "2026-01-01"},
-        {"signal": "BUY", "no_trade_reason": "", "symbol": "BBB", "target_date": "2026-01-01"},
+        {"signal": "SKIP", "no_trade_reason": "", "phase4_reject_reason": "minimum_expected_return",
+         "confidence_pct": 0.2, "symbol": "AAA", "target_date": "2026-01-01"},
+        {"signal": "BUY", "no_trade_reason": "", "phase4_reject_reason": "",
+         "confidence_pct": 0.9, "symbol": "BBB", "target_date": "2026-01-01"},
     ])
+    pd.DataFrame([{"stage": "phase2_selected_gate", "input_rows": 10,
+                   "output_rows": 2, "rejected_rows": 8}]).to_csv(
+        tmp_path / "phase32_v2_selection_funnel.csv", index=False
+    )
     funnel = phase109_selection_funnel(v2)
     assert funnel["skip_rows_without_reason"] == 1
+    assert funnel["phase4_reject_reason_counts"] == {"minimum_expected_return": 1}
+    assert funnel["confidence_column_diagnostics"]["confidence_pct"]["non_null_rows"] == 2
+    assert funnel["funnel_stages"][0]["rejected_rows"] == 8
     assert funnel["production_model_changed"] is False
 
 

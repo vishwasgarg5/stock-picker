@@ -42,7 +42,8 @@ def test_walk_forward_calibration_falls_back_to_baseline_when_model_is_worse():
 
     assert summary["walk_forward_calibrated_close_mape_pct"] == 0.0
     assert summary["baseline_close_mape_pct"] == 0.0
-    assert summary["sessions_alpha_zero"] == len(daily)
+    assert summary["sessions_alpha_zero_including_fallback"] == len(daily)
+    assert summary["calibrated_sessions_alpha_zero"] == summary["sessions_with_calibration"]
     assert (daily["selected_alpha"] == 0.0).all()
 
 

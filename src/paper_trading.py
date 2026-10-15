@@ -158,7 +158,14 @@ def _build_portfolio(trades: pd.DataFrame) -> pd.DataFrame:
     """Apply equal-capital sizing sequentially, with a fixed round-trip cost."""
     settled = trades[trades["signal"] == "BUY"].copy()
     if settled.empty:
-        return pd.DataFrame()
+        # Keep the return contract stable when every candidate is SKIP.
+        # An empty settlement is valid evidence, not a reason to crash while
+        # unpacking the portfolio result downstream.
+        return trades.copy(), pd.DataFrame(columns=[
+            "target_date", "trades", "winners", "losers", "gross_pnl", "costs",
+            "net_pnl", "daily_return_pct", "portfolio_value", "cumulative_return_pct",
+            "peak_value", "drawdown_pct", "win_rate_pct",
+        ])
 
     settled["target_date"] = pd.to_datetime(settled["target_date"], errors="coerce").dt.normalize()
     settled = settled.sort_values(["target_date", "rank", "symbol"]).reset_index()
@@ -252,7 +259,10 @@ def _accounting_ledger_audit(trades: pd.DataFrame) -> dict:
     bad_reconciliation = int((delta.abs() > 0.01).sum()) if not delta.empty else 0
     missing_rows = int((~complete).sum()) if len(complete) else 0
     return {
-        "status": "PASS" if missing_rows == 0 and bad_reconciliation == 0 else "BLOCK",
+        "status": (
+            "INSUFFICIENT_DATA" if len(buys) == 0 else
+            "PASS" if missing_rows == 0 and bad_reconciliation == 0 else "BLOCK"
+        ),
         "buy_rows": int(len(buys)),
         "complete_ledger_rows": int(complete.sum()) if len(complete) else 0,
         "incomplete_ledger_rows": missing_rows,
@@ -321,6 +331,14 @@ def run_paper_trading() -> pd.DataFrame:
     trades, daily = _build_portfolio(trades)
     audit = _accounting_ledger_audit(trades)
     pd.DataFrame([audit]).to_csv(DATA / "paper_trading_ledger_audit.csv", index=False)
+    settled = trades[trades["signal"].astype(str).str.upper().eq("BUY")].copy()
+    if settled.empty:
+        # Persist an all-SKIP decision ledger transparently. Do not report a
+        # zero-trade accounting audit as PASS or try to index a nonexistent day.
+        trades.to_csv(TRADES_FILE, index=False)
+        daily.to_csv(PORTFOLIO_FILE, index=False)
+        print("Paper trading completed with no BUY outcomes; accounting metrics are unavailable.")
+        return trades
     if audit["status"] != "PASS":
         raise ValueError(
             "Paper-trading accounting ledger failed integrity audit; "
@@ -329,7 +347,6 @@ def run_paper_trading() -> pd.DataFrame:
     trades.to_csv(TRADES_FILE, index=False)
     daily.to_csv(PORTFOLIO_FILE, index=False)
 
-    settled = trades[trades["signal"] == "BUY"].copy()
     final = daily.iloc[-1]
     metrics = pd.DataFrame([{
         "as_of": final["target_date"],

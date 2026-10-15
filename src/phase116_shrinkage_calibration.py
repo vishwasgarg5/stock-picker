@@ -5,6 +5,7 @@ from __future__ import annotations
 This report is analysis-only. It never edits production predictions, ranking,
 risk limits, or promotion decisions. The shrinkage coefficient for each
 prediction date is chosen only from outcomes known before that prediction date.
+The previous-close forecast (alpha=0) is always included as a candidate.
 """
 
 import json

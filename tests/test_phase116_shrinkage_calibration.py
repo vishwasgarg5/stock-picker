@@ -33,6 +33,7 @@ def test_walk_forward_calibration_only_uses_prior_realized_sessions_and_can_impr
     calibrated = daily[daily["calibration_used"]]
     assert (calibrated["training_sessions"] >= 5).all()
     assert (calibrated["training_rows"] >= 30).all()
+    assert (pd.to_datetime(calibrated["latest_training_target_date"]) < pd.to_datetime(calibrated["prediction_date"])).all()
     assert (calibrated["selected_alpha"] == 1.0).all()
 
 

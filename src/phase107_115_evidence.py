@@ -133,6 +133,7 @@ def phase108_loss_concentration(trades: pd.DataFrame) -> dict[str, Any]:
 
 
 def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
+    """Explain the observed V2 funnel and rejection subreasons without changing gates."""
     signal = v2.get("signal", pd.Series("", index=v2.index)).astype(str).str.upper().str.strip()
     skips = v2.loc[signal.eq("SKIP")]
     buys = v2.loc[signal.isin(["BUY", "LONG", "EXECUTED"])]
@@ -140,8 +141,39 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
     funnel = _read("phase32_v2_selection_funnel.csv")
     required = {"stage", "input_rows", "output_rows", "rejected_rows"}
     funnel_valid = bool(not funnel.empty and required.issubset(funnel.columns))
-    return _write("phase109_selection_funnel_summary.json", {"status": "SCORED" if len(v2) else "INSUFFICIENT_DATA", "v2_rows": int(len(v2)), "buy_rows": int(len(buys)), "skip_rows": int(len(skips)), "skip_rows_without_reason": int(reasons.eq("").sum()), "skip_reason_counts": {str(k): int(v) for k, v in reasons.replace("", "NOT_RECORDED").value_counts().items()}, "existing_funnel_valid": funnel_valid, "funnel_stage_rows": int(len(funnel)) if funnel_valid else 0, "production_rules_changed": False})
-
+    funnel_stages = []
+    if funnel_valid:
+        funnel_stages = funnel.fillna("").to_dict(orient="records")
+    phase4_reasons = {}
+    if "phase4_reject_reason" in skips:
+        phase4 = skips["phase4_reject_reason"].fillna("").astype(str).str.strip()
+        phase4_reasons = {
+            str(k or "NOT_RECORDED"): int(v)
+            for k, v in phase4[phase4.ne("")].value_counts().items()
+        }
+    confidence_stats = {}
+    for column in ("confidence_pct", "confidence_v3", "confidence_score"):
+        if column in v2:
+            values = pd.to_numeric(v2[column], errors="coerce").dropna()
+            confidence_stats[column] = {
+                "non_null_rows": int(len(values)),
+                "min": float(values.min()) if len(values) else None,
+                "median": float(values.median()) if len(values) else None,
+                "max": float(values.max()) if len(values) else None,
+            }
+    return _write("phase109_selection_funnel_summary.json", {
+        "status": "SCORED" if len(v2) else "INSUFFICIENT_DATA",
+        "v2_rows": int(len(v2)), "buy_rows": int(len(buys)), "skip_rows": int(len(skips)),
+        "skip_rows_without_reason": int(reasons.eq("").sum()),
+        "skip_reason_counts": {str(k): int(v) for k, v in reasons.replace("", "NOT_RECORDED").value_counts().items()},
+        "phase4_reject_reason_counts": phase4_reasons,
+        "confidence_column_diagnostics": confidence_stats,
+        "existing_funnel_valid": funnel_valid,
+        "funnel_stage_rows": int(len(funnel)) if funnel_valid else 0,
+        "funnel_stages": funnel_stages,
+        "interpretation": "Rejection counts describe the recorded shadow run; they do not prove a gate is miscalibrated. Review source-stage counts and confidence distributions before considering any threshold changes.",
+        "production_rules_changed": False,
+    })
 
 def phase110_forecast_accuracy() -> dict[str, Any]:
     pred = _read("predictions.csv")

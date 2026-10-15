@@ -158,3 +158,21 @@ def test_phase110_blocks_duplicate_forecast_keys_instead_of_overweighting_them(t
     assert result["duplicate_prediction_key_rows"] == 2
     assert result["duplicate_actual_key_rows"] == 0
     assert result["metrics"] == {}
+
+
+def test_phase109_identifies_earliest_zero_buy_funnel_bottleneck(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pd.DataFrame([
+        {"stage": "confidence_percentile_gate", "input_rows": 10, "output_rows": 5, "rejected_rows": 5},
+        {"stage": "phase2_selected_gate", "input_rows": 5, "output_rows": 0, "rejected_rows": 5},
+        {"stage": "phase4_eligibility_gate", "input_rows": 0, "output_rows": 0, "rejected_rows": 0},
+    ]).to_csv(tmp_path / "phase32_v2_selection_funnel.csv", index=False)
+    v2 = pd.DataFrame([{
+        "signal": "SKIP", "no_trade_reason": "phase2_not_selected",
+        "confidence_pct": 0.9, "symbol": "AAA", "target_date": "2026-01-02",
+    }])
+    result = phase109_selection_funnel(v2)
+    assert result["buy_rows"] == 0
+    assert result["zero_buy_bottleneck"] == "PHASE2_SELECTED_GATE_ZERO_OUTPUT"
+    assert result["required_gate_stages_present"] is True

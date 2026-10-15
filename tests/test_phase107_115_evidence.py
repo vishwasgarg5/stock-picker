@@ -176,3 +176,25 @@ def test_phase109_identifies_earliest_zero_buy_funnel_bottleneck(tmp_path, monke
     assert result["buy_rows"] == 0
     assert result["zero_buy_bottleneck"] == "PHASE2_SELECTED_GATE_ZERO_OUTPUT"
     assert result["required_gate_stages_present"] is True
+
+
+def test_phase114_requires_exit_attribution_and_never_auto_promotes(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    recon = {"status": "PASS"}
+    funnel = {
+        "status": "SCORED", "skip_rows_without_reason": 0,
+        "existing_funnel_valid": True, "required_gate_stages_present": True,
+    }
+    forecast = {"status": "SCORED"}
+    replay = {"status": "SCORED"}
+    sustained = {"status": "SCORED"}
+    incomplete_attribution = {"status": "SCORED", "unknown_or_unrecorded_reason_rows": 1}
+    blocked = phase114_promotion_gate(recon, funnel, forecast, replay, sustained, incomplete_attribution)
+    assert blocked["gates"]["exit_reason_attribution_complete"] is False
+    assert blocked["automatic_promotion"] is False
+    complete_attribution = {"status": "SCORED", "unknown_or_unrecorded_reason_rows": 0}
+    review = phase114_promotion_gate(recon, funnel, forecast, replay, sustained, complete_attribution)
+    assert review["status"] == "REVIEW_REQUIRED"
+    assert review["automatic_promotion"] is False
+    assert review["production_changes_authorized"] is False

@@ -172,26 +172,39 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
             str(k or "NOT_RECORDED"): int(v)
             for k, v in phase4[phase4.ne("")].value_counts().items()
         }
-    # Cross-tab existing gates so zero BUY outcomes can be localized without
-    # changing selection thresholds or treating a missing flag as a pass.
-    phase2_flag = pd.to_numeric(v2.get("phase2_selected", pd.Series(np.nan, index=v2.index)), errors="coerce")
+    # Prefer the persisted stage funnel for gate counts. The V2 decision ledger
+    # does not persist phase2_selected, so row-level cross-tabs would otherwise
+    # misleadingly classify every decision as a missing flag.
+    stage_by_name = {
+        str(row.get("stage", "")): row for row in funnel_stages
+    }
+    confidence_stage = stage_by_name.get("confidence_percentile_gate", {})
+    phase2_stage = stage_by_name.get("phase2_selected_gate", {})
+    phase4_stage = stage_by_name.get("phase4_eligibility_gate", {})
     confidence_pct = pd.to_numeric(v2.get("confidence_pct", pd.Series(np.nan, index=v2.index)), errors="coerce")
-    confidence_floor = pd.to_numeric(v2.get("phase4_confidence_floor", pd.Series(np.nan, index=v2.index)), errors="coerce")
+    phase2_flag = pd.to_numeric(v2.get("phase2_selected", pd.Series(np.nan, index=v2.index)), errors="coerce")
+    has_phase2_flag = "phase2_selected" in v2.columns
     gate_diagnostics = {
-        "phase2_selected_rows": int(phase2_flag.eq(1).sum()),
-        "phase2_not_selected_rows": int(phase2_flag.eq(0).sum()),
-        "phase2_flag_missing_or_invalid_rows": int(phase2_flag.isna().sum()),
+        "source": "persisted_selection_funnel",
+        "shadow_confidence_percentile_threshold": 0.50,
+        "confidence_gate_input_rows": int(confidence_stage.get("input_rows", 0)),
+        "confidence_gate_output_rows": int(confidence_stage.get("output_rows", 0)),
+        "confidence_gate_rejected_rows": int(confidence_stage.get("rejected_rows", 0)),
+        "phase2_gate_input_rows": int(phase2_stage.get("input_rows", 0)),
+        "phase2_gate_output_rows": int(phase2_stage.get("output_rows", 0)),
+        "phase2_gate_rejected_rows": int(phase2_stage.get("rejected_rows", 0)),
+        "phase4_eligibility_input_rows": int(phase4_stage.get("input_rows", 0)),
+        "phase4_eligibility_output_rows": int(phase4_stage.get("output_rows", 0)),
+        "phase4_eligibility_rejected_rows": int(phase4_stage.get("rejected_rows", 0)),
         "confidence_pct_non_null_rows": int(confidence_pct.notna().sum()),
         "confidence_pct_missing_rows": int(confidence_pct.isna().sum()),
-        "shadow_confidence_percentile_threshold": 0.50,
-        "confidence_pct_below_shadow_percentile_rows": int(confidence_pct.lt(0.50).sum()),
-        "phase4_confidence_floor_available_rows": int(confidence_floor.notna().sum()),
-        "phase4_confidence_floor_fail_rows": int((confidence_pct.notna() & confidence_floor.notna() & confidence_pct.lt(confidence_floor)).sum()),
-        "phase2_selected_and_confidence_below_threshold_rows": int((phase2_flag.eq(1) & confidence_pct.lt(0.50)).sum()),
-        "phase2_selected_and_confidence_at_least_threshold_rows": int((phase2_flag.eq(1) & confidence_pct.ge(0.50)).sum()),
+        "phase2_flag_persisted_in_decision_ledger": bool(has_phase2_flag),
+        "phase2_flag_missing_or_invalid_rows": int(phase2_flag.isna().sum()) if has_phase2_flag else None,
+        "phase2_selected_and_confidence_below_threshold_rows": int((phase2_flag.eq(1) & confidence_pct.lt(0.50)).sum()) if has_phase2_flag else None,
+        "phase2_selected_and_confidence_at_least_threshold_rows": int((phase2_flag.eq(1) & confidence_pct.ge(0.50)).sum()) if has_phase2_flag else None,
     }
     reason_by_phase2 = {}
-    if "no_trade_reason" in skips:
+    if "no_trade_reason" in skips and has_phase2_flag:
         tmp = pd.DataFrame({"reason": skips["no_trade_reason"].fillna("").astype(str).str.strip(),
                             "phase2_selected": phase2_flag.reindex(skips.index)})
         tmp["reason"] = tmp["reason"].replace("", "NOT_RECORDED")
@@ -199,6 +212,7 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
             str(reason): {str(flag): int(count) for flag, count in group["phase2_selected"].value_counts(dropna=False).items()}
             for reason, group in tmp.groupby("reason", dropna=False)
         }
+
 
     confidence_stats = {}
     for column in ("confidence_pct", "confidence_v3", "confidence_score"):
@@ -219,6 +233,7 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
         "confidence_column_diagnostics": confidence_stats,
         "gate_overlap_diagnostics": gate_diagnostics,
         "skip_reasons_by_phase2_flag": reason_by_phase2,
+        "skip_reason_cross_tab_status": "AVAILABLE" if has_phase2_flag else "UNAVAILABLE_PHASE2_FLAG_NOT_PERSISTED; USE_FUNNEL_STAGE_COUNTS",
         "existing_funnel_valid": funnel_valid,
         "funnel_stage_rows": int(len(funnel)) if funnel_valid else 0,
         "funnel_stages": funnel_stages,

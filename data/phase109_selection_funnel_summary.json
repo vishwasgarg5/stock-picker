@@ -1,0 +1,23 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "risk_or_sizing_changed": false,
+  "automatic_promotion": false,
+  "missing_facts_inferred": false,
+  "status": "SCORED",
+  "v2_rows": 140,
+  "buy_rows": 0,
+  "skip_rows": 140,
+  "skip_rows_without_reason": 0,
+  "skip_reason_counts": {
+    "phase2_not_selected": 78,
+    "confidence_percentile": 56,
+    "phase4_ineligible": 6
+  },
+  "existing_funnel_valid": true,
+  "funnel_stage_rows": 10,
+  "production_rules_changed": false
+}

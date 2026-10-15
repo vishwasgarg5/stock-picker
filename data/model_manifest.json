@@ -1,5 +1,5 @@
 {
-  "files": 55,
+  "files": 56,
   "sha256": {
     "src/advanced_governance.py": "0dcf2f6d211bc3ef4f914d0d7bd734ae17c31c2c7f72f0c6a20a8417391b6c6d",
     "src/confidence.py": "22c48932fe9d10c5c5ccd5f915c281176e1720f7bc5ae61cc5d8abfede44d08e",
@@ -19,7 +19,8 @@
     "src/phase103_forecast_evidence.py": "ea9afd2b8d442fdc39ea7a08e2c36073af9d214c11c15ad09a4438d2a3d8885a",
     "src/phase104_loss_concentration.py": "c41fcbead1112939dd96ff464e150a2bf85daa1a9a99dabf119663b5c5c7fcd5",
     "src/phase105_exit_attribution.py": "caf654619590245a58ff819872e5af0d5712fe9b8d2a3619575c0fedcb561d92",
-    "src/phase106_trade_lifecycle.py": "3a37349240739fc320191cd104a55942a37157f3e43f301b49624048d4a7b4b0",
+    "src/phase106_trade_lifecycle.py": "2b28b263a072f722e930ebca4665bdfa15c0849dae8673689b706c39aa8a7929",
+    "src/phase107_115_evidence.py": "f77a396c771c775dece44af4c1e148abae0cd166284f476108764c7b1017b5e4",
     "src/phase20_accuracy.py": "9cdc1c228d122381a889eb7bef8891b3fdd64ecd81a1b95df13fc76c244345a0",
     "src/phase21_26.py": "9d0bbfbdef64b0b9abc605476074c2e35dee139dcd2a61c476224fd58d6ea363",
     "src/phase27_data_quality.py": "e05782a65e5ed40b959da312323552f7f429c10f88bb9dc925e0f49cf6b04259",
@@ -55,7 +56,7 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "d9d0b18badc4c16e6089844da2574d669598b980ff70318613c117add3e5edbb"
+    ".github/workflows/daily.yml": "5e7f99df39ceabb8128fafcd2aee624fe70837fd662aded6e332839797f55094"
   },
   "manifest_version": "governance_v1"
 }

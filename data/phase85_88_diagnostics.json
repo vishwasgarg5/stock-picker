@@ -7,16 +7,16 @@
   ],
   "phase85_receipt_anomaly_classification": {
     "status": "REVIEW_REQUIRED",
-    "rows": 93,
+    "rows": 94,
     "repeated_hash_rows": 8,
     "missing_hash_rows": 0,
     "hash_coverage_pct": 100.0,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 41,
+        "rows": 42,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 34.15,
+        "message_id_coverage_pct": 35.71,
         "repeated_hash_rows": 8,
         "unique_repeated_hashes": 3
       },
@@ -78,8 +78,8 @@
   "phase88_storage_performance": {
     "status": "BENCHMARK_PARITY_PASS",
     "source_path": "data/ohlcv.csv",
-    "source_bytes": 80411349,
-    "gzip_bytes": 18273619,
+    "source_bytes": 80411312,
+    "gzip_bytes": 18273587,
     "size_reduction_pct": 77.27,
     "rows": 944684,
     "columns": [
@@ -91,15 +91,15 @@
       "close",
       "volume"
     ],
-    "raw_read_seconds": 0.5853,
-    "gzip_read_seconds": 0.8835,
-    "gzip_read_time_delta_pct": 50.95,
+    "raw_read_seconds": 0.6044,
+    "gzip_read_seconds": 0.8695,
+    "gzip_read_time_delta_pct": 43.86,
     "raw_dataframe_memory_bytes": 161552204,
     "gzip_dataframe_memory_bytes": 161552204,
     "dataframe_memory_equal": true,
     "dataframe_parity": true,
-    "sha256_before": "6b206e4b2b68ba963043a3ecd7d6f23104e6239b6a143fadff6d7efda084c147",
-    "sha256_after": "6b206e4b2b68ba963043a3ecd7d6f23104e6239b6a143fadff6d7efda084c147",
+    "sha256_before": "7134c3ee8de80c1d0a51c143ef6a6c81ab0a82723137c3cf8f488dd5373776c4",
+    "sha256_after": "7134c3ee8de80c1d0a51c143ef6a6c81ab0a82723137c3cf8f488dd5373776c4",
     "source_unchanged": true,
     "prototype_only": true,
     "production_reader_switched": false,

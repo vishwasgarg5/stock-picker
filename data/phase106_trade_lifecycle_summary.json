@@ -8,6 +8,8 @@
   "missing_values_filled": false,
   "automatic_promotion": false,
   "status": "SCORED",
+  "source_record_type": "simulated_outcome_ledger",
+  "source_path": "data/paper_trades.csv",
   "rows": 180,
   "field_presence": {
     "symbol": true,
@@ -51,9 +53,11 @@
     "BUY": 125,
     "SKIP": 55
   },
-  "closed_trade_rows_detected": 0,
+  "closed_trade_rows_detected": 125,
   "closed_rows_missing_exit_price": 0,
+  "exit_date_recorded": false,
+  "exit_date_semantics": "Not stored in this simulated same-session outcome ledger; target_date is the outcome session, not an inferred broker exit timestamp.",
   "costs_subtracted_again": false,
   "missing_facts_inferred": false,
-  "interpretation": "Use completeness gaps to improve upstream recording. Missing lifecycle values are not reconstructed; duplicate keys are flagged for review and are not automatically deleted."
+  "interpretation": "BUY rows are simulated completed outcomes; SKIP rows are candidate decisions, not trades. A separate broker lifecycle ledger is needed for actual execution/exit timestamps. Missing facts are not reconstructed; duplicate keys are flagged for review and are not automatically deleted."
 }

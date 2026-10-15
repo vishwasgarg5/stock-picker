@@ -1,0 +1,41 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "risk_or_sizing_changed": false,
+  "automatic_promotion": false,
+  "missing_facts_inferred": false,
+  "status": "SCORED",
+  "matched_rows": 180,
+  "metrics": {
+    "open": {
+      "n": 180,
+      "mae": 13.575377132143133,
+      "bias": 3.5131213310043146,
+      "mape_pct": 0.641350187510379
+    },
+    "high": {
+      "n": 180,
+      "mae": 38.130611491442586,
+      "bias": -1.9045802635453308,
+      "mape_pct": 1.393558756853509
+    },
+    "low": {
+      "n": 180,
+      "mae": 29.975043229564758,
+      "bias": 13.522450509159063,
+      "mape_pct": 1.3393248386852614
+    },
+    "close": {
+      "n": 180,
+      "mae": 51.02119800851027,
+      "bias": 6.201359440666375,
+      "mape_pct": 1.8831886215523743
+    }
+  },
+  "close_directional_accuracy_pct": 45.55555555555556,
+  "chronological_split_used_for_this_summary": false,
+  "note": "Descriptive matched historical forecast accuracy; use Phase 111 for chronological replay."
+}

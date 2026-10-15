@@ -2,7 +2,7 @@
   "phase93_receipt_forensics": {
     "groups_with_multiple_message_ids": 3,
     "groups_with_timestamp_intervals": 3,
-    "hashed_rows": 93,
+    "hashed_rows": 94,
     "note": "Receipt logs lack full message bodies; same hash with multiple API message IDs warrants manual review but does not prove an unintended resend.",
     "repeated_hash_groups": 3,
     "resends_performed": false,
@@ -87,7 +87,7 @@
     "error_type": null,
     "estimated_size_reduction_pct": 77.27,
     "first_100_rows_parity": true,
-    "gzip_size_bytes": 18273619,
+    "gzip_size_bytes": 18273587,
     "migration_executed": false,
     "next_required_steps": [
       "full-file parity validation",
@@ -98,9 +98,9 @@
     ],
     "production_reader_switched": false,
     "rollback_tested": false,
-    "source_sha256_after": "6b206e4b2b68ba963043a3ecd7d6f23104e6239b6a143fadff6d7efda084c147",
-    "source_sha256_before": "6b206e4b2b68ba963043a3ecd7d6f23104e6239b6a143fadff6d7efda084c147",
-    "source_size_bytes": 80411349,
+    "source_sha256_after": "7134c3ee8de80c1d0a51c143ef6a6c81ab0a82723137c3cf8f488dd5373776c4",
+    "source_sha256_before": "7134c3ee8de80c1d0a51c143ef6a6c81ab0a82723137c3cf8f488dd5373776c4",
+    "source_size_bytes": 80411312,
     "source_unchanged": true,
     "status": "PREFLIGHT_PASSED_NO_MIGRATION"
   },

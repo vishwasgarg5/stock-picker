@@ -2,23 +2,23 @@
   "version": "index_intelligence_v3",
   "market_regime": "NEUTRAL",
   "risk_multiplier": 0.8,
-  "news_sentiment": "BULLISH",
-  "news_score": 0.36,
-  "market_reason": "General market: Sensex, Nifty muted a day after sharp rally, IT stocks extend gains. What lies ahead for Dalal Street? - The Economic Times",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMihwJBVV95cUxQNDJCVExzNjBMenA5R1JtUE5PWFNlZnFNUE1JVVpwM2taSk00djBEV3dUSGFSbmIwSkJCZHh6YlMwemFCT2dDTWxFUHExLVFjUmNjZEwwaUh3eWhQbk5hUVNSQjVaN25xX0VLMzZfVUFuU2dhUGwxQk1sM0NMMFFmQ1IxMDVCeWxXLXpoZDJjZFdDa1ZIZk54LW93WmFXQ2ZvUmdoQmt1SndxRUp4dE9UdWhLSG5seVg1a3lsWUZteW1Vd3Q4WW4zTTYzUDBnUjdzMHlkSmpUa2dlenhLSnBVcVVGLUlNTE5mZ1N1cGpkdDgtem5WUEpfY1NmSGVRR2NURGJxaUtRWdIBhwJBVV95cUxQNDJCVExzNjBMenA5R1JtUE5PWFNlZnFNUE1JVVpwM2taSk00djBEV3dUSGFSbmIwSkJCZHh6YlMwemFCT2dDTWxFUHExLVFjUmNjZEwwaUh3eWhQbk5hUVNSQjVaN25xX0VLMzZfVUFuU2dhUGwxQk1sM0NMMFFmQ1IxMDVCeWxXLXpoZDJjZFdDa1ZIZk54LW93WmFXQ2ZvUmdoQmt1SndxRUp4dE9UdWhLSG5seVg1a3lsWUZteW1Vd3Q4WW4zTTYzUDBnUjdzMHlkSmpUa2dlenhLSnBVcVVGLUlNTE5mZ1N1cGpkdDgtem5WUEpfY1NmSGVRR2NURGJxaUtRWQ?oc=5",
-  "news_headline": "General market: Sensex, Nifty muted a day after sharp rally, IT stocks extend gains. What lies ahead for Dalal Street? - The Economic Times",
+  "news_sentiment": "BEARISH",
+  "news_score": -0.039999999999999994,
+  "market_reason": "Crude oil: Indian markets roughly unchanged; oil prices rise: Sensex remains afloat above 73,000 mark - Bhaskar English",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxObXF3YWpVcjl4V0FXeDZFajFlaG1CWE9ISmdjd0JGR05IdVY4QjVsQVRBdjhSUWVZY1Q1N210MU91a3F3emI1N1FTUzhzQzViWWg1NG5qMnc2MGg4TkhmTmtWbjdnMFJKR0dMbGN6S2p0U2FxaGc0TkxjNUdiMmZNSTAyaW4zVVd0RmwtYkxGd09VZlRCZGtMcldfenZ3QWlMZEhYUWVJYV94WHJrTEVyaXBCSEZvNUhOeDdpaWdyOXE1QkHSAcMBQVVfeXFMTm1xd2FqVXI5eFdBV3g2RWoxZWhtQlhPSEpnY3dCRkdOSHVWOEI1bEFUQXY4UlFlWWNUNTdtdDFPdWtxd3piNTdRU1M4c0M1YlloNTRuajJ3NjBoOE5IZk5rVm43ZzBSSkdHTGxjektqdFNhcWhnNE5MYzVHYjJmTUkwMmluM1VXdEZsLWJMRndPVWZUQmRrTHJXX3p2d0FpTGRIWFFlSWFfeFhya0xFcmlwQkhGbzVITng3aWlncjlxNUJB?oc=5",
+  "news_headline": "Crude oil: Indian markets roughly unchanged; oil prices rise: Sensex remains afloat above 73,000 mark - Bhaskar English",
   "news_reasons": [
     {
-      "event": "General market",
-      "impact": 1.0,
-      "headline": "Sensex, Nifty muted a day after sharp rally, IT stocks extend gains. What lies ahead for Dalal Street? - The Economic Times",
-      "url": "https://news.google.com/rss/articles/CBMihwJBVV95cUxQNDJCVExzNjBMenA5R1JtUE5PWFNlZnFNUE1JVVpwM2taSk00djBEV3dUSGFSbmIwSkJCZHh6YlMwemFCT2dDTWxFUHExLVFjUmNjZEwwaUh3eWhQbk5hUVNSQjVaN25xX0VLMzZfVUFuU2dhUGwxQk1sM0NMMFFmQ1IxMDVCeWxXLXpoZDJjZFdDa1ZIZk54LW93WmFXQ2ZvUmdoQmt1SndxRUp4dE9UdWhLSG5seVg1a3lsWUZteW1Vd3Q4WW4zTTYzUDBnUjdzMHlkSmpUa2dlenhLSnBVcVVGLUlNTE5mZ1N1cGpkdDgtem5WUEpfY1NmSGVRR2NURGJxaUtRWdIBhwJBVV95cUxQNDJCVExzNjBMenA5R1JtUE5PWFNlZnFNUE1JVVpwM2taSk00djBEV3dUSGFSbmIwSkJCZHh6YlMwemFCT2dDTWxFUHExLVFjUmNjZEwwaUh3eWhQbk5hUVNSQjVaN25xX0VLMzZfVUFuU2dhUGwxQk1sM0NMMFFmQ1IxMDVCeWxXLXpoZDJjZFdDa1ZIZk54LW93WmFXQ2ZvUmdoQmt1SndxRUp4dE9UdWhLSG5seVg1a3lsWUZteW1Vd3Q4WW4zTTYzUDBnUjdzMHlkSmpUa2dlenhLSnBVcVVGLUlNTE5mZ1N1cGpkdDgtem5WUEpfY1NmSGVRR2NURGJxaUtRWQ?oc=5"
+      "event": "Crude oil",
+      "impact": -1.0,
+      "headline": "Indian markets roughly unchanged; oil prices rise: Sensex remains afloat above 73,000 mark - Bhaskar English",
+      "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxObXF3YWpVcjl4V0FXeDZFajFlaG1CWE9ISmdjd0JGR05IdVY4QjVsQVRBdjhSUWVZY1Q1N210MU91a3F3emI1N1FTUzhzQzViWWg1NG5qMnc2MGg4TkhmTmtWbjdnMFJKR0dMbGN6S2p0U2FxaGc0TkxjNUdiMmZNSTAyaW4zVVd0RmwtYkxGd09VZlRCZGtMcldfenZ3QWlMZEhYUWVJYV94WHJrTEVyaXBCSEZvNUhOeDdpaWdyOXE1QkHSAcMBQVVfeXFMTm1xd2FqVXI5eFdBV3g2RWoxZWhtQlhPSEpnY3dCRkdOSHVWOEI1bEFUQXY4UlFlWWNUNTdtdDFPdWtxd3piNTdRU1M4c0M1YlloNTRuajJ3NjBoOE5IZk5rVm43ZzBSSkdHTGxjektqdFNhcWhnNE5MYzVHYjJmTUkwMmluM1VXdEZsLWJMRndPVWZUQmRrTHJXX3p2d0FpTGRIWFFlSWFfeFhya0xFcmlwQkhGbzVITng3aWlncjlxNUJB?oc=5"
     },
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Oct 13: Sensex surges 1,109 pts, Nifty reclaims 22,700 as IT stocks lead market rebound - The Indian Awaaz",
-      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOLTVkVWd3MWt2ZGw2UV9LVWF6SmxPM0M4bXRSdUF1NzNFNDN1emlyMGZJbHN1c05jNXVQNV9aTGMxWm85ZFBSQWtJU1JScVNkX3dhQjF4aWFkVFF0aXVLRnBQc3MyTkJHY3pWNE1LR2U3dlZ2Wm9xcnFyaDlZcFNMcmdPQ2JOMlRCSDJnLWs1ellJRl9JYnJhanZjUnhFVGJBdmxiQUVNbkZvN2N4dVN2Sw?oc=5"
+      "headline": "Sensex, Nifty muted a day after sharp rally, IT stocks extend gains. What lies ahead for Dalal Street? - The Economic Times",
+      "url": "https://news.google.com/rss/articles/CBMiggJBVV95cUxNOTZ5SnQ3N1lKTWlDeWdVMzExWTBBbzZ4Q0dpVkxHZmVUTmVSbnd2NnY3ZVFJTWthWjhpZUN6UEt5N21KQk5oQ3hHanN5TFRHc09nME9vTjZDcWNOVkVlTGZTekNDS2pXQWtLQ3lWS2tiLThVNkxGSUZVb2VNYTg0M01McEwyTGpwTGVyemFQTVBnRUJueWZrNTJST2JtZTFKZndyUkRabVE1ME1lYXQ0Z1FRaDVKUmNDV0w5NjNaT1NjNlgtODRhcjVMZEotb2l4ZkRYMFc1ODZWTjJ4UXl6dWpoVVdKeUFkNERyejdqOW4ya1pvM1lzR1k1QlQzQVlGdVHSAYcCQVVfeXFMUDQyQlRMczYwTHpwOUdSbVBOT1hTZWZxTVBNSVVacDNrWkpNNHYwRFd3VEhhUm5iMEpCQmR4emJTMHphQk9nQ01sRVBxMS1RY1JjY2RMMGlId3loUG5OYVFTUkI1WjducV9FSzM2X1VBblNnYVBsMUJNbDNDTDBRZkNSMTA1QnlsVy16aGQyY2RXQ2tWSGZOeC1vd1phV0Nmb1JnaEJrdUp3cUVKeHRPVHVoS0hubHlYNWt5bFlGbXltVXd0OFluM002M1AwZ1I3czB5ZEpqVGtnZXp4S0pwVXFVRi1JTUxOZmdTdXBqZHQ4LXpuVlBKX2NTZkhlUUdjVERicWlLUVk?oc=5"
     },
     {
       "event": "Currency",
@@ -39,18 +39,18 @@
       "url": "https://news.google.com/rss/articles/CBMi8wFBVV95cUxNNDdJcVB5RkltenU2TWVBbW04LXRRVTJubGIzSEczTWVLbTRoX1NmcGZITzM2SWxOLWwtZF9Cb3FEZkpQZFVpa0JkOFpuOWJKbEZYWTNHczJlbm8yMW5xY0FqTWRreGVhUFlYdGdfYTZaM3ROeEFJMVltdFA5b2pHZ3JkNUJCNlBfX2FMdlJURlZsOUZsX2dCbGJKUWEzblMzel8yZzlXUGZYRE91dW5HSUZmX0h3b2NiV2VvZGNsVWRoTm12aXMwM2l1X3R3WWdKSGgtN1BoOElLZlVOTDlfWGVGVWY1WF9ydEppX2FVNkg3RDTSAfMBQVVfeXFMTTQ3SXFQeUZJbXp1Nk1lQW1tOC10UVUybmxiM0hHM01lS200aF9TZnBmSE8zNklsTi1sLWRfQm9xRGZKUGRVaWtCZDhabjliSmxGWFkzR3MyZW5vMjFucWNBak1ka3hlYVBZWHRnX2E2WjN0TnhBSTFZbXRQOW9qR2dyZDVCQjZQX19hTHZSVEZWbDlGbF9nQmxiSlFhM25TM3pfMmc5V1BmWERPdXVuR0lGZl9Id29jYldlb2RjbFVkaE5tdmlzMDNpdV90d1lnSkhoLTdQaDhJS2ZVTkw5X1hlRlVmNVhfcnRKaV9hVTZIN0Q0?oc=5"
     }
   ],
-  "market_intelligence_score": 49.855993911913004,
+  "market_intelligence_score": 49.215993911913,
   "risk_level": "NEUTRAL",
-  "market_confidence": 0.551296054792783,
+  "market_confidence": 0.557056054792783,
   "data_quality": "MEDIUM",
   "index_data_available": false,
   "breadth_pct_above_sma20": 33.65019011406844,
   "sector_news_impacts": {
-    "airlines": 6.0,
-    "paints": 4.8,
-    "chemicals": 3.6,
-    "tyres": 3.6,
-    "oil & gas": -4.8,
+    "airlines": 7.0,
+    "paints": 5.6,
+    "chemicals": 4.2,
+    "tyres": 4.2,
+    "oil & gas": -5.6,
     "information technology": 0.6,
     "it": 0.6,
     "pharma": 0.3

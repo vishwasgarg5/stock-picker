@@ -1,0 +1,29 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "risk_or_sizing_changed": false,
+  "automatic_promotion": false,
+  "missing_facts_inferred": false,
+  "status": "INSUFFICIENT_EVIDENCE",
+  "v1": {
+    "rows": 125,
+    "sessions": 18,
+    "net_pnl": -5249.396100660379,
+    "max_drawdown_pct_from_100k_start": -6.011454005090244,
+    "first_session": "2026-09-18",
+    "last_session": "2026-10-14",
+    "chronological_order": true,
+    "costs_source": "recorded net profit_loss; costs are not subtracted again"
+  },
+  "v2": {
+    "rows": 0,
+    "sessions": 0,
+    "net_pnl": null,
+    "max_drawdown_pct": null
+  },
+  "minimum_sessions_for_evidence": 60,
+  "caveat": "Chronological aggregation of recorded simulated outcomes, not a claim of executable live returns."
+}

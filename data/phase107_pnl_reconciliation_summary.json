@@ -1,0 +1,23 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "risk_or_sizing_changed": false,
+  "automatic_promotion": false,
+  "missing_facts_inferred": false,
+  "status": "BLOCKED",
+  "source": "data/paper_trades.csv",
+  "buy_rows": 125,
+  "missing_columns": [],
+  "complete_rows": 70,
+  "incomplete_rows": 55,
+  "reconciliation_mismatch_rows": 0,
+  "accounting_identity": "gross_profit_loss - costs = profit_loss",
+  "gross_pnl_identity": "shares * (exit_price - entry_price) = gross_profit_loss",
+  "max_abs_accounting_delta": 8.526512829121202e-14,
+  "max_abs_gross_delta": 5.684341886080802e-14,
+  "costs_subtracted_again": false,
+  "policy": "Uses recorded values only; no historical values are backfilled or inferred."
+}

@@ -1,0 +1,21 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "risk_or_sizing_changed": false,
+  "automatic_promotion": false,
+  "missing_facts_inferred": false,
+  "status": "SCORED",
+  "trade_rows": 125,
+  "loss_rows": 76,
+  "gross_loss": 17534.31862985332,
+  "net_pnl": -5249.396100660379,
+  "group_reports": [
+    "phase108_loss_by_symbol.csv",
+    "phase108_loss_by_session.csv",
+    "phase108_loss_by_exit_reason.csv"
+  ],
+  "production_rules_changed": false
+}

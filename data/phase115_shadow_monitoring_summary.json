@@ -1,0 +1,23 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "risk_or_sizing_changed": false,
+  "automatic_promotion": false,
+  "missing_facts_inferred": false,
+  "status": "PASS",
+  "phase_statuses": {
+    "107_pnl": "BLOCKED",
+    "108_losses": "SCORED",
+    "109_funnel": "SCORED",
+    "110_forecast": "SCORED",
+    "111_replay": "INSUFFICIENT_EVIDENCE",
+    "112_market": "SCORED",
+    "113_sustained": "INSUFFICIENT_EVIDENCE",
+    "114_gate": "INSUFFICIENT_EVIDENCE"
+  },
+  "production_changes_authorized": false,
+  "v1_champion_v2_shadow_only": true
+}

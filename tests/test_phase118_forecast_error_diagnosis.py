@@ -18,7 +18,7 @@ def test_diagnosis_segments_by_symbol_and_realized_move_without_changing_product
             })
     symbols, regimes, summary = diagnose_forecast_errors(pd.DataFrame(rows))
 
-    assert summary["status"] == "SCORED"
+    assert summary["status"] == "SMALL_SAMPLE"
     assert summary["scored_rows"] == 8
     assert set(symbols["symbol"]) == {"QUIET", "VOLATILE"}
     assert set(regimes["regime"]) == {"QUIET_LT_1PCT", "VOLATILE_GE_2_5PCT"}

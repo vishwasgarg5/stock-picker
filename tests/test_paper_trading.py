@@ -163,3 +163,43 @@ def test_all_skip_ledger_returns_empty_portfolio_without_false_pass():
     audit = pt._accounting_ledger_audit(updated)
     assert audit["status"] == "INSUFFICIENT_DATA"
     assert audit["buy_rows"] == 0
+
+
+def test_legacy_buy_rows_are_reaccounted_case_insensitively():
+    trades = pd.DataFrame([
+        {
+            "symbol": "AAA", "target_date": "2026-01-02", "rank": 1, "signal": "buy",
+            "entry_price": 100.0, "exit_price": 110.0,
+            "shares": float("nan"), "allocated_capital": float("nan"),
+            "gross_profit_loss": float("nan"), "costs": float("nan"),
+            "profit_loss": float("nan"), "return_pct": float("nan"),
+        },
+    ])
+    updated, daily = pt._build_portfolio(trades)
+    assert updated.loc[0, "shares"] == pytest.approx(1000.0)
+    assert updated.loc[0, "allocated_capital"] == pytest.approx(100000.0)
+    assert updated.loc[0, "gross_profit_loss"] == pytest.approx(10000.0)
+    assert updated.loc[0, "costs"] == pytest.approx(100.0)
+    assert updated.loc[0, "profit_loss"] == pytest.approx(9900.0)
+    assert pt._accounting_ledger_audit(updated)["status"] == "PASS"
+    assert daily.iloc[0]["net_pnl"] == pytest.approx(9900.0)
+
+
+def test_accounting_ledger_audit_blocks_gross_and_return_identity_mismatch():
+    trades = pd.DataFrame([{
+        "signal": "BUY", "entry_price": 100.0, "exit_price": 110.0,
+        "shares": 100.0, "allocated_capital": 10000.0,
+        "gross_profit_loss": 900.0, "costs": 10.0,
+        "profit_loss": 890.0, "return_pct": 9.0,
+    }])
+    audit = pt._accounting_ledger_audit(trades)
+    assert audit["status"] == "BLOCK"
+    assert audit["reconciliation_mismatch_rows"] == 1
+    assert audit["max_abs_gross_delta"] == pytest.approx(100.0)
+    assert audit["max_abs_return_delta_pct_points"] == pytest.approx(0.1)
+
+
+def test_portfolio_builder_rejects_invalid_buy_prices():
+    trades = pd.DataFrame([_trade("AAA", "2026-01-02", 0.0, 110.0)])
+    with pytest.raises(ValueError, match="invalid entry/exit prices"):
+        pt._build_portfolio(trades)

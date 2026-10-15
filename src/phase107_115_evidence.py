@@ -276,17 +276,50 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
 
 
 def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str, Any]:
+    empty = {
+        "rows": 0, "sessions": 0, "net_pnl": None,
+        "max_drawdown_pct_from_100k_start": None, "win_rate_pct": None,
+        "profit_factor": None, "average_session_pnl": None,
+        "best_session_pnl": None, "worst_session_pnl": None,
+        "first_session": None, "last_session": None,
+        "chronological_order": True,
+        "costs_source": "recorded net profit_loss; costs are not subtracted again",
+    }
     if frame.empty or date_col not in frame or pnl_col not in frame:
-        return {"rows": 0, "sessions": 0, "net_pnl": None, "max_drawdown_pct": None}
+        return empty
     x = frame.copy()
     x[date_col] = pd.to_datetime(x[date_col], errors="coerce").dt.normalize()
     x[pnl_col] = pd.to_numeric(x[pnl_col], errors="coerce")
     x = x.dropna(subset=[date_col, pnl_col]).sort_values(date_col)
-    daily = x.groupby(date_col)[pnl_col].sum()
-    equity = 100000.0 + daily.cumsum()
+    if x.empty:
+        return empty
+    daily = x.groupby(date_col)[pnl_col].sum().sort_index()
+    starting_capital = 100000.0
+    # Include starting equity in the peak series so a first-session loss is
+    # measured as drawdown from the initial capital rather than a zero drawdown.
+    equity = pd.concat([
+        pd.Series([starting_capital], index=[daily.index.min() - pd.Timedelta(days=1)]),
+        starting_capital + daily.cumsum(),
+    ]).sort_index()
     peak = equity.cummax()
     drawdown = ((equity / peak) - 1.0) * 100.0
-    return {"rows": int(len(x)), "sessions": int(daily.size), "net_pnl": float(daily.sum()), "max_drawdown_pct_from_100k_start": float(drawdown.min()) if len(drawdown) else None, "first_session": str(daily.index.min().date()) if len(daily) else None, "last_session": str(daily.index.max().date()) if len(daily) else None, "chronological_order": True, "costs_source": "recorded net profit_loss; costs are not subtracted again"}
+    gains = float(daily[daily > 0].sum())
+    losses = float(-daily[daily < 0].sum())
+    return {
+        "rows": int(len(x)),
+        "sessions": int(daily.size),
+        "net_pnl": float(daily.sum()),
+        "max_drawdown_pct_from_100k_start": float(drawdown.min()) if len(drawdown) else None,
+        "win_rate_pct": float((daily > 0).mean() * 100.0),
+        "profit_factor": gains / losses if losses > 0 else (None if gains == 0 else float("inf")),
+        "average_session_pnl": float(daily.mean()),
+        "best_session_pnl": float(daily.max()),
+        "worst_session_pnl": float(daily.min()),
+        "first_session": str(daily.index.min().date()),
+        "last_session": str(daily.index.max().date()),
+        "chronological_order": True,
+        "costs_source": "recorded net profit_loss; costs are not subtracted again",
+    }
 
 
 def phase111_chronological_replay(v1: pd.DataFrame, v2: pd.DataFrame) -> dict[str, Any]:

@@ -9,6 +9,8 @@ on:
       - "src/phase116_shrinkage_calibration.py"
       - "src/phase117_bias_correction.py"
       - "src/phase118_forecast_error_diagnosis.py"
+      - "src/phase119_prospective_validation.py"
+      - "tests/test_phase119_prospective_validation.py"
       - "tests/test_phase118_forecast_error_diagnosis.py"
       - "tests/test_phase97_forecast_quality.py"
       - "tests/test_phase116_shrinkage_calibration.py"
@@ -39,12 +41,14 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install --upgrade pip pandas numpy pytest
       - name: Validate Python syntax
-        run: python -m py_compile src/phase97_forecast_quality.py src/phase116_shrinkage_calibration.py src/phase117_bias_correction.py src/phase118_forecast_error_diagnosis.py tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py
+        run: python -m py_compile src/phase97_forecast_quality.py src/phase116_shrinkage_calibration.py src/phase117_bias_correction.py src/phase118_forecast_error_diagnosis.py tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py
       - name: Evaluate saved forecasts with leakage-safe calibration (analysis-only)
         run: python -m src.phase116_shrinkage_calibration
       - name: Evaluate historical bias correction (analysis-only)
         run: python -m src.phase117_bias_correction
       - name: Diagnose forecast errors by symbol and market regime (analysis-only)
         run: python -m src.phase118_forecast_error_diagnosis
+      - name: Track locked prospective forecast cohort (analysis-only)
+        run: python -m src.phase119_prospective_validation
       - name: Run forecast calibration regression tests
-        run: pytest -q tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py
+        run: pytest -q tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py

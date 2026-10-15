@@ -68,3 +68,30 @@ def test_phase113_requires_sustained_v2_evidence_and_gate_never_promotes(tmp_pat
     assert gate["status"] == "INSUFFICIENT_EVIDENCE"
     assert gate["automatic_promotion"] is False
     assert gate["v2_remains_shadow_only"] is True
+
+def test_phase107_localizes_missing_accounting_by_field_and_session_without_inference(tmp_path, monkeypatch):
+    import json
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    trades = pd.DataFrame([
+        {"signal": "BUY", "target_date": "2026-09-29", "entry_price": 100, "exit_price": 105,
+         "shares": None, "allocated_capital": None, "gross_profit_loss": None, "costs": None,
+         "profit_loss": 5, "return_pct": 5},
+        {"signal": "BUY", "target_date": "2026-10-01", "entry_price": 100, "exit_price": 105,
+         "shares": 2, "allocated_capital": 200, "gross_profit_loss": 10, "costs": 1,
+         "profit_loss": 9, "return_pct": 4.5},
+    ])
+    original = trades.copy(deep=True)
+    result = phase107_pnl_reconciliation(trades)
+    assert result["status"] == "BLOCKED"
+    assert result["missing_values_by_field"]["shares"] == 1
+    assert result["missing_values_by_field"]["allocated_capital"] == 1
+    assert result["incomplete_rows_by_session"] == [
+        {"target_date": "2026-09-29", "buy_rows": 1, "incomplete_rows": 1}
+    ]
+    assert result["record_vintage_classification"] == "UNCLASSIFIED_NO_SCHEMA_VERSION_OR_CREATION_TIMESTAMP"
+    assert result["missing_facts_inferred"] is False
+    pd.testing.assert_frame_equal(trades, original)
+    persisted = json.loads((tmp_path / "phase107_pnl_reconciliation_summary.json").read_text())
+    assert persisted["policy"].find("not treated as proof") >= 0
+

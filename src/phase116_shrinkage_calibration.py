@@ -41,7 +41,7 @@ def evaluate_shrinkage(scores: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, An
         return pd.DataFrame(), {
             "status": "INSUFFICIENT_DATA", "missing_columns": missing, "scored_rows": 0,
             "production_model_changed": False, "production_champion": "V1",
-            "v2_mode": "SHADOW_ONLY", "automatic_promotion": False,
+            "v2_mode": "SHADOW_ONLY", "automatic_promotion": False, "promotion_allowed": False,
         }
 
     x = scores.copy()

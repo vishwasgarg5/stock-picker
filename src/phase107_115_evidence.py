@@ -1,0 +1,196 @@
+from __future__ import annotations
+
+"""Phases 107-115: paper-trading evidence and release-readiness diagnostics.
+
+All reports are analysis-only. No missing facts are inferred, no source ledgers
+are rewritten, and no production ranking, risk, sizing, or promotion settings change.
+"""
+import json
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / "data"
+SAFE = {
+    "diagnostic_only": True, "production_champion": "V1", "v2_mode": "SHADOW_ONLY",
+    "production_model_changed": False, "ranking_or_risk_changed": False,
+    "risk_or_sizing_changed": False, "automatic_promotion": False,
+    "missing_facts_inferred": False,
+}
+MIN_V2_TRADES = 100
+MIN_SESSIONS = 60
+
+
+def _read(name: str, **kwargs: Any) -> pd.DataFrame:
+    path = DATA / name
+    if not path.exists():
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(path, low_memory=False, **kwargs)
+    except (OSError, ValueError, UnicodeDecodeError, pd.errors.ParserError):
+        return pd.DataFrame()
+
+
+def _write(name: str, payload: dict[str, Any]) -> dict[str, Any]:
+    result = {**SAFE, **payload}
+    (DATA / name).write_text(json.dumps(result, indent=2, default=str) + "\n", encoding="utf-8")
+    return result
+
+
+def _buy_rows(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty or "signal" not in frame:
+        return frame.iloc[0:0].copy()
+    return frame.loc[frame["signal"].astype(str).str.upper().str.strip().isin(["BUY", "LONG", "EXECUTED"])].copy()
+
+
+def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
+    buys = _buy_rows(trades)
+    required = ["entry_price", "exit_price", "shares", "allocated_capital", "gross_profit_loss", "costs", "profit_loss", "return_pct"]
+    missing_columns = [c for c in required if c not in buys.columns]
+    if missing_columns:
+        return _write("phase107_pnl_reconciliation_summary.json", {"status": "BLOCKED", "source": "data/paper_trades.csv", "buy_rows": len(buys), "missing_columns": missing_columns, "incomplete_rows": len(buys), "reconciliation_mismatch_rows": None, "policy": "No historical values are backfilled or inferred."})
+    numeric = buys[required].apply(pd.to_numeric, errors="coerce")
+    incomplete = numeric.isna().any(axis=1)
+    accounting_delta = numeric["gross_profit_loss"] - numeric["costs"] - numeric["profit_loss"]
+    share_delta = numeric["shares"] * (numeric["exit_price"] - numeric["entry_price"]) - numeric["gross_profit_loss"]
+    mismatch = (accounting_delta.abs() > 0.02) | (share_delta.abs() > 0.05)
+    status = "PASS" if len(buys) and not incomplete.any() and not mismatch.any() else ("INSUFFICIENT_DATA" if not len(buys) else "BLOCKED")
+    return _write("phase107_pnl_reconciliation_summary.json", {
+        "status": status, "source": "data/paper_trades.csv", "buy_rows": int(len(buys)), "missing_columns": [],
+        "complete_rows": int((~incomplete).sum()), "incomplete_rows": int(incomplete.sum()),
+        "reconciliation_mismatch_rows": int((mismatch & ~incomplete).sum()),
+        "accounting_identity": "gross_profit_loss - costs = profit_loss",
+        "gross_pnl_identity": "shares * (exit_price - entry_price) = gross_profit_loss",
+        "max_abs_accounting_delta": float(accounting_delta[~incomplete].abs().max()) if (~incomplete).any() else None,
+        "max_abs_gross_delta": float(share_delta[~incomplete].abs().max()) if (~incomplete).any() else None,
+        "costs_subtracted_again": False, "policy": "Uses recorded values only; no historical values are backfilled or inferred.",
+    })
+
+
+def phase108_loss_concentration(trades: pd.DataFrame) -> dict[str, Any]:
+    buys = _buy_rows(trades)
+    if buys.empty or "profit_loss" not in buys:
+        return _write("phase108_loss_concentration_summary.json", {"status": "INSUFFICIENT_DATA", "trade_rows": len(buys), "loss_rows": 0})
+    buys["profit_loss"] = pd.to_numeric(buys["profit_loss"], errors="coerce")
+    buys = buys.dropna(subset=["profit_loss"])
+    total_gross_loss = float(-buys.loc[buys.profit_loss < 0, "profit_loss"].sum())
+    outputs = []
+    for key, filename in [("symbol", "phase108_loss_by_symbol.csv"), ("target_date", "phase108_loss_by_session.csv"), ("exit_reason", "phase108_loss_by_exit_reason.csv")]:
+        if key not in buys:
+            continue
+        x = buys.assign(_group=buys[key].fillna("NOT_RECORDED").astype(str).str.strip().replace("", "NOT_RECORDED"))
+        grouped = x.groupby("_group", dropna=False).agg(trades=("profit_loss", "size"), net_pnl=("profit_loss", "sum"), losing_trades=("profit_loss", lambda s: int((s < 0).sum())), gross_loss=("profit_loss", lambda s: float(-s[s < 0].sum()))).reset_index().rename(columns={"_group": key})
+        grouped["share_of_gross_loss_pct"] = grouped["gross_loss"] / total_gross_loss * 100 if total_gross_loss else 0.0
+        grouped.sort_values(["gross_loss", "trades"], ascending=[False, False]).to_csv(DATA / filename, index=False)
+        outputs.append(filename)
+    return _write("phase108_loss_concentration_summary.json", {"status": "SCORED" if len(buys) >= 20 else "SMALL_SAMPLE", "trade_rows": int(len(buys)), "loss_rows": int((buys.profit_loss < 0).sum()), "gross_loss": total_gross_loss, "net_pnl": float(buys.profit_loss.sum()), "group_reports": outputs, "production_rules_changed": False})
+
+
+def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
+    signal = v2.get("signal", pd.Series("", index=v2.index)).astype(str).str.upper().str.strip()
+    skips = v2.loc[signal.eq("SKIP")]
+    buys = v2.loc[signal.isin(["BUY", "LONG", "EXECUTED"])]
+    reasons = skips.get("no_trade_reason", pd.Series("", index=skips.index)).fillna("").astype(str).str.strip()
+    funnel = _read("phase32_v2_selection_funnel.csv")
+    required = {"stage", "input_rows", "output_rows", "rejected_rows"}
+    funnel_valid = bool(not funnel.empty and required.issubset(funnel.columns))
+    return _write("phase109_selection_funnel_summary.json", {"status": "SCORED" if len(v2) else "INSUFFICIENT_DATA", "v2_rows": int(len(v2)), "buy_rows": int(len(buys)), "skip_rows": int(len(skips)), "skip_rows_without_reason": int(reasons.eq("").sum()), "skip_reason_counts": {str(k): int(v) for k, v in reasons.replace("", "NOT_RECORDED").value_counts().items()}, "existing_funnel_valid": funnel_valid, "funnel_stage_rows": int(len(funnel)) if funnel_valid else 0, "production_rules_changed": False})
+
+
+def phase110_forecast_accuracy() -> dict[str, Any]:
+    pred = _read("predictions.csv")
+    history = _read("ohlcv.csv", usecols=lambda c: c in {"symbol", "date", "open", "high", "low", "close"})
+    if pred.empty or history.empty or not {"symbol", "target_date"}.issubset(pred.columns):
+        return _write("phase110_forecast_accuracy_summary.json", {"status": "INSUFFICIENT_DATA", "matched_rows": 0, "metrics": {}})
+    predicted = {"open": "predicted_open", "high": "predicted_high", "low": "predicted_low", "close": "predicted_close"}
+    actual = history.rename(columns={"date": "target_date", **{k: f"actual_{k}" for k in predicted}})
+    pred["symbol"] = pred["symbol"].astype(str).str.upper().str.strip()
+    actual["symbol"] = actual["symbol"].astype(str).str.upper().str.strip()
+    pred["target_date"] = pd.to_datetime(pred["target_date"], errors="coerce").dt.normalize()
+    actual["target_date"] = pd.to_datetime(actual["target_date"], errors="coerce").dt.normalize()
+    cols = ["symbol", "target_date"] + [v for v in predicted.values() if v in pred.columns]
+    if "base_close" in pred.columns:
+        cols.append("base_close")
+    merged = pred[cols].merge(actual[["symbol", "target_date"] + [f"actual_{k}" for k in predicted]], on=["symbol", "target_date"], how="inner")
+    metrics = {}
+    for k, pcol in predicted.items():
+        acol = f"actual_{k}"
+        if pcol not in merged:
+            continue
+        p = pd.to_numeric(merged[pcol], errors="coerce")
+        a = pd.to_numeric(merged[acol], errors="coerce")
+        valid = p.notna() & a.notna()
+        if valid.any():
+            metrics[k] = {"n": int(valid.sum()), "mae": float((p[valid] - a[valid]).abs().mean()), "bias": float((p[valid] - a[valid]).mean()), "mape_pct": float(((p[valid] - a[valid]).abs() / a[valid].abs().replace(0, np.nan)).dropna().mean() * 100)}
+    directional = None
+    if "predicted_close" in merged and "base_close" in merged:
+        pc, ac, base = (pd.to_numeric(merged[c], errors="coerce") for c in ["predicted_close", "actual_close", "base_close"])
+        valid = pc.notna() & ac.notna() & base.notna() & base.ne(0)
+        if valid.any():
+            directional = float((((pc[valid] > base[valid]) == (ac[valid] > base[valid])).mean()) * 100)
+    return _write("phase110_forecast_accuracy_summary.json", {"status": "SCORED" if any(m.get("n", 0) for m in metrics.values()) else "INSUFFICIENT_DATA", "matched_rows": int(len(merged)), "metrics": metrics, "close_directional_accuracy_pct": directional, "chronological_split_used_for_this_summary": False, "note": "Descriptive matched historical forecast accuracy; use Phase 111 for chronological replay."})
+
+
+def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str, Any]:
+    if frame.empty or date_col not in frame or pnl_col not in frame:
+        return {"rows": 0, "sessions": 0, "net_pnl": None, "max_drawdown_pct": None}
+    x = frame.copy()
+    x[date_col] = pd.to_datetime(x[date_col], errors="coerce").dt.normalize()
+    x[pnl_col] = pd.to_numeric(x[pnl_col], errors="coerce")
+    x = x.dropna(subset=[date_col, pnl_col]).sort_values(date_col)
+    daily = x.groupby(date_col)[pnl_col].sum()
+    equity = 100000.0 + daily.cumsum()
+    peak = equity.cummax()
+    drawdown = ((equity / peak) - 1.0) * 100.0
+    return {"rows": int(len(x)), "sessions": int(daily.size), "net_pnl": float(daily.sum()), "max_drawdown_pct_from_100k_start": float(drawdown.min()) if len(drawdown) else None, "first_session": str(daily.index.min().date()) if len(daily) else None, "last_session": str(daily.index.max().date()) if len(daily) else None, "chronological_order": True, "costs_source": "recorded net profit_loss; costs are not subtracted again"}
+
+
+def phase111_chronological_replay(v1: pd.DataFrame, v2: pd.DataFrame) -> dict[str, Any]:
+    v1m = _daily_metrics(_buy_rows(v1), "target_date", "profit_loss")
+    v2m = _daily_metrics(_buy_rows(v2), "target_date", "profit_loss")
+    enough = v1m["sessions"] >= MIN_SESSIONS and v2m["sessions"] >= MIN_SESSIONS
+    return _write("phase111_chronological_replay_summary.json", {"status": "SCORED" if enough else "INSUFFICIENT_EVIDENCE", "v1": v1m, "v2": v2m, "minimum_sessions_for_evidence": MIN_SESSIONS, "caveat": "Chronological aggregation of recorded simulated outcomes, not a claim of executable live returns."})
+
+
+def phase112_market_intelligence() -> dict[str, Any]:
+    frame = _read("index_intelligence_summary.csv")
+    latest = frame.tail(1).to_dict(orient="records") if not frame.empty else []
+    return _write("phase112_market_intelligence_summary.json", {"status": "SCORED" if latest else "INSUFFICIENT_DATA", "source": "data/index_intelligence_summary.csv", "rows": int(len(frame)), "latest_record": latest[0] if latest else None, "news_context_source_present": (DATA / "phase26_news_impact.csv").exists(), "note": "Reports existing market-intelligence outputs; does not create unsupported news or index facts."})
+
+
+def phase113_sustained_evidence(v1: pd.DataFrame, v2: pd.DataFrame) -> dict[str, Any]:
+    def evidence(frame: pd.DataFrame) -> dict[str, Any]:
+        buys = _buy_rows(frame)
+        dates = pd.to_datetime(buys.get("target_date", pd.Series(dtype=str)), errors="coerce").dt.normalize().dropna()
+        return {"executed_rows": int(len(buys)), "distinct_sessions": int(dates.nunique()), "first_session": str(dates.min().date()) if len(dates) else None, "last_session": str(dates.max().date()) if len(dates) else None, "minimum_trade_count_met": bool(len(buys) >= MIN_V2_TRADES), "minimum_session_count_met": bool(dates.nunique() >= MIN_SESSIONS)}
+    v1e, v2e = evidence(v1), evidence(v2)
+    return _write("phase113_sustained_evidence_summary.json", {"status": "SCORED" if v2e["minimum_trade_count_met"] and v2e["minimum_session_count_met"] else "INSUFFICIENT_EVIDENCE", "v1": v1e, "v2": v2e, "minimum_v2_trades": MIN_V2_TRADES, "minimum_distinct_sessions": MIN_SESSIONS, "note": "Minimum counts are necessary but not sufficient; market-regime coverage and uncertainty still require review."})
+
+
+def phase114_promotion_gate(recon: dict[str, Any], funnel: dict[str, Any], forecast: dict[str, Any], replay: dict[str, Any], sustained: dict[str, Any]) -> dict[str, Any]:
+    gates = {"pnl_reconciliation_pass": recon.get("status") == "PASS", "selection_reasons_complete": funnel.get("status") == "SCORED" and funnel.get("skip_rows_without_reason", 0) == 0, "forecast_metrics_available": forecast.get("status") == "SCORED", "chronological_evidence_sufficient": replay.get("status") == "SCORED", "sustained_v2_sample_sufficient": sustained.get("status") == "SCORED"}
+    failed = [name for name, passed in gates.items() if not passed]
+    return _write("phase114_promotion_readiness_summary.json", {"status": "INSUFFICIENT_EVIDENCE" if failed else "REVIEW_REQUIRED", "gates": gates, "unmet_gates": failed, "v1_remains_production_champion": True, "v2_remains_shadow_only": True, "automatic_promotion": False, "production_changes_authorized": False, "note": "Even a clean diagnostic gate requires explicit human review; it never promotes V2 automatically."})
+
+
+def run() -> dict[str, Any]:
+    DATA.mkdir(parents=True, exist_ok=True)
+    v1, v2 = _read("paper_trades.csv"), _read("paper_trades_v2.csv")
+    recon = phase107_pnl_reconciliation(v1)
+    loss = phase108_loss_concentration(v1)
+    funnel = phase109_selection_funnel(v2)
+    forecast = phase110_forecast_accuracy()
+    replay = phase111_chronological_replay(v1, v2)
+    market = phase112_market_intelligence()
+    sustained = phase113_sustained_evidence(v1, v2)
+    gate = phase114_promotion_gate(recon, funnel, forecast, replay, sustained)
+    monitor = _write("phase115_shadow_monitoring_summary.json", {"status": "PASS" if all((DATA / name).exists() for name in ["phase107_pnl_reconciliation_summary.json", "phase108_loss_concentration_summary.json", "phase109_selection_funnel_summary.json", "phase110_forecast_accuracy_summary.json", "phase111_chronological_replay_summary.json", "phase112_market_intelligence_summary.json", "phase113_sustained_evidence_summary.json", "phase114_promotion_readiness_summary.json"]) else "BLOCKED", "phase_statuses": {"107_pnl": recon.get("status"), "108_losses": loss.get("status"), "109_funnel": funnel.get("status"), "110_forecast": forecast.get("status"), "111_replay": replay.get("status"), "112_market": market.get("status"), "113_sustained": sustained.get("status"), "114_gate": gate.get("status")}, "production_changes_authorized": False, "v1_champion_v2_shadow_only": True})
+    print(json.dumps(monitor, indent=2, default=str))
+    return monitor
+
+
+if __name__ == "__main__":
+    run()

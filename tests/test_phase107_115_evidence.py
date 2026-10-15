@@ -15,7 +15,7 @@ def test_phase107_reconciles_recorded_accounting_without_mutation(tmp_path, monk
     trades = pd.DataFrame([
         {"signal": "BUY", "entry_price": 100, "exit_price": 110, "shares": 2,
          "allocated_capital": 200, "gross_profit_loss": 20, "costs": 1,
-         "profit_loss": 19, "return_pct": 10},
+         "profit_loss": 19, "return_pct": 9.5},
         {"signal": "SKIP", "entry_price": None, "exit_price": None, "shares": 0,
          "allocated_capital": 0, "gross_profit_loss": 0, "costs": 0,
          "profit_loss": 0, "return_pct": 0},
@@ -126,3 +126,17 @@ def test_phase111_drawdown_includes_starting_capital_and_reports_risk_metrics(tm
     assert result["v1"]["profit_factor"] == 0.2
     assert result["v2"]["sessions"] == 0
     assert result["v2"]["max_drawdown_pct_from_100k_start"] is None
+
+
+def test_phase107_blocks_return_percentage_mismatch(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    trades = pd.DataFrame([{
+        "signal": "BUY", "entry_price": 100, "exit_price": 110, "shares": 10,
+        "allocated_capital": 1000, "gross_profit_loss": 100, "costs": 10,
+        "profit_loss": 90, "return_pct": 10,
+    }])
+    result = phase107_pnl_reconciliation(trades)
+    assert result["status"] == "BLOCKED"
+    assert result["reconciliation_mismatch_rows"] == 1
+    assert result["max_abs_return_delta_pct_points"] == 1.0

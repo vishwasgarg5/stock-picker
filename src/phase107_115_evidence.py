@@ -313,15 +313,17 @@ def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str
     ]).sort_index()
     peak = equity.cummax()
     drawdown = ((equity / peak) - 1.0) * 100.0
-    gains = float(daily[daily > 0].sum())
-    losses = float(-daily[daily < 0].sum())
+    trade_pnl = pd.to_numeric(x[pnl_col], errors="coerce").dropna()
+    gains = float(trade_pnl[trade_pnl > 0].sum())
+    losses = float(-trade_pnl[trade_pnl < 0].sum())
     return {
         "rows": int(len(x)),
         "sessions": int(daily.size),
         "net_pnl": float(daily.sum()),
         "max_drawdown_pct_from_100k_start": float(drawdown.min()) if len(drawdown) else None,
-        "win_rate_pct": float((daily > 0).mean() * 100.0),
-        "profit_factor": gains / losses if losses > 0 else (None if gains == 0 else float("inf")),
+        "win_rate_pct": float((trade_pnl > 0).mean() * 100.0) if len(trade_pnl) else None,
+        "positive_session_rate_pct": float((daily > 0).mean() * 100.0),
+        "profit_factor": gains / losses if losses > 0 else (None if gains == 0 else "UNBOUNDED_NO_LOSSES"),
         "average_session_pnl": float(daily.mean()),
         "best_session_pnl": float(daily.max()),
         "worst_session_pnl": float(daily.min()),

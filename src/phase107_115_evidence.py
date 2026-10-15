@@ -183,11 +183,12 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
         "phase2_flag_missing_or_invalid_rows": int(phase2_flag.isna().sum()),
         "confidence_pct_non_null_rows": int(confidence_pct.notna().sum()),
         "confidence_pct_missing_rows": int(confidence_pct.isna().sum()),
-        "confidence_pct_below_shadow_percentile_rows": int(confidence_pct.lt(0.80).sum()),
+        "shadow_confidence_percentile_threshold": 0.50,
+        "confidence_pct_below_shadow_percentile_rows": int(confidence_pct.lt(0.50).sum()),
         "phase4_confidence_floor_available_rows": int(confidence_floor.notna().sum()),
         "phase4_confidence_floor_fail_rows": int((confidence_pct.notna() & confidence_floor.notna() & confidence_pct.lt(confidence_floor)).sum()),
-        "phase2_selected_and_confidence_below_80pct_rows": int((phase2_flag.eq(1) & confidence_pct.lt(0.80)).sum()),
-        "phase2_selected_and_confidence_at_least_80pct_rows": int((phase2_flag.eq(1) & confidence_pct.ge(0.80)).sum()),
+        "phase2_selected_and_confidence_below_threshold_rows": int((phase2_flag.eq(1) & confidence_pct.lt(0.50)).sum()),
+        "phase2_selected_and_confidence_at_least_threshold_rows": int((phase2_flag.eq(1) & confidence_pct.ge(0.50)).sum()),
     }
     reason_by_phase2 = {}
     if "no_trade_reason" in skips:

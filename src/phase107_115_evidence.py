@@ -63,7 +63,15 @@ def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
     incomplete = numeric.isna().any(axis=1)
     accounting_delta = numeric["gross_profit_loss"] - numeric["costs"] - numeric["profit_loss"]
     share_delta = numeric["shares"] * (numeric["exit_price"] - numeric["entry_price"]) - numeric["gross_profit_loss"]
-    mismatch = (accounting_delta.abs() > 0.02) | (share_delta.abs() > 0.05)
+    expected_return = numeric["profit_loss"] / numeric["allocated_capital"].replace(0, np.nan) * 100.0
+    return_delta = expected_return - numeric["return_pct"]
+    invalid_capital = numeric["allocated_capital"].le(0)
+    mismatch = (
+        (accounting_delta.abs() > 0.02)
+        | (share_delta.abs() > 0.05)
+        | (return_delta.abs() > 0.05)
+        | invalid_capital
+    )
 
     missing_by_field = {c: int(numeric[c].isna().sum()) for c in required}
     incomplete_by_signal = {}
@@ -128,8 +136,10 @@ def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
         "reconciliation_mismatch_rows": int((mismatch & ~incomplete).sum()),
         "accounting_identity": "gross_profit_loss - costs = profit_loss",
         "gross_pnl_identity": "shares * (exit_price - entry_price) = gross_profit_loss",
+        "return_identity": "profit_loss / allocated_capital * 100 = return_pct",
         "max_abs_accounting_delta": float(accounting_delta[~incomplete].abs().max()) if (~incomplete).any() else None,
         "max_abs_gross_delta": float(share_delta[~incomplete].abs().max()) if (~incomplete).any() else None,
+        "max_abs_return_delta_pct_points": float(return_delta[~incomplete].abs().max()) if (~incomplete).any() else None,
         "costs_subtracted_again": False,
         "policy": "Uses recorded values only; reports missing-field/session patterns for triage. No historical values are backfilled or inferred; session age alone is not treated as proof a row is legacy.",
     })

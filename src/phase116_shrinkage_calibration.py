@@ -70,7 +70,6 @@ def evaluate_shrinkage(scores: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, An
         prior_sessions = int(prior["target_date"].nunique())
         enough_history = len(prior) >= MIN_TRAIN_ROWS and prior_sessions >= MIN_TRAIN_SESSIONS
         alpha = 0.0
-        train_mape = _mape(prior["actual_close"], prior["base_close"]) if not prior.empty else None
         if enough_history:
             best_loss = float("inf")
             for candidate_alpha in ALPHAS:
@@ -91,8 +90,16 @@ def evaluate_shrinkage(scores: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, An
             "baseline_mape_pct": _mape(batch["actual_close"], batch["base_close"]),
             "raw_model_mape_pct": _mape(batch["actual_close"], batch["predicted_close"]),
             "calibrated_mape_pct": _mape(batch["actual_close"], calibrated),
-            "raw_model_beats_baseline": bool((_mape(batch["actual_close"], batch["predicted_close"]) or float("inf")) < (_mape(batch["actual_close"], batch["base_close"]) or float("inf"))),
-            "calibrated_beats_baseline": bool((_mape(batch["actual_close"], calibrated) or float("inf")) < (_mape(batch["actual_close"], batch["base_close"]) or float("inf"))),
+            "raw_model_beats_baseline": bool(
+                _mape(batch["actual_close"], batch["predicted_close"]) is not None
+                and _mape(batch["actual_close"], batch["base_close"]) is not None
+                and _mape(batch["actual_close"], batch["predicted_close"]) < _mape(batch["actual_close"], batch["base_close"])
+            ),
+            "calibrated_beats_baseline": bool(
+                _mape(batch["actual_close"], calibrated) is not None
+                and _mape(batch["actual_close"], batch["base_close"]) is not None
+                and _mape(batch["actual_close"], calibrated) < _mape(batch["actual_close"], batch["base_close"])
+            ),
         })
 
     daily = pd.DataFrame(rows).sort_values("prediction_date").reset_index(drop=True)

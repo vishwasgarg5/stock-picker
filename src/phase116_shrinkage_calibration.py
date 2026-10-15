@@ -150,7 +150,7 @@ def run() -> dict[str, Any]:
         scores = pd.DataFrame()
     daily, summary = evaluate_shrinkage(scores)
     daily.to_csv(DAILY_OUT, index=False)
-    SUMMARY_OUT.write_text(json.dumps(summary, indent=2, default=str) + "\\n", encoding="utf-8")
+    SUMMARY_OUT.write_text(json.dumps(summary, indent=2, default=str) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2, default=str))
     return summary
 

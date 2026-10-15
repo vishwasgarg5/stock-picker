@@ -61,6 +61,8 @@ def test_phase108_and_109_are_diagnostic_only(tmp_path, monkeypatch):
     assert funnel["confidence_column_diagnostics"]["confidence_pct"]["non_null_rows"] == 2
     assert funnel["funnel_stages"][0]["rejected_rows"] == 8
     assert funnel["production_model_changed"] is False
+    assert funnel["gate_overlap_diagnostics"]["phase2_flag_missing_or_invalid_rows"] == 2
+    assert funnel["skip_reasons_by_phase2_flag"]["NOT_RECORDED"]["nan"] == 1
 
 
 def test_phase113_requires_sustained_v2_evidence_and_gate_never_promotes(tmp_path, monkeypatch):
@@ -98,7 +100,8 @@ def test_phase107_localizes_missing_accounting_by_field_and_session_without_infe
     assert result["incomplete_rows_by_session"] == [
         {"target_date": "2026-09-29", "buy_rows": 1, "incomplete_rows": 1}
     ]
-    assert result["record_vintage_classification"] == "UNCLASSIFIED_NO_SCHEMA_VERSION_OR_CREATION_TIMESTAMP"
+    assert result["record_vintage_classification"] == "EXPLICIT_METADATA_WHEN_AVAILABLE; OTHERWISE_UNCLASSIFIED"
+    assert result["incomplete_rows_by_record_vintage"] == {"UNCLASSIFIED_NO_EXPLICIT_METADATA": 1}
     assert result["missing_facts_inferred"] is False
     pd.testing.assert_frame_equal(trades, original)
     persisted = json.loads((tmp_path / "phase107_pnl_reconciliation_summary.json").read_text())

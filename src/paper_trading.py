@@ -154,7 +154,7 @@ def _simulate_day(row: pd.Series, entry_model, mfe_model, mae_model, learned: bo
     }
 
 
-def _build_portfolio(trades: pd.DataFrame) -> pd.DataFrame:
+def _build_portfolio(trades: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Apply equal-capital sizing sequentially, with a fixed round-trip cost."""
     settled = trades[trades["signal"] == "BUY"].copy()
     if settled.empty:

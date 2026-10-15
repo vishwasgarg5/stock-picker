@@ -47,28 +47,71 @@ def _buy_rows(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
+    """Reconcile recorded accounting and localize gaps without backfilling values."""
     buys = _buy_rows(trades)
     required = ["entry_price", "exit_price", "shares", "allocated_capital", "gross_profit_loss", "costs", "profit_loss", "return_pct"]
     missing_columns = [c for c in required if c not in buys.columns]
     if missing_columns:
-        return _write("phase107_pnl_reconciliation_summary.json", {"status": "BLOCKED", "source": "data/paper_trades.csv", "buy_rows": len(buys), "missing_columns": missing_columns, "incomplete_rows": len(buys), "reconciliation_mismatch_rows": None, "policy": "No historical values are backfilled or inferred."})
+        return _write("phase107_pnl_reconciliation_summary.json", {
+            "status": "BLOCKED", "source": "data/paper_trades.csv", "buy_rows": len(buys),
+            "missing_columns": missing_columns, "incomplete_rows": len(buys),
+            "reconciliation_mismatch_rows": None,
+            "policy": "No historical values are backfilled or inferred.",
+        })
+
     numeric = buys[required].apply(pd.to_numeric, errors="coerce")
     incomplete = numeric.isna().any(axis=1)
     accounting_delta = numeric["gross_profit_loss"] - numeric["costs"] - numeric["profit_loss"]
     share_delta = numeric["shares"] * (numeric["exit_price"] - numeric["entry_price"]) - numeric["gross_profit_loss"]
     mismatch = (accounting_delta.abs() > 0.02) | (share_delta.abs() > 0.05)
+
+    missing_by_field = {c: int(numeric[c].isna().sum()) for c in required}
+    incomplete_by_signal = {}
+    if "signal" in buys:
+        labels = buys["signal"].fillna("MISSING").astype(str).str.upper().str.strip().replace("", "MISSING")
+        incomplete_by_signal = {
+            str(label): int((incomplete & labels.eq(label)).sum())
+            for label in labels[incomplete & incomplete].unique()
+        }
+    session_detail = []
+    if "target_date" in buys:
+        dates = pd.to_datetime(buys["target_date"], errors="coerce").dt.normalize()
+        detail = pd.DataFrame({"target_date": dates, "incomplete": incomplete.to_numpy()})
+        detail = detail.dropna(subset=["target_date"]).groupby("target_date", as_index=False).agg(
+            buy_rows=("incomplete", "size"), incomplete_rows=("incomplete", "sum")
+        )
+        session_detail = [
+            {"target_date": str(row.target_date.date()), "buy_rows": int(row.buy_rows),
+             "incomplete_rows": int(row.incomplete_rows)}
+            for row in detail.itertuples(index=False) if row.incomplete_rows
+        ]
+    complete_dates = pd.to_datetime(
+        buys.loc[~incomplete, "target_date"], errors="coerce"
+    ).dropna() if "target_date" in buys else pd.Series(dtype="datetime64[ns]")
+    incomplete_dates = pd.to_datetime(
+        buys.loc[incomplete, "target_date"], errors="coerce"
+    ).dropna() if "target_date" in buys else pd.Series(dtype="datetime64[ns]")
     status = "PASS" if len(buys) and not incomplete.any() and not mismatch.any() else ("INSUFFICIENT_DATA" if not len(buys) else "BLOCKED")
     return _write("phase107_pnl_reconciliation_summary.json", {
-        "status": status, "source": "data/paper_trades.csv", "buy_rows": int(len(buys)), "missing_columns": [],
-        "complete_rows": int((~incomplete).sum()), "incomplete_rows": int(incomplete.sum()),
+        "status": status, "source": "data/paper_trades.csv", "buy_rows": int(len(buys)),
+        "missing_columns": [], "complete_rows": int((~incomplete).sum()),
+        "incomplete_rows": int(incomplete.sum()),
+        "missing_values_by_field": missing_by_field,
+        "incomplete_rows_by_signal": incomplete_by_signal,
+        "incomplete_rows_by_session": session_detail,
+        "first_complete_session": str(complete_dates.min().date()) if len(complete_dates) else None,
+        "last_complete_session": str(complete_dates.max().date()) if len(complete_dates) else None,
+        "first_incomplete_session": str(incomplete_dates.min().date()) if len(incomplete_dates) else None,
+        "last_incomplete_session": str(incomplete_dates.max().date()) if len(incomplete_dates) else None,
+        "record_vintage_classification": "UNCLASSIFIED_NO_SCHEMA_VERSION_OR_CREATION_TIMESTAMP",
         "reconciliation_mismatch_rows": int((mismatch & ~incomplete).sum()),
         "accounting_identity": "gross_profit_loss - costs = profit_loss",
         "gross_pnl_identity": "shares * (exit_price - entry_price) = gross_profit_loss",
         "max_abs_accounting_delta": float(accounting_delta[~incomplete].abs().max()) if (~incomplete).any() else None,
         "max_abs_gross_delta": float(share_delta[~incomplete].abs().max()) if (~incomplete).any() else None,
-        "costs_subtracted_again": False, "policy": "Uses recorded values only; no historical values are backfilled or inferred.",
+        "costs_subtracted_again": False,
+        "policy": "Uses recorded values only; reports missing-field/session patterns for triage. No historical values are backfilled or inferred; session age alone is not treated as proof a row is legacy.",
     })
-
 
 def phase108_loss_concentration(trades: pd.DataFrame) -> dict[str, Any]:
     buys = _buy_rows(trades)

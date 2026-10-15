@@ -41,3 +41,14 @@ def test_phase106_empty_and_missing_fields_fail_closed():
     assert "entry_price" in result["missing_core_fields"]
     assert result["missing_facts_inferred"] is False
     assert result["v2_mode"] == "SHADOW_ONLY"
+
+
+def test_phase106_treats_buy_with_recorded_exit_as_simulated_outcome_not_broker_lifecycle():
+    result = evaluate_trade_lifecycle(pd.DataFrame([
+        {"symbol": "AAA", "target_date": "2026-01-02", "signal": "BUY",
+         "entry_price": 100, "exit_price": 105, "shares": 2, "profit_loss": 10}
+    ]))
+    assert result["closed_trade_rows_detected"] == 1
+    assert result["exit_date_recorded"] is False
+    assert result["source_record_type"] == "simulated_outcome_ledger"
+    assert "not an inferred broker exit timestamp" in result["exit_date_semantics"]

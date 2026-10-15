@@ -115,6 +115,7 @@ def _simulate_day(row: pd.Series, entry_model, mfe_model, mae_model, learned: bo
             "symbol": row["symbol"], "target_date": row["target_date"], "rank": int(row["rank"]),
             "signal": "SKIP", "entry_price": np.nan, "exit_price": np.nan, "exit_reason": "learned_entry_filter",
             "profit_loss": 0.0, "return_pct": 0.0, "entry_probability": probability,
+            "ledger_schema_version": 2, "record_created_at_utc": pd.Timestamp.now(tz="UTC").isoformat(),
         }
 
     if learned:
@@ -149,6 +150,7 @@ def _simulate_day(row: pd.Series, entry_model, mfe_model, mae_model, learned: bo
         "target_pct": target_pct * 100, "stop_pct": stop_pct * 100,
         "pnl_per_share": pnl_per_share, "profit_loss": pnl_per_share,
         "return_pct": pnl_per_share / actual_open * 100, "entry_probability": probability,
+        "ledger_schema_version": 2, "record_created_at_utc": pd.Timestamp.now(tz="UTC").isoformat(),
     }
 
 

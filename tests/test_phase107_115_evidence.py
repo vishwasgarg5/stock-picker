@@ -140,3 +140,21 @@ def test_phase107_blocks_return_percentage_mismatch(tmp_path, monkeypatch):
     assert result["status"] == "BLOCKED"
     assert result["reconciliation_mismatch_rows"] == 1
     assert result["max_abs_return_delta_pct_points"] == 1.0
+
+
+def test_phase110_blocks_duplicate_forecast_keys_instead_of_overweighting_them(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pred = pd.DataFrame([
+        {"symbol": "AAA", "target_date": "2026-01-02", "predicted_close": 105, "base_close": 100},
+        {"symbol": "AAA", "target_date": "2026-01-02", "predicted_close": 106, "base_close": 100},
+    ])
+    history = pd.DataFrame([{
+        "symbol": "AAA", "date": "2026-01-02", "open": 100, "high": 107, "low": 99, "close": 104,
+    }])
+    monkeypatch.setattr(module, "_read", lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy())
+    result = module.phase110_forecast_accuracy()
+    assert result["status"] == "BLOCKED_AMBIGUOUS_KEYS"
+    assert result["duplicate_prediction_key_rows"] == 2
+    assert result["duplicate_actual_key_rows"] == 0
+    assert result["metrics"] == {}

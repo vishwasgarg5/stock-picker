@@ -43,6 +43,11 @@ def _direction_accuracy(frame: pd.DataFrame, predicted_col: str, base_col: str =
     required = {"actual_close", predicted_col, base_col}
     if not required.issubset(frame.columns):
         return None
+    # A previous-close forecast is explicitly neutral (no predicted move).
+    # It has no directional call to score; comparing it to actual direction
+    # incorrectly reported a near-zero "accuracy" due to floating-point noise.
+    if predicted_col == base_col:
+        return None
     actual = pd.to_numeric(frame["actual_close"], errors="coerce")
     predicted = pd.to_numeric(frame[predicted_col], errors="coerce")
     base = pd.to_numeric(frame[base_col], errors="coerce")

@@ -40,6 +40,7 @@ def evaluate_bias_correction(scores: pd.DataFrame) -> tuple[pd.DataFrame, dict[s
             "status": "INSUFFICIENT_DATA", "missing_columns": missing, "scored_rows": 0,
             "strict_no_lookahead": True, "production_model_changed": False,
             "production_champion": "V1", "v2_mode": "SHADOW_ONLY", "automatic_promotion": False,
+            "promotion_allowed": False, "ranking_or_risk_changed": False,
         }
 
     x = scores.copy()
@@ -83,9 +84,9 @@ def evaluate_bias_correction(scores: pd.DataFrame) -> tuple[pd.DataFrame, dict[s
         })
 
     daily = pd.DataFrame(output).sort_values("prediction_date").reset_index(drop=True)
-    x["correction"] = x["prediction_date"].map({
-        r["prediction_date"]: r["estimated_return_bias_pct"] / 100.0 for r in output
-    })
+    x["correction"] = x["prediction_date"].map(
+        {pd.Timestamp(r["prediction_date"]): r["estimated_return_bias_pct"] / 100.0 for r in output}
+    )
     x["bias_corrected_close"] = x["base_close"] * (1.0 + x["raw_return"] - x["correction"])
     baseline = _mape(x["actual_close"], x["base_close"])
     raw = _mape(x["actual_close"], x["predicted_close"])

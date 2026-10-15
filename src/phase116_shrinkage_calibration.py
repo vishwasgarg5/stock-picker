@@ -85,6 +85,7 @@ def evaluate_shrinkage(scores: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, An
             "rows": int(len(batch)),
             "training_rows": int(len(prior)),
             "training_sessions": prior_sessions,
+            "latest_training_target_date": str(prior["target_date"].max().date()) if not prior.empty else None,
             "calibration_used": bool(enough_history),
             "selected_alpha": alpha,
             "baseline_mape_pct": _mape(batch["actual_close"], batch["base_close"]),

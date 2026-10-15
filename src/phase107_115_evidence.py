@@ -91,6 +91,25 @@ def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
     incomplete_dates = pd.to_datetime(
         buys.loc[incomplete, "target_date"], errors="coerce"
     ).dropna() if "target_date" in buys else pd.Series(dtype="datetime64[ns]")
+    # Classify record vintage only from explicit metadata, never from target-date age.
+    if "ledger_schema_version" in buys:
+        schema = buys["ledger_schema_version"].fillna("").astype(str).str.strip()
+        versioned = schema.ne("")
+    else:
+        schema = pd.Series("", index=buys.index, dtype=str)
+        versioned = pd.Series(False, index=buys.index)
+    if "record_created_at_utc" in buys:
+        created = pd.to_datetime(buys["record_created_at_utc"], errors="coerce", utc=True)
+    else:
+        created = pd.Series(pd.NaT, index=buys.index, dtype="datetime64[ns, UTC]")
+    vintage = pd.Series("UNCLASSIFIED_NO_EXPLICIT_METADATA", index=buys.index, dtype=str)
+    vintage.loc[versioned] = "SCHEMA_VERSIONED:" + schema.loc[versioned]
+    vintage.loc[~versioned & created.notna()] = "CREATION_TIMESTAMP_ONLY"
+    vintage_counts = {str(k): int(v) for k, v in vintage.value_counts(dropna=False).items()}
+    incomplete_vintage_counts = {
+        str(k): int(v) for k, v in vintage.loc[incomplete].value_counts(dropna=False).items()
+    }
+
     status = "PASS" if len(buys) and not incomplete.any() and not mismatch.any() else ("INSUFFICIENT_DATA" if not len(buys) else "BLOCKED")
     return _write("phase107_pnl_reconciliation_summary.json", {
         "status": status, "source": "data/paper_trades.csv", "buy_rows": int(len(buys)),
@@ -103,7 +122,9 @@ def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
         "last_complete_session": str(complete_dates.max().date()) if len(complete_dates) else None,
         "first_incomplete_session": str(incomplete_dates.min().date()) if len(incomplete_dates) else None,
         "last_incomplete_session": str(incomplete_dates.max().date()) if len(incomplete_dates) else None,
-        "record_vintage_classification": "UNCLASSIFIED_NO_SCHEMA_VERSION_OR_CREATION_TIMESTAMP",
+        "record_vintage_classification": "EXPLICIT_METADATA_WHEN_AVAILABLE; OTHERWISE_UNCLASSIFIED",
+        "record_vintage_counts": vintage_counts,
+        "incomplete_rows_by_record_vintage": incomplete_vintage_counts,
         "reconciliation_mismatch_rows": int((mismatch & ~incomplete).sum()),
         "accounting_identity": "gross_profit_loss - costs = profit_loss",
         "gross_pnl_identity": "shares * (exit_price - entry_price) = gross_profit_loss",
@@ -151,6 +172,33 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
             str(k or "NOT_RECORDED"): int(v)
             for k, v in phase4[phase4.ne("")].value_counts().items()
         }
+    # Cross-tab existing gates so zero BUY outcomes can be localized without
+    # changing selection thresholds or treating a missing flag as a pass.
+    phase2_flag = pd.to_numeric(v2.get("phase2_selected", pd.Series(np.nan, index=v2.index)), errors="coerce")
+    confidence_pct = pd.to_numeric(v2.get("confidence_pct", pd.Series(np.nan, index=v2.index)), errors="coerce")
+    confidence_floor = pd.to_numeric(v2.get("phase4_confidence_floor", pd.Series(np.nan, index=v2.index)), errors="coerce")
+    gate_diagnostics = {
+        "phase2_selected_rows": int(phase2_flag.eq(1).sum()),
+        "phase2_not_selected_rows": int(phase2_flag.eq(0).sum()),
+        "phase2_flag_missing_or_invalid_rows": int(phase2_flag.isna().sum()),
+        "confidence_pct_non_null_rows": int(confidence_pct.notna().sum()),
+        "confidence_pct_missing_rows": int(confidence_pct.isna().sum()),
+        "confidence_pct_below_shadow_percentile_rows": int(confidence_pct.lt(0.80).sum()),
+        "phase4_confidence_floor_available_rows": int(confidence_floor.notna().sum()),
+        "phase4_confidence_floor_fail_rows": int((confidence_pct.notna() & confidence_floor.notna() & confidence_pct.lt(confidence_floor)).sum()),
+        "phase2_selected_and_confidence_below_80pct_rows": int((phase2_flag.eq(1) & confidence_pct.lt(0.80)).sum()),
+        "phase2_selected_and_confidence_at_least_80pct_rows": int((phase2_flag.eq(1) & confidence_pct.ge(0.80)).sum()),
+    }
+    reason_by_phase2 = {}
+    if "no_trade_reason" in skips:
+        tmp = pd.DataFrame({"reason": skips["no_trade_reason"].fillna("").astype(str).str.strip(),
+                            "phase2_selected": phase2_flag.reindex(skips.index)})
+        tmp["reason"] = tmp["reason"].replace("", "NOT_RECORDED")
+        reason_by_phase2 = {
+            str(reason): {str(flag): int(count) for flag, count in group["phase2_selected"].value_counts(dropna=False).items()}
+            for reason, group in tmp.groupby("reason", dropna=False)
+        }
+
     confidence_stats = {}
     for column in ("confidence_pct", "confidence_v3", "confidence_score"):
         if column in v2:
@@ -168,6 +216,8 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
         "skip_reason_counts": {str(k): int(v) for k, v in reasons.replace("", "NOT_RECORDED").value_counts().items()},
         "phase4_reject_reason_counts": phase4_reasons,
         "confidence_column_diagnostics": confidence_stats,
+        "gate_overlap_diagnostics": gate_diagnostics,
+        "skip_reasons_by_phase2_flag": reason_by_phase2,
         "existing_funnel_valid": funnel_valid,
         "funnel_stage_rows": int(len(funnel)) if funnel_valid else 0,
         "funnel_stages": funnel_stages,

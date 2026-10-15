@@ -28,7 +28,9 @@ FIELD_ALIASES = {
 
 
 def _field(frame: pd.DataFrame, logical_name: str) -> str | None:
-    return next((name for name in FIELD_ALIASES[logical_name] if name in frame.columns), None)
+    candidates = [name for name in FIELD_ALIASES[logical_name] if name in frame.columns]
+    # Prefer a populated canonical field when a placeholder alias is blank.
+    return next((name for name in candidates if frame[name].notna().any()), candidates[0] if candidates else None)
 
 
 def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
@@ -44,10 +46,11 @@ def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
     }
     if trades.empty:
         return {
-            **safe, "status": "INSUFFICIENT_DATA", "rows": 0,
-            "field_presence": {}, "field_non_null_counts": {},
+            **safe, "status": "INSUFFICIENT_DATA", "source_record_type": "simulated_outcome_ledger",
+            "rows": 0, "field_presence": {}, "field_non_null_counts": {},
             "invalid_price_rows": 0, "invalid_quantity_rows": 0,
             "entry_after_exit_rows": 0, "duplicate_symbol_entry_date_rows": 0,
+            "closed_trade_rows_detected": 0, "exit_date_recorded": False,
         }
 
     x = trades.copy()
@@ -93,15 +96,14 @@ def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
             x[status_col].fillna("MISSING").astype(str).str.strip()
             .replace("", "MISSING").value_counts(dropna=False).to_dict()
         )
-    completed_mask = pd.Series(False, index=x.index)
-    if status_col:
-        completed_mask = x[status_col].astype(str).str.upper().str.strip().isin(
-            ["CLOSED", "COMPLETED", "EXITED", "SELL", "SOLD"]
-        )
+    status_values = x[status_col].astype(str).str.upper().str.strip() if status_col else pd.Series("", index=x.index)
+    exit_price_col = fields["exit_price"]
+    has_exit_price = x[exit_price_col].notna() if exit_price_col else pd.Series(False, index=x.index)
+    completed_mask = status_values.isin(["CLOSED", "COMPLETED", "EXITED", "SELL", "SOLD"]) | (
+        status_values.isin(["BUY", "LONG", "EXECUTED"]) & has_exit_price
+    )
     closed_rows = int(completed_mask.sum())
-    missing_exit_price_on_closed = int(
-        (completed_mask & x[fields["exit_price"]].isna()).sum()
-    ) if fields["exit_price"] else closed_rows
+    missing_exit_price_on_closed = int((completed_mask & ~has_exit_price).sum())
 
     required_core = ("symbol", "entry_price", "entry_date", "pnl")
     missing_core_fields = [name for name in required_core if not presence[name]]
@@ -109,6 +111,8 @@ def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
     summary = {
         **safe,
         "status": "SCORED" if rows >= 20 else "SMALL_SAMPLE",
+        "source_record_type": "simulated_outcome_ledger",
+        "source_path": "data/paper_trades.csv",
         "rows": rows,
         "field_presence": presence,
         "field_non_null_counts": non_null,
@@ -123,11 +127,14 @@ def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
         "status_counts": {str(key): int(value) for key, value in status_counts.items()},
         "closed_trade_rows_detected": closed_rows,
         "closed_rows_missing_exit_price": missing_exit_price_on_closed,
+        "exit_date_recorded": bool(presence["exit_date"]),
+        "exit_date_semantics": "Not stored in this simulated same-session outcome ledger; target_date is the outcome session, not an inferred broker exit timestamp.",
         "costs_subtracted_again": False,
         "missing_facts_inferred": False,
         "interpretation": (
-            "Use completeness gaps to improve upstream recording. Missing lifecycle values are not "
-            "reconstructed; duplicate keys are flagged for review and are not automatically deleted."
+            "BUY rows are simulated completed outcomes; SKIP rows are candidate decisions, not trades. "
+            "A separate broker lifecycle ledger is needed for actual execution/exit timestamps. Missing facts "
+            "are not reconstructed; duplicate keys are flagged for review and are not automatically deleted."
         ),
     }
     return summary

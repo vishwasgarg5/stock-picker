@@ -91,9 +91,9 @@
       "close",
       "volume"
     ],
-    "raw_read_seconds": 0.6215,
-    "gzip_read_seconds": 0.9273,
-    "gzip_read_time_delta_pct": 49.21,
+    "raw_read_seconds": 0.6252,
+    "gzip_read_seconds": 0.8966,
+    "gzip_read_time_delta_pct": 43.41,
     "raw_dataframe_memory_bytes": 161637351,
     "gzip_dataframe_memory_bytes": 161637351,
     "dataframe_memory_equal": true,

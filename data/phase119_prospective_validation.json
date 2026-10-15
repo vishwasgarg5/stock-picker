@@ -1,0 +1,18 @@
+{
+  "status": "WAITING_FOR_PROSPECTIVE_SESSIONS",
+  "lock_date": "2026-10-14",
+  "cohort_rule": "Include only rows whose prediction_date is strictly later than lock_date; cohort membership is not backfilled with pre-lock predictions.",
+  "prospective_rows": 0,
+  "prospective_symbols": 0,
+  "prospective_sessions": 0,
+  "minimum_sessions_before_review": 20,
+  "model_mape_pct": null,
+  "previous_close_baseline_mape_pct": null,
+  "delta_mape_pct_points_model_minus_baseline": null,
+  "sessions_model_beats_baseline": 0,
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "automatic_promotion": false,
+  "promotion_allowed": false,
+  "interpretation": "No model change is authorized by this report. A review threshold is not a promotion gate; review must also check data quality, drawdown, and independent evidence."
+}

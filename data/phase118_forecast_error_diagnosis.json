@@ -1,0 +1,253 @@
+{
+  "status": "SCORED",
+  "scored_rows": 190,
+  "symbols": 73,
+  "target_sessions": 19,
+  "symbol_rows_reported_minimum_3_observations": 28,
+  "regime_definition": "Absolute realized close move from base_close: quiet <1%, normal 1%-<2.5%, volatile >=2.5%.",
+  "overall": {
+    "rows": 190,
+    "model_mape_pct": 2.008544,
+    "baseline_mape_pct": 1.996624,
+    "delta_mape_pct_points": 0.01192,
+    "signed_return_bias_pct": 0.492883,
+    "model_beats_baseline": false
+  },
+  "by_period": [
+    {
+      "period": "CHRONOLOGICAL_HOLDOUT",
+      "rows": 70,
+      "model_mape_pct": 2.21818,
+      "baseline_mape_pct": 2.212079,
+      "delta_mape_pct_points": 0.006101,
+      "signed_return_bias_pct": 0.46942,
+      "model_beats_baseline": false
+    },
+    {
+      "period": "EARLY_CONTEXT",
+      "rows": 120,
+      "model_mape_pct": 1.886255,
+      "baseline_mape_pct": 1.870942,
+      "delta_mape_pct_points": 0.015314,
+      "signed_return_bias_pct": 0.50657,
+      "model_beats_baseline": false
+    }
+  ],
+  "worst_symbols": [
+    {
+      "symbol": "CPPLUS",
+      "rows": 7,
+      "model_mape_pct": 3.49859,
+      "baseline_mape_pct": 3.41252,
+      "delta_mape_pct_points": 0.08607,
+      "signed_return_bias_pct": -0.74655,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "RRKABEL",
+      "rows": 4,
+      "model_mape_pct": 1.122855,
+      "baseline_mape_pct": 1.090139,
+      "delta_mape_pct_points": 0.032716,
+      "signed_return_bias_pct": 0.623638,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "CYIENT",
+      "rows": 3,
+      "model_mape_pct": 0.948412,
+      "baseline_mape_pct": 0.920716,
+      "delta_mape_pct_points": 0.027696,
+      "signed_return_bias_pct": 0.935617,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "PATANJALI",
+      "rows": 6,
+      "model_mape_pct": 2.260888,
+      "baseline_mape_pct": 2.23701,
+      "delta_mape_pct_points": 0.023878,
+      "signed_return_bias_pct": 0.985174,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "NTPCGREEN",
+      "rows": 3,
+      "model_mape_pct": 1.462689,
+      "baseline_mape_pct": 1.439562,
+      "delta_mape_pct_points": 0.023127,
+      "signed_return_bias_pct": -0.116354,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "JSWINFRA",
+      "rows": 6,
+      "model_mape_pct": 1.917139,
+      "baseline_mape_pct": 1.895562,
+      "delta_mape_pct_points": 0.021577,
+      "signed_return_bias_pct": -0.094503,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "BBOX",
+      "rows": 4,
+      "model_mape_pct": 2.787697,
+      "baseline_mape_pct": 2.775569,
+      "delta_mape_pct_points": 0.012128,
+      "signed_return_bias_pct": -1.052287,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "LICHSGFIN",
+      "rows": 7,
+      "model_mape_pct": 0.790457,
+      "baseline_mape_pct": 0.778982,
+      "delta_mape_pct_points": 0.011476,
+      "signed_return_bias_pct": 0.236178,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "SUNTV",
+      "rows": 4,
+      "model_mape_pct": 3.572074,
+      "baseline_mape_pct": 3.563174,
+      "delta_mape_pct_points": 0.008901,
+      "signed_return_bias_pct": -3.812945,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "MEDANTA",
+      "rows": 3,
+      "model_mape_pct": 0.896065,
+      "baseline_mape_pct": 0.887839,
+      "delta_mape_pct_points": 0.008226,
+      "signed_return_bias_pct": 0.537416,
+      "model_beats_baseline": false
+    }
+  ],
+  "best_symbols": [
+    {
+      "symbol": "HFCL",
+      "rows": 4,
+      "model_mape_pct": 3.790399,
+      "baseline_mape_pct": 4.173534,
+      "delta_mape_pct_points": -0.383135,
+      "signed_return_bias_pct": -1.296223,
+      "model_beats_baseline": true
+    },
+    {
+      "symbol": "STLTECH",
+      "rows": 3,
+      "model_mape_pct": 1.698045,
+      "baseline_mape_pct": 2.037909,
+      "delta_mape_pct_points": -0.339864,
+      "signed_return_bias_pct": -1.763371,
+      "model_beats_baseline": true
+    },
+    {
+      "symbol": "CUPID",
+      "rows": 8,
+      "model_mape_pct": 2.000091,
+      "baseline_mape_pct": 2.125705,
+      "delta_mape_pct_points": -0.125613,
+      "signed_return_bias_pct": -1.043363,
+      "model_beats_baseline": true
+    },
+    {
+      "symbol": "APARINDS",
+      "rows": 5,
+      "model_mape_pct": 2.429911,
+      "baseline_mape_pct": 2.474155,
+      "delta_mape_pct_points": -0.044244,
+      "signed_return_bias_pct": -0.000517,
+      "model_beats_baseline": true
+    },
+    {
+      "symbol": "PERSISTENT",
+      "rows": 4,
+      "model_mape_pct": 1.499839,
+      "baseline_mape_pct": 1.542392,
+      "delta_mape_pct_points": -0.042553,
+      "signed_return_bias_pct": -0.2869,
+      "model_beats_baseline": true
+    },
+    {
+      "symbol": "BHEL",
+      "rows": 3,
+      "model_mape_pct": 3.312734,
+      "baseline_mape_pct": 3.354546,
+      "delta_mape_pct_points": -0.041812,
+      "signed_return_bias_pct": 1.686854,
+      "model_beats_baseline": true
+    },
+    {
+      "symbol": "PVRINOX",
+      "rows": 3,
+      "model_mape_pct": 1.499299,
+      "baseline_mape_pct": 1.524115,
+      "delta_mape_pct_points": -0.024816,
+      "signed_return_bias_pct": 1.384793,
+      "model_beats_baseline": true
+    },
+    {
+      "symbol": "KARURVYSYA",
+      "rows": 3,
+      "model_mape_pct": 1.534599,
+      "baseline_mape_pct": 1.554073,
+      "delta_mape_pct_points": -0.019474,
+      "signed_return_bias_pct": -0.142424,
+      "model_beats_baseline": true
+    },
+    {
+      "symbol": "LAURUSLABS",
+      "rows": 7,
+      "model_mape_pct": 0.633418,
+      "baseline_mape_pct": 0.648576,
+      "delta_mape_pct_points": -0.015158,
+      "signed_return_bias_pct": 0.154572,
+      "model_beats_baseline": true
+    },
+    {
+      "symbol": "IPCALAB",
+      "rows": 4,
+      "model_mape_pct": 1.025517,
+      "baseline_mape_pct": 1.038204,
+      "delta_mape_pct_points": -0.012686,
+      "signed_return_bias_pct": 0.086811,
+      "model_beats_baseline": true
+    }
+  ],
+  "regimes": [
+    {
+      "regime": "QUIET_LT_1PCT",
+      "rows": 70,
+      "model_mape_pct": 0.538589,
+      "baseline_mape_pct": 0.488447,
+      "delta_mape_pct_points": 0.050143,
+      "signed_return_bias_pct": 0.17721,
+      "model_beats_baseline": false
+    },
+    {
+      "regime": "NORMAL_1_TO_2_5PCT",
+      "rows": 69,
+      "model_mape_pct": 1.683733,
+      "baseline_mape_pct": 1.675327,
+      "delta_mape_pct_points": 0.008407,
+      "signed_return_bias_pct": 0.499427,
+      "model_beats_baseline": false
+    },
+    {
+      "regime": "VOLATILE_GE_2_5PCT",
+      "rows": 51,
+      "model_mape_pct": 4.465577,
+      "baseline_mape_pct": 4.501367,
+      "delta_mape_pct_points": -0.03579,
+      "signed_return_bias_pct": 0.917305,
+      "model_beats_baseline": true
+    }
+  ],
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "automatic_promotion": false,
+  "interpretation": "Diagnostic only. Symbol and realized-move segments are descriptive, not causal; small per-symbol samples must not be used alone to exclude stocks."
+}

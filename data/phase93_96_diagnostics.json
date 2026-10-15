@@ -2,7 +2,7 @@
   "phase93_receipt_forensics": {
     "groups_with_multiple_message_ids": 3,
     "groups_with_timestamp_intervals": 3,
-    "hashed_rows": 99,
+    "hashed_rows": 100,
     "note": "Receipt logs lack full message bodies; same hash with multiple API message IDs warrants manual review but does not prove an unintended resend.",
     "repeated_hash_groups": 3,
     "resends_performed": false,

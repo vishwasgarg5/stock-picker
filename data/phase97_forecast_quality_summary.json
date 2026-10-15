@@ -14,7 +14,7 @@
     "scored_rows": 190,
     "close_mape_pct": 1.9966238081511285,
     "close_mae": 51.91752845362613,
-    "directional_accuracy_pct": 0.5263157894736842
+    "directional_accuracy_pct": null
   },
   "five_session_momentum_baseline": {
     "scored_rows": 190,

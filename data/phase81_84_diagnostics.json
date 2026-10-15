@@ -6,18 +6,18 @@
     84
   ],
   "phase81_telegram_receipts": {
-    "rows": 99,
-    "confirmed": 26,
+    "rows": 100,
+    "confirmed": 27,
     "legacy_unverified": 73,
     "unknown_status": 0,
     "duplicate_hash_rows": 8,
     "confirmed_missing_message_id": 0,
-    "api_confirmed_pct": 26.26,
+    "api_confirmed_pct": 27.0,
     "status": "RECEIPTS_NEED_RECONCILIATION",
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 44,
-        "confirmed": 17,
+        "rows": 45,
+        "confirmed": 18,
         "legacy_unverified": 27,
         "unknown_status": 0,
         "duplicate_hash_rows": 8,

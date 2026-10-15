@@ -1,0 +1,38 @@
+name: Forecast Calibration Regression Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/forecast-calibration-ci.yml"
+      - "src/phase97_forecast_quality.py"
+      - "src/phase116_shrinkage_calibration.py"
+      - "tests/test_phase97_forecast_quality.py"
+      - "tests/test_phase116_shrinkage_calibration.py"
+  pull_request:
+    paths:
+      - "src/phase97_forecast_quality.py"
+      - "src/phase116_shrinkage_calibration.py"
+      - "tests/test_phase97_forecast_quality.py"
+      - "tests/test_phase116_shrinkage_calibration.py"
+
+permissions:
+  contents: read
+
+jobs:
+  forecast-calibration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pandas numpy pytest
+      - name: Validate Python syntax
+        run: python -m py_compile src/phase97_forecast_quality.py src/phase116_shrinkage_calibration.py tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py
+      - name: Run forecast calibration regression tests
+        run: pytest -q tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py

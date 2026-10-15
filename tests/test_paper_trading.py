@@ -79,6 +79,8 @@ def test_both_target_and_stop_uses_conservative_stop():
     assert result["signal"] == "BUY"
     assert result["exit_reason"] == "stop_and_target_same_day_conservative"
     assert result["exit_price"] < row["actual_open"]
+    assert result["ledger_schema_version"] == 2
+    assert pd.to_datetime(result["record_created_at_utc"], utc=True) is not pd.NaT
 
 
 def test_training_rows_only_use_matching_actual_session():

@@ -50,7 +50,7 @@ jobs:
         run: python -m compileall -q src
 
       - name: Run Phase 2 and directional regression tests
-        run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py tests/test_model_governance.py tests/test_phase4_optimizer.py tests/test_pipeline_data_quality.py tests/test_news_context.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_pipeline_ranking.py tests/test_advanced_governance.py tests/test_phase20_accuracy.py tests/test_phase21_26.py tests/test_telegram_index_summary.py tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py tests/test_paper_trading.py tests/test_phase32_40_diagnostics.py tests/test_phase41_43_diagnostics.py tests/test_phase48_52_evidence.py tests/test_phase58_62_evidence.py tests/test_telegram_delivery_receipts.py tests/test_index_intelligence_data_quality.py tests/test_phase63_72_readiness.py tests/test_phase73_76_diagnostics.py tests/test_phase77_80_diagnostics.py tests/test_phase81_84_diagnostics.py tests/test_phase85_88_diagnostics.py tests/test_phase89_92_diagnostics.py tests/test_phase93_96_diagnostics.py tests/test_phase97_forecast_quality.py tests/test_phase98_101_quality.py tests/test_phase102_diagnostics.py tests/test_phase103_forecast_evidence.py tests/test_phase104_loss_concentration.py tests/test_phase105_exit_attribution.py tests/test_phase106_trade_lifecycle.py tests/test_phase107_115_evidence.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_system_health.py
+        run: pytest -q tests/test_phase2_optimizer.py tests/test_directional_model.py tests/test_model_governance.py tests/test_phase4_optimizer.py tests/test_pipeline_data_quality.py tests/test_news_context.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_pipeline_ranking.py tests/test_advanced_governance.py tests/test_phase20_accuracy.py tests/test_phase21_26.py tests/test_telegram_index_summary.py tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py tests/test_paper_trading.py tests/test_phase32_40_diagnostics.py tests/test_phase41_43_diagnostics.py tests/test_phase48_52_evidence.py tests/test_phase58_62_evidence.py tests/test_telegram_delivery_receipts.py tests/test_index_intelligence_data_quality.py tests/test_phase63_72_readiness.py tests/test_phase73_76_diagnostics.py tests/test_phase77_80_diagnostics.py tests/test_phase81_84_diagnostics.py tests/test_phase85_88_diagnostics.py tests/test_phase89_92_diagnostics.py tests/test_phase93_96_diagnostics.py tests/test_phase97_forecast_quality.py tests/test_phase98_101_quality.py tests/test_phase102_diagnostics.py tests/test_phase103_forecast_evidence.py tests/test_phase104_loss_concentration.py tests/test_phase105_exit_attribution.py tests/test_phase106_trade_lifecycle.py tests/test_phase107_115_evidence.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_system_health.py
 
       - name: Preflight end-to-end integration wiring
         if: always()
@@ -230,6 +230,9 @@ jobs:
 
       - name: Run Phase 117 chronological bias correction experiment (analysis-only)
         run: python -m src.phase117_bias_correction
+
+      - name: Run Phase 118 forecast error diagnosis by symbol and realized-move regime (analysis-only)
+        run: python -m src.phase118_forecast_error_diagnosis
 
       - name: Run Phase 104 V1 loss concentration audit (analysis-only)
         run: python -m src.phase104_loss_concentration

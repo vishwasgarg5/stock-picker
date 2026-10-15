@@ -279,8 +279,18 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
 def phase110_forecast_accuracy() -> dict[str, Any]:
     pred = _read("predictions.csv")
     history = _read("ohlcv.csv", usecols=lambda c: c in {"symbol", "date", "open", "high", "low", "close"})
-    if pred.empty or history.empty or not {"symbol", "target_date"}.issubset(pred.columns):
-        return _write("phase110_forecast_accuracy_summary.json", {"status": "INSUFFICIENT_DATA", "matched_rows": 0, "metrics": {}})
+    required_prediction_keys = {"symbol", "target_date"}
+    required_history_columns = {"symbol", "date", "open", "high", "low", "close"}
+    if (
+        pred.empty or history.empty
+        or not required_prediction_keys.issubset(pred.columns)
+        or not required_history_columns.issubset(history.columns)
+    ):
+        return _write("phase110_forecast_accuracy_summary.json", {
+            "status": "INSUFFICIENT_DATA", "matched_rows": 0, "metrics": {},
+            "missing_prediction_key_columns": sorted(required_prediction_keys.difference(pred.columns)),
+            "missing_history_columns": sorted(required_history_columns.difference(history.columns)),
+        })
     predicted = {"open": "predicted_open", "high": "predicted_high", "low": "predicted_low", "close": "predicted_close"}
     actual = history.rename(columns={"date": "target_date", **{k: f"actual_{k}" for k in predicted}})
     pred["symbol"] = pred["symbol"].astype(str).str.upper().str.strip()

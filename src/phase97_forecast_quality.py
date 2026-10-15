@@ -92,11 +92,12 @@ def _metrics(frame: pd.DataFrame, pred_col: str) -> dict[str, Any]:
     actual = pd.to_numeric(frame.get("actual_close", pd.Series(np.nan, index=frame.index)), errors="coerce")
     pred = pd.to_numeric(frame.get(pred_col, pd.Series(np.nan, index=frame.index)), errors="coerce")
     valid = actual.notna() & pred.notna() & actual.ne(0)
+    direction = None if pred_col in {"base_close", "previous_close_baseline"} else _direction_accuracy(frame, pred_col)
     return {
         "scored_rows": int(valid.sum()),
         "close_mape_pct": _mape(actual, pred),
         "close_mae": _mae(actual, pred),
-        "directional_accuracy_pct": _direction_accuracy(frame, pred_col),
+        "directional_accuracy_pct": direction,
     }
 
 

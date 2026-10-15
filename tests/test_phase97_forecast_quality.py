@@ -25,6 +25,8 @@ def test_quality_audit_compares_model_with_baselines_and_excludes_temporal_leaka
     assert summary["rejected_temporal_rows"] == 1
     assert summary["momentum_baseline_scored_rows"] == 1
     assert summary["five_session_momentum_baseline"]["close_mape_pct"] == 0.0
+    # A no-change baseline is neutral, not a directional forecast.
+    assert summary["previous_close_baseline"]["directional_accuracy_pct"] is None
     assert summary["production_champion"] == "V1"
     assert summary["v2_mode"] == "SHADOW_ONLY"
     assert summary["production_model_changed"] is False

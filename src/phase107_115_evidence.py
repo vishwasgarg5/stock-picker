@@ -396,11 +396,23 @@ def phase113_sustained_evidence(v1: pd.DataFrame, v2: pd.DataFrame) -> dict[str,
     return _write("phase113_sustained_evidence_summary.json", {"status": "SCORED" if v2e["minimum_trade_count_met"] and v2e["minimum_session_count_met"] else "INSUFFICIENT_EVIDENCE", "v1": v1e, "v2": v2e, "minimum_v2_trades": MIN_V2_TRADES, "minimum_distinct_sessions": MIN_SESSIONS, "note": "Minimum counts are necessary but not sufficient; market-regime coverage and uncertainty still require review."})
 
 
-def phase114_promotion_gate(recon: dict[str, Any], funnel: dict[str, Any], forecast: dict[str, Any], replay: dict[str, Any], sustained: dict[str, Any]) -> dict[str, Any]:
+def phase114_promotion_gate(
+    recon: dict[str, Any],
+    funnel: dict[str, Any],
+    forecast: dict[str, Any],
+    replay: dict[str, Any],
+    sustained: dict[str, Any],
+    exit_attribution: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    exit_attribution = exit_attribution or {}
     gates = {
         "pnl_reconciliation_pass": recon.get("status") == "PASS",
         "selection_reasons_complete": funnel.get("status") == "SCORED" and funnel.get("skip_rows_without_reason", 0) == 0,
         "selection_funnel_stage_coverage": funnel.get("existing_funnel_valid") is True and funnel.get("required_gate_stages_present") is True,
+        "exit_reason_attribution_complete": (
+            exit_attribution.get("status") == "SCORED"
+            and exit_attribution.get("unknown_or_unrecorded_reason_rows", 1) == 0
+        ),
         "forecast_metrics_available": forecast.get("status") == "SCORED",
         "chronological_evidence_sufficient": replay.get("status") == "SCORED",
         "sustained_v2_sample_sufficient": sustained.get("status") == "SCORED",
@@ -419,8 +431,14 @@ def run() -> dict[str, Any]:
     replay = phase111_chronological_replay(v1, v2)
     market = phase112_market_intelligence()
     sustained = phase113_sustained_evidence(v1, v2)
-    gate = phase114_promotion_gate(recon, funnel, forecast, replay, sustained)
-    monitor = _write("phase115_shadow_monitoring_summary.json", {"status": "PASS" if all((DATA / name).exists() for name in ["phase107_pnl_reconciliation_summary.json", "phase108_loss_concentration_summary.json", "phase109_selection_funnel_summary.json", "phase110_forecast_accuracy_summary.json", "phase111_chronological_replay_summary.json", "phase112_market_intelligence_summary.json", "phase113_sustained_evidence_summary.json", "phase114_promotion_readiness_summary.json"]) else "BLOCKED", "phase_statuses": {"107_pnl": recon.get("status"), "108_losses": loss.get("status"), "109_funnel": funnel.get("status"), "110_forecast": forecast.get("status"), "111_replay": replay.get("status"), "112_market": market.get("status"), "113_sustained": sustained.get("status"), "114_gate": gate.get("status")}, "production_changes_authorized": False, "v1_champion_v2_shadow_only": True})
+    try:
+        exit_attribution = json.loads(
+            (DATA / "phase105_exit_attribution_summary.json").read_text(encoding="utf-8")
+        )
+    except (OSError, ValueError, UnicodeDecodeError):
+        exit_attribution = {}
+    gate = phase114_promotion_gate(recon, funnel, forecast, replay, sustained, exit_attribution)
+    monitor = _write("phase115_shadow_monitoring_summary.json", {"status": "PASS" if all((DATA / name).exists() for name in ["phase107_pnl_reconciliation_summary.json", "phase108_loss_concentration_summary.json", "phase109_selection_funnel_summary.json", "phase110_forecast_accuracy_summary.json", "phase111_chronological_replay_summary.json", "phase112_market_intelligence_summary.json", "phase113_sustained_evidence_summary.json", "phase114_promotion_readiness_summary.json"]) else "BLOCKED", "status_semantics": "PASS means all diagnostic reports were generated; it does not mean profitability or promotion readiness.", "phase_statuses": {"107_pnl": recon.get("status"), "108_losses": loss.get("status"), "109_funnel": funnel.get("status"), "110_forecast": forecast.get("status"), "111_replay": replay.get("status"), "112_market": market.get("status"), "113_sustained": sustained.get("status"), "114_gate": gate.get("status")}, "production_changes_authorized": False, "v1_champion_v2_shadow_only": True})
     print(json.dumps(monitor, indent=2, default=str))
     return monitor
 

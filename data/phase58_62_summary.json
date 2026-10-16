@@ -1,49 +1,49 @@
 {
-  "as_of": "2026-10-15T17:10:33.620046+00:00",
+  "as_of": "2026-10-16T15:02:19.474126+00:00",
   "phase58_accounting": {
     "status": "INCOMPLETE",
-    "rows_examined": 190,
-    "executed_rows_examined": 121,
-    "incomplete_rows": 51,
+    "rows_examined": 200,
+    "executed_rows_examined": 126,
+    "incomplete_rows": 56,
     "missing_field_counts": {
       "quantity": 0,
       "entry_price": 0,
       "exit_price": 0,
-      "gross_profit_loss": 51,
-      "costs": 51,
+      "gross_profit_loss": 56,
+      "costs": 56,
       "profit_loss": 0
     },
-    "missing_cost_rows": 51,
+    "missing_cost_rows": 56,
     "missing_net_pnl_rows": 0,
-    "gross_reconstruction_possible_rows": 21,
+    "gross_reconstruction_possible_rows": 25,
     "values_imputed": false,
     "net_pnl_claim_safe": false
   },
   "phase59_forecast": {
     "status": "PASS",
-    "scored_rows": 190,
-    "model_close_mape_pct": 2.00854361127533,
-    "baseline_close_mape_pct": 1.9966238081511243,
-    "error_delta_pct_points": 0.011919803124205597,
+    "scored_rows": 200,
+    "model_close_mape_pct": 1.9925780887049402,
+    "baseline_close_mape_pct": 1.9812558881269569,
+    "error_delta_pct_points": 0.011322200577983388,
     "beats_baseline": false,
-    "chronological_dates": 19,
+    "chronological_dates": 20,
     "symbol_breakdown_available": true,
     "evaluation_source": "phase33_chronological_prediction_scores.csv",
     "production_model_changed": false
   },
   "phase60_v2": {
     "status": "PASS",
-    "rows": 150,
+    "rows": 160,
     "buy_rows": 0,
-    "skip_rows": 150,
+    "skip_rows": 160,
     "missing_skip_reason_rows": 0,
     "primary_reason_counts": {
-      "phase2_not_selected": 84,
-      "confidence_percentile": 60,
+      "phase2_not_selected": 90,
+      "confidence_percentile": 64,
       "phase4_ineligible": 6
     },
     "phase4_reason_counts": {
-      "NOT_RECORDED": 144,
+      "NOT_RECORDED": 154,
       "minimum_expected_return": 3,
       "phase4_confidence_floor": 3
     },
@@ -51,14 +51,14 @@
   },
   "phase61_telegram": {
     "status": "PASS",
-    "rows_across_logs": 100,
-    "api_confirmed_rows": 27,
+    "rows_across_logs": 101,
+    "api_confirmed_rows": 28,
     "legacy_unverified_rows": 73,
     "missing_status_rows": 0,
     "by_file": {
       "telegram_sent.csv": {
-        "rows": 45,
-        "confirmed": 18,
+        "rows": 46,
+        "confirmed": 19,
         "legacy_unverified": 27,
         "missing_status": 0
       },

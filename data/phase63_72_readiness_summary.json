@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-15T17:10:34.007912+00:00",
+  "as_of_utc": "2026-10-16T15:02:19.793165+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -7,7 +7,7 @@
   "sections": {
     "prediction_report": {
       "status": "PASS",
-      "target_date": "2026-10-16",
+      "target_date": "2026-10-19",
       "rows_for_target_date": 10,
       "top10_rows": 10,
       "top10_complete": true,
@@ -15,33 +15,33 @@
       "invalid_ohlc_rows": 0,
       "duplicate_symbol_rows": 0,
       "top10_symbols": [
-        "PERSISTENT",
-        "COFORGE",
+        "TECHM",
+        "HCLTECH",
+        "MPHASIS",
         "KARURVYSYA",
-        "TARIL",
-        "ELECON",
-        "CPPLUS",
-        "ICICIGI",
         "SHYAMMETL",
-        "ECLERX",
-        "KOTAKBANK"
+        "HBLENGINE",
+        "LTTS",
+        "INDHOTEL",
+        "HAL",
+        "JINDALSAW"
       ],
       "ranked_candidates_are_not_buy_approval": true
     },
     "forecast_baseline": {
       "status": "BASELINE_NOT_BEATEN",
-      "scored_rows": 190,
-      "unique_dates": 19,
-      "model_close_mape_pct": 2.00854361127533,
-      "baseline_close_mape_pct": 1.9966238081511243,
-      "error_delta_pct_points": 0.011919803124205597,
+      "scored_rows": 200,
+      "unique_dates": 20,
+      "model_close_mape_pct": 1.9925780887049402,
+      "baseline_close_mape_pct": 1.9812558881269569,
+      "error_delta_pct_points": 0.011322200577983388,
       "beats_baseline": false,
-      "directional_accuracy_pct": 46.8421052631579,
+      "directional_accuracy_pct": 47.5,
       "recent_5_sessions": 5,
       "recent_5_sessions_scored_rows": 50,
-      "recent_5_sessions_model_close_mape_pct": 2.235640847778701,
-      "recent_5_sessions_baseline_close_mape_pct": 2.2466465763269885,
-      "recent_5_sessions_error_delta_pct_points": -0.011005728548287408,
+      "recent_5_sessions_model_close_mape_pct": 2.2171158719662687,
+      "recent_5_sessions_baseline_close_mape_pct": 2.2219869415004045,
+      "recent_5_sessions_error_delta_pct_points": -0.004871069534135852,
       "recent_5_sessions_beats_baseline": true,
       "recent_5_sessions_directional_accuracy_pct": 56.00000000000001,
       "per_date_comparison": [
@@ -177,6 +177,13 @@
           "model_close_mape_pct": 4.545207689635868,
           "baseline_close_mape_pct": 4.538956847140428,
           "error_delta_pct_points": 0.006250842495440168
+        },
+        {
+          "target_date": "2026-10-16",
+          "scored_rows": 10,
+          "model_close_mape_pct": 1.6892331598675419,
+          "baseline_close_mape_pct": 1.689265407667777,
+          "error_delta_pct_points": -3.22478002352522e-05
         }
       ],
       "same_scored_rows_for_comparison": true,
@@ -184,7 +191,7 @@
     },
     "paper_ledger": {
       "status": "PASS",
-      "rows": 190,
+      "rows": 200,
       "executed_rows": 70,
       "incomplete_executed_rows": 0,
       "net_pnl_reconciliation_mismatch_rows": 0,
@@ -193,18 +200,18 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 100,
-      "rows_with_usable_message_keys": 100,
-      "api_confirmed_rows": 27,
-      "duplicate_message_keys": 5,
+      "rows": 101,
+      "rows_with_usable_message_keys": 101,
+      "api_confirmed_rows": 28,
+      "duplicate_message_keys": 6,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 45,
-          "confirmed": 18,
+          "rows": 46,
+          "confirmed": 19,
           "legacy_unverified": 27,
-          "duplicate_message_keys": 5,
+          "duplicate_message_keys": 6,
           "rows_missing_message_key": 0,
-          "rows_in_duplicate_key_groups": 8
+          "rows_in_duplicate_key_groups": 10
         },
         "telegram_evening_sent.csv": {
           "rows": 21,
@@ -236,10 +243,10 @@
     },
     "v2_evidence": {
       "status": "PASS",
-      "rows": 150,
-      "unique_sessions": 15,
+      "rows": 160,
+      "unique_sessions": 16,
       "buy_rows": 0,
-      "skip_rows": 150,
+      "skip_rows": 160,
       "skip_rows_without_reason": 0,
       "existing_promotion_safe": false,
       "promotion_ready": false,

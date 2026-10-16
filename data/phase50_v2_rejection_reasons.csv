@@ -1,6 +1,6 @@
 reason_source,reason,rows
-no_trade_reason,phase2_not_selected,84
-no_trade_reason,confidence_percentile,60
+no_trade_reason,phase2_not_selected,90
+no_trade_reason,confidence_percentile,64
 no_trade_reason,phase4_ineligible,6
 phase4_reject_reason,minimum_expected_return,3
 phase4_reject_reason,phase4_confidence_floor,3

@@ -37,7 +37,7 @@
     "candidate_rows": 210,
     "candidate_symbols": 85,
     "target_dates": 21,
-    "candidate_close_mape_pct": 2.0234854964083966,
+    "candidate_close_mape_pct": 2.023485496408397,
     "previous_close_baseline_mape_pct": 1.9648023776548933,
     "candidate_beats_previous_close": false,
     "walk_forward": true,

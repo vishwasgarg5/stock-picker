@@ -3,17 +3,11 @@
   "market_regime": "NEUTRAL",
   "risk_multiplier": 0.8,
   "news_sentiment": "BULLISH",
-  "news_score": 0.5599999999999999,
-  "market_reason": "General market: India VIX Jumps 4.48% as Markets Slide on Oct 19 - HDFC Sky",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9nendPLXFRcjVBSzFQN0VkZ0lKWjNYTk4ySjRMV0RDdFUwaDFvdDBGWVZDd2dtekdvbE0zdDNXZVFJY3JVUzVfcXJ4aXBHV0ozbm1ZdVQ4Rkswb2JCYm1sVThHRTdRVzZMcUlZUmpRb1RfWkdyQXpyZFdKZHBtdw?oc=5",
-  "news_headline": "General market: India VIX Jumps 4.48% as Markets Slide on Oct 19 - HDFC Sky",
+  "news_score": 0.42000000000000004,
+  "market_reason": "General market: Oct 19: Sensex Crashes 876 Pts, Nifty Below 22,900 as Pvt Banks Slide; PSU Banks Rally - The Indian Awaaz",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQaWRrWjZWWTFJbGVYa3VrR1B6X3k1dkpSak0zS3lWbUtTU1VhcmNFbjJNU01FX3BibDVvenpHT08xTG82THBHakhpOGNPWWF3NGdLU0kxanJqb0ZEYlhyUkY1c0VrMHllX1RMZXU5VC1CQ25OTXdEeWg3MFlmdnYyVjJJMFVmbUplTldSdmprdFp0bGVDRGRUWk1xUmc1emRjMWlpbkd2TnNFRFhzR0Y0?oc=5",
+  "news_headline": "General market: Oct 19: Sensex Crashes 876 Pts, Nifty Below 22,900 as Pvt Banks Slide; PSU Banks Rally - The Indian Awaaz",
   "news_reasons": [
-    {
-      "event": "General market",
-      "impact": 1.0,
-      "headline": "India VIX Jumps 4.48% as Markets Slide on Oct 19 - HDFC Sky",
-      "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9nendPLXFRcjVBSzFQN0VkZ0lKWjNYTk4ySjRMV0RDdFUwaDFvdDBGWVZDd2dtekdvbE0zdDNXZVFJY3JVUzVfcXJ4aXBHV0ozbm1ZdVQ4Rkswb2JCYm1sVThHRTdRVzZMcUlZUmpRb1RfWkdyQXpyZFdKZHBtdw?oc=5"
-    },
     {
       "event": "General market",
       "impact": 1.0,
@@ -37,22 +31,28 @@
       "impact": 0.5,
       "headline": "Rupee falls 3 paise to 94.92 against US dollar, ends six-session rally - Telangana Today",
       "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOOGhwcnRTTUVPMGJsNkNmX0JnVGgyNWFhamRnQUhVVTlOUDd0TnE2U2JNVWxmbGVORmpoelBLTDJQQ0RsSFpLUjlHcFB2SkN1M0Q5cEp0RUd0OWIzemwxU2RFQ1VNMUlSb1BfLUlNMHBZUUZRMmJ0SS1wQlRYSzVOQU1QaHNQXzZVbDFvSmJha204dHVVRWNCckh5WEE?oc=5"
+    },
+    {
+      "event": "Crude oil",
+      "impact": 0.3,
+      "headline": "India VIX Rises 4.48% to 14.69 On October 19 as Banking Stocks Fall and Oil Risks Persist - HDFC Sky",
+      "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9nendPLXFRcjVBSzFQN0VkZ0lKWjNYTk4ySjRMV0RDdFUwaDFvdDBGWVZDd2dtekdvbE0zdDNXZVFJY3JVUzVfcXJ4aXBHV0ozbm1ZdVQ4Rkswb2JCYm1sVThHRTdRVzZMcUlZUmpRb1RfWkdyQXpyZFdKZHBtdw?oc=5"
     }
   ],
-  "market_intelligence_score": 48.76710266159695,
+  "market_intelligence_score": 48.54310266159695,
   "risk_level": "NEUTRAL",
-  "market_confidence": 0.5610960760456275,
+  "market_confidence": 0.5631120760456275,
   "data_quality": "MEDIUM",
   "index_data_available": false,
   "breadth_pct_above_sma20": 25.85551330798479,
   "sector_news_impacts": {
-    "information technology": 1.7999999999999998,
-    "it": 1.7999999999999998,
-    "pharma": 0.8999999999999999,
     "airlines": 2.0,
     "paints": 1.6,
     "chemicals": 1.2,
     "tyres": 1.2,
-    "oil & gas": -1.6
+    "oil & gas": -1.6,
+    "information technology": 1.7999999999999998,
+    "it": 1.7999999999999998,
+    "pharma": 0.8999999999999999
   }
 }

@@ -7,40 +7,40 @@
   ],
   "phase85_receipt_anomaly_classification": {
     "status": "REVIEW_REQUIRED",
-    "rows": 105,
+    "rows": 109,
     "repeated_hash_rows": 10,
     "missing_hash_rows": 0,
     "hash_coverage_pct": 100.0,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 47,
+        "rows": 48,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 42.55,
+        "message_id_coverage_pct": 43.75,
         "repeated_hash_rows": 10,
         "unique_repeated_hashes": 4
       },
       "telegram_evening_sent.csv": {
-        "rows": 22,
+        "rows": 23,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 18.18,
+        "message_id_coverage_pct": 21.74,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       },
       "telegram_paper_sent.csv": {
-        "rows": 23,
+        "rows": 24,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 17.39,
+        "message_id_coverage_pct": 20.83,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       },
       "telegram_paper_v2_sent.csv": {
-        "rows": 13,
+        "rows": 14,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 30.77,
+        "message_id_coverage_pct": 35.71,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       }
@@ -78,8 +78,8 @@
   "phase88_storage_performance": {
     "status": "BENCHMARK_PARITY_PASS",
     "source_path": "data/ohlcv.csv",
-    "source_bytes": 80535471,
-    "gzip_bytes": 18301013,
+    "source_bytes": 80535095,
+    "gzip_bytes": 18300848,
     "size_reduction_pct": 77.28,
     "rows": 946181,
     "columns": [
@@ -91,15 +91,15 @@
       "close",
       "volume"
     ],
-    "raw_read_seconds": 0.6202,
-    "gzip_read_seconds": 0.8765,
-    "gzip_read_time_delta_pct": 41.33,
+    "raw_read_seconds": 0.3361,
+    "gzip_read_seconds": 0.5161,
+    "gzip_read_time_delta_pct": 53.53,
     "raw_dataframe_memory_bytes": 161808149,
     "gzip_dataframe_memory_bytes": 161808149,
     "dataframe_memory_equal": true,
     "dataframe_parity": true,
-    "sha256_before": "df31627c276cc5ce5bfa41e2aec39c3802e1703a6f6bb0ac52ba527c4a0f74e4",
-    "sha256_after": "df31627c276cc5ce5bfa41e2aec39c3802e1703a6f6bb0ac52ba527c4a0f74e4",
+    "sha256_before": "a50fde0d793d79b2733b8beb967a45d9503ddd99e087aa8df92a1f9fcee0c44c",
+    "sha256_after": "a50fde0d793d79b2733b8beb967a45d9503ddd99e087aa8df92a1f9fcee0c44c",
     "source_unchanged": true,
     "prototype_only": true,
     "production_reader_switched": false,

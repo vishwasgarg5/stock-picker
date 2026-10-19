@@ -1,11 +1,11 @@
 {
   "status": "SCORED",
-  "skipped_rows_with_actuals": 160,
+  "skipped_rows_with_actuals": 170,
   "rejection_reasons": 3,
   "confidence_field_used": "confidence_v3",
-  "high_confidence_skips": 30,
-  "high_confidence_mean_close_return_pct": 0.7277406657825372,
-  "high_confidence_positive_rate_pct": 53.333333333333336,
+  "high_confidence_skips": 33,
+  "high_confidence_mean_close_return_pct": 0.7062632463679883,
+  "high_confidence_positive_rate_pct": 51.515151515151516,
   "counterfactuals_are_not_executable_pnl": true,
   "selection_gates_changed": false,
   "production_model_changed": false

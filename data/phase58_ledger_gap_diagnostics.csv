@@ -125,3 +125,8 @@ row_index,symbol,target_date,missing_quantity,missing_entry_price,missing_exit_p
 192,KARURVYSYA,2026-10-16,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE
 193,TARIL,2026-10-16,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE
 194,ELECON,2026-10-16,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+200,TECHM,2026-10-19,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+201,HCLTECH,2026-10-19,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+202,MPHASIS,2026-10-19,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+203,KARURVYSYA,2026-10-19,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+204,SHYAMMETL,2026-10-19,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE

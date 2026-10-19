@@ -2,7 +2,7 @@
   "phase93_receipt_forensics": {
     "groups_with_multiple_message_ids": 4,
     "groups_with_timestamp_intervals": 4,
-    "hashed_rows": 101,
+    "hashed_rows": 105,
     "note": "Receipt logs lack full message bodies; same hash with multiple API message IDs warrants manual review but does not prove an unintended resend.",
     "repeated_hash_groups": 4,
     "resends_performed": false,
@@ -12,11 +12,11 @@
     "chronological_source": "phase33_chronological_prediction_scores.csv",
     "periods_scored": 2,
     "ranking_or_threshold_changed": false,
-    "rows_scored": 200,
+    "rows_scored": 210,
     "status": "SEGMENTED_DIAGNOSTIC_ONLY",
-    "symbols_better_than_baseline": 33,
-    "symbols_scored": 77,
-    "symbols_worse_than_baseline": 44,
+    "symbols_better_than_baseline": 35,
+    "symbols_scored": 85,
+    "symbols_worse_than_baseline": 50,
     "worst_symbols": [
       {
         "delta_pct_points": 1.369,
@@ -72,7 +72,7 @@
   },
   "phase95_v2_earliest_rejection": {
     "earliest_blocking_stage": "actual_data_join_and_validation",
-    "earliest_stage_input_rows": 210,
+    "earliest_stage_input_rows": 220,
     "earliest_stage_rejected_rows": 50,
     "funnel_stages": 10,
     "note": "The earliest stage with rejections is a funnel bottleneck candidate; later-stage counts are not additive unique candidates.",
@@ -80,14 +80,14 @@
     "signals_changed": false,
     "stages_with_rejections": 6,
     "status": "DIAGNOSTIC_ONLY",
-    "total_rejected_rows_stage_sum": 216
+    "total_rejected_rows_stage_sum": 226
   },
   "phase96_storage_preflight": {
     "backup_restore_tested": false,
     "error_type": null,
     "estimated_size_reduction_pct": 77.28,
     "first_100_rows_parity": true,
-    "gzip_size_bytes": 18290488,
+    "gzip_size_bytes": 18301013,
     "migration_executed": false,
     "next_required_steps": [
       "full-file parity validation",
@@ -98,9 +98,9 @@
     ],
     "production_reader_switched": false,
     "rollback_tested": false,
-    "source_sha256_after": "fac2b87243c9e35712d23a83bff09c29c0bed19aff44a794ca20a9546dbe8013",
-    "source_sha256_before": "fac2b87243c9e35712d23a83bff09c29c0bed19aff44a794ca20a9546dbe8013",
-    "source_size_bytes": 80494532,
+    "source_sha256_after": "df31627c276cc5ce5bfa41e2aec39c3802e1703a6f6bb0ac52ba527c4a0f74e4",
+    "source_sha256_before": "df31627c276cc5ce5bfa41e2aec39c3802e1703a6f6bb0ac52ba527c4a0f74e4",
+    "source_size_bytes": 80535471,
     "source_unchanged": true,
     "status": "PREFLIGHT_PASSED_NO_MIGRATION"
   },

@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-10-19 00:00:00",
+  "as_of": "2026-10-20 00:00:00",
   "production_strategy": "V1",
   "status": "collecting",
   "reason": "insufficient matched-date evidence",
@@ -25,9 +25,9 @@
   "governance_bootstrap_ci_low_pct": -0.1439906910819975,
   "governance_drift_status": "PASS",
   "phase4_safe": true,
-  "phase4_regime": "NEUTRAL",
+  "phase4_regime": "BEAR",
   "phase4_confidence_floor_percentile": 0.55,
-  "phase4_min_expected_return_pct": 0.5,
+  "phase4_min_expected_return_pct": 0.625,
   "phase4_bootstrap_ci_low_pct": -Infinity,
   "advanced_promotion_eligible": false,
   "advanced_promotion_checks": "{\"ci_low\": false, \"confidence_evidence\": true, \"governance_safe\": false, \"minimum_sessions\": false, \"minimum_trades\": false, \"no_drawdown_breach\": false, \"return_lift\": false, \"session_win_rate\": false}"

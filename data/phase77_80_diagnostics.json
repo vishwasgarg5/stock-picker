@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-19T17:23:56.568146+00:00",
+  "as_of_utc": "2026-10-20T15:11:54.066140+00:00",
   "phases": [
     77,
     78,
@@ -8,16 +8,16 @@
   ],
   "phase77_delivery": {
     "status": "RECEIPT_AUDIT_INCOMPLETE",
-    "rows": 109,
-    "confirmed": 36,
+    "rows": 110,
+    "confirmed": 37,
     "legacy_unverified": 73,
     "missing_status": 0,
     "duplicates": 6,
-    "confirmed_receipt_pct": 33.03,
+    "confirmed_receipt_pct": 33.64,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 48,
-        "confirmed": 21,
+        "rows": 49,
+        "confirmed": 22,
         "legacy_unverified": 27,
         "missing_status": 0,
         "duplicate_keys": 6,
@@ -89,7 +89,7 @@
   "phase80_storage_migration_plan": {
     "status": "PLAN_REQUIRED",
     "source_path": "data/ohlcv.csv",
-    "source_bytes": 80535095,
+    "source_bytes": 80535244,
     "source_mib": 76.8,
     "steps": [
       "Create a checksum and row/date/symbol baseline before any change.",

@@ -7,7 +7,7 @@
   ],
   "phase89_receipt_reconciliation": {
     "status": "REVIEW_REQUIRED",
-    "rows": 109,
+    "rows": 110,
     "repeated_hash_groups": 4,
     "confirmed_repeated_hash_groups": 4,
     "multiple_confirmed_message_id_groups": 4,
@@ -41,7 +41,7 @@
   "phase92_storage_migration_readiness": {
     "source_exists": true,
     "source_sha256_recorded": true,
-    "source_size_bytes": 80535095,
+    "source_size_bytes": 80535244,
     "source_over_github_recommended_50mb": true,
     "backup_and_restore_test_required": true,
     "reader_compatibility_test_required": true,
@@ -51,7 +51,7 @@
     "production_reader_switched": false,
     "source_modified": false,
     "status": "MIGRATION_PLANNING_REQUIRED",
-    "sha256": "a50fde0d793d79b2733b8beb967a45d9503ddd99e087aa8df92a1f9fcee0c44c"
+    "sha256": "05a981b19b85ff9fce8cb5aa94879d7cbc72e4caf5541d5fec2553e97cb075ec"
   },
   "safety": {
     "production_champion": "V1",

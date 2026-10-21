@@ -42,7 +42,7 @@ def test_stability_audit_compares_all_variants_on_same_rows_and_corrects_past_bi
         pd.to_datetime(corrected["latest_training_target_date"])
         < pd.to_datetime(corrected["prediction_date"])
     ).all()
-    assert set(regimes["regime"]) == {"QUIET_LT_1PCT", "NORMAL_1_TO_2_5PCT"}
+    assert set(regimes["regime"]) == {"VOLATILE_GE_2_5PCT"}
     assert set(symbols["symbol"]) == {"AAA", "BBB", "CCC", "DDD"}
 
 

@@ -8,7 +8,7 @@
     "v2_net_pnl_exceeds_v1": true,
     "forecast_beats_baseline": false
   },
-  "matched_sessions": 17,
+  "matched_sessions": 18,
   "minimum_matched_sessions": 20,
   "v2_executed_trades": 0,
   "minimum_v2_executed_trades": 50,

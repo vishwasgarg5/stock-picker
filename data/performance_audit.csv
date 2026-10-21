@@ -1,52 +1,52 @@
 area,metric,value,as_of
-OHLC/model,evaluation_rows,210,2026-10-20
-OHLC/model,close_abs_pct_error,1.9738158261386363,2026-10-20
-OHLC/model,open_abs_pct_error,0.7201793512335631,2026-10-20
-OHLC/model,high_abs_pct_error,1.4613624397570282,2026-10-20
-OHLC/model,low_abs_pct_error,1.4496688430118658,2026-10-20
-OHLC/model,baseline_close_abs_pct_error,1.9648023776548882,2026-10-20
-OHLC/model,direction_accuracy_pct,47.14285714285714,2026-10-20
-OHLC/model,recent_5_close_mape_pct,2.238023935442601,2026-10-20
-OHLC/model,recent_5_baseline_close_mape_pct,2.249220560040493,2026-10-20
-OHLC/model,recent_5_vs_baseline_improvement_pct,0.49780020673874104,2026-10-20
-OHLC/model,recent_10_close_mape_pct,2.0546711377112223,2026-10-20
-OHLC/model,recent_10_baseline_close_mape_pct,2.0515415691468633,2026-10-20
-OHLC/model,recent_10_vs_baseline_improvement_pct,-0.15254716801376134,2026-10-20
-OHLC/model,recent_20_close_mape_pct,1.9441893750550034,2026-10-20
-OHLC/model,recent_20_baseline_close_mape_pct,1.9338688427648691,2026-10-20
-OHLC/model,recent_20_vs_baseline_improvement_pct,-0.5336728149246683,2026-10-20
-V1,sessions,21,2026-10-20
-V1,net_pnl,-8183.354261060769,2026-10-20
-V1,max_drawdown_pct,,2026-10-20
-V2,sessions,17,2026-10-20
-V2,net_pnl,0.0,2026-10-20
-V2,max_drawdown_pct,0.0,2026-10-20
-V2,trades,0.0,2026-10-20
-Confidence,rows,170,2026-10-20
-Confidence,sessions,17,2026-10-20
-Confidence,top_confidence_mape_pct,1.7276990591091967,2026-10-20
-Confidence,bottom_confidence_mape_pct,2.4465962624387783,2026-10-20
-Confidence,top_bottom_mape_improvement_pct,29.38356501096677,2026-10-20
-Confidence,top_confidence_direction_pct,49.01960784313725,2026-10-20
-Confidence,bottom_confidence_direction_pct,44.11764705882353,2026-10-20
-Confidence,confidence_promotion_evidence,True,2026-10-20
-Ranking challenger,sessions,639,2026-10-20
-Ranking challenger,rows,315341,2026-10-20
-Ranking challenger,mean_top10_return_lift_pct,0.1442570256495546,2026-10-20
-Ranking challenger,positive_rate_lift_pct,1.0641627543035952,2026-10-20
-Ranking challenger,promotion_evidence,True,2026-10-20
-Ranking challenger,production_ready,False,2026-10-20
-Ranking challenger,status,validated_hold,2026-10-20
-Ranking challenger,recent_5_lift_pct,0.2519928891421158,2026-10-20
-Ranking challenger,recent_10_lift_pct,-0.2883916885860064,2026-10-20
-Ranking challenger,recent_20_lift_pct,-0.0898174325543268,2026-10-20
-Ranking challenger,recent_5_positive_lift_pct,2.0,2026-10-20
-Ranking challenger,recent_10_positive_lift_pct,-11.0,2026-10-20
-Ranking challenger,recent_20_positive_lift_pct,-7.0,2026-10-20
-Strategy A/B,common_sessions,17,2026-10-20
-Strategy A/B,v2_trades,0,2026-10-20
-Strategy A/B,pnl_lift,0.0,2026-10-20
-Strategy A/B,return_lift_pct,0.0,2026-10-20
-Strategy A/B,session_win_rate_pct,0.0,2026-10-20
-Strategy A/B,production_strategy,V1,2026-10-20
-Strategy A/B,status,collecting,2026-10-20
+OHLC/model,evaluation_rows,220,2026-10-21
+OHLC/model,close_abs_pct_error,2.034066826407398,2026-10-21
+OHLC/model,open_abs_pct_error,0.7360529332036663,2026-10-21
+OHLC/model,high_abs_pct_error,1.5030414563279275,2026-10-21
+OHLC/model,low_abs_pct_error,1.4948878973314121,2026-10-21
+OHLC/model,baseline_close_abs_pct_error,2.0249188461828225,2026-10-21
+OHLC/model,direction_accuracy_pct,47.27272727272727,2026-10-21
+OHLC/model,recent_5_close_mape_pct,2.47802852860272,2026-10-21
+OHLC/model,recent_5_baseline_close_mape_pct,2.4834586570704884,2026-10-21
+OHLC/model,recent_5_vs_baseline_improvement_pct,0.21865185684926125,2026-10-21
+OHLC/model,recent_10_close_mape_pct,2.211440431178876,2026-10-21
+OHLC/model,recent_10_baseline_close_mape_pct,2.2096916293221387,2026-10-21
+OHLC/model,recent_10_vs_baseline_improvement_pct,-0.07914234880248561,2026-10-21
+OHLC/model,recent_20_close_mape_pct,2.0332392649776185,2026-10-21
+OHLC/model,recent_20_baseline_close_mape_pct,2.0229005866518293,2026-10-21
+OHLC/model,recent_20_vs_baseline_improvement_pct,-0.511081878862929,2026-10-21
+V1,sessions,22,2026-10-21
+V1,net_pnl,-8237.0552498303,2026-10-21
+V1,max_drawdown_pct,,2026-10-21
+V2,sessions,18,2026-10-21
+V2,net_pnl,0.0,2026-10-21
+V2,max_drawdown_pct,0.0,2026-10-21
+V2,trades,0.0,2026-10-21
+Confidence,rows,170,2026-10-21
+Confidence,sessions,17,2026-10-21
+Confidence,top_confidence_mape_pct,1.7276990591091967,2026-10-21
+Confidence,bottom_confidence_mape_pct,2.4465962624387783,2026-10-21
+Confidence,top_bottom_mape_improvement_pct,29.38356501096677,2026-10-21
+Confidence,top_confidence_direction_pct,49.01960784313725,2026-10-21
+Confidence,bottom_confidence_direction_pct,44.11764705882353,2026-10-21
+Confidence,confidence_promotion_evidence,True,2026-10-21
+Ranking challenger,sessions,639,2026-10-21
+Ranking challenger,rows,315343,2026-10-21
+Ranking challenger,mean_top10_return_lift_pct,0.1442570256495546,2026-10-21
+Ranking challenger,positive_rate_lift_pct,1.0641627543035952,2026-10-21
+Ranking challenger,promotion_evidence,True,2026-10-21
+Ranking challenger,production_ready,False,2026-10-21
+Ranking challenger,status,validated_hold,2026-10-21
+Ranking challenger,recent_5_lift_pct,0.2519928891421158,2026-10-21
+Ranking challenger,recent_10_lift_pct,-0.2883916885860064,2026-10-21
+Ranking challenger,recent_20_lift_pct,-0.0898174325543268,2026-10-21
+Ranking challenger,recent_5_positive_lift_pct,2.0,2026-10-21
+Ranking challenger,recent_10_positive_lift_pct,-11.0,2026-10-21
+Ranking challenger,recent_20_positive_lift_pct,-7.0,2026-10-21
+Strategy A/B,common_sessions,18,2026-10-21
+Strategy A/B,v2_trades,0,2026-10-21
+Strategy A/B,pnl_lift,0.0,2026-10-21
+Strategy A/B,return_lift_pct,0.0,2026-10-21
+Strategy A/B,session_win_rate_pct,0.0,2026-10-21
+Strategy A/B,production_strategy,V1,2026-10-21
+Strategy A/B,status,collecting,2026-10-21

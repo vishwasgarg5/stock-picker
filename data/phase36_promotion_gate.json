@@ -1,10 +1,10 @@
 {
-  "matched_sessions": 17,
+  "matched_sessions": 18,
   "minimum_matched_sessions": 20,
   "v2_executed_trades": 0,
   "minimum_v2_executed_trades": 50,
   "holdout_comparison_available": true,
-  "holdout_v1_net_pnl": -3870.760009765625,
+  "holdout_v1_net_pnl": -3924.4609985351562,
   "holdout_v2_net_pnl": 0.0,
   "status": "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE",
   "production_champion": "V1",

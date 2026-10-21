@@ -11,12 +11,12 @@
 
 ## Historical prediction replay
 - Status: SCORED
-- Scored rows: 210
-- Holdout metrics: {'rows': 80, 'open_mape_pct': 0.7684060217198201, 'high_mape_pct': 1.6176643272179139, 'low_mape_pct': 1.6307855139713379, 'close_mape_pct': 2.1416264661416267, 'close_direction_accuracy_pct': 53.75, 'status': 'SCORED'}
+- Scored rows: 220
+- Holdout metrics: {'rows': 80, 'open_mape_pct': 0.8050595673397754, 'high_mape_pct': 1.7316692366416093, 'low_mape_pct': 1.7155989637084084, 'close_mape_pct': 2.2206682257031325, 'close_direction_accuracy_pct': 55.00000000000001, 'status': 'SCORED'}
 
 ## Trading evidence
 - Promotion gate: NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE
-- Matched sessions: 17; V2 executed trades: 0
+- Matched sessions: 18; V2 executed trades: 0
 
 ## Data and news audits
 - Data checks: 6

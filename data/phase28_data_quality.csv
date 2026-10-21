@@ -1,13 +1,13 @@
 dataset,check,status,affected_rows,detail
-evaluations,input_available,PASS,0,210 rows loaded
+evaluations,input_available,PASS,0,220 rows loaded
 evaluations,symbol_values,PASS,0,blank or null-like symbols after normalization
-evaluations,prediction_dates_parseable,PASS,0,0/210 prediction_date values are invalid
-evaluations,business_keys_valid,PASS,0,0/210 rows have invalid prediction_date/symbol keys
+evaluations,prediction_dates_parseable,PASS,0,0/220 prediction_date values are invalid
+evaluations,business_keys_valid,PASS,0,0/220 rows have invalid prediction_date/symbol keys
 evaluations,business_keys_unique,PASS,0,0 excess rows across duplicate valid prediction_date/symbol keys; invalid keys excluded
-candidates,input_available,PASS,0,360 rows loaded
+candidates,input_available,PASS,0,380 rows loaded
 candidates,symbol_values,PASS,0,blank or null-like symbols after normalization
-candidates,prediction_dates_parseable,PASS,0,0/360 prediction_date values are invalid
-candidates,business_keys_valid,PASS,0,0/360 rows have invalid target_date/symbol keys
+candidates,prediction_dates_parseable,PASS,0,0/380 prediction_date values are invalid
+candidates,business_keys_valid,PASS,0,0/380 rows have invalid target_date/symbol keys
 candidates,business_keys_unique,PASS,0,0 excess rows across duplicate valid target_date/symbol keys; invalid keys excluded
 candidates,prediction_precedes_target,PASS,0,0 rows have prediction_date >= target_date; 0 rows have an unparseable date
 evaluations,prediction_precedes_target,PASS,0,0 rows have prediction_date >= target_date; 0 rows have an unparseable date

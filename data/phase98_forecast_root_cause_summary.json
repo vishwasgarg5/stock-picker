@@ -1,16 +1,16 @@
 {
   "status": "SCORED",
-  "scored_rows": 210,
-  "symbols": 85,
+  "scored_rows": 220,
+  "symbols": 88,
   "ohlc_mape_pct": {
-    "open_mape_pct": 0.7201793512335681,
-    "high_mape_pct": 1.4613624397570337,
-    "low_mape_pct": 1.449668843011871,
-    "close_mape_pct": 1.9738158261386423
+    "open_mape_pct": 0.736052933203671,
+    "high_mape_pct": 1.5030414563279326,
+    "low_mape_pct": 1.494887897331417,
+    "close_mape_pct": 2.034066826407405
   },
-  "close_mape_pct": 1.9738158261386423,
-  "mean_signed_error_pct": 0.5379938443315552,
-  "overprediction_rows": 127,
-  "underprediction_rows": 83,
+  "close_mape_pct": 2.034066826407405,
+  "mean_signed_error_pct": 0.4608098443604988,
+  "overprediction_rows": 131,
+  "underprediction_rows": 89,
   "diagnostic_only": true
 }

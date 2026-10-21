@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-20T15:11:52.845958+00:00",
+  "as_of_utc": "2026-10-21T15:29:44.859419+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -7,7 +7,7 @@
   "sections": {
     "prediction_report": {
       "status": "PASS",
-      "target_date": "2026-10-21",
+      "target_date": "2026-10-22",
       "rows_for_target_date": 10,
       "top10_rows": 10,
       "top10_complete": true,
@@ -15,35 +15,35 @@
       "invalid_ohlc_rows": 0,
       "duplicate_symbol_rows": 0,
       "top10_symbols": [
-        "TCS",
         "KARURVYSYA",
-        "PNB",
-        "MPHASIS",
-        "SHYAMMETL",
-        "ZENSARTECH",
         "TECHM",
-        "HCLTECH",
-        "GABRIEL",
-        "LTTS"
+        "HFCL",
+        "MPHASIS",
+        "TCS",
+        "HEXT",
+        "PNB",
+        "LTTS",
+        "SHYAMMETL",
+        "BSOFT"
       ],
       "ranked_candidates_are_not_buy_approval": true
     },
     "forecast_baseline": {
       "status": "BASELINE_NOT_BEATEN",
-      "scored_rows": 210,
-      "unique_dates": 21,
-      "model_close_mape_pct": 1.9738158261386374,
-      "baseline_close_mape_pct": 1.964802377654889,
-      "error_delta_pct_points": 0.009013448483748299,
+      "scored_rows": 220,
+      "unique_dates": 22,
+      "model_close_mape_pct": 2.0340668264073996,
+      "baseline_close_mape_pct": 2.0249188461828234,
+      "error_delta_pct_points": 0.009147980224576191,
       "beats_baseline": false,
-      "directional_accuracy_pct": 47.61904761904761,
+      "directional_accuracy_pct": 47.72727272727273,
       "recent_5_sessions": 5,
       "recent_5_sessions_scored_rows": 50,
-      "recent_5_sessions_model_close_mape_pct": 2.238023935442601,
-      "recent_5_sessions_baseline_close_mape_pct": 2.2492205600404933,
-      "recent_5_sessions_error_delta_pct_points": -0.011196624597892502,
+      "recent_5_sessions_model_close_mape_pct": 2.4780285286027204,
+      "recent_5_sessions_baseline_close_mape_pct": 2.483458657070489,
+      "recent_5_sessions_error_delta_pct_points": -0.005430128467768469,
       "recent_5_sessions_beats_baseline": true,
-      "recent_5_sessions_directional_accuracy_pct": 57.99999999999999,
+      "recent_5_sessions_directional_accuracy_pct": 54.0,
       "per_date_comparison": [
         {
           "target_date": "2026-09-18",
@@ -191,6 +191,13 @@
           "model_close_mape_pct": 1.598570574812572,
           "baseline_close_mape_pct": 1.635732168213529,
           "error_delta_pct_points": -0.03716159340095704
+        },
+        {
+          "target_date": "2026-10-21",
+          "scored_rows": 10,
+          "model_close_mape_pct": 3.2993378320514024,
+          "baseline_close_mape_pct": 3.2873646852694436,
+          "error_delta_pct_points": 0.011973146781958821
         }
       ],
       "same_scored_rows_for_comparison": true,
@@ -198,7 +205,7 @@
     },
     "paper_ledger": {
       "status": "PASS",
-      "rows": 210,
+      "rows": 220,
       "executed_rows": 70,
       "incomplete_executed_rows": 0,
       "net_pnl_reconciliation_mismatch_rows": 0,
@@ -207,14 +214,14 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 110,
-      "rows_with_usable_message_keys": 110,
-      "api_confirmed_rows": 37,
+      "rows": 111,
+      "rows_with_usable_message_keys": 111,
+      "api_confirmed_rows": 38,
       "duplicate_message_keys": 6,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 49,
-          "confirmed": 22,
+          "rows": 50,
+          "confirmed": 23,
           "legacy_unverified": 27,
           "duplicate_message_keys": 6,
           "rows_missing_message_key": 0,
@@ -250,10 +257,10 @@
     },
     "v2_evidence": {
       "status": "PASS",
-      "rows": 170,
-      "unique_sessions": 17,
+      "rows": 180,
+      "unique_sessions": 18,
       "buy_rows": 0,
-      "skip_rows": 170,
+      "skip_rows": 180,
       "skip_rows_without_reason": 0,
       "existing_promotion_safe": false,
       "promotion_ready": false,

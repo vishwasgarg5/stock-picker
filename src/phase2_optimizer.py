@@ -188,6 +188,13 @@ def _shadow_selection_metrics(c: pd.DataFrame, e: pd.DataFrame) -> tuple[float, 
     return direction_lift, return_lift, int(m["prediction_date"].nunique())
 
 
+def _attach_repeat_loss_penalty(candidates: pd.DataFrame, repeat: pd.DataFrame) -> pd.DataFrame:
+    """Attach fresh penalties while replacing any stale candidate column."""
+    base = candidates.drop(columns=["repeat_loss_penalty"], errors="ignore")
+    penalty = repeat.drop(columns=["repeat_loss_penalty"], errors="ignore")
+    return base.merge(penalty, on="symbol", how="left")
+
+
 def _production_gate(summary: dict) -> tuple[bool, str]:
     enough = summary["matched_sessions"] >= MIN_SESSIONS and summary["v2_trades"] >= MIN_TRADES
     if not enough:
@@ -232,7 +239,7 @@ def run_phase2() -> pd.DataFrame:
     model_direction = pd.to_numeric(c.get("direction_score_model", pd.Series(np.nan, index=c.index)), errors="coerce")
     c["direction_score_v3"] = (0.60 * historical_direction + 0.40 * model_direction.fillna(historical_direction)).clip(0, 100)
     c["confidence_v3"] = _confidence_v3(c, direction)
-    c = c.merge(repeat, on="symbol", how="left")
+    c = _attach_repeat_loss_penalty(c, repeat)
     c["repeat_loss_penalty"] = pd.to_numeric(c["repeat_loss_penalty"], errors="coerce").fillna(0.0)
 
     regime = _regime(c, h)

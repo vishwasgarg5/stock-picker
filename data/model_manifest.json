@@ -1,5 +1,5 @@
 {
-  "files": 61,
+  "files": 62,
   "sha256": {
     "src/advanced_governance.py": "0dcf2f6d211bc3ef4f914d0d7bd734ae17c31c2c7f72f0c6a20a8417391b6c6d",
     "src/confidence.py": "22c48932fe9d10c5c5ccd5f915c281176e1720f7bc5ae61cc5d8abfede44d08e",
@@ -25,6 +25,7 @@
     "src/phase117_bias_correction.py": "c4f3edc7cb923742b555b294e6a2d05cac5f94b506b526349a86a5a75a8e0d04",
     "src/phase118_forecast_error_diagnosis.py": "28c21118eea49348e8a4c27410d8bcfa760e553145e410c7b34aedc46e0a8248",
     "src/phase119_prospective_validation.py": "ccf45af663905d9a7696d9f3f2c9362c1726e0716c898ae5903a86e96728290c",
+    "src/phase120_forecast_stability.py": "d9e235e6f3dd096d91dbf45227e20dfde690b1fcbda71e7d693154a87bc9484e",
     "src/phase20_accuracy.py": "9cdc1c228d122381a889eb7bef8891b3fdd64ecd81a1b95df13fc76c244345a0",
     "src/phase21_26.py": "9d0bbfbdef64b0b9abc605476074c2e35dee139dcd2a61c476224fd58d6ea363",
     "src/phase27_data_quality.py": "e05782a65e5ed40b959da312323552f7f429c10f88bb9dc925e0f49cf6b04259",
@@ -60,7 +61,7 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "c20b6c58a25b2b89abb0e16ba7a02df51f8c38acbb4515e055de85392c414de5",
+    ".github/workflows/daily.yml": "62d104fc351bc98168eec524775bdc3e0a9a5b366d329bd6bb79277a9657deb2",
     ".github/workflows/forecast-calibration-ci.yml": "ee67298e71994b179f42071f5b198d491e9f4f7fcc20f3a640a054134e5d4715"
   },
   "manifest_version": "governance_v1"

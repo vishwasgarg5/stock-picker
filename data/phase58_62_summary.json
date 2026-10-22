@@ -1,49 +1,49 @@
 {
-  "as_of": "2026-10-21T15:29:44.563558+00:00",
+  "as_of": "2026-10-22T14:20:57.318945+00:00",
   "phase58_accounting": {
     "status": "INCOMPLETE",
-    "rows_examined": 220,
-    "executed_rows_examined": 136,
-    "incomplete_rows": 66,
+    "rows_examined": 230,
+    "executed_rows_examined": 141,
+    "incomplete_rows": 71,
     "missing_field_counts": {
       "quantity": 0,
       "entry_price": 0,
       "exit_price": 0,
-      "gross_profit_loss": 66,
-      "costs": 66,
+      "gross_profit_loss": 71,
+      "costs": 71,
       "profit_loss": 0
     },
-    "missing_cost_rows": 66,
+    "missing_cost_rows": 71,
     "missing_net_pnl_rows": 0,
-    "gross_reconstruction_possible_rows": 30,
+    "gross_reconstruction_possible_rows": 31,
     "values_imputed": false,
     "net_pnl_claim_safe": false
   },
   "phase59_forecast": {
     "status": "PASS",
-    "scored_rows": 220,
-    "model_close_mape_pct": 2.0340668264073996,
-    "baseline_close_mape_pct": 2.0249188461828234,
-    "error_delta_pct_points": 0.009147980224576191,
+    "scored_rows": 230,
+    "model_close_mape_pct": 2.0087465230203683,
+    "baseline_close_mape_pct": 2.0006858701252415,
+    "error_delta_pct_points": 0.008060652895126807,
     "beats_baseline": false,
-    "chronological_dates": 22,
+    "chronological_dates": 23,
     "symbol_breakdown_available": true,
     "evaluation_source": "phase33_chronological_prediction_scores.csv",
     "production_model_changed": false
   },
   "phase60_v2": {
     "status": "PASS",
-    "rows": 180,
+    "rows": 190,
     "buy_rows": 0,
-    "skip_rows": 180,
+    "skip_rows": 190,
     "missing_skip_reason_rows": 0,
     "primary_reason_counts": {
-      "phase2_not_selected": 102,
-      "confidence_percentile": 72,
+      "phase2_not_selected": 108,
+      "confidence_percentile": 76,
       "phase4_ineligible": 6
     },
     "phase4_reason_counts": {
-      "NOT_RECORDED": 174,
+      "NOT_RECORDED": 184,
       "minimum_expected_return": 3,
       "phase4_confidence_floor": 3
     },
@@ -51,32 +51,32 @@
   },
   "phase61_telegram": {
     "status": "PASS",
-    "rows_across_logs": 111,
-    "api_confirmed_rows": 38,
+    "rows_across_logs": 115,
+    "api_confirmed_rows": 42,
     "legacy_unverified_rows": 73,
     "missing_status_rows": 0,
     "by_file": {
       "telegram_sent.csv": {
-        "rows": 50,
-        "confirmed": 23,
+        "rows": 51,
+        "confirmed": 24,
         "legacy_unverified": 27,
         "missing_status": 0
       },
       "telegram_evening_sent.csv": {
-        "rows": 23,
-        "confirmed": 5,
+        "rows": 24,
+        "confirmed": 6,
         "legacy_unverified": 18,
         "missing_status": 0
       },
       "telegram_paper_sent.csv": {
-        "rows": 24,
-        "confirmed": 5,
+        "rows": 25,
+        "confirmed": 6,
         "legacy_unverified": 19,
         "missing_status": 0
       },
       "telegram_paper_v2_sent.csv": {
-        "rows": 14,
-        "confirmed": 5,
+        "rows": 15,
+        "confirmed": 6,
         "legacy_unverified": 9,
         "missing_status": 0
       }

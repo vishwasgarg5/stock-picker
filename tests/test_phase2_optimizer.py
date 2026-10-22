@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from src.phase2_optimizer import (
+    _attach_repeat_loss_penalty,
     _production_gate,
     _repeat_loss_penalty,
     _shadow_selection_metrics,
@@ -82,3 +83,20 @@ def test_shadow_metrics_are_safe_with_missing_values():
     assert sessions == 1
     assert direction == 0.0
     assert ret == 0.0
+
+
+def test_repeat_penalty_replaces_existing_candidate_column_without_suffixes():
+    candidates = pd.DataFrame({
+        "symbol": ["ABC", "XYZ"],
+        "repeat_loss_penalty": [99.0, 99.0],
+    })
+    repeat = pd.DataFrame({
+        "symbol": ["ABC", "XYZ"],
+        "repeat_loss_penalty": [1.25, 0.0],
+    })
+
+    out = _attach_repeat_loss_penalty(candidates, repeat)
+
+    assert "repeat_loss_penalty_x" not in out.columns
+    assert "repeat_loss_penalty_y" not in out.columns
+    assert out["repeat_loss_penalty"].tolist() == [1.25, 0.0]

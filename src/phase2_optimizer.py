@@ -191,7 +191,8 @@ def _shadow_selection_metrics(c: pd.DataFrame, e: pd.DataFrame) -> tuple[float, 
 def _attach_repeat_loss_penalty(candidates: pd.DataFrame, repeat: pd.DataFrame) -> pd.DataFrame:
     """Attach fresh penalties while replacing any stale candidate column."""
     base = candidates.drop(columns=["repeat_loss_penalty"], errors="ignore")
-    penalty = repeat.drop(columns=["repeat_loss_penalty"], errors="ignore")
+    # Keep the computed penalty column; only remove the candidate-side stale value.
+    penalty = repeat[["symbol", "repeat_loss_penalty"]].copy()
     return base.merge(penalty, on="symbol", how="left")
 
 

@@ -1,2 +1,2 @@
 status,universe_symbols,fresh_symbols,coverage_pct,prediction_count,latest_prediction_date,prediction_integrity,latest_data_date,model_performance,warnings,failures
-PASS,501,497,99.2,10,2026-10-23,PASS,2026-10-22,recent close MAPE 2.52% vs baseline 2.52%,,
+PASS,501,497,99.2,10,2026-10-26,PASS,2026-10-23,recent close MAPE 1.94% vs baseline 1.95%,,

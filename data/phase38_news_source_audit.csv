@@ -1,7 +1,7 @@
 check,status,affected_rows,detail
-news_rows,PASS,0,3 index-intelligence rows
+news_rows,PASS,0,5 index-intelligence rows
 headline_present,PASS,0,headline field is populated
 source_url_present,PASS,0,source URLs must be HTTP(S)
 news_asof_date_parseable,PASS,0,as_of timestamp/date parses
-duplicate_headlines,WARN,3,exact duplicate headline text; not proof of duplicate event
+duplicate_headlines,WARN,5,exact duplicate headline text; not proof of duplicate event
 exploratory_next_session_sentiment_alignment,INSUFFICIENT_DATA,0,Need at least 20 as-of index/date pairs; source timestamp quality must be verified

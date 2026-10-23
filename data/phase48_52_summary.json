@@ -9,21 +9,21 @@
   "phase48_ledger": {
     "v1": {
       "model": "V1",
-      "rows": 230,
-      "executed_trades": 141,
-      "incomplete_rows": 71,
+      "rows": 240,
+      "executed_trades": 146,
+      "incomplete_rows": 76,
       "reconciliation_mismatch_rows": 0,
-      "gross_rows_reconstructed_from_prices": 71,
+      "gross_rows_reconstructed_from_prices": 76,
       "ledger_status": "INCOMPLETE_OR_MISMATCH",
-      "gross_pnl": -6776.068445169945,
-      "net_pnl": -7474.5438481967885,
+      "gross_pnl": -8685.057405436059,
+      "net_pnl": -9383.532808462902,
       "recorded_costs": null,
       "missing_values_imputed": false,
       "derived_gross_values_are_flagged": true
     },
     "v2": {
       "model": "V2",
-      "rows": 190,
+      "rows": 200,
       "executed_trades": 0,
       "incomplete_rows": 0,
       "reconciliation_mismatch_rows": 0,
@@ -38,57 +38,57 @@
   },
   "phase49_forecast": {
     "status": "SCORED",
-    "scored_rows": 230,
-    "target_dates": 23,
-    "close_mape_pct": 2.0087465230203683,
-    "baseline_close_mape_pct": 2.0006858701252415,
+    "scored_rows": 240,
+    "target_dates": 24,
+    "close_mape_pct": 1.9933412641791544,
+    "baseline_close_mape_pct": 1.9873415984689624,
     "forecast_beats_baseline": false,
     "ohlc_mape_pct": {
-      "open": 0.7372794688134295,
-      "high": 1.488974111734692,
-      "low": 1.4794293803800647,
-      "close": 2.0087465230203683
+      "open": 0.7467687714633164,
+      "high": 1.48166886996643,
+      "low": 1.5395156645546086,
+      "close": 1.9933412641791544
     },
-    "directional_accuracy_pct": 47.82608695652174,
+    "directional_accuracy_pct": 48.333333333333336,
     "method": "saved chronological predictions versus saved base-close baseline; no refit or production model changes"
   },
   "phase50_rejection_reason_rows": 5,
   "phase50_rejection_summary": {
     "phase": 50,
-    "candidate_rows": 190,
+    "candidate_rows": 200,
     "signal_counts": {
-      "SKIP": 190
+      "SKIP": 200
     },
     "reason_counts": [
       {
         "source": "no_trade_reason",
         "reason": "phase2_not_selected",
-        "rows": 108,
-        "pct_of_candidate_rows": 56.84210526315789
+        "rows": 114,
+        "pct_of_candidate_rows": 56.99999999999999
       },
       {
         "source": "no_trade_reason",
         "reason": "confidence_percentile",
-        "rows": 76,
+        "rows": 80,
         "pct_of_candidate_rows": 40.0
       },
       {
         "source": "no_trade_reason",
         "reason": "phase4_ineligible",
         "rows": 6,
-        "pct_of_candidate_rows": 3.1578947368421053
+        "pct_of_candidate_rows": 3.0
       },
       {
         "source": "phase4_reject_reason",
         "reason": "minimum_expected_return",
         "rows": 3,
-        "pct_of_candidate_rows": 1.5789473684210527
+        "pct_of_candidate_rows": 1.5
       },
       {
         "source": "phase4_reject_reason",
         "reason": "phase4_confidence_floor",
         "rows": 3,
-        "pct_of_candidate_rows": 1.5789473684210527
+        "pct_of_candidate_rows": 1.5
       }
     ],
     "interpretation": "Reasons are observed telemetry only. Do not weaken selection or risk gates based on counts alone.",
@@ -99,13 +99,13 @@
     "phase": 52,
     "status": "NOT_ELIGIBLE",
     "gate_checks": {
-      "minimum_matched_sessions_met": false,
+      "minimum_matched_sessions_met": true,
       "minimum_v2_executed_trades_met": false,
       "both_ledgers_complete": false,
       "v2_net_pnl_exceeds_v1": true,
       "forecast_beats_baseline": false
     },
-    "matched_sessions": 19,
+    "matched_sessions": 20,
     "minimum_matched_sessions": 20,
     "v2_executed_trades": 0,
     "minimum_v2_executed_trades": 50,

@@ -1,30 +1,30 @@
 {
   "status": "SCORED",
-  "scored_rows": 230,
-  "symbols": 90,
-  "target_dates": 23,
+  "scored_rows": 240,
+  "symbols": 93,
+  "target_dates": 24,
   "rejected_temporal_rows": 0,
   "model": {
-    "scored_rows": 230,
-    "close_mape_pct": 2.0087465230203683,
-    "close_mae": 49.92819607332309,
-    "directional_accuracy_pct": 47.391304347826086
+    "scored_rows": 240,
+    "close_mape_pct": 1.9933412641791544,
+    "close_mae": 49.07441411105561,
+    "directional_accuracy_pct": 47.91666666666667
   },
   "previous_close_baseline": {
-    "scored_rows": 230,
-    "close_mape_pct": 2.0006858701252415,
-    "close_mae": 49.11091467815897,
+    "scored_rows": 240,
+    "close_mape_pct": 1.9873415984689624,
+    "close_mae": 48.327336088816324,
     "directional_accuracy_pct": null
   },
   "five_session_momentum_baseline": {
-    "scored_rows": 230,
-    "close_mape_pct": 7.720127656791847,
-    "close_mae": 198.8086710088232,
-    "directional_accuracy_pct": 39.565217391304344
+    "scored_rows": 240,
+    "close_mape_pct": 7.797981895466033,
+    "close_mae": 198.29265925481073,
+    "directional_accuracy_pct": 38.75
   },
   "model_beats_previous_close_baseline": false,
   "model_beats_five_session_momentum_baseline": true,
-  "momentum_baseline_scored_rows": 230,
+  "momentum_baseline_scored_rows": 240,
   "method": "Saved chronological predictions; historical momentum uses only closes dated on or before prediction_date. This is an evaluation baseline, not a deployed strategy.",
   "production_champion": "V1",
   "v2_mode": "SHADOW_ONLY",

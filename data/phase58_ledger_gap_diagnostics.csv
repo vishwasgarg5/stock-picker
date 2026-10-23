@@ -140,3 +140,8 @@ row_index,symbol,target_date,missing_quantity,missing_entry_price,missing_exit_p
 222,HFCL,2026-10-22,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
 223,MPHASIS,2026-10-22,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
 224,TCS,2026-10-22,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE
+230,CRISIL,2026-10-23,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+231,WIPRO,2026-10-23,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE
+232,INFY,2026-10-23,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE
+233,TECHM,2026-10-23,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE
+234,PNB,2026-10-23,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE

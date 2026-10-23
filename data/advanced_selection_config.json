@@ -1,10 +1,10 @@
 {
-  "as_of": "2026-10-22T14:20:42.111816+00:00",
+  "as_of": "2026-10-23T15:10:43.096963+00:00",
   "advanced_control_version": "advanced_v1",
   "data_freshness": {
     "status": "PASS",
     "age_days": 0,
-    "latest_date": "2026-10-22"
+    "latest_date": "2026-10-23"
   },
   "high_confidence_count": 5,
   "medium_confidence_count": 4,
@@ -12,7 +12,7 @@
   "promotion_gate": {
     "promotion_eligible": false,
     "checks": {
-      "minimum_sessions": false,
+      "minimum_sessions": true,
       "minimum_trades": false,
       "return_lift": false,
       "session_win_rate": false,

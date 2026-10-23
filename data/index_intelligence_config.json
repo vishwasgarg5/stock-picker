@@ -1,55 +1,55 @@
 {
   "version": "index_intelligence_v3",
   "market_regime": "BEAR",
-  "risk_multiplier": 0.8,
-  "news_sentiment": "BEARISH",
-  "news_score": -0.74,
-  "market_reason": "Crude oil: Sensex falls 600 pts, Nifty near 22,600: Higher crude prices among key factors behind market decline - TradingView",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMi8wFBVV95cUxQZm5ha2RELXpoV1BQRi1HMXZuVEdLSHhab19naHhOdERTaS1vS3VaU3RPT25IXy13d2xlNGxjekJJQjd0VGplQ25KVmdVUHgxRWxBMzZXTF8wdm1EeFlBb1lveHotNFBMbnJRd0kxelUzWFg2bEN1Qzl4aVFUdDBsUUJiVmNSdW4wTmlXSXNUSHlBZmsyLUk0ZzFZUE9KMTBSVGsxZThRVE5hRGpPVDFzelBQdTFNRTkwTWlma0w2UGJvd0VlZUkyTWl2MUl6R3otakVEdWZlUjYyTldkeDV1b3JTWWl1NzZIU0lZVUFWYVlpVmc?oc=5",
-  "news_headline": "Crude oil: Sensex falls 600 pts, Nifty near 22,600: Higher crude prices among key factors behind market decline - TradingView",
+  "risk_multiplier": 0.55,
+  "news_sentiment": "BULLISH",
+  "news_score": -0.5,
+  "market_reason": "General market: Indian markets gain at open, led by IT sector shares - The Assam Tribune",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQd1RqSTFhYXZUd1R0QmlRUDExNnZvU0JWc1otZFFUMDNob0ZWQ2ZqMUNjcHNPeVo0a0ZWSHhTVmZLLWdfNm52RDllRWZ0c1N2TENZSHdFeUl5bXk2TGY0bDZvN0dBZmJ5Qi1xaVV4RUtsU091TEQwY1JQQXVqRGFHM1lXeWV1Q3lVRWt0Mk5CajNjd1RuQ2REdUxqbE5KQdIBngFBVV95cUxQd1RqSTFhYXZUd1R0QmlRUDExNnZvU0JWc1otZFFUMDNob0ZWQ2ZqMUNjcHNPeVo0a0ZWSHhTVmZLLWdfNm52RDllRWZ0c1N2TENZSHdFeUl5bXk2TGY0bDZvN0dBZmJ5Qi1xaVV4RUtsU091TEQwY1JQQXVqRGFHM1lXeWV1Q3lVRWt0Mk5CajNjd1RuQ2REdUxqbE5KQQ?oc=5",
+  "news_headline": "General market: Indian markets gain at open, led by IT sector shares - The Assam Tribune",
   "news_reasons": [
     {
-      "event": "Crude oil",
-      "impact": -1.0,
-      "headline": "Sensex falls 600 pts, Nifty near 22,600: Higher crude prices among key factors behind market decline - TradingView",
-      "url": "https://news.google.com/rss/articles/CBMi8wFBVV95cUxQZm5ha2RELXpoV1BQRi1HMXZuVEdLSHhab19naHhOdERTaS1vS3VaU3RPT25IXy13d2xlNGxjekJJQjd0VGplQ25KVmdVUHgxRWxBMzZXTF8wdm1EeFlBb1lveHotNFBMbnJRd0kxelUzWFg2bEN1Qzl4aVFUdDBsUUJiVmNSdW4wTmlXSXNUSHlBZmsyLUk0ZzFZUE9KMTBSVGsxZThRVE5hRGpPVDFzelBQdTFNRTkwTWlma0w2UGJvd0VlZUkyTWl2MUl6R3otakVEdWZlUjYyTldkeDV1b3JTWWl1NzZIU0lZVUFWYVlpVmc?oc=5"
-    },
-    {
-      "event": "Crude oil",
-      "impact": -1.0,
-      "headline": "Sensex settles 450 pts lower, Nifty ends below 22,700: Higher crude prices among key factors behind market decline - TradingView",
-      "url": "https://news.google.com/rss/articles/CBMihgJBVV95cUxObmFsTVNOa3hIeFgwNF9STTF3bV9PT2VnRVRLREN5Rl8tWnhVODBHbTU4RWRlMmVmZjlFYWl6RVVrdWNmUkJjb0tCTW9CWFBDNFRVelE3UGQ0eW8xY1ZUcFZCQk52ZEo5SDNHS1ZNVVY2b1pGQkMtNVQ1a1U5b1cySEdmSE9XeGljYkNTWXpGUlZYN2ZaZUd1Q2lMWFlFWmxLQTdBUndEekxtZ2lERzN3OHV4MmFaOEVqVGRSS2ZXOTI5d2pmWG9EU1dTcExCcDZ1Q1Frcm1GdUJDQVZ0dFZlakdSWTVEaHQ0UklBQnFsVlR0V2Z4ZFZVNVREQ2R3b3R0emNUUHZB?oc=5"
-    },
-    {
-      "event": "Crude oil",
-      "impact": -1.0,
-      "headline": "Bond yield rises to 7.44% on higher oil prices, global cues - The Economic Times",
-      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxPTGFDanJTdDl3Y0ZlVWU3UGpiM0tqQWhUbHJwQURXN2QtSElSd0x5OHFFLWlxN2tzeXV6THc5TmFueE5jUHltSEhtT0dtWjIzSUJRdjBMVG5rVlFCb3BUeVNmYmIwcXhnLWlXUXhkazVUVmVWaEJwYnF5OG1xOHR5eUFNemF6VnhwaUEzdV9xX1hubWYtaHhpTWVSdWZYVzZ1Unppb254cUhnekZsdzJDdTNWRU1iRDZvZkI1YVNXVjlPRVVKQ1RTWNIByAFBVV95cUxPTGFDanJTdDl3Y0ZlVWU3UGpiM0tqQWhUbHJwQURXN2QtSElSd0x5OHFFLWlxN2tzeXV6THc5TmFueE5jUHltSEhtT0dtWjIzSUJRdjBMVG5rVlFCb3BUeVNmYmIwcXhnLWlXUXhkazVUVmVWaEJwYnF5OG1xOHR5eUFNemF6VnhwaUEzdV9xX1hubWYtaHhpTWVSdWZYVzZ1Unppb254cUhnekZsdzJDdTNWRU1iRDZvZkI1YVNXVjlPRVVKQ1RTWA?oc=5"
-    },
-    {
       "event": "General market",
-      "impact": -0.35,
-      "headline": "Key Factors Behind Today\u2019s Market Decline - Equitypandit",
-      "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFBNR3l4X0JCeDlXN1lyT3FnV2k1ckZnU2ZXQU4ySUlTa1V4RFp5LV81Ukh4X2lsdEhDNER5ZWttT3RsQ3ZmRVNYd1MyZGk0YVc1bFZzNmpMdC1pdjh2MGsyWUxzMC0zTUpPcFpTb095VFVsOU1MZU84dVFyN0ZhZw?oc=5"
+      "impact": 1.0,
+      "headline": "Indian markets gain at open, led by IT sector shares - The Assam Tribune",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQd1RqSTFhYXZUd1R0QmlRUDExNnZvU0JWc1otZFFUMDNob0ZWQ2ZqMUNjcHNPeVo0a0ZWSHhTVmZLLWdfNm52RDllRWZ0c1N2TENZSHdFeUl5bXk2TGY0bDZvN0dBZmJ5Qi1xaVV4RUtsU091TEQwY1JQQXVqRGFHM1lXeWV1Q3lVRWt0Mk5CajNjd1RuQ2REdUxqbE5KQdIBngFBVV95cUxQd1RqSTFhYXZUd1R0QmlRUDExNnZvU0JWc1otZFFUMDNob0ZWQ2ZqMUNjcHNPeVo0a0ZWSHhTVmZLLWdfNm52RDllRWZ0c1N2TENZSHdFeUl5bXk2TGY0bDZvN0dBZmJ5Qi1xaVV4RUtsU091TEQwY1JQQXVqRGFHM1lXeWV1Q3lVRWt0Mk5CajNjd1RuQ2REdUxqbE5KQQ?oc=5"
     },
     {
-      "event": "General market",
-      "impact": -0.35,
-      "headline": "Sensex, Nifty Decline: Power, Metal Stocks Drag Markets - Rediff MoneyWiz",
-      "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPUEMwV1NNeDczMGdDRUhfM0xGaEZoZW1OQWFHTERqQzE0bzVQdmRRYkRMRmU0bVgxS0h2QWVjZ0N6bE9nWE56aDRWb0FaLWZ3QmNfYUlYUnYwYWE0QzBna3RYLVBvZVoyU1JYdVFiaXlucDVucVVtUHhrOHEwY1Z0dGItRk9tLUtzenp0LTJhcG81UEVQTzV2SUo4R2hlMG9yQzAxaktaUdIBrAFBVV95cUxPSEIwZmpoang0c0VGcl96U21mSHFjY2hteTJXaGNCaUE1VnR4SVdtNDVOTHVBYmdlcEx1dnNwNV85NEZRUTBuLU1vT24teEFXWjFKY0FpaUp3cGJUOEFUWS1neGRmUVQzWmxOd1NyM0VTUHhKN0wzV3UtT1Z2UW9oSFRYV25ORWNJaGlBYjdfUkNVd3AtZnZYeTFIVnhJVDZqckowVmJnRjJILWxr?oc=5"
+      "event": "Crude oil",
+      "impact": -1.0,
+      "headline": "Rupee plunges to 94.81 against US dollar, crude oil prices surge - Rediff",
+      "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxNajdBN1R5M2o3bzFLOEV1cXZpS29ITVBCU3NhbkxpTnhRZ0Q2UkJlYy15MEwwVGxRc19nYmtjQWhnSUxCRFdHVDJDUmJPOTVKbFMzNHRPbXpNdFh6WWxiMXdSR0d6TGpEU3FWZzFyN3BCaUV2MDlnMWNhUVpOMDU4WVhJcUdxX0QxeTJsdzJ5cDYzWER5OTVKR2x2MVUxeF9va0RVRmY0WDdWX1JtSWNYZVFJZC1XRHJBUFhPdmI1YWVYaDFP0gHHAUFVX3lxTFA4Z1I3ejNmLXVJbkpWOTl3NWVMUU9LbVFTUTBBU0pmWEtPeDI4MmtaVWZwaDlPNjhYbHRVY0xNYU5wLVY1al91ZkI0S1g2bTZSSWw0Q3Y1dTgxMl83RUxxOHRMV05BMjVQaURzaVUzd3BDdktOUlhCLVNhdVFfbnBBTUhXSzRPTnJNZGRBMnFKN3RzODVncnoxTDFEUGNRRUdzQjVwRzZkTnNLYmdWQVdUUDd0Mm8zVlFvaklKdzVMMEk3dGp0UGc?oc=5"
+    },
+    {
+      "event": "Crude oil",
+      "impact": -1.0,
+      "headline": "Rupee Rises 3 Paise To 94.78 Against US Dollar In Early Trade, High Crude Oil Prices And FII Outflows Limit - Free Press Journal",
+      "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxQa1NTTzJuR0Qzalk2QmliNmhwaHBTbmNXaUtBSFB2UHJKdDRJLUUwamJGd1pfVXVqR1NBdndDM0xSMHY0UjVyWXlXWG9acXZhM2tPOXc2LWNIdEtsSU9YMUtnaWM2RzNwNTNzeV9QWU9tRENzaUQwQzdQQV9XMWh0NXhGNTJqWGlNVjZBTGJZdjNkMVE3WkVDRGFUU09pcmhUTTltSGotX3pfV3pRX3hhWlVnbkt4UjFGM0NxRTFCQVRURDNEN3l5cjZ2VktSa1JDMTNQQWczdUVIZXZCQ2RpcFdiMGdjaEnSAewBQVVfeXFMTjBYTHJKM1FMd19aUjZWSmlWa3ZMeEZ1cFFfcktRdHpac2hkNEh2aXdhZ3I1LWh2QXpmNnZfNjRWSjlCWFFOOVl4NXpkMVFIeGYzTVl4a0IxeGlneUpabk1KcmVGTjdqb012eHYxMk16UjE3OG55cGEyN3hQNE52NDQzWjlUT0Zpd3lfb3NaZjB5Y19qckdPNzR3U0tpM21qX3FzX3dGeGJPRlM0STZFSWFEejRnMkZPbVNUTkpWUEI3cG9tbTMxNEh1bGtOM2NvRU5BWDc4dnM0R2E1anFBRHBGYXdOWnBfUlprUGw?oc=5"
+    },
+    {
+      "event": "Earnings / growth",
+      "impact": -0.8,
+      "headline": "Why Stock Market Is Falling Today? Sensex Drops Over 700 Points, Nifty 50 Slips Below 22,400; Key Reasons - NDTV Profit",
+      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxPY2czY09uX1B3ZTlpQTN6VTJPNTJ6Uk15eDhNYWNwNHpfdnFHbFJiaWxmZDJOSmc5VTM1N2ZKWHhVYnVyeTNxbzMtMVdzYUFCSVV4NEJ5MDJiWUVUTDBOU3VHNVd0OUpmajh5WEV3S0JTWVdiUEx5bVlCalN4dWxEcFVoYjNRSl9mUmxqZnNINkhIQnlPd0QxUUI0d0tydjI1NXZNR050cDFsYU1oTkptSWpHTFVSR1hSYklmVFZtN2pxM3VFWTVJU21fMTJEd3g4WXFjWmdQamJKU3Vrd2dR0gHnAUFVX3lxTE5aal8xOTYxeTF5cWZ2VE9vWmpBTHlNUEZZZFdJTGgtZEpPS25DTEFPZEFGWEstdlh4SUZ1MVZkemk0WDVBOTNQeGVRR2dvSVNMdV95Sy1LT296bERheUozbFN4dEpsV09WTVVHbjl1dWVZOEZmZ1dLREtaaFZGZTVCWFJTUU5zdjNJcW1ESzNhc0FoVDBkOXkwcXRDMW82YnNldHVYQlJjT3hHbGNFWGt4anZNSDMzcFhIRGNHN1RhU3M2N21feG54OVJleE83M1haR2hUN1UxX0NfUEg0SC0zRGZWYlNvcw?oc=5"
+    },
+    {
+      "event": "US / global markets",
+      "impact": -0.7,
+      "headline": "Why is Stock Market Falling Today? Sensex Down 405 Pts, Nifty Below 24,000 Mark | Key Reasons Explained - Goodreturns",
+      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNUTYxYll4MmtjMWtlZ3ZTMzdvTUdWcFN4amxzTE14bDBZX0RMQUV3eDk0MEt3WWpLSXYzNk9oZTFvcHlhZkgybzJyZGFQOXpvdDdVNGFZMUhKXy1meVppYlJ6Y2NiMmg1dmhiaVVZNHdiU3F2VjhGLVZkcElrQmQ5VmNtRmpJbms1dkg5dm5zV2ZYUDl3SjhPbDNUdEV1aENZV01XRFJ4U05LeTNEQTBmcklheEpfaUJOclMteFV5Q0tGLW5ydXNfUExpQWZIVDFaeUZRSFhYdUo?oc=5"
     }
   ],
-  "market_intelligence_score": 36.98500323250435,
-  "risk_level": "NEUTRAL",
-  "market_confidence": 0.667134970907461,
-  "data_quality": "MEDIUM",
-  "index_data_available": false,
-  "breadth_pct_above_sma20": 16.920152091254753,
+  "market_intelligence_score": 21.636368821292777,
+  "risk_level": "RISK_OFF",
+  "market_confidence": 0.805272680608365,
+  "data_quality": "HIGH",
+  "index_data_available": true,
+  "breadth_pct_above_sma20": 11.406844106463879,
   "sector_news_impacts": {
-    "airlines": 7.0,
-    "paints": 5.6,
-    "chemicals": 4.2,
-    "tyres": 4.2,
-    "oil & gas": -5.6
+    "airlines": 4.0,
+    "paints": 3.2,
+    "chemicals": 2.4,
+    "tyres": 2.4,
+    "oil & gas": -3.2
   }
 }

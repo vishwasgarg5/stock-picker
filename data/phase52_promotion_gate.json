@@ -2,13 +2,13 @@
   "phase": 52,
   "status": "NOT_ELIGIBLE",
   "gate_checks": {
-    "minimum_matched_sessions_met": false,
+    "minimum_matched_sessions_met": true,
     "minimum_v2_executed_trades_met": false,
     "both_ledgers_complete": false,
     "v2_net_pnl_exceeds_v1": true,
     "forecast_beats_baseline": false
   },
-  "matched_sessions": 19,
+  "matched_sessions": 20,
   "minimum_matched_sessions": 20,
   "v2_executed_trades": 0,
   "minimum_v2_executed_trades": 50,

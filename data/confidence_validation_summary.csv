@@ -1,2 +1,2 @@
 as_of,rows,sessions,top_confidence_mape_pct,bottom_confidence_mape_pct,top_bottom_mape_improvement_pct,top_confidence_direction_pct,bottom_confidence_direction_pct,confidence_promotion_evidence,validation_status
-2026-10-22,190,19,1.7141867053138633,2.4260925383098066,29.343721303059155,49.122807017543856,44.73684210526316,True,promote
+2026-10-23,190,19,1.7141867053138633,2.4260925383098066,29.343721303059155,49.122807017543856,44.73684210526316,True,promote

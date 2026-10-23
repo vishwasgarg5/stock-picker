@@ -1,2 +1,2 @@
 as_of,promotion_eligible,decision,checks
-2026-10-22T14:20:42.111816+00:00,False,KEEP_V1,"{""ci_low"": false, ""confidence_evidence"": true, ""governance_safe"": true, ""minimum_sessions"": false, ""minimum_trades"": false, ""no_drawdown_breach"": true, ""return_lift"": false, ""session_win_rate"": false}"
+2026-10-23T15:10:43.096963+00:00,False,KEEP_V1,"{""ci_low"": false, ""confidence_evidence"": true, ""governance_safe"": true, ""minimum_sessions"": true, ""minimum_trades"": false, ""no_drawdown_breach"": true, ""return_lift"": false, ""session_win_rate"": false}"

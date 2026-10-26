@@ -3,53 +3,56 @@
   "market_regime": "BEAR",
   "risk_multiplier": 0.55,
   "news_sentiment": "BULLISH",
-  "news_score": -0.5,
-  "market_reason": "General market: Indian markets gain at open, led by IT sector shares - The Assam Tribune",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQd1RqSTFhYXZUd1R0QmlRUDExNnZvU0JWc1otZFFUMDNob0ZWQ2ZqMUNjcHNPeVo0a0ZWSHhTVmZLLWdfNm52RDllRWZ0c1N2TENZSHdFeUl5bXk2TGY0bDZvN0dBZmJ5Qi1xaVV4RUtsU091TEQwY1JQQXVqRGFHM1lXeWV1Q3lVRWt0Mk5CajNjd1RuQ2REdUxqbE5KQdIBngFBVV95cUxQd1RqSTFhYXZUd1R0QmlRUDExNnZvU0JWc1otZFFUMDNob0ZWQ2ZqMUNjcHNPeVo0a0ZWSHhTVmZLLWdfNm52RDllRWZ0c1N2TENZSHdFeUl5bXk2TGY0bDZvN0dBZmJ5Qi1xaVV4RUtsU091TEQwY1JQQXVqRGFHM1lXeWV1Q3lVRWt0Mk5CajNjd1RuQ2REdUxqbE5KQQ?oc=5",
-  "news_headline": "General market: Indian markets gain at open, led by IT sector shares - The Assam Tribune",
+  "news_score": 0.45,
+  "market_reason": "General market: Aug 13: Sensex snaps 2-day losing streak, gains 114 pts; Nifty ends at 24,400 - The Indian Awaaz",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNUDhMQzlpMHRuYzBydGFET1lHNjR4WU05TzNYQmxsbllldEc4VnVRRVJJYUt5Y2RJU3ZEOHRVTi1rTGIzdlFqWmhacHprUktLUXg0am1HTnloUW1henFLV09YVVk2ZVhnaHByT2ttdlphYzFDUHJTV0RrbFR2eEIyR2VRTzNxYmhCVzE1VDBVRTZHRFBQbzMtcHZTOW5VU0hFd0hj?oc=5",
+  "news_headline": "General market: Aug 13: Sensex snaps 2-day losing streak, gains 114 pts; Nifty ends at 24,400 - The Indian Awaaz",
   "news_reasons": [
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Indian markets gain at open, led by IT sector shares - The Assam Tribune",
-      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxQd1RqSTFhYXZUd1R0QmlRUDExNnZvU0JWc1otZFFUMDNob0ZWQ2ZqMUNjcHNPeVo0a0ZWSHhTVmZLLWdfNm52RDllRWZ0c1N2TENZSHdFeUl5bXk2TGY0bDZvN0dBZmJ5Qi1xaVV4RUtsU091TEQwY1JQQXVqRGFHM1lXeWV1Q3lVRWt0Mk5CajNjd1RuQ2REdUxqbE5KQdIBngFBVV95cUxQd1RqSTFhYXZUd1R0QmlRUDExNnZvU0JWc1otZFFUMDNob0ZWQ2ZqMUNjcHNPeVo0a0ZWSHhTVmZLLWdfNm52RDllRWZ0c1N2TENZSHdFeUl5bXk2TGY0bDZvN0dBZmJ5Qi1xaVV4RUtsU091TEQwY1JQQXVqRGFHM1lXeWV1Q3lVRWt0Mk5CajNjd1RuQ2REdUxqbE5KQQ?oc=5"
+      "headline": "Aug 13: Sensex snaps 2-day losing streak, gains 114 pts; Nifty ends at 24,400 - The Indian Awaaz",
+      "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNUDhMQzlpMHRuYzBydGFET1lHNjR4WU05TzNYQmxsbllldEc4VnVRRVJJYUt5Y2RJU3ZEOHRVTi1rTGIzdlFqWmhacHprUktLUXg0am1HTnloUW1henFLV09YVVk2ZVhnaHByT2ttdlphYzFDUHJTV0RrbFR2eEIyR2VRTzNxYmhCVzE1VDBVRTZHRFBQbzMtcHZTOW5VU0hFd0hj?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": 1.0,
+      "headline": "Sensex Jumps 483 Points, Nifty Closes Above 22,750 - Rediff",
+      "url": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxQem9CbDhnM0pya3ljb3E0QU55RmRIUmhyTU5Qb0pkWnREWlVkQlFoVTZHdld0YWVYcjlvZnBYUjNxN294ak9tVTNDbnJZSTBQTUdVNmVqZmFnanFOTTg0ekRrUUtiX2ZFVVZ6QU5PWU5TcHV6NHhmY1E1SFJzZFozME1KY2JlSmFYMXhzdVo1VENJUUx6Sm1zbG9SS2Z0Mm5xdHNPUlVQWnZZNzNMcWc1SWc1SVZ0QW44WUpCekdpVC1zVk91YlV2WDd6amVtOVZqQUREWNIB1wFBVV95cUxQSHVReDk4Q0o0Z0pmTUpnejB5UFlIQXVNeVh1S1hfcFE3aVI1c2FDYV9WSmxFdVRYYkRMREt0ZUVTYkhiRGhrTDRseHNPZkVhaFMzZUNDOUdkeFFaQzR6dGREUk5YSlFWYVBGMzcya3RUTUR6RGRESWVGUHhJVjZwV0d5Q0hRN1VjbFBkZ1dBMkJYMHU5T3BoZ2l1cjh3NFhDaTlzTHh6ZUp0NE5UeWl1TW1CbXV2NzNkdnlnMDNVSURRVUNkbWdaWFpUcFp5SGpmUlBOMnlESQ?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": -0.35,
+      "headline": "Stock Market Today: Sensex, Nifty decline; List Of Laggards - ETV Bharat",
+      "url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxQaUV3S09UOGRLN1hpckpwZ0FZRURlVjZRQ21YemdTWXdOczJLV0lKSWZMN2FXdlJRaXBYcWZSR3hlUm1fTjRKc3NLcVpZOTYxcE5pb2poSWhLZzdQUHhMaVRKb2hieEl2RnJYUWNQS1dDR3A2MmRjRnJ3OF9pNHBfdzhMc19SMWVrZ3ZvR0FOTjRqSDk1TnlvMWJLUUNjcEFqYWhSTnk5TjZqaWRQMDlWYU9LWnJxTXIzNENwcW9QTy0zdlZQQ3ZQUUZLanJvSkRi0gHWAUFVX3lxTE52V2xGR044a0JjSUY2X3pFY1BTRzh1b3daU0RFYUJNeFBvU1JGR21lVk1IdXlQUHV2c2hWY0VCSm4wSml0VHg3RUh2ZjZRdjl4ZWJLdHVsOGpTa0tSaUplblJVUm9kdGgtV3dISXhFdUp6QnNsX19KZmszcy1lZm56d1RDaG9XYUpQLWh3MmdJQTd6blYxVnZ0NE05SENVS0Y3N0xmMkdhRFA1eU91RzY1cVZxN2JHYV9lWmVtNWRjRWY3UEMwcEo2djF4TXdRMGY3MzhKRHc?oc=5"
     },
     {
       "event": "Crude oil",
-      "impact": -1.0,
-      "headline": "Rupee plunges to 94.81 against US dollar, crude oil prices surge - Rediff",
-      "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxNajdBN1R5M2o3bzFLOEV1cXZpS29ITVBCU3NhbkxpTnhRZ0Q2UkJlYy15MEwwVGxRc19nYmtjQWhnSUxCRFdHVDJDUmJPOTVKbFMzNHRPbXpNdFh6WWxiMXdSR0d6TGpEU3FWZzFyN3BCaUV2MDlnMWNhUVpOMDU4WVhJcUdxX0QxeTJsdzJ5cDYzWER5OTVKR2x2MVUxeF9va0RVRmY0WDdWX1JtSWNYZVFJZC1XRHJBUFhPdmI1YWVYaDFP0gHHAUFVX3lxTFA4Z1I3ejNmLXVJbkpWOTl3NWVMUU9LbVFTUTBBU0pmWEtPeDI4MmtaVWZwaDlPNjhYbHRVY0xNYU5wLVY1al91ZkI0S1g2bTZSSWw0Q3Y1dTgxMl83RUxxOHRMV05BMjVQaURzaVUzd3BDdktOUlhCLVNhdVFfbnBBTUhXSzRPTnJNZGRBMnFKN3RzODVncnoxTDFEUGNRRUdzQjVwRzZkTnNLYmdWQVdUUDd0Mm8zVlFvaklKdzVMMEk3dGp0UGc?oc=5"
+      "impact": 0.3,
+      "headline": "Stock Markets Today: Sensex, Nifty Decline as Crude Prices, Geopolitical Risks Weigh on Sentiments - Rediff",
+      "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxOdkR1VF9hU3IteWFLa1lFR2JIcnBJSFBzNFdldXE4V0VFWXNFY0lLZmEwSVhYVkZvVnp0R1ZHQ2pVU2lzbDByRmdmUVE4U2ZQS3FRQVlpSkVyTDVxUmd3ajZ6SGVkOC14bjRHMTZiVXEwbTBFMEptd3ZuYl9IWHFCa2NzdlR5d2NqNmRObmd4S1FQeVBOdjhtU21oZTl0N000UnMwUW9vS2IycWxJX2xJNmwtNHZYRGNvdlA1RWZiS2RKTFQ2U2I0dGhSTlgzaWhta290R00yTWNLblRKWlJqS1ZZYnRQaFHSAeoBQVVfeXFMTllEcks0bkFaaWxCaUZaWFg1anJpQm5jZnloU2FyZjd2VEItc0JwRVcwODhpV0RnajViZ0psbld3X0lmdHNhRi0ydkpyN1pqV1phS3RIM3J6UWxhcUF3V3dHRWpZdUZtSFFUSWtxaXdWQk1qUVVYajNabEpjblg1Z2t1SVdxRnBRZFlLeHlYYzJpOTBZTzNqZkJyRUJTT1M5Nm5qbDJ2T01HN3pIMU9TVDhmQnZPcWV5ckd5bmNIbVdaYUdqcmktNjZVcWw5SGZyUFBSOVZSRXNXWWpPaW1ZV1dDX0YwanQ4Q0FB?oc=5"
     },
     {
       "event": "Crude oil",
-      "impact": -1.0,
-      "headline": "Rupee Rises 3 Paise To 94.78 Against US Dollar In Early Trade, High Crude Oil Prices And FII Outflows Limit - Free Press Journal",
-      "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxQa1NTTzJuR0Qzalk2QmliNmhwaHBTbmNXaUtBSFB2UHJKdDRJLUUwamJGd1pfVXVqR1NBdndDM0xSMHY0UjVyWXlXWG9acXZhM2tPOXc2LWNIdEtsSU9YMUtnaWM2RzNwNTNzeV9QWU9tRENzaUQwQzdQQV9XMWh0NXhGNTJqWGlNVjZBTGJZdjNkMVE3WkVDRGFUU09pcmhUTTltSGotX3pfV3pRX3hhWlVnbkt4UjFGM0NxRTFCQVRURDNEN3l5cjZ2VktSa1JDMTNQQWczdUVIZXZCQ2RpcFdiMGdjaEnSAewBQVVfeXFMTjBYTHJKM1FMd19aUjZWSmlWa3ZMeEZ1cFFfcktRdHpac2hkNEh2aXdhZ3I1LWh2QXpmNnZfNjRWSjlCWFFOOVl4NXpkMVFIeGYzTVl4a0IxeGlneUpabk1KcmVGTjdqb012eHYxMk16UjE3OG55cGEyN3hQNE52NDQzWjlUT0Zpd3lfb3NaZjB5Y19qckdPNzR3U0tpM21qX3FzX3dGeGJPRlM0STZFSWFEejRnMkZPbVNUTkpWUEI3cG9tbTMxNEh1bGtOM2NvRU5BWDc4dnM0R2E1anFBRHBGYXdOWnBfUlprUGw?oc=5"
-    },
-    {
-      "event": "Earnings / growth",
-      "impact": -0.8,
-      "headline": "Why Stock Market Is Falling Today? Sensex Drops Over 700 Points, Nifty 50 Slips Below 22,400; Key Reasons - NDTV Profit",
-      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxPY2czY09uX1B3ZTlpQTN6VTJPNTJ6Uk15eDhNYWNwNHpfdnFHbFJiaWxmZDJOSmc5VTM1N2ZKWHhVYnVyeTNxbzMtMVdzYUFCSVV4NEJ5MDJiWUVUTDBOU3VHNVd0OUpmajh5WEV3S0JTWVdiUEx5bVlCalN4dWxEcFVoYjNRSl9mUmxqZnNINkhIQnlPd0QxUUI0d0tydjI1NXZNR050cDFsYU1oTkptSWpHTFVSR1hSYklmVFZtN2pxM3VFWTVJU21fMTJEd3g4WXFjWmdQamJKU3Vrd2dR0gHnAUFVX3lxTE5aal8xOTYxeTF5cWZ2VE9vWmpBTHlNUEZZZFdJTGgtZEpPS25DTEFPZEFGWEstdlh4SUZ1MVZkemk0WDVBOTNQeGVRR2dvSVNMdV95Sy1LT296bERheUozbFN4dEpsV09WTVVHbjl1dWVZOEZmZ1dLREtaaFZGZTVCWFJTUU5zdjNJcW1ESzNhc0FoVDBkOXkwcXRDMW82YnNldHVYQlJjT3hHbGNFWGt4anZNSDMzcFhIRGNHN1RhU3M2N21feG54OVJleE83M1haR2hUN1UxX0NfUEg0SC0zRGZWYlNvcw?oc=5"
-    },
-    {
-      "event": "US / global markets",
-      "impact": -0.7,
-      "headline": "Why is Stock Market Falling Today? Sensex Down 405 Pts, Nifty Below 24,000 Mark | Key Reasons Explained - Goodreturns",
-      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNUTYxYll4MmtjMWtlZ3ZTMzdvTUdWcFN4amxzTE14bDBZX0RMQUV3eDk0MEt3WWpLSXYzNk9oZTFvcHlhZkgybzJyZGFQOXpvdDdVNGFZMUhKXy1meVppYlJ6Y2NiMmg1dmhiaVVZNHdiU3F2VjhGLVZkcElrQmQ5VmNtRmpJbms1dkg5dm5zV2ZYUDl3SjhPbDNUdEV1aENZV01XRFJ4U05LeTNEQTBmcklheEpfaUJOclMteFV5Q0tGLW5ydXNfUExpQWZIVDFaeUZRSFhYdUo?oc=5"
+      "impact": 0.3,
+      "headline": "GIFT NIFTY indicates positive opening for markets amid drop in crude despite weak Asian cues - Upstox",
+      "url": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxOMTZ4X25MUFFUX0gtaUhaYUh2OWRXeG1kM3p4eEVUMEtJdENhbVhUT3VRQnZWQll4UlJiWVRzMkFNaEVmWTV4a0xyX25zZEJ5T0QtM2stTmJuNnRTNnVreEZ5bFg4S1VDUGVGaXpTSlBnc1NSRlFTVW44ZEFtYkZtQ1d3UEhORkFWRkhtVHp3VWJjby14em1kRmtOazV3RXF5OHd6WjZnbmozX010aGpkdjU3VW1TMlN0WERuLWtLdTA2RDdMTzdUclVHRHFVTDloX3NpM2NydWpvS3V5TWo5V1RNaWZKQQ?oc=5"
     }
   ],
-  "market_intelligence_score": 21.636368821292777,
+  "market_intelligence_score": 27.597606366391183,
   "risk_level": "RISK_OFF",
-  "market_confidence": 0.805272680608365,
+  "market_confidence": 0.7516215427024794,
   "data_quality": "HIGH",
   "index_data_available": true,
-  "breadth_pct_above_sma20": 11.406844106463879,
+  "breadth_pct_above_sma20": 16.34980988593156,
   "sector_news_impacts": {
-    "airlines": 4.0,
-    "paints": 3.2,
-    "chemicals": 2.4,
-    "tyres": 2.4,
-    "oil & gas": -3.2
+    "airlines": 3.0,
+    "paints": 2.4000000000000004,
+    "chemicals": 1.7999999999999998,
+    "tyres": 1.7999999999999998,
+    "oil & gas": -2.4000000000000004,
+    "information technology": 0.6,
+    "it": 0.6,
+    "pharma": 0.3
   }
 }

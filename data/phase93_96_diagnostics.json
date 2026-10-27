@@ -2,7 +2,7 @@
   "phase93_receipt_forensics": {
     "groups_with_multiple_message_ids": 4,
     "groups_with_timestamp_intervals": 4,
-    "hashed_rows": 123,
+    "hashed_rows": 127,
     "note": "Receipt logs lack full message bodies; same hash with multiple API message IDs warrants manual review but does not prove an unintended resend.",
     "repeated_hash_groups": 4,
     "resends_performed": false,
@@ -12,16 +12,21 @@
     "chronological_source": "phase33_chronological_prediction_scores.csv",
     "periods_scored": 2,
     "ranking_or_threshold_changed": false,
-    "rows_scored": 250,
+    "rows_scored": 260,
     "status": "SEGMENTED_DIAGNOSTIC_ONLY",
-    "symbols_better_than_baseline": 42,
-    "symbols_scored": 95,
+    "symbols_better_than_baseline": 44,
+    "symbols_scored": 97,
     "symbols_worse_than_baseline": 53,
     "worst_symbols": [
       {
         "delta_pct_points": 1.369,
         "rows": 2,
         "symbol": "MTARTECH"
+      },
+      {
+        "delta_pct_points": 0.4115,
+        "rows": 1,
+        "symbol": "IGIL"
       },
       {
         "delta_pct_points": 0.3876,
@@ -62,17 +67,12 @@
         "delta_pct_points": 0.113,
         "rows": 1,
         "symbol": "AETHER"
-      },
-      {
-        "delta_pct_points": 0.1055,
-        "rows": 1,
-        "symbol": "SYRMA"
       }
     ]
   },
   "phase95_v2_earliest_rejection": {
     "earliest_blocking_stage": "actual_data_join_and_validation",
-    "earliest_stage_input_rows": 260,
+    "earliest_stage_input_rows": 270,
     "earliest_stage_rejected_rows": 50,
     "funnel_stages": 10,
     "note": "The earliest stage with rejections is a funnel bottleneck candidate; later-stage counts are not additive unique candidates.",
@@ -80,14 +80,14 @@
     "signals_changed": false,
     "stages_with_rejections": 6,
     "status": "DIAGNOSTIC_ONLY",
-    "total_rejected_rows_stage_sum": 266
+    "total_rejected_rows_stage_sum": 276
   },
   "phase96_storage_preflight": {
     "backup_restore_tested": false,
     "error_type": null,
     "estimated_size_reduction_pct": 77.27,
     "first_100_rows_parity": true,
-    "gzip_size_bytes": 18340686,
+    "gzip_size_bytes": 18350824,
     "migration_executed": false,
     "next_required_steps": [
       "full-file parity validation",
@@ -98,9 +98,9 @@
     ],
     "production_reader_switched": false,
     "rollback_tested": false,
-    "source_sha256_after": "79269da0f18c419292a0ca5d94a35fc8be89e47746d73bb3f1d90af791c5198e",
-    "source_sha256_before": "79269da0f18c419292a0ca5d94a35fc8be89e47746d73bb3f1d90af791c5198e",
-    "source_size_bytes": 80702605,
+    "source_sha256_after": "1a0fd0f72a38a1ee901ab8411a254e3ec2f9e7555094e8ea34620bd152dab108",
+    "source_sha256_before": "1a0fd0f72a38a1ee901ab8411a254e3ec2f9e7555094e8ea34620bd152dab108",
+    "source_size_bytes": 80744152,
     "source_unchanged": true,
     "status": "PREFLIGHT_PASSED_NO_MIGRATION"
   },

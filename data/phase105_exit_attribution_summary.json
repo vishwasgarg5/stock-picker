@@ -7,24 +7,24 @@
   "thresholds_changed": false,
   "automatic_promotion": false,
   "status": "SCORED",
-  "executed_trade_rows": 164,
+  "executed_trade_rows": 169,
   "pnl_source_field": "profit_loss",
   "exit_reason_field_used": "exit_reason",
   "reason_groups": 5,
-  "gross_loss_magnitude": 27353.8672062083,
-  "unknown_or_unrecorded_reason_rows": 94,
-  "unknown_or_unrecorded_reason_pct": 57.3170731707317,
-  "unknown_reason_losing_rows": 52,
-  "unknown_reason_net_pnl": -5837.605494956266,
-  "unknown_reason_gross_loss": 22149.385537918788,
-  "unknown_reason_share_of_gross_loss_pct": 80.97350685716465,
+  "gross_loss_magnitude": 28445.117572419236,
+  "unknown_or_unrecorded_reason_rows": 99,
+  "unknown_or_unrecorded_reason_pct": 58.57988165680473,
+  "unknown_reason_losing_rows": 56,
+  "unknown_reason_net_pnl": -6356.355250815641,
+  "unknown_reason_gross_loss": 23240.635904129726,
+  "unknown_reason_share_of_gross_loss_pct": 81.7034271170113,
   "metadata_non_null_counts_all_trades": {
-    "entry_price": 164,
-    "exit_price": 164
+    "entry_price": 169,
+    "exit_price": 169
   },
   "metadata_non_null_counts_unknown_reason_trades": {
-    "entry_price": 94,
-    "exit_price": 94
+    "entry_price": 99,
+    "exit_price": 99
   },
   "costs_subtracted_again": false,
   "missing_exit_reasons_inferred": false,

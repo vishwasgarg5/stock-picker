@@ -1,4 +1,4 @@
 regime,rows,raw_model_mape_pct,bias_corrected_mape_pct,baseline_mape_pct,raw_minus_baseline_mape_pct_points,corrected_minus_baseline_mape_pct_points,correction_improves_raw,corrected_beats_baseline
-QUIET_LT_1PCT,99,0.506223,0.549425,0.466561,0.039663,0.082864,False,False
-NORMAL_1_TO_2_5PCT,90,1.685511,1.569073,1.688599,-0.003088,-0.119526,True,True
-VOLATILE_GE_2_5PCT,71,4.263898,4.24974,4.286801,-0.022902,-0.037061,True,True
+QUIET_LT_1PCT,102,0.513801,0.54396,0.475576,0.038225,0.068384,False,False
+NORMAL_1_TO_2_5PCT,96,1.690585,1.564433,1.69449,-0.003905,-0.130057,True,True
+VOLATILE_GE_2_5PCT,72,4.253578,4.233904,4.27654,-0.022962,-0.042636,True,True

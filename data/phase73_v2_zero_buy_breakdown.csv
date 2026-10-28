@@ -1,13 +1,13 @@
 primary_reason,phase4_reason,rows
-confidence_percentile,NOT_RECORDED,88
-phase2_not_selected,NOT_RECORDED,126
+confidence_percentile,NOT_RECORDED,92
+phase2_not_selected,NOT_RECORDED,132
 phase4_ineligible,minimum_expected_return,3
 phase4_ineligible,phase4_confidence_floor,3
 FUNNEL_STAGE,predictions_loaded,0
 FUNNEL_STAGE,phase2_join,0
 FUNNEL_STAGE,actual_data_join_and_validation,50
-FUNNEL_STAGE,confidence_percentile_gate,88
-FUNNEL_STAGE,phase2_selected_gate,126
+FUNNEL_STAGE,confidence_percentile_gate,92
+FUNNEL_STAGE,phase2_selected_gate,132
 FUNNEL_STAGE,phase4_reject:phase4_confidence_floor,3
 FUNNEL_STAGE,phase4_reject:minimum_expected_return,3
 FUNNEL_STAGE,phase4_eligibility_gate,6

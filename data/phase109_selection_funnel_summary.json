@@ -8,13 +8,13 @@
   "automatic_promotion": false,
   "missing_facts_inferred": false,
   "status": "SCORED",
-  "v2_rows": 220,
+  "v2_rows": 230,
   "buy_rows": 0,
-  "skip_rows": 220,
+  "skip_rows": 230,
   "skip_rows_without_reason": 0,
   "skip_reason_counts": {
-    "phase2_not_selected": 126,
-    "confidence_percentile": 88,
+    "phase2_not_selected": 132,
+    "confidence_percentile": 92,
     "phase4_ineligible": 6
   },
   "phase4_reject_reason_counts": {
@@ -24,37 +24,37 @@
   "zero_buy_bottleneck": "PHASE4_ELIGIBILITY_GATE_ZERO_OUTPUT",
   "confidence_column_diagnostics": {
     "confidence_pct": {
-      "non_null_rows": 220,
+      "non_null_rows": 230,
       "min": 0.1,
       "median": 0.55,
       "max": 1.0
     },
     "confidence_v3": {
-      "non_null_rows": 220,
+      "non_null_rows": 230,
       "min": 0.0,
-      "median": 31.065904416982264,
+      "median": 33.19442791856301,
       "max": 95.0
     },
     "confidence_score": {
-      "non_null_rows": 220,
+      "non_null_rows": 230,
       "min": 0.0,
-      "median": 30.488262827685496,
+      "median": 31.773738394046546,
       "max": 95.0
     }
   },
   "gate_overlap_diagnostics": {
     "source": "persisted_selection_funnel",
     "shadow_confidence_percentile_threshold": 0.5,
-    "confidence_gate_input_rows": 220,
-    "confidence_gate_output_rows": 132,
-    "confidence_gate_rejected_rows": 88,
-    "phase2_gate_input_rows": 132,
+    "confidence_gate_input_rows": 230,
+    "confidence_gate_output_rows": 138,
+    "confidence_gate_rejected_rows": 92,
+    "phase2_gate_input_rows": 138,
     "phase2_gate_output_rows": 6,
-    "phase2_gate_rejected_rows": 126,
+    "phase2_gate_rejected_rows": 132,
     "phase4_eligibility_input_rows": 6,
     "phase4_eligibility_output_rows": 0,
     "phase4_eligibility_rejected_rows": 6,
-    "confidence_pct_non_null_rows": 220,
+    "confidence_pct_non_null_rows": 230,
     "confidence_pct_missing_rows": 0,
     "phase2_flag_persisted_in_decision_ledger": false,
     "phase2_flag_missing_or_invalid_rows": null,
@@ -70,37 +70,37 @@
   "funnel_stages": [
     {
       "stage": "predictions_loaded",
-      "input_rows": 270,
-      "output_rows": 270,
+      "input_rows": 280,
+      "output_rows": 280,
       "rejected_rows": 0,
       "detail": "Raw prediction rows loaded"
     },
     {
       "stage": "phase2_join",
-      "input_rows": 270,
-      "output_rows": 270,
+      "input_rows": 280,
+      "output_rows": 280,
       "rejected_rows": 0,
       "detail": "Phase-2 metadata joined; selection flag is applied at phase2_selected_gate"
     },
     {
       "stage": "actual_data_join_and_validation",
-      "input_rows": 270,
-      "output_rows": 220,
+      "input_rows": 280,
+      "output_rows": 230,
       "rejected_rows": 50,
       "detail": "Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history"
     },
     {
       "stage": "confidence_percentile_gate",
-      "input_rows": 220,
-      "output_rows": 132,
-      "rejected_rows": 88,
+      "input_rows": 230,
+      "output_rows": 138,
+      "rejected_rows": 92,
       "detail": "Required percentile >= 0.50"
     },
     {
       "stage": "phase2_selected_gate",
-      "input_rows": 132,
+      "input_rows": 138,
       "output_rows": 6,
-      "rejected_rows": 126,
+      "rejected_rows": 132,
       "detail": "Phase 2 selected flag equals 1"
     },
     {

@@ -1,18 +1,18 @@
 {
   "phase": 27,
-  "as_of": "2026-10-27",
-  "evaluation_rows": 260,
-  "candidate_rows": 460,
+  "as_of": "2026-10-28",
+  "evaluation_rows": 270,
+  "candidate_rows": 480,
   "inputs": {
     "data/evaluations.csv": {
       "exists": true,
-      "sha256": "4bc7b113d257c532afa884e0dc2de78e7dc7e6f6051e29891062ed1f42c42d41",
-      "bytes": 125332
+      "sha256": "6ba1748917cd913b736945c2c8e27d6fd67dba31e15fc3341db1dec9ae1a2643",
+      "bytes": 130434
     },
     "data/prediction_candidates_history.csv": {
       "exists": true,
-      "sha256": "cd26932281630ee74fa3f51243bd84b23abaa616271f8afbed2cc75e7ad84d96",
-      "bytes": 259161
+      "sha256": "0269030ee9b2aa616e8926c3b7e57b950aa952504b5859c035cc06dcc3ef56ea",
+      "bytes": 275711
     }
   },
   "integrity_checks": 9,

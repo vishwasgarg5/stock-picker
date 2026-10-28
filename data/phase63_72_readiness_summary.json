@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-27T16:31:59.371333+00:00",
+  "as_of_utc": "2026-10-28T17:20:46.208508+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -7,7 +7,7 @@
   "sections": {
     "prediction_report": {
       "status": "PASS",
-      "target_date": "2026-10-28",
+      "target_date": "2026-10-29",
       "rows_for_target_date": 10,
       "top10_rows": 10,
       "top10_complete": true,
@@ -15,35 +15,35 @@
       "invalid_ohlc_rows": 0,
       "duplicate_symbol_rows": 0,
       "top10_symbols": [
-        "IGIL",
         "ACUTAAS",
-        "CRISIL",
+        "SONACOMS",
         "BHARTIARTL",
-        "INFY",
-        "UNIONBANK",
-        "COFORGE",
         "INDHOTEL",
-        "LTTS",
-        "TCS"
+        "LAURUSLABS",
+        "IGIL",
+        "FSL",
+        "ANANDRATHI",
+        "FEDERALBNK",
+        "UNIONBANK"
       ],
       "ranked_candidates_are_not_buy_approval": true
     },
     "forecast_baseline": {
       "status": "BASELINE_NOT_BEATEN",
-      "scored_rows": 260,
-      "unique_dates": 26,
-      "model_close_mape_pct": 1.9405728080489903,
-      "baseline_close_mape_pct": 1.9327934210628654,
-      "error_delta_pct_points": 0.007779386986124903,
+      "scored_rows": 270,
+      "unique_dates": 27,
+      "model_close_mape_pct": 1.929486670109326,
+      "baseline_close_mape_pct": 1.9225580664396276,
+      "error_delta_pct_points": 0.0069286036696984965,
       "beats_baseline": false,
-      "directional_accuracy_pct": 48.07692307692308,
+      "directional_accuracy_pct": 48.51851851851852,
       "recent_5_sessions": 5,
       "recent_5_sessions_scored_rows": 50,
-      "recent_5_sessions_model_close_mape_pct": 1.8009521320724518,
-      "recent_5_sessions_baseline_close_mape_pct": 1.798355803376349,
-      "recent_5_sessions_error_delta_pct_points": 0.002596328696102823,
-      "recent_5_sessions_beats_baseline": false,
-      "recent_5_sessions_directional_accuracy_pct": 50.0,
+      "recent_5_sessions_model_close_mape_pct": 1.4693339823977827,
+      "recent_5_sessions_baseline_close_mape_pct": 1.472170635569548,
+      "recent_5_sessions_error_delta_pct_points": -0.002836653171765402,
+      "recent_5_sessions_beats_baseline": true,
+      "recent_5_sessions_directional_accuracy_pct": 52.0,
       "per_date_comparison": [
         {
           "target_date": "2026-09-18",
@@ -226,6 +226,13 @@
           "model_close_mape_pct": 1.2806583723124692,
           "baseline_close_mape_pct": 1.2444072658194498,
           "error_delta_pct_points": 0.036251106493019325
+        },
+        {
+          "target_date": "2026-10-28",
+          "scored_rows": 10,
+          "model_close_mape_pct": 1.6412470836780622,
+          "baseline_close_mape_pct": 1.6564388462354454,
+          "error_delta_pct_points": -0.015191762557383193
         }
       ],
       "same_scored_rows_for_comparison": true,
@@ -233,7 +240,7 @@
     },
     "paper_ledger": {
       "status": "PASS",
-      "rows": 260,
+      "rows": 270,
       "executed_rows": 70,
       "incomplete_executed_rows": 0,
       "net_pnl_reconciliation_mismatch_rows": 0,
@@ -242,38 +249,38 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 127,
-      "rows_with_usable_message_keys": 127,
-      "api_confirmed_rows": 54,
+      "rows": 131,
+      "rows_with_usable_message_keys": 131,
+      "api_confirmed_rows": 58,
       "duplicate_message_keys": 6,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 54,
-          "confirmed": 27,
+          "rows": 55,
+          "confirmed": 28,
           "legacy_unverified": 27,
           "duplicate_message_keys": 6,
           "rows_missing_message_key": 0,
           "rows_in_duplicate_key_groups": 10
         },
         "telegram_evening_sent.csv": {
-          "rows": 27,
-          "confirmed": 9,
+          "rows": 28,
+          "confirmed": 10,
           "legacy_unverified": 18,
           "duplicate_message_keys": 0,
           "rows_missing_message_key": 0,
           "rows_in_duplicate_key_groups": 0
         },
         "telegram_paper_sent.csv": {
-          "rows": 28,
-          "confirmed": 9,
+          "rows": 29,
+          "confirmed": 10,
           "legacy_unverified": 19,
           "duplicate_message_keys": 0,
           "rows_missing_message_key": 0,
           "rows_in_duplicate_key_groups": 0
         },
         "telegram_paper_v2_sent.csv": {
-          "rows": 18,
-          "confirmed": 9,
+          "rows": 19,
+          "confirmed": 10,
           "legacy_unverified": 9,
           "duplicate_message_keys": 0,
           "rows_missing_message_key": 0,
@@ -285,10 +292,10 @@
     },
     "v2_evidence": {
       "status": "PASS",
-      "rows": 220,
-      "unique_sessions": 22,
+      "rows": 230,
+      "unique_sessions": 23,
       "buy_rows": 0,
-      "skip_rows": 220,
+      "skip_rows": 230,
       "skip_rows_without_reason": 0,
       "existing_promotion_safe": false,
       "promotion_ready": false,

@@ -1,58 +1,58 @@
 {
   "version": "index_intelligence_v3",
-  "market_regime": "BEAR",
-  "risk_multiplier": 0.55,
-  "news_sentiment": "BULLISH",
-  "news_score": 0.26,
-  "market_reason": "General market: Why stock market ended mixed today: Sensex, Nifty flat as Midcap Index gains 565 points - IndiaIPO",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPWXUzSV8xY1IwQmZCLVJRSWl5b29heE8zSWE0dUExaUFsR1pBaGNacFVaZVc5OXUzbFdwajRYMVBFZ2tad0IwWDVrMnEzeExrWktpMHRvWFlENnFybERmSlhLVzZsa1laa3k1Yll2aUVXbC13THhFOUhIV0NIX2pwcTVOSml5ckZJRjhIY3JlTVgxenlXR1owRmdGdDZkSnZSM0w1SDY0dGVGTHRzUDRjYTRfbjhqT2Zrek1HOEdB?oc=5",
-  "news_headline": "General market: Why stock market ended mixed today: Sensex, Nifty flat as Midcap Index gains 565 points - IndiaIPO",
+  "market_regime": "NEUTRAL",
+  "risk_multiplier": 0.8,
+  "news_sentiment": "BEARISH",
+  "news_score": -0.16999999999999998,
+  "market_reason": "General market: Stock Market Crash: Sensex Drops 1,130 Pts, Nifty Falls 390 Pts In 3-Days; Why Rs 6.55 Lakh Cr Wealth Eroded - Goodreturns",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQZkJRV1B0bjFITkhnZkUydWVsbkpVZXdLRms2enpGZHJMNnVwWWlIMGRleG5jZUlQdlRhUjVGT1pPak5Qa2F0aGdmSW8waFlCZlZSNlVfSVFfM2RUNTRiRWRjZGkxUGJaajVoWWE3VkxCOXNmaGYxVjJpbjNQS1NrMWF1QXlQcTA1d3hleXFrMWx3UkZGMkRvQTlPVnZrbFVzRWhoSmVqWUxMaWl5eVMtME1wNEhsQVZFU3dmTS1BM1pGMUFHb1hxMEpkNzgzMFlSNTMyNXdaNA?oc=5",
+  "news_headline": "General market: Stock Market Crash: Sensex Drops 1,130 Pts, Nifty Falls 390 Pts In 3-Days; Why Rs 6.55 Lakh Cr Wealth Eroded - Goodreturns",
   "news_reasons": [
     {
       "event": "General market",
-      "impact": 1.0,
-      "headline": "Why stock market ended mixed today: Sensex, Nifty flat as Midcap Index gains 565 points - IndiaIPO",
-      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPWXUzSV8xY1IwQmZCLVJRSWl5b29heE8zSWE0dUExaUFsR1pBaGNacFVaZVc5OXUzbFdwajRYMVBFZ2tad0IwWDVrMnEzeExrWktpMHRvWFlENnFybERmSlhLVzZsa1laa3k1Yll2aUVXbC13THhFOUhIV0NIX2pwcTVOSml5ckZJRjhIY3JlTVgxenlXR1owRmdGdDZkSnZSM0w1SDY0dGVGTHRzUDRjYTRfbjhqT2Zrek1HOEdB?oc=5"
+      "impact": -1.0,
+      "headline": "Stock Market Crash: Sensex Drops 1,130 Pts, Nifty Falls 390 Pts In 3-Days; Why Rs 6.55 Lakh Cr Wealth Eroded - Goodreturns",
+      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQZkJRV1B0bjFITkhnZkUydWVsbkpVZXdLRms2enpGZHJMNnVwWWlIMGRleG5jZUlQdlRhUjVGT1pPak5Qa2F0aGdmSW8waFlCZlZSNlVfSVFfM2RUNTRiRWRjZGkxUGJaajVoWWE3VkxCOXNmaGYxVjJpbjNQS1NrMWF1QXlQcTA1d3hleXFrMWx3UkZGMkRvQTlPVnZrbFVzRWhoSmVqWUxMaWl5eVMtME1wNEhsQVZFU3dmTS1BM1pGMUFHb1hxMEpkNzgzMFlSNTMyNXdaNA?oc=5"
     },
     {
       "event": "US / global markets",
       "impact": 0.7,
-      "headline": "Trade Setup for Today: Nikkei Surge and Wall Street Gains Signal Positive Start; GIFT Nifty Holds Steady as of October 27, 2026 - scanx.trade",
-      "url": "https://news.google.com/rss/articles/CBMigAJBVV95cUxNMGlXQ1czaVZXWlNWVzkzOE90NDBuUF9GYUVia1VrRFV4SHVoTVN3dlFiQ3M5dGhGOXYycHJRT1hJVk1ZR0VkRVRDQV9jODhBb0hrVHY1WlRMWXdEcUNmVzVUd3djUEZkVXFNaEhWU1pCX19pS0FRcXpLaVRCS2lDLWxMZlR4WmJab01XVEVwZGgyc0NHR1ZlSHVYTWhtQlV3ejRSbWM5UXRIM2tlclJRb3NlbUhhaFgyZ3FSbGQyaVRwelhQdXo4TUZlbkZHakZjV2RfbU8yOVFPQzhocTN1aVlpRzNRSE93TG1ZcTA0Y1l3NVQzaFB1dVhIeDlLMnRZ?oc=5"
+      "headline": "Trade Setup for Today: GIFT Nifty Signals Gap-Down as Wall Street Tech Rallies but Commodities Weigh as of October 28, 2026 - scanx.trade",
+      "url": "https://news.google.com/rss/articles/CBMigAJBVV95cUxON2JRQVotd3JLMlpWYmx6NFBxUS1xbERrbkR6SEdKS1pRbWx0d05NdTV6X2VUTFN2Yk1oa3lkX2w1TzJJUEFvU3MxQ3VmVEc5cmc4c1ZqNGZiZko0QmgxSXZJTEh6OWlmdGhaYUhWZTZya0dQTWR2UHVYNjNWMnN3N2V1UjFzRmpBOS0yQTNlUGx3MTlEZ2pMN2o0YVN0a1BDRFdQaWJ3YTF2T0NqajVjbzFDdXpJQjh5U0doTEZUTExCbDFKUGs0WHp4dy1BM3M1TjgwcXk4eUZ3YUN5UVRZQzdzTmtZN2dTTUs2RUcxdDRYREs2RGdsSXFUTnR6T1FN?oc=5"
     },
     {
-      "event": "Crude oil",
+      "event": "US / global markets",
+      "impact": -0.7,
+      "headline": "Sensex Today Ends 353 Points Lower | Nifty Below 22,700 | AWL Agri Business Down 6% - Equitymaster",
+      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQMzRmeU5idFdCSUtXRDhnSndONWszVVlrLWVlbUxpSERVY3pFLVdZSjdBZmoxY2o2bGdnQU1rNDhXcGk0WTlUeHRoT0syaG4tdzJ6d0E1TTZUWlVJX2g3YzcweXNYZnZzNmR1TkdQazRvQk1Md2VDd1hnT3VKQnZHSnZQWlprVUY0N0dxUXVFck5ETXRZN2w0TjRqSEYwMkNPSjZWa29MaGpyOHNMRFBBLUI1Y2Qzc2NYU1RvaE9FQVROTzFwNEdJWkx5NXlTSDU2X2tLQWJaaw?oc=5"
+    },
+    {
+      "event": "Currency",
+      "impact": 0.5,
+      "headline": "Rupee Rises 4 Paise Against US Dollar Amid Market Pressures - Rediff",
+      "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxNeDRaek1uR01ES3pvNU1aY3lTMTdkRzF1RVRIaXJUa21ybURTWVdfM3BxWWlIdHhtczJkNXEwa2h4WmUxZEg2R2lMV3JJaEVGM25lN2Zjc1k3R2tmMlZ5NEtZMTVNdVkxcE9fX1ZUZThfMXZwTmdSc3IyWjhYNDBLU3Z0cXNydFl2dkVaMkVLZUpLRE41LUZEY05pVkVzNm1tUThheWRsa3dIMm01aWxLMXRXcTJZUdIBtgFBVV95cUxNeDRaek1uR01ES3pvNU1aY3lTMTdkRzF1RVRIaXJUa21ybURTWVdfM3BxWWlIdHhtczJkNXEwa2h4WmUxZEg2R2lMV3JJaEVGM25lN2Zjc1k3R2tmMlZ5NEtZMTVNdVkxcE9fX1ZUZThfMXZwTmdSc3IyWjhYNDBLU3Z0cXNydFl2dkVaMkVLZUpLRE41LUZEY05pVkVzNm1tUThheWRsa3dIMm01aWxLMXRXcTJZUQ?oc=5"
+    },
+    {
+      "event": "General market",
       "impact": -0.35,
-      "headline": "Indian Equities End Flat as Elevated Crude, US Fed Decision Weigh - Rediff",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOYkVyVl9kWjRkaFFVZ2FMTURJU3Q1NWJYXzhlSnY4bjRsZnhCdjVRc0E0TGMtYWlQX2F3YTRrYzBhdlF5MGhJZmo2QWNxMGNCWjhPeHAwRV9UYmdEOXBTMjNpa09rSDZvSUtWc1lVTUFtcmJvbTV1ZVRENmFlT2lnb0c2UXBIUHZFTG5OLW1qZ2owM2pEdEF2T2xjampCMVdQUFh2Zkh4WFFUMF9kTERoZmhzREhFNTlDZHE5c19PbXVhRnhDNjZsVjQ3TVZrYUXSAc8BQVVfeXFMTmJFclZfZFo0ZGhRVWdhTE1ESVN0NTViWF84ZUp2OG40bGZ4QnY1UXNBNExjLWFpUF9hd2E0a2MwYXZReTBoSWZqNkFjcTBjQlo4T3hwMEVfVGJnRDlwUzIzaWtPa0g2b0lLVnNZVU1BbXJib201dWVURDZhZU9pZ29HNlFwSFB2RUxuTi1tamdqMDNqRHRBdk9sY2pqQjFXUFBYdmZIeFhRVDBfZExEaGZoc0RIRTU5Q2RxOXNfT211YUZ4QzY2bFY0N01Wa2FF?oc=5"
-    },
-    {
-      "event": "Crude oil",
-      "impact": -0.35,
-      "headline": "Sensex, Nifty End Flat as Oil, Fed Jitters Cap Upside - HDFC Sky",
-      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQNmV5cmNlY2hydnc0SVZGcWdIVGZxWEhyUWU3QlE1M05YNUpMeWw3R0Q3Z2JWdUo3d2tSZHdjR1RRV1FQVlZOLURJTzBEOVJydkFXREtsUmpkeHFIemJOMW96Z3c1MElNVzlLdzVlcVEzX1N1OEhvTW10NFdOZkJUUm14RzU4Y2ZEOXAwWHZzY0lGbEpsY2FDWFZKZUZlZ0JDamZKRzJYcld5ejdHU0RDS2VnaS1iTmR2?oc=5"
-    },
-    {
-      "event": "Crude oil",
-      "impact": 0.3,
-      "headline": "Rupee Falls 7 Paise To 95.22 Against US Dollar In Early Trade, High Crude Oil Prices And FII Outflows Weigh On - Free Press Journal",
-      "url": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxQOWJseE9ubEpnYTVvQlIwNFE3eTZvX2lCRjVVZmVTLUpwOG1KdGlzS2NNVGMtUHBOY3dxRjF6eEltd2VOWEVoRkQzX2Y5dWRnVURwaUdJLV9pY3N5cTVJRUtJLU9aUVBOLXFlTi1oUExyTGJZS3BSWGEzVzdiR292cGU1ZTllWmxqc25SUkhmbW0zQXZhbUd3eFZud2l0T0xmamFvT1hoNU1DZFpkZDh4VnBFLXlEOGY2R1VRTnh1czVObEtvNVRNQ3p0MUYxUVgzdjNrZTJuSktYQ2ZnNnNkS3J3RDhZUWhTVWFpaWw1NnAxaGpYUFhoTtIB_gFBVV95cUxNZlZIVDM5cnVhVDF3Ym9JT2RoLTlCZDVWaUoyRE14akFmQ19SR3gxb3FLV09iVVUzaE5TQU50Skg3UzkzVG8xZ2IzNExqcWZKaGljQ1h6R2cyZ2NSX0F6S0tjRGphMTlKZjBiMUQ0QTFlUGNaRjFaNnlxNzBQY2ZpS2hwX2N3M1AtZnBZa0VRSVJYWEpCVTc2MmxiSnN3dXpId3FtU2VudlFFakk5RXJ4NUJMMjI0aUdNdXJiZ0pIZE1pUXMtNUQ4T1hISjhVMU5ibUZJRGxWbnFkRFBvRUVXdjQtX2R1S09JdTRHRHdoZ2I5VW1tT21yNndlQVNkdw?oc=5"
+      "headline": "Closing Bell: Sensex Falls 1,045 Points, Nifty Hits 52-Week Low; Why Did Stock Market Crash Today? - Goodreturns",
+      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxQYUZVWUNxTHdxajZsZHFoRGpxM2VVdFFoaWs2MnBCODhVaUVHU3BVSW9NaW8ySVphM1VHUS05c3hCcXdrb2pLQVl6QUFzS21mTkVGQWFPYlQ4TmxDaWM2WGhJdFY2cHN6SzF1VWxhaWV4NUk2ZThuNWZySWFPaF9oYk5MeFZWdG5kT25reGFpY1RDVkxfMllaQjdCY1paT3FyR1h0ZlJjSk9NTlRTUTk0UHNrMzlNbllRdXRseHNjcTlnUk1vTHhtaC1ELUtNV0s5VFBCSVhSUW1pUQ?oc=5"
     }
   ],
-  "market_intelligence_score": 28.12434847476191,
-  "risk_level": "RISK_OFF",
-  "market_confidence": 0.7468808637271429,
+  "market_intelligence_score": 39.096188504674046,
+  "risk_level": "NEUTRAL",
+  "market_confidence": 0.6481343034579337,
   "data_quality": "HIGH",
   "index_data_available": true,
-  "breadth_pct_above_sma20": 25.285171102661597,
+  "breadth_pct_above_sma20": 27.186311787072242,
   "sector_news_impacts": {
-    "airlines": 4.0,
-    "paints": 3.2,
-    "chemicals": 2.4,
-    "tyres": 2.4,
-    "oil & gas": -3.2,
-    "information technology": 1.2,
-    "it": 1.2,
-    "pharma": 0.6
+    "airlines": 3.0,
+    "paints": 2.4000000000000004,
+    "chemicals": 1.7999999999999998,
+    "tyres": 1.7999999999999998,
+    "oil & gas": -2.4000000000000004,
+    "information technology": 0.6,
+    "it": 0.6,
+    "pharma": 0.3
   }
 }

@@ -9,10 +9,10 @@
   "missing_facts_inferred": false,
   "status": "INSUFFICIENT_EVIDENCE",
   "v1": {
-    "executed_rows": 164,
-    "distinct_sessions": 26,
+    "executed_rows": 169,
+    "distinct_sessions": 27,
     "first_session": "2026-09-18",
-    "last_session": "2026-10-27",
+    "last_session": "2026-10-28",
     "minimum_trade_count_met": true,
     "minimum_session_count_met": false
   },

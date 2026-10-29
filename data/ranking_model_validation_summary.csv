@@ -1,2 +1,2 @@
 sessions,rows,mean_top10_return_lift_pct,positive_rate_lift_pct,promotion_evidence,production_ready,status,recent_5_sessions,recent_5_lift_pct,recent_5_positive_lift_pct,recent_10_sessions,recent_10_lift_pct,recent_10_positive_lift_pct,recent_20_sessions,recent_20_lift_pct,recent_20_positive_lift_pct
-640,315980,0.11429372212048398,1.03125,True,False,validated_hold,5,-0.43015837801271894,-6.0,10,-0.30072908931070697,-5.0,20,-0.03405109392559234,-5.5
+641,316478,0.11386660369523002,1.0296411856474208,True,False,validated_hold,5,-0.27966457688403007,-4.0,10,-0.24252528125063258,-4.0,20,-0.04004149208335982,-6.0

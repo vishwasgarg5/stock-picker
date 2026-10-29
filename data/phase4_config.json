@@ -1,10 +1,10 @@
 {
   "report": {
-    "as_of": "2026-10-28T17:20:18.841711+00:00",
+    "as_of": "2026-10-29T17:22:20.189788+00:00",
     "phase4_version": "phase4_adaptive_v1",
     "regime": "NEUTRAL",
-    "symbols_scored": 99,
-    "cooldown_symbols": 2,
+    "symbols_scored": 100,
+    "cooldown_symbols": 3,
     "stable_features": 0,
     "unstable_feature_count": 18,
     "confidence_floor_percentile": 0.55,

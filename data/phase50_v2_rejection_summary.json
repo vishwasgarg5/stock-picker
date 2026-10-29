@@ -1,39 +1,39 @@
 {
   "phase": 50,
-  "candidate_rows": 230,
+  "candidate_rows": 240,
   "signal_counts": {
-    "SKIP": 230
+    "SKIP": 240
   },
   "reason_counts": [
     {
       "source": "no_trade_reason",
       "reason": "phase2_not_selected",
-      "rows": 132,
-      "pct_of_candidate_rows": 57.391304347826086
+      "rows": 138,
+      "pct_of_candidate_rows": 57.49999999999999
     },
     {
       "source": "no_trade_reason",
       "reason": "confidence_percentile",
-      "rows": 92,
+      "rows": 96,
       "pct_of_candidate_rows": 40.0
     },
     {
       "source": "no_trade_reason",
       "reason": "phase4_ineligible",
       "rows": 6,
-      "pct_of_candidate_rows": 2.608695652173913
+      "pct_of_candidate_rows": 2.5
     },
     {
       "source": "phase4_reject_reason",
       "reason": "minimum_expected_return",
       "rows": 3,
-      "pct_of_candidate_rows": 1.3043478260869565
+      "pct_of_candidate_rows": 1.25
     },
     {
       "source": "phase4_reject_reason",
       "reason": "phase4_confidence_floor",
       "rows": 3,
-      "pct_of_candidate_rows": 1.3043478260869565
+      "pct_of_candidate_rows": 1.25
     }
   ],
   "interpretation": "Reasons are observed telemetry only. Do not weaken selection or risk gates based on counts alone.",

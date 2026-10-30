@@ -1,4 +1,4 @@
 phase,status,rows,buy_rows,skip_rows,missing_skip_reasons,production_filters_changed,thresholds_deployed,scored_rows,target_dates,directional_accuracy_pct,recent_5_directional_accuracy_pct,production_model_changed,method,path,bytes,size_mb,duplicate_symbol_date_keys,recommended_action,storage_changed,source_file_modified
-73,ZERO_BUY_DIAGNOSED,240.0,0.0,240.0,0.0,False,False,,,,,,,,,,,,,
-74,REVIEW_DIRECTION_QUALITY,,,,,,,280.0,28.0,47.85714285714286,48.0,False,saved chronological scores; no refit or threshold search,,,,,,,
-76,ABOVE_GITHUB_RECOMMENDED_SIZE,949680.0,,,,,,,,,,,,data/ohlcv.csv,80826936.0,77.08,0.0,Plan and test a staged compressed/partitioned storage migration with rollback; do not replace the source file in this diagnostic.,False,False
+73,ZERO_BUY_DIAGNOSED,250.0,0.0,250.0,0.0,False,False,,,,,,,,,,,,,
+74,REVIEW_DIRECTION_QUALITY,,,,,,,290.0,29.0,47.58620689655172,44.0,False,saved chronological scores; no refit or threshold search,,,,,,,
+76,ABOVE_GITHUB_RECOMMENDED_SIZE,950179.0,,,,,,,,,,,,data/ohlcv.csv,80868406.0,77.12,0.0,Plan and test a staged compressed/partitioned storage migration with rollback; do not replace the source file in this diagnostic.,False,False

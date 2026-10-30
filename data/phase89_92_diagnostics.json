@@ -7,7 +7,7 @@
   ],
   "phase89_receipt_reconciliation": {
     "status": "REVIEW_REQUIRED",
-    "rows": 135,
+    "rows": 139,
     "repeated_hash_groups": 4,
     "confirmed_repeated_hash_groups": 4,
     "multiple_confirmed_message_id_groups": 4,
@@ -18,20 +18,20 @@
   },
   "phase90_segmented_forecast": {
     "status": "SEGMENTED_DIAGNOSTIC_ONLY",
-    "symbols_scored": 100,
-    "rows_scored": 280,
-    "symbols_model_beats_baseline": 46,
-    "symbols_baseline_beats_or_ties": 54,
+    "symbols_scored": 102,
+    "rows_scored": 290,
+    "symbols_model_beats_baseline": 47,
+    "symbols_baseline_beats_or_ties": 55,
     "model_or_threshold_changed": false,
     "promotion_evidence_only": true,
     "note": "Per-symbol results are descriptive; no symbol-specific ranking or filter is changed."
   },
   "phase91_v2_rejection_analysis": {
     "status": "DIAGNOSTIC_ONLY",
-    "rows": 240,
+    "rows": 250,
     "buy_rows": 0,
-    "skip_rows": 240,
-    "skip_rows_with_reason": 240,
+    "skip_rows": 250,
+    "skip_rows_with_reason": 250,
     "unique_skip_reasons": 3,
     "funnel_stages": 10,
     "risk_thresholds_changed": false,
@@ -41,7 +41,7 @@
   "phase92_storage_migration_readiness": {
     "source_exists": true,
     "source_sha256_recorded": true,
-    "source_size_bytes": 80826936,
+    "source_size_bytes": 80868406,
     "source_over_github_recommended_50mb": true,
     "backup_and_restore_test_required": true,
     "reader_compatibility_test_required": true,
@@ -51,7 +51,7 @@
     "production_reader_switched": false,
     "source_modified": false,
     "status": "MIGRATION_PLANNING_REQUIRED",
-    "sha256": "48e133e5ac530f5ccae6fe71ba6baa9d4e5091cb5d815258f67db10e9d70cb07"
+    "sha256": "32b98abb9afc04bb1bddd82aaad0fbc1b8ca647549d98cbfbeccc714be477f39"
   },
   "safety": {
     "production_champion": "V1",

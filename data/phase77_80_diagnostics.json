@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-29T17:22:47.509390+00:00",
+  "as_of_utc": "2026-10-30T17:07:48.477262+00:00",
   "phases": [
     77,
     78,
@@ -8,40 +8,40 @@
   ],
   "phase77_delivery": {
     "status": "RECEIPT_AUDIT_INCOMPLETE",
-    "rows": 135,
-    "confirmed": 62,
+    "rows": 139,
+    "confirmed": 66,
     "legacy_unverified": 73,
     "missing_status": 0,
     "duplicates": 6,
-    "confirmed_receipt_pct": 45.93,
+    "confirmed_receipt_pct": 47.48,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 56,
-        "confirmed": 29,
+        "rows": 57,
+        "confirmed": 30,
         "legacy_unverified": 27,
         "missing_status": 0,
         "duplicate_keys": 6,
         "rows_missing_message_key": 0
       },
       "telegram_evening_sent.csv": {
-        "rows": 29,
-        "confirmed": 11,
+        "rows": 30,
+        "confirmed": 12,
         "legacy_unverified": 18,
         "missing_status": 0,
         "duplicate_keys": 0,
         "rows_missing_message_key": 0
       },
       "telegram_paper_sent.csv": {
-        "rows": 30,
-        "confirmed": 11,
+        "rows": 31,
+        "confirmed": 12,
         "legacy_unverified": 19,
         "missing_status": 0,
         "duplicate_keys": 0,
         "rows_missing_message_key": 0
       },
       "telegram_paper_v2_sent.csv": {
-        "rows": 20,
-        "confirmed": 11,
+        "rows": 21,
+        "confirmed": 12,
         "legacy_unverified": 9,
         "missing_status": 0,
         "duplicate_keys": 0,
@@ -53,12 +53,12 @@
   },
   "phase78_v2_funnel": {
     "status": "ZERO_BUY",
-    "rows": 240,
+    "rows": 250,
     "buy_rows": 0,
-    "skip_rows": 240,
+    "skip_rows": 250,
     "skip_reason_counts": {
-      "phase2_not_selected": 138,
-      "confidence_percentile": 96,
+      "phase2_not_selected": 144,
+      "confidence_percentile": 100,
       "phase4_ineligible": 6
     },
     "missing_skip_reason_rows": 0,
@@ -67,20 +67,20 @@
     "largest_recorded_drop_stage": "phase2_selected_gate",
     "production_filters_changed": false,
     "thresholds_deployed": false,
-    "largest_recorded_drop_rows": 138
+    "largest_recorded_drop_rows": 144
   },
   "phase79_forecast_evidence": {
     "status": "BASELINE_NOT_BEATEN",
-    "scored_rows": 280,
-    "target_dates": 28,
-    "model_mape_pct": 1.923244753338795,
-    "baseline_mape_pct": 1.9150515555956638,
-    "delta_pct_points": 0.00819319774313132,
+    "scored_rows": 290,
+    "target_dates": 29,
+    "model_mape_pct": 1.937997185795456,
+    "baseline_mape_pct": 1.9284629231925217,
+    "delta_pct_points": 0.00953426260293444,
     "beats_baseline": false,
     "recent_sessions": 5,
-    "recent_model_mape_pct": 1.5299366128035596,
-    "recent_baseline_mape_pct": 1.5211337087596046,
-    "recent_delta_pct_points": 0.008802904043955007,
+    "recent_model_mape_pct": 1.672345609553703,
+    "recent_baseline_mape_pct": 1.6458452818656049,
+    "recent_delta_pct_points": 0.02650032768809818,
     "recent_beats_baseline": false,
     "same_scored_rows": true,
     "model_changed": false,
@@ -89,8 +89,8 @@
   "phase80_storage_migration_plan": {
     "status": "PLAN_REQUIRED",
     "source_path": "data/ohlcv.csv",
-    "source_bytes": 80826936,
-    "source_mib": 77.08,
+    "source_bytes": 80868406,
+    "source_mib": 77.12,
     "steps": [
       "Create a checksum and row/date/symbol baseline before any change.",
       "Prototype compressed or partitioned output beside the original file.",

@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-30T17:07:46.767132+00:00",
+  "as_of_utc": "2026-11-02T20:45:30.255161+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -263,38 +263,38 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 139,
-      "rows_with_usable_message_keys": 139,
-      "api_confirmed_rows": 66,
+      "rows": 143,
+      "rows_with_usable_message_keys": 143,
+      "api_confirmed_rows": 70,
       "duplicate_message_keys": 6,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 57,
-          "confirmed": 30,
+          "rows": 58,
+          "confirmed": 31,
           "legacy_unverified": 27,
           "duplicate_message_keys": 6,
           "rows_missing_message_key": 0,
           "rows_in_duplicate_key_groups": 10
         },
         "telegram_evening_sent.csv": {
-          "rows": 30,
-          "confirmed": 12,
+          "rows": 31,
+          "confirmed": 13,
           "legacy_unverified": 18,
           "duplicate_message_keys": 0,
           "rows_missing_message_key": 0,
           "rows_in_duplicate_key_groups": 0
         },
         "telegram_paper_sent.csv": {
-          "rows": 31,
-          "confirmed": 12,
+          "rows": 32,
+          "confirmed": 13,
           "legacy_unverified": 19,
           "duplicate_message_keys": 0,
           "rows_missing_message_key": 0,
           "rows_in_duplicate_key_groups": 0
         },
         "telegram_paper_v2_sent.csv": {
-          "rows": 21,
-          "confirmed": 12,
+          "rows": 22,
+          "confirmed": 13,
           "legacy_unverified": 9,
           "duplicate_message_keys": 0,
           "rows_missing_message_key": 0,

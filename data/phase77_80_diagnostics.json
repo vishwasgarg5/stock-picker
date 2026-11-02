@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-10-30T17:07:48.477262+00:00",
+  "as_of_utc": "2026-11-02T20:45:32.059668+00:00",
   "phases": [
     77,
     78,
@@ -8,40 +8,40 @@
   ],
   "phase77_delivery": {
     "status": "RECEIPT_AUDIT_INCOMPLETE",
-    "rows": 139,
-    "confirmed": 66,
+    "rows": 143,
+    "confirmed": 70,
     "legacy_unverified": 73,
     "missing_status": 0,
     "duplicates": 6,
-    "confirmed_receipt_pct": 47.48,
+    "confirmed_receipt_pct": 48.95,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 57,
-        "confirmed": 30,
+        "rows": 58,
+        "confirmed": 31,
         "legacy_unverified": 27,
         "missing_status": 0,
         "duplicate_keys": 6,
         "rows_missing_message_key": 0
       },
       "telegram_evening_sent.csv": {
-        "rows": 30,
-        "confirmed": 12,
+        "rows": 31,
+        "confirmed": 13,
         "legacy_unverified": 18,
         "missing_status": 0,
         "duplicate_keys": 0,
         "rows_missing_message_key": 0
       },
       "telegram_paper_sent.csv": {
-        "rows": 31,
-        "confirmed": 12,
+        "rows": 32,
+        "confirmed": 13,
         "legacy_unverified": 19,
         "missing_status": 0,
         "duplicate_keys": 0,
         "rows_missing_message_key": 0
       },
       "telegram_paper_v2_sent.csv": {
-        "rows": 21,
-        "confirmed": 12,
+        "rows": 22,
+        "confirmed": 13,
         "legacy_unverified": 9,
         "missing_status": 0,
         "duplicate_keys": 0,
@@ -89,7 +89,7 @@
   "phase80_storage_migration_plan": {
     "status": "PLAN_REQUIRED",
     "source_path": "data/ohlcv.csv",
-    "source_bytes": 80868406,
+    "source_bytes": 80868556,
     "source_mib": 77.12,
     "steps": [
       "Create a checksum and row/date/symbol baseline before any change.",

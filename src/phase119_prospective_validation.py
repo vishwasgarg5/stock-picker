@@ -63,7 +63,7 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
         train_sessions = int(prior["target_date"].nunique())
         correction_applied = len(prior) >= min_train_rows and train_sessions >= min_train_sessions
         estimated_bias = float(prior["realized_return_bias"].mean()) if correction_applied else 0.0
-        corrected_close = batch["base_close"] * (1.0 + batch["raw_return"] - estimated_bias)
+        corrected_close = batch["predicted_close"] - (batch["base_close"] * estimated_bias)
         corrected_parts.append(pd.DataFrame({
             "actual_close": batch["actual_close"].to_numpy(),
             "base_close": batch["base_close"].to_numpy(),

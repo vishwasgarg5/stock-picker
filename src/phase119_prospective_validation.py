@@ -82,6 +82,7 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
                 and _mape(batch["actual_close"], batch["predicted_close"]) < _mape(batch["actual_close"], batch["base_close"])),
             "training_rows": int(len(prior)),
             "training_sessions": train_sessions,
+            "latest_training_target_date": str(prior["target_date"].max().date()) if not prior.empty else None,
             "correction_applied": bool(correction_applied),
             "estimated_return_bias_pct": estimated_bias * 100.0,
             "bias_corrected_mape_pct": corrected_mape,
@@ -89,7 +90,7 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
                 and _mape(batch["actual_close"], batch["base_close"]) is not None
                 and corrected_mape < _mape(batch["actual_close"], batch["base_close"])),
         })
-    daily = pd.DataFrame(daily_rows, columns=["prediction_date", "target_date", "rows", "model_mape_pct", "baseline_mape_pct", "model_beats_baseline"])
+    daily = pd.DataFrame(daily_rows)
     model = _mape(prospective["actual_close"], prospective["predicted_close"]) if not prospective.empty else None
     baseline = _mape(prospective["actual_close"], prospective["base_close"]) if not prospective.empty else None
     corrected_all = pd.concat(corrected_parts, ignore_index=True) if corrected_parts else pd.DataFrame()
@@ -114,7 +115,7 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
         "sessions_with_bias_correction": int(daily["correction_applied"].sum()) if not daily.empty else 0,
         "sessions_without_enough_bias_training_history": int((~daily["correction_applied"]).sum()) if not daily.empty else 0,
         "bias_correction_training_rule": "Pooled raw-return minus realized-return bias; only rows with target_date strictly before prediction_date; minimum 30 rows and 5 realized target sessions; fallback to raw forecast otherwise.",
-        "strict_no_lookahead_for_bias_correction": bool(daily.empty or (daily.loc[daily["correction_applied"], "training_sessions"] >= 5).all()),
+        "strict_no_lookahead_for_bias_correction": bool(daily.empty or (\n            daily.loc[daily["correction_applied"], "latest_training_target_date"].notna().all()\n            and (pd.to_datetime(daily.loc[daily["correction_applied"], "latest_training_target_date"])\n                 < pd.to_datetime(daily.loc[daily["correction_applied"], "prediction_date"])).all()\n        )),
         "production_model_changed": False,
         "ranking_or_risk_changed": False,
         "automatic_promotion": False,

@@ -115,7 +115,16 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
         "sessions_with_bias_correction": int(daily["correction_applied"].sum()) if not daily.empty else 0,
         "sessions_without_enough_bias_training_history": int((~daily["correction_applied"]).sum()) if not daily.empty else 0,
         "bias_correction_training_rule": "Pooled raw-return minus realized-return bias; only rows with target_date strictly before prediction_date; minimum 30 rows and 5 realized target sessions; fallback to raw forecast otherwise.",
-        "strict_no_lookahead_for_bias_correction": bool(daily.empty or (\n            daily.loc[daily["correction_applied"], "latest_training_target_date"].notna().all()\n            and (pd.to_datetime(daily.loc[daily["correction_applied"], "latest_training_target_date"])\n                 < pd.to_datetime(daily.loc[daily["correction_applied"], "prediction_date"])).all()\n        )),
+        "strict_no_lookahead_for_bias_correction": bool(
+            daily.empty
+            or (
+                daily.loc[daily["correction_applied"], "latest_training_target_date"].notna().all()
+                and (
+                    pd.to_datetime(daily.loc[daily["correction_applied"], "latest_training_target_date"])
+                    < pd.to_datetime(daily.loc[daily["correction_applied"], "prediction_date"])
+                ).all()
+            )
+        ),
         "production_model_changed": False,
         "ranking_or_risk_changed": False,
         "automatic_promotion": False,

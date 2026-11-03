@@ -27,6 +27,8 @@ def test_locked_cohort_excludes_all_pre_lock_predictions():
     assert daily.iloc[0]["prediction_date"] == "2026-10-15"
     assert summary["automatic_promotion"] is False
     assert summary["production_model_changed"] is False
+    assert "bias_corrected_mape_pct" in summary
+    assert summary["promotion_allowed"] is False
 
 
 def test_prospective_review_waits_for_minimum_session_count():
@@ -47,3 +49,26 @@ def test_missing_schema_is_safe():
     assert daily.empty
     assert summary["status"] == "INSUFFICIENT_DATA"
     assert summary["automatic_promotion"] is False
+
+
+def test_bias_correction_uses_only_prior_realized_sessions_and_same_locked_cohort():
+    rows = []
+    dates = pd.bdate_range("2026-10-01", periods=35)
+    for i in range(34):
+        for symbol in ("AAA", "BBB", "CCC", "DDD"):
+            rows.append(_row(
+                dates[i].strftime("%Y-%m-%d"),
+                dates[i + 1].strftime("%Y-%m-%d"),
+                symbol=symbol, actual=103.0, predicted=105.0,
+            ))
+    daily, summary = evaluate_prospective(pd.DataFrame(rows), pd.Timestamp("2026-10-14"))
+
+    corrected = daily[daily["correction_applied"]]
+    assert not corrected.empty
+    assert (pd.to_numeric(corrected["training_rows"]) >= 30).all()
+    assert (pd.to_numeric(corrected["training_sessions"]) >= 5).all()
+    assert summary["sessions_with_bias_correction"] == len(corrected)
+    assert summary["strict_no_lookahead_for_bias_correction"] is True
+    assert summary["production_model_changed"] is False
+    assert summary["automatic_promotion"] is False
+    assert summary["promotion_allowed"] is False

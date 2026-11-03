@@ -47,8 +47,30 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
     x = x.drop_duplicates(["prediction_date", "target_date", "symbol"], keep="last")
     # Only predictions made strictly after the frozen lock date can enter.
     prospective = x.loc[x["prediction_date"] > pd.Timestamp(lock_date).normalize()].copy()
+    # Evaluate a pooled bias-corrected variant on the exact same locked cohort.
+    # For each prediction date, train only on labels whose target_date is strictly
+    # earlier than that prediction date; pre-lock rows may train the estimator but
+    # can never enter the prospective scoring cohort.
+    min_train_rows = 30
+    min_train_sessions = 5
+    x["raw_return"] = x["predicted_close"] / x["base_close"] - 1.0
+    x["actual_return"] = x["actual_close"] / x["base_close"] - 1.0
+    x["realized_return_bias"] = x["raw_return"] - x["actual_return"]
     daily_rows = []
+    corrected_parts = []
     for pred_date, batch in prospective.groupby("prediction_date", sort=True):
+        prior = x.loc[x["target_date"] < pred_date]
+        train_sessions = int(prior["target_date"].nunique())
+        correction_applied = len(prior) >= min_train_rows and train_sessions >= min_train_sessions
+        estimated_bias = float(prior["realized_return_bias"].mean()) if correction_applied else 0.0
+        corrected_close = batch["base_close"] * (1.0 + batch["raw_return"] - estimated_bias)
+        corrected_parts.append(pd.DataFrame({
+            "actual_close": batch["actual_close"].to_numpy(),
+            "base_close": batch["base_close"].to_numpy(),
+            "raw_close": batch["predicted_close"].to_numpy(),
+            "corrected_close": corrected_close.to_numpy(),
+        }))
+        corrected_mape = _mape(batch["actual_close"], corrected_close)
         daily_rows.append({
             "prediction_date": str(pd.Timestamp(pred_date).date()),
             "target_date": str(batch["target_date"].min().date()),
@@ -58,10 +80,20 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
             "model_beats_baseline": bool(_mape(batch["actual_close"], batch["predicted_close"]) is not None
                 and _mape(batch["actual_close"], batch["base_close"]) is not None
                 and _mape(batch["actual_close"], batch["predicted_close"]) < _mape(batch["actual_close"], batch["base_close"])),
+            "training_rows": int(len(prior)),
+            "training_sessions": train_sessions,
+            "correction_applied": bool(correction_applied),
+            "estimated_return_bias_pct": estimated_bias * 100.0,
+            "bias_corrected_mape_pct": corrected_mape,
+            "bias_corrected_beats_baseline": bool(corrected_mape is not None
+                and _mape(batch["actual_close"], batch["base_close"]) is not None
+                and corrected_mape < _mape(batch["actual_close"], batch["base_close"])),
         })
     daily = pd.DataFrame(daily_rows, columns=["prediction_date", "target_date", "rows", "model_mape_pct", "baseline_mape_pct", "model_beats_baseline"])
     model = _mape(prospective["actual_close"], prospective["predicted_close"]) if not prospective.empty else None
     baseline = _mape(prospective["actual_close"], prospective["base_close"]) if not prospective.empty else None
+    corrected_all = pd.concat(corrected_parts, ignore_index=True) if corrected_parts else pd.DataFrame()
+    corrected_model = _mape(corrected_all["actual_close"], corrected_all["corrected_close"]) if not corrected_all.empty else None
     sessions = int(prospective["target_date"].nunique())
     enough = sessions >= MIN_PROSPECTIVE_SESSIONS
     summary: dict[str, Any] = {
@@ -76,6 +108,13 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
         "previous_close_baseline_mape_pct": baseline,
         "delta_mape_pct_points_model_minus_baseline": round(model - baseline, 6) if model is not None and baseline is not None else None,
         "sessions_model_beats_baseline": int(daily["model_beats_baseline"].sum()) if not daily.empty else 0,
+        "bias_corrected_mape_pct": corrected_model,
+        "delta_mape_pct_points_bias_corrected_minus_baseline": round(corrected_model - baseline, 6) if corrected_model is not None and baseline is not None else None,
+        "sessions_bias_corrected_beats_baseline": int(daily["bias_corrected_beats_baseline"].sum()) if not daily.empty else 0,
+        "sessions_with_bias_correction": int(daily["correction_applied"].sum()) if not daily.empty else 0,
+        "sessions_without_enough_bias_training_history": int((~daily["correction_applied"]).sum()) if not daily.empty else 0,
+        "bias_correction_training_rule": "Pooled raw-return minus realized-return bias; only rows with target_date strictly before prediction_date; minimum 30 rows and 5 realized target sessions; fallback to raw forecast otherwise.",
+        "strict_no_lookahead_for_bias_correction": bool(daily.empty or (daily.loc[daily["correction_applied"], "training_sessions"] >= 5).all()),
         "production_model_changed": False,
         "ranking_or_risk_changed": False,
         "automatic_promotion": False,

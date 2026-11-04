@@ -1,17 +1,17 @@
 {
   "status": "DESCRIPTIVE_ONLY",
-  "scored_rows": 300,
-  "unique_symbols": 104,
-  "target_sessions": 30,
-  "model_close_mape_pct": 1.931796351893286,
-  "previous_close_baseline_mape_pct": 1.9213933150700924,
-  "relative_mape_improvement_pct": -0.5414319255510703,
-  "direction_accuracy_pct": 47.333333333333336,
+  "scored_rows": 310,
+  "unique_symbols": 108,
+  "target_sessions": 31,
+  "model_close_mape_pct": 1.9259660134932934,
+  "previous_close_baseline_mape_pct": 1.9148256905236378,
+  "relative_mape_improvement_pct": -0.5817930595347885,
+  "direction_accuracy_pct": 47.096774193548384,
   "sessions_model_mape_beats_baseline": 11,
-  "sessions_baseline_beats_model": 19,
+  "sessions_baseline_beats_model": 20,
   "session_cluster_bootstrap_95pct_ci_ape_improvement_pct_points": [
-    -0.03127210709430382,
-    0.00846095232658112
+    -0.030424805411913038,
+    0.00815182502182888
   ],
   "bootstrap_repeats": 2000,
   "uncertainty_method": "deterministic bootstrap resampling target-session mean APE differences",

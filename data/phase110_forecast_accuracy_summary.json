@@ -8,34 +8,34 @@
   "automatic_promotion": false,
   "missing_facts_inferred": false,
   "status": "SCORED",
-  "matched_rows": 300,
+  "matched_rows": 310,
   "metrics": {
     "open": {
-      "n": 300,
-      "mae": 16.275865958893736,
-      "bias": 5.317582239604312,
-      "mape_pct": 0.787222490040894
+      "n": 310,
+      "mae": 17.18382058324809,
+      "bias": 4.83213930489256,
+      "mape_pct": 0.7862213110441031
     },
     "high": {
-      "n": 300,
-      "mae": 35.80367427366184,
-      "bias": 0.25499030861757777,
-      "mape_pct": 1.4890926732018235
+      "n": 310,
+      "mae": 38.74431662095663,
+      "bias": -1.91394647763892,
+      "mape_pct": 1.4936273311782617
     },
     "low": {
-      "n": 300,
-      "mae": 31.399869883387474,
-      "bias": 16.369126305824107,
-      "mape_pct": 1.4705493591409553
+      "n": 310,
+      "mae": 33.11965324049785,
+      "bias": 14.519293094238703,
+      "mape_pct": 1.4589465426918231
     },
     "close": {
-      "n": 300,
-      "mae": 46.819267041626006,
-      "bias": 6.31896126367961,
-      "mape_pct": 1.941138827338194
+      "n": 310,
+      "mae": 50.38557850624169,
+      "bias": 2.6722997645148054,
+      "mape_pct": 1.9350071187625595
     }
   },
-  "close_directional_accuracy_pct": 47.66666666666667,
+  "close_directional_accuracy_pct": 47.41935483870968,
   "chronological_split_used_for_this_summary": false,
   "note": "Descriptive matched historical forecast accuracy; use Phase 111 for chronological replay."
 }

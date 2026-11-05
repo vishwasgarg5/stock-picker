@@ -41,6 +41,30 @@ def test_prospective_review_waits_for_minimum_session_count():
     assert summary["prospective_sessions"] == 20
     assert summary["status"] == "READY_FOR_REVIEW"
     assert summary["promotion_allowed"] is False
+    assert "walk_forward_shrinkage_mape_pct" in summary
+    assert "sessions_with_nonzero_shrinkage" in summary
+
+
+def test_prospective_shrinkage_uses_prior_labels_and_can_fall_back_to_baseline():
+    rows = []
+    dates = pd.bdate_range("2026-10-01", periods=11)
+    for i in range(8):
+        for symbol in ("AAA", "BBB", "CCC", "DDD"):
+            rows.append(_row(dates[i].strftime("%Y-%m-%d"), dates[i + 1].strftime("%Y-%m-%d"),
+                             symbol=symbol, actual=100.0, predicted=105.0))
+    # One locked-cohort forecast, made after all training labels have matured.
+    for symbol in ("AAA", "BBB", "CCC", "DDD"):
+        rows.append(_row("2026-10-14", "2026-10-15", symbol=symbol, actual=100.0, predicted=105.0))
+
+    daily, summary = evaluate_prospective(pd.DataFrame(rows), pd.Timestamp("2026-10-14"))
+
+    assert summary["prospective_sessions"] == 1
+    assert summary["walk_forward_shrinkage_mape_pct"] == summary["previous_close_baseline_mape_pct"]
+    assert summary["sessions_with_nonzero_shrinkage"] == 0
+    assert daily.iloc[0]["shrinkage_alpha"] == 0.0
+    assert daily.iloc[0]["shrinkage_beats_baseline"] is False
+    assert summary["production_model_changed"] is False
+    assert summary["promotion_allowed"] is False
 
 
 def test_missing_schema_is_safe():

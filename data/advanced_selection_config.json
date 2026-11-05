@@ -1,10 +1,10 @@
 {
-  "as_of": "2026-11-04T18:19:36.041915+00:00",
+  "as_of": "2026-11-05T18:33:13.568994+00:00",
   "advanced_control_version": "advanced_v1",
   "data_freshness": {
     "status": "PASS",
     "age_days": 0,
-    "latest_date": "2026-11-04"
+    "latest_date": "2026-11-05"
   },
   "high_confidence_count": 5,
   "medium_confidence_count": 4,
@@ -17,7 +17,7 @@
       "return_lift": false,
       "session_win_rate": false,
       "ci_low": false,
-      "confidence_evidence": false,
+      "confidence_evidence": true,
       "governance_safe": true,
       "no_drawdown_breach": true
     },

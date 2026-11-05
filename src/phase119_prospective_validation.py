@@ -19,6 +19,9 @@ DAILY_OUT = DATA / "phase119_prospective_validation_by_session.csv"
 # Frozen after the last target session present when this protocol was introduced.
 LOCK_DATE = pd.Timestamp("2026-10-14")
 MIN_PROSPECTIVE_SESSIONS = 20
+MIN_TRAIN_ROWS = 30
+MIN_TRAIN_SESSIONS = 5
+SHRINKAGE_ALPHAS = [i / 20 for i in range(21)]
 REQUIRED = {"prediction_date", "target_date", "symbol", "base_close", "predicted_close", "actual_close"}
 
 
@@ -58,19 +61,36 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
     x["realized_return_bias"] = x["raw_return"] - x["actual_return"]
     daily_rows = []
     corrected_parts = []
+    shrinkage_parts = []
     for pred_date, batch in prospective.groupby("prediction_date", sort=True):
         prior = x.loc[x["target_date"] < pred_date]
         train_sessions = int(prior["target_date"].nunique())
         correction_applied = len(prior) >= min_train_rows and train_sessions >= min_train_sessions
         estimated_bias = float(prior["realized_return_bias"].mean()) if correction_applied else 0.0
         corrected_close = batch["predicted_close"] - (batch["base_close"] * estimated_bias)
+        # Select a baseline-anchored shrinkage weight using only prior realized labels.
+        # Alpha=0 is the previous-close baseline and remains available at every date.
+        selected_alpha = 0.0
+        if correction_applied:
+            best_loss = float("inf")
+            for candidate_alpha in SHRINKAGE_ALPHAS:
+                train_prediction = prior["base_close"] + candidate_alpha * (prior["predicted_close"] - prior["base_close"])
+                loss = _mape(prior["actual_close"], train_prediction)
+                if loss is not None and loss < best_loss - 1e-12:
+                    best_loss, selected_alpha = loss, candidate_alpha
+        shrinkage_close = batch["base_close"] + selected_alpha * (batch["predicted_close"] - batch["base_close"])
         corrected_parts.append(pd.DataFrame({
             "actual_close": batch["actual_close"].to_numpy(),
             "base_close": batch["base_close"].to_numpy(),
             "raw_close": batch["predicted_close"].to_numpy(),
             "corrected_close": corrected_close.to_numpy(),
         }))
+        shrinkage_parts.append(pd.DataFrame({
+            "actual_close": batch["actual_close"].to_numpy(),
+            "shrinkage_close": shrinkage_close.to_numpy(),
+        }))
         corrected_mape = _mape(batch["actual_close"], corrected_close)
+        shrinkage_mape = _mape(batch["actual_close"], shrinkage_close)
         daily_rows.append({
             "prediction_date": str(pd.Timestamp(pred_date).date()),
             "target_date": str(batch["target_date"].min().date()),
@@ -89,12 +109,19 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
             "bias_corrected_beats_baseline": bool(corrected_mape is not None
                 and _mape(batch["actual_close"], batch["base_close"]) is not None
                 and corrected_mape < _mape(batch["actual_close"], batch["base_close"])),
+            "shrinkage_alpha": float(selected_alpha),
+            "shrinkage_mape_pct": shrinkage_mape,
+            "shrinkage_beats_baseline": bool(shrinkage_mape is not None
+                and _mape(batch["actual_close"], batch["base_close"]) is not None
+                and shrinkage_mape < _mape(batch["actual_close"], batch["base_close"])),
         })
     daily = pd.DataFrame(daily_rows)
     model = _mape(prospective["actual_close"], prospective["predicted_close"]) if not prospective.empty else None
     baseline = _mape(prospective["actual_close"], prospective["base_close"]) if not prospective.empty else None
     corrected_all = pd.concat(corrected_parts, ignore_index=True) if corrected_parts else pd.DataFrame()
     corrected_model = _mape(corrected_all["actual_close"], corrected_all["corrected_close"]) if not corrected_all.empty else None
+    shrinkage_all = pd.concat(shrinkage_parts, ignore_index=True) if shrinkage_parts else pd.DataFrame()
+    shrinkage_model = _mape(shrinkage_all["actual_close"], shrinkage_all["shrinkage_close"]) if not shrinkage_all.empty else None
     sessions = int(prospective["target_date"].nunique())
     enough = sessions >= MIN_PROSPECTIVE_SESSIONS
     summary: dict[str, Any] = {
@@ -112,6 +139,11 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
         "bias_corrected_mape_pct": corrected_model,
         "delta_mape_pct_points_bias_corrected_minus_baseline": round(corrected_model - baseline, 6) if corrected_model is not None and baseline is not None else None,
         "sessions_bias_corrected_beats_baseline": int(daily["bias_corrected_beats_baseline"].sum()) if not daily.empty else 0,
+        "walk_forward_shrinkage_mape_pct": shrinkage_model,
+        "delta_mape_pct_points_shrinkage_minus_baseline": round(shrinkage_model - baseline, 6) if shrinkage_model is not None and baseline is not None else None,
+        "sessions_shrinkage_beats_baseline": int(daily["shrinkage_beats_baseline"].sum()) if not daily.empty else 0,
+        "sessions_with_nonzero_shrinkage": int(daily["shrinkage_alpha"].gt(0).sum()) if not daily.empty else 0,
+        "shrinkage_training_rule": "Select alpha from 0.00 to 1.00 in 0.05 steps by prior-session MAPE only; require at least 30 prior rows and 5 realized target sessions; alpha=0 falls back to previous close.",
         "sessions_with_bias_correction": int(daily["correction_applied"].sum()) if not daily.empty else 0,
         "sessions_without_enough_bias_training_history": int((~daily["correction_applied"]).sum()) if not daily.empty else 0,
         "bias_correction_training_rule": "Pooled raw-return minus realized-return bias; only rows with target_date strictly before prediction_date; minimum 30 rows and 5 realized target sessions; fallback to raw forecast otherwise.",

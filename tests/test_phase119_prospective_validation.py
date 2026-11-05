@@ -52,13 +52,17 @@ def test_prospective_shrinkage_uses_prior_labels_and_can_fall_back_to_baseline()
         for symbol in ("AAA", "BBB", "CCC", "DDD"):
             rows.append(_row(dates[i].strftime("%Y-%m-%d"), dates[i + 1].strftime("%Y-%m-%d"),
                              symbol=symbol, actual=100.0, predicted=105.0))
-    # One locked-cohort forecast, made after all training labels have matured.
+    # The prospective forecast is strictly after the frozen lock date and all
+    # training labels have matured before it is issued.
     for symbol in ("AAA", "BBB", "CCC", "DDD"):
-        rows.append(_row("2026-10-14", "2026-10-15", symbol=symbol, actual=100.0, predicted=105.0))
+        rows.append(_row("2026-10-15", "2026-10-16", symbol=symbol, actual=100.0, predicted=105.0))
 
     daily, summary = evaluate_prospective(pd.DataFrame(rows), pd.Timestamp("2026-10-14"))
 
     assert summary["prospective_sessions"] == 1
+    assert int(daily.iloc[0]["training_rows"]) >= 30
+    assert int(daily.iloc[0]["training_sessions"]) >= 5
+    assert pd.Timestamp(daily.iloc[0]["latest_training_target_date"]) < pd.Timestamp(daily.iloc[0]["prediction_date"])
     assert summary["walk_forward_shrinkage_mape_pct"] == summary["previous_close_baseline_mape_pct"]
     assert summary["sessions_with_nonzero_shrinkage"] == 0
     assert daily.iloc[0]["shrinkage_alpha"] == 0.0

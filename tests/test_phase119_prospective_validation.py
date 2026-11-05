@@ -62,7 +62,7 @@ def test_prospective_shrinkage_uses_prior_labels_and_can_fall_back_to_baseline()
     assert summary["walk_forward_shrinkage_mape_pct"] == summary["previous_close_baseline_mape_pct"]
     assert summary["sessions_with_nonzero_shrinkage"] == 0
     assert daily.iloc[0]["shrinkage_alpha"] == 0.0
-    assert daily.iloc[0]["shrinkage_beats_baseline"] is False
+    assert not bool(daily.iloc[0]["shrinkage_beats_baseline"])
     assert summary["production_model_changed"] is False
     assert summary["promotion_allowed"] is False
 

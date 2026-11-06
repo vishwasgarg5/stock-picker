@@ -2,7 +2,7 @@
   "phase93_receipt_forensics": {
     "groups_with_multiple_message_ids": 4,
     "groups_with_timestamp_intervals": 4,
-    "hashed_rows": 152,
+    "hashed_rows": 156,
     "note": "Receipt logs lack full message bodies; same hash with multiple API message IDs warrants manual review but does not prove an unintended resend.",
     "repeated_hash_groups": 4,
     "resends_performed": false,
@@ -12,11 +12,11 @@
     "chronological_source": "phase33_chronological_prediction_scores.csv",
     "periods_scored": 2,
     "ranking_or_threshold_changed": false,
-    "rows_scored": 320,
+    "rows_scored": 330,
     "status": "SEGMENTED_DIAGNOSTIC_ONLY",
-    "symbols_better_than_baseline": 50,
-    "symbols_scored": 110,
-    "symbols_worse_than_baseline": 60,
+    "symbols_better_than_baseline": 55,
+    "symbols_scored": 113,
+    "symbols_worse_than_baseline": 58,
     "worst_symbols": [
       {
         "delta_pct_points": 1.369,
@@ -44,11 +44,6 @@
         "symbol": "IGIL"
       },
       {
-        "delta_pct_points": 0.1973,
-        "rows": 1,
-        "symbol": "EMCURE"
-      },
-      {
         "delta_pct_points": 0.1836,
         "rows": 1,
         "symbol": "CARTRADE"
@@ -67,12 +62,17 @@
         "delta_pct_points": 0.1346,
         "rows": 1,
         "symbol": "REDINGTON"
+      },
+      {
+        "delta_pct_points": 0.1293,
+        "rows": 1,
+        "symbol": "BSE"
       }
     ]
   },
   "phase95_v2_earliest_rejection": {
     "earliest_blocking_stage": "actual_data_join_and_validation",
-    "earliest_stage_input_rows": 330,
+    "earliest_stage_input_rows": 340,
     "earliest_stage_rejected_rows": 50,
     "funnel_stages": 10,
     "note": "The earliest stage with rejections is a funnel bottleneck candidate; later-stage counts are not additive unique candidates.",
@@ -80,14 +80,14 @@
     "signals_changed": false,
     "stages_with_rejections": 6,
     "status": "DIAGNOSTIC_ONLY",
-    "total_rejected_rows_stage_sum": 336
+    "total_rejected_rows_stage_sum": 346
   },
   "phase96_storage_preflight": {
     "backup_restore_tested": false,
     "error_type": null,
     "estimated_size_reduction_pct": 77.27,
     "first_100_rows_parity": true,
-    "gzip_size_bytes": 18418121,
+    "gzip_size_bytes": 18427230,
     "migration_executed": false,
     "next_required_steps": [
       "full-file parity validation",
@@ -98,9 +98,9 @@
     ],
     "production_reader_switched": false,
     "rollback_tested": false,
-    "source_sha256_after": "c8ccd186b5ff4622c12aeb3618086986b21004eab9836ae9a96ee2e3deb83781",
-    "source_sha256_before": "c8ccd186b5ff4622c12aeb3618086986b21004eab9836ae9a96ee2e3deb83781",
-    "source_size_bytes": 81032485,
+    "source_sha256_after": "638563475b5f9a391782ac24f653faf955babc86b016387e1bc5f5e829c5f709",
+    "source_sha256_before": "638563475b5f9a391782ac24f653faf955babc86b016387e1bc5f5e829c5f709",
+    "source_size_bytes": 81074053,
     "source_unchanged": true,
     "status": "PREFLIGHT_PASSED_NO_MIGRATION"
   },

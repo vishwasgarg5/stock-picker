@@ -1,26 +1,26 @@
 {
   "status": "SCORED",
-  "scored_rows": 320,
-  "symbols": 110,
-  "target_sessions": 32,
-  "symbol_rows_reported_minimum_3_observations": 47,
+  "scored_rows": 330,
+  "symbols": 113,
+  "target_sessions": 33,
+  "symbol_rows_reported_minimum_3_observations": 49,
   "regime_definition": "Absolute realized close move from base_close: quiet <1%, normal 1%-<2.5%, volatile >=2.5%.",
   "overall": {
-    "rows": 320,
-    "model_mape_pct": 1.929972,
-    "baseline_mape_pct": 1.919916,
-    "delta_mape_pct_points": 0.010056,
-    "signed_return_bias_pct": 0.2418,
+    "rows": 330,
+    "model_mape_pct": 1.926979,
+    "baseline_mape_pct": 1.919247,
+    "delta_mape_pct_points": 0.007732,
+    "signed_return_bias_pct": 0.230954,
     "model_beats_baseline": false
   },
   "by_period": [
     {
       "period": "CHRONOLOGICAL_HOLDOUT",
-      "rows": 120,
-      "model_mape_pct": 1.82563,
-      "baseline_mape_pct": 1.817684,
-      "delta_mape_pct_points": 0.007946,
-      "signed_return_bias_pct": -0.153814,
+      "rows": 130,
+      "model_mape_pct": 1.826057,
+      "baseline_mape_pct": 1.823849,
+      "delta_mape_pct_points": 0.002207,
+      "signed_return_bias_pct": -0.150916,
       "model_beats_baseline": false
     },
     {
@@ -107,21 +107,21 @@
       "model_beats_baseline": false
     },
     {
-      "symbol": "PATANJALI",
-      "rows": 6,
-      "model_mape_pct": 2.260888,
-      "baseline_mape_pct": 2.23701,
-      "delta_mape_pct_points": 0.023878,
-      "signed_return_bias_pct": 0.985174,
-      "model_beats_baseline": false
-    },
-    {
       "symbol": "UNIONBANK",
       "rows": 3,
       "model_mape_pct": 1.037389,
       "baseline_mape_pct": 1.013856,
       "delta_mape_pct_points": 0.023533,
       "signed_return_bias_pct": -0.252104,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "NTPCGREEN",
+      "rows": 3,
+      "model_mape_pct": 1.462689,
+      "baseline_mape_pct": 1.439562,
+      "delta_mape_pct_points": 0.023127,
+      "signed_return_bias_pct": -0.116354,
       "model_beats_baseline": false
     }
   ],
@@ -199,6 +199,15 @@
       "model_beats_baseline": true
     },
     {
+      "symbol": "BOSCHLTD",
+      "rows": 3,
+      "model_mape_pct": 2.956844,
+      "baseline_mape_pct": 2.989425,
+      "delta_mape_pct_points": -0.032581,
+      "signed_return_bias_pct": -0.759896,
+      "model_beats_baseline": true
+    },
+    {
       "symbol": "ACUTAAS",
       "rows": 5,
       "model_mape_pct": 2.590955,
@@ -206,43 +215,34 @@
       "delta_mape_pct_points": -0.031571,
       "signed_return_bias_pct": -0.700732,
       "model_beats_baseline": true
-    },
-    {
-      "symbol": "SHYAMMETL",
-      "rows": 6,
-      "model_mape_pct": 2.095567,
-      "baseline_mape_pct": 2.119801,
-      "delta_mape_pct_points": -0.024233,
-      "signed_return_bias_pct": -1.3064,
-      "model_beats_baseline": true
     }
   ],
   "regimes": [
     {
       "regime": "QUIET_LT_1PCT",
-      "rows": 123,
-      "model_mape_pct": 0.511306,
-      "baseline_mape_pct": 0.473338,
-      "delta_mape_pct_points": 0.037968,
-      "signed_return_bias_pct": 0.098152,
+      "rows": 126,
+      "model_mape_pct": 0.501766,
+      "baseline_mape_pct": 0.465343,
+      "delta_mape_pct_points": 0.036423,
+      "signed_return_bias_pct": 0.094612,
       "model_beats_baseline": false
     },
     {
       "regime": "NORMAL_1_TO_2_5PCT",
-      "rows": 109,
-      "model_mape_pct": 1.68672,
-      "baseline_mape_pct": 1.690049,
-      "delta_mape_pct_points": -0.003329,
-      "signed_return_bias_pct": 0.470409,
+      "rows": 113,
+      "model_mape_pct": 1.679926,
+      "baseline_mape_pct": 1.68719,
+      "delta_mape_pct_points": -0.007264,
+      "signed_return_bias_pct": 0.421701,
       "model_beats_baseline": true
     },
     {
       "regime": "VOLATILE_GE_2_5PCT",
-      "rows": 88,
-      "model_mape_pct": 4.214182,
-      "baseline_mape_pct": 4.22656,
-      "delta_mape_pct_points": -0.012378,
-      "signed_return_bias_pct": 0.15942,
+      "rows": 91,
+      "model_mape_pct": 4.207131,
+      "baseline_mape_pct": 4.220505,
+      "delta_mape_pct_points": -0.013375,
+      "signed_return_bias_pct": 0.182873,
       "model_beats_baseline": true
     }
   ],

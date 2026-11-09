@@ -1,35 +1,35 @@
 {
   "status": "SCORED",
-  "scored_rows": 330,
-  "symbols": 113,
-  "target_sessions": 33,
-  "symbol_rows_reported_minimum_3_observations": 49,
+  "scored_rows": 340,
+  "symbols": 116,
+  "target_sessions": 34,
+  "symbol_rows_reported_minimum_3_observations": 50,
   "regime_definition": "Absolute realized close move from base_close: quiet <1%, normal 1%-<2.5%, volatile >=2.5%.",
   "overall": {
-    "rows": 330,
-    "model_mape_pct": 1.926979,
-    "baseline_mape_pct": 1.919247,
-    "delta_mape_pct_points": 0.007732,
-    "signed_return_bias_pct": 0.230954,
+    "rows": 340,
+    "model_mape_pct": 1.911648,
+    "baseline_mape_pct": 1.903081,
+    "delta_mape_pct_points": 0.008568,
+    "signed_return_bias_pct": 0.194625,
     "model_beats_baseline": false
   },
   "by_period": [
     {
       "period": "CHRONOLOGICAL_HOLDOUT",
       "rows": 130,
-      "model_mape_pct": 1.826057,
-      "baseline_mape_pct": 1.823849,
-      "delta_mape_pct_points": 0.002207,
-      "signed_return_bias_pct": -0.150916,
+      "model_mape_pct": 1.811224,
+      "baseline_mape_pct": 1.803377,
+      "delta_mape_pct_points": 0.007847,
+      "signed_return_bias_pct": -0.250581,
       "model_beats_baseline": false
     },
     {
       "period": "EARLY_CONTEXT",
-      "rows": 200,
-      "model_mape_pct": 1.992578,
-      "baseline_mape_pct": 1.981256,
-      "delta_mape_pct_points": 0.011322,
-      "signed_return_bias_pct": 0.479169,
+      "rows": 210,
+      "model_mape_pct": 1.973816,
+      "baseline_mape_pct": 1.964802,
+      "delta_mape_pct_points": 0.009013,
+      "signed_return_bias_pct": 0.470228,
       "model_beats_baseline": false
     }
   ],
@@ -89,15 +89,6 @@
       "model_beats_baseline": false
     },
     {
-      "symbol": "INDHOTEL",
-      "rows": 5,
-      "model_mape_pct": 1.021625,
-      "baseline_mape_pct": 0.986718,
-      "delta_mape_pct_points": 0.034907,
-      "signed_return_bias_pct": 0.042986,
-      "model_beats_baseline": false
-    },
-    {
       "symbol": "RRKABEL",
       "rows": 4,
       "model_mape_pct": 1.122855,
@@ -107,21 +98,30 @@
       "model_beats_baseline": false
     },
     {
+      "symbol": "EMCURE",
+      "rows": 3,
+      "model_mape_pct": 1.823791,
+      "baseline_mape_pct": 1.792319,
+      "delta_mape_pct_points": 0.031472,
+      "signed_return_bias_pct": -1.06023,
+      "model_beats_baseline": false
+    },
+    {
+      "symbol": "INDHOTEL",
+      "rows": 6,
+      "model_mape_pct": 0.919812,
+      "baseline_mape_pct": 0.890491,
+      "delta_mape_pct_points": 0.029321,
+      "signed_return_bias_pct": -0.032918,
+      "model_beats_baseline": false
+    },
+    {
       "symbol": "UNIONBANK",
       "rows": 3,
       "model_mape_pct": 1.037389,
       "baseline_mape_pct": 1.013856,
       "delta_mape_pct_points": 0.023533,
       "signed_return_bias_pct": -0.252104,
-      "model_beats_baseline": false
-    },
-    {
-      "symbol": "NTPCGREEN",
-      "rows": 3,
-      "model_mape_pct": 1.462689,
-      "baseline_mape_pct": 1.439562,
-      "delta_mape_pct_points": 0.023127,
-      "signed_return_bias_pct": -0.116354,
       "model_beats_baseline": false
     }
   ],
@@ -220,29 +220,29 @@
   "regimes": [
     {
       "regime": "QUIET_LT_1PCT",
-      "rows": 126,
-      "model_mape_pct": 0.501766,
-      "baseline_mape_pct": 0.465343,
-      "delta_mape_pct_points": 0.036423,
-      "signed_return_bias_pct": 0.094612,
+      "rows": 130,
+      "model_mape_pct": 0.500333,
+      "baseline_mape_pct": 0.464264,
+      "delta_mape_pct_points": 0.036069,
+      "signed_return_bias_pct": 0.088855,
       "model_beats_baseline": false
     },
     {
       "regime": "NORMAL_1_TO_2_5PCT",
-      "rows": 113,
-      "model_mape_pct": 1.679926,
-      "baseline_mape_pct": 1.68719,
-      "delta_mape_pct_points": -0.007264,
-      "signed_return_bias_pct": 0.421701,
+      "rows": 117,
+      "model_mape_pct": 1.673633,
+      "baseline_mape_pct": 1.681849,
+      "delta_mape_pct_points": -0.008216,
+      "signed_return_bias_pct": 0.379672,
       "model_beats_baseline": true
     },
     {
       "regime": "VOLATILE_GE_2_5PCT",
-      "rows": 91,
-      "model_mape_pct": 4.207131,
-      "baseline_mape_pct": 4.220505,
-      "delta_mape_pct_points": -0.013375,
-      "signed_return_bias_pct": 0.182873,
+      "rows": 93,
+      "model_mape_pct": 4.183895,
+      "baseline_mape_pct": 4.192655,
+      "delta_mape_pct_points": -0.00876,
+      "signed_return_bias_pct": 0.109673,
       "model_beats_baseline": true
     }
   ],

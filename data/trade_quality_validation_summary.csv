@@ -1,2 +1,2 @@
 sessions,trades,validation_trades,auc,top_half_win_rate_pct,baseline_top_half_win_rate_pct,win_rate_lift_pct,production_ready,status
-28,138,38,0.48459383753501406,52.63157894736842,52.63157894736842,0.0,False,validated_hold
+29,143,38,0.4676923076923077,63.1578947368421,57.89473684210527,5.263157894736835,False,validated_hold

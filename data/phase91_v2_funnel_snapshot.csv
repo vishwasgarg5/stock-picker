@@ -1,9 +1,9 @@
 stage,input_rows,output_rows,rejected_rows,detail
-predictions_loaded,340,340,0,Raw prediction rows loaded
-phase2_join,340,340,0,Phase-2 metadata joined; selection flag is applied at phase2_selected_gate
-actual_data_join_and_validation,340,290,50,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history
-confidence_percentile_gate,290,174,116,Required percentile >= 0.50
-phase2_selected_gate,174,6,168,Phase 2 selected flag equals 1
+predictions_loaded,350,350,0,Raw prediction rows loaded
+phase2_join,350,350,0,Phase-2 metadata joined; selection flag is applied at phase2_selected_gate
+actual_data_join_and_validation,350,300,50,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history
+confidence_percentile_gate,300,180,120,Required percentile >= 0.50
+phase2_selected_gate,180,6,174,Phase 2 selected flag equals 1
 phase4_reject:phase4_confidence_floor,3,0,3,3 candidates rejected for phase4_confidence_floor; diagnostic only
 phase4_reject:minimum_expected_return,3,0,3,3 candidates rejected for minimum_expected_return; diagnostic only
 phase4_eligibility_gate,6,0,6,phase4_eligible flag true

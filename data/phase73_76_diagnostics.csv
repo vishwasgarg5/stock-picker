@@ -1,4 +1,4 @@
 phase,status,rows,buy_rows,skip_rows,missing_skip_reasons,production_filters_changed,thresholds_deployed,scored_rows,target_dates,directional_accuracy_pct,recent_5_directional_accuracy_pct,production_model_changed,method,path,bytes,size_mb,duplicate_symbol_date_keys,recommended_action,storage_changed,source_file_modified
 73,ZERO_BUY_DIAGNOSED,300.0,0.0,300.0,0.0,False,False,,,,,,,,,,,,,
 74,DESCRIPTIVE_ONLY,,,,,,,340.0,34.0,48.8235294117647,56.00000000000001,False,saved chronological scores; no refit or threshold search,,,,,,,
-76,ABOVE_GITHUB_RECOMMENDED_SIZE,953173.0,,,,,,,,,,,,data/ohlcv.csv,81115393.0,77.36,0.0,Plan and test a staged compressed/partitioned storage migration with rollback; do not replace the source file in this diagnostic.,False,False
+76,ABOVE_GITHUB_RECOMMENDED_SIZE,953175.0,,,,,,,,,,,,data/ohlcv.csv,81115582.0,77.36,0.0,Plan and test a staged compressed/partitioned storage migration with rollback; do not replace the source file in this diagnostic.,False,False

@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-09T20:41:54.254420+00:00",
+  "as_of_utc": "2026-11-10T18:20:09.451414+00:00",
   "phases": [
     73,
     74,
@@ -37,9 +37,9 @@
   "phase76_storage_audit": {
     "status": "ABOVE_GITHUB_RECOMMENDED_SIZE",
     "path": "data/ohlcv.csv",
-    "bytes": 81115393,
+    "bytes": 81115582,
     "size_mb": 77.36,
-    "rows": 953173,
+    "rows": 953175,
     "duplicate_symbol_date_keys": 0,
     "date_span": {
       "first": "2018-01-01",

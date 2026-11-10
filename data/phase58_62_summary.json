@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-09T20:41:52.752204+00:00",
+  "as_of": "2026-11-10T18:20:07.663391+00:00",
   "phase58_accounting": {
     "status": "INCOMPLETE",
     "rows_examined": 340,
@@ -51,32 +51,32 @@
   },
   "phase61_telegram": {
     "status": "PASS",
-    "rows_across_logs": 160,
-    "api_confirmed_rows": 87,
+    "rows_across_logs": 164,
+    "api_confirmed_rows": 91,
     "legacy_unverified_rows": 73,
     "missing_status_rows": 0,
     "by_file": {
       "telegram_sent.csv": {
-        "rows": 63,
-        "confirmed": 36,
+        "rows": 64,
+        "confirmed": 37,
         "legacy_unverified": 27,
         "missing_status": 0
       },
       "telegram_evening_sent.csv": {
-        "rows": 35,
-        "confirmed": 17,
+        "rows": 36,
+        "confirmed": 18,
         "legacy_unverified": 18,
         "missing_status": 0
       },
       "telegram_paper_sent.csv": {
-        "rows": 36,
-        "confirmed": 17,
+        "rows": 37,
+        "confirmed": 18,
         "legacy_unverified": 19,
         "missing_status": 0
       },
       "telegram_paper_v2_sent.csv": {
-        "rows": 26,
-        "confirmed": 17,
+        "rows": 27,
+        "confirmed": 18,
         "legacy_unverified": 9,
         "missing_status": 0
       }

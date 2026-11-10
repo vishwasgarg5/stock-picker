@@ -2,57 +2,54 @@
   "version": "index_intelligence_v3",
   "market_regime": "NEUTRAL",
   "risk_multiplier": 1.0,
-  "news_sentiment": "BULLISH",
-  "news_score": 0.5,
-  "market_reason": "General market: Samvat 2083 outlook: 8 triggers that could turn Sensex, Nifty correction into a rally by next Diwali - The Economic Times",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMiggJBVV95cUxOZWlBZGZDcnRvNmRjUHlWRVpYZGZ2SFBVYm13SWFibWZhNVJ0Vkk3U1YydXJrQ3NpYld3UlllTm9DQzB5V0R4Qm5BNzR1TUtLRlVXWlI2b3ItTmlsR1JWR1lMdGZLT0NDMk4yNFVRVnlBMXB4Um9wNlRPQ3Rhbkw1eUJaX0dmaDA5ZldMbDlhS2E1YUpKc0ZCUXhsUUxPb1ZTbkg0S3BzZ18xU3luLWRxMHRtMlNIVUxmaC1tNk9iRVJoMkRYTU5rMVMtQ2JlWERCYm5kbnB6Z1NBeFJ1XzFPT0hDVTlRQ0VVbnFsWm1qSVBpczA3M09iaXQzRmotX1N2RFHSAYcCQVVfeXFMTTgwWnBDWEt5ZjJyRE40ZFJqSTV3VEpuLVh6OWU3TjFrWUpOaWRiWENKZlNBY3B5bm9rMFQxLVdPVk9KZ3BuVkJvV0FjMldxcGRuNVI5UUJ3YnRtLUNUYmZiV0luMFJFeVhMREJ4cTZkTW1STnp2QklpZHhERFlYaEJ3R1lrWVVFSE1rZnpDMHFiQ2NBalNNcncxOC1ZZnMwRGMxaGlpcjBrTDZQeGlkTkdBQkRiNG5qelAzSWFIRXNDVl9ocHdYR0lHcWtibjNhZW9YeXVKNTdzYktQN3ZINTRSQVBzSTg2bnNCNFJ2VlQwekhHTV9vNF9POWVwLXItR1pDQlhCRUU?oc=5",
-  "news_headline": "General market: Samvat 2083 outlook: 8 triggers that could turn Sensex, Nifty correction into a rally by next Diwali - The Economic Times",
+  "news_sentiment": "BEARISH",
+  "news_score": -0.019999999999999973,
+  "market_reason": "US / global markets: Sensex Today Ends 121 Points Lower | Nifty Below 23,400 | Cochin Shipyard Down 9% - Equitymaster",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxPbExpcG9JX3ZXdUU3OFRweGFwTzBzcDdiY3pRX1lqVzdzNjhFWjVSYW5zdHY2ZFg3dXZJenY3ZEttMTJIU196cnh5WmVsMVJfeDFfSHZxX3FvNjJYSklOSEFLdEJkTE1xNnVpbk9NeFFLOVRpUkoycFVRMlNMaTR5ckhkMjNvUGJOcE50aW43Z3RQM2wzb2xxQzhDcW5zeHNkYkJSdXJwTlp2MGtWUnFVYklIcmsxclN1dUduYlZsb19pTGhUakUyMkNfNVk0ZU01X1ZpTA?oc=5",
+  "news_headline": "US / global markets: Sensex Today Ends 121 Points Lower | Nifty Below 23,400 | Cochin Shipyard Down 9% - Equitymaster",
   "news_reasons": [
     {
-      "event": "General market",
-      "impact": 1.0,
-      "headline": "Samvat 2083 outlook: 8 triggers that could turn Sensex, Nifty correction into a rally by next Diwali - The Economic Times",
-      "url": "https://news.google.com/rss/articles/CBMiggJBVV95cUxOZWlBZGZDcnRvNmRjUHlWRVpYZGZ2SFBVYm13SWFibWZhNVJ0Vkk3U1YydXJrQ3NpYld3UlllTm9DQzB5V0R4Qm5BNzR1TUtLRlVXWlI2b3ItTmlsR1JWR1lMdGZLT0NDMk4yNFVRVnlBMXB4Um9wNlRPQ3Rhbkw1eUJaX0dmaDA5ZldMbDlhS2E1YUpKc0ZCUXhsUUxPb1ZTbkg0S3BzZ18xU3luLWRxMHRtMlNIVUxmaC1tNk9iRVJoMkRYTU5rMVMtQ2JlWERCYm5kbnB6Z1NBeFJ1XzFPT0hDVTlRQ0VVbnFsWm1qSVBpczA3M09iaXQzRmotX1N2RFHSAYcCQVVfeXFMTTgwWnBDWEt5ZjJyRE40ZFJqSTV3VEpuLVh6OWU3TjFrWUpOaWRiWENKZlNBY3B5bm9rMFQxLVdPVk9KZ3BuVkJvV0FjMldxcGRuNVI5UUJ3YnRtLUNUYmZiV0luMFJFeVhMREJ4cTZkTW1STnp2QklpZHhERFlYaEJ3R1lrWVVFSE1rZnpDMHFiQ2NBalNNcncxOC1ZZnMwRGMxaGlpcjBrTDZQeGlkTkdBQkRiNG5qelAzSWFIRXNDVl9ocHdYR0lHcWtibjNhZW9YeXVKNTdzYktQN3ZINTRSQVBzSTg2bnNCNFJ2VlQwekhHTV9vNF9POWVwLXItR1pDQlhCRUU?oc=5"
-    },
-    {
-      "event": "General market",
-      "impact": 1.0,
-      "headline": "Sensex, Nifty Close Higher as Banking and Pharmaceutical Stocks Lead Gains - INDIA New England News",
-      "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNMmNUQ1l0RW1zWEx3QTgwMUZlYS03SUpSMFIyTUdsaUJWb1RxaktDQnVFZF9pN29EVFY2bFh0OWV4MHJCbW5pU25TV20xdXNjVWJsYnloc2NQS1RWNXBwTDBHWktjakNJZDQxR1loa3oydk5aN1RHYTNvUjFjYlZCY2tJV1dNellTVEVlZTA1UlhiLUxVUVFwblBNaXRyaHJDYVl4Sg?oc=5"
-    },
-    {
-      "event": "Currency",
-      "impact": 0.5,
-      "headline": "Rupee Rises 5 Paise to 93.93 Against US Dollar Amid Oil Ease - Rediff MoneyWiz",
-      "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxOUDByU1lTdXlNZEFGby11UnlwdDJuekJvZ3I4a2s3dVVvNGtsRTI2b0I4bF9pTTBxUHZ4OHlLYUd3ak5iNjhzWWg4ZktSOXowYzZNSGNwdllQVzA2UVY5YmI2ZENuckxxVkhNNUF6QURlTmJvekFrZTNFODRmY0RRUWZpUFZUUU10R3MtZElraWstbmIxNmYtV2pSU3lieE1Fa0J0RVEySkdBUi1rN2tuZFdWUmt1YzjSAbcBQVVfeXFMTlAwclNZU3V5TWRBRm8tdVJ5cHQybnpCb2dyOGtrN3VVbzRrbEUyNm9COGxfaU0wcVB2eDh5S2FHd2pOYjY4c1loOGZLUjl6MGM2TUhjcHZZUFcwNlFWOWJiNmRDbnJMcVZITTVBekFEZU5ib3pBa2UzRTg0ZmNEUVFmaVBWVFFNdEdzLWRJa2lrLW5iMTZmLVdqUlN5YnhNRWtCdEVRMkpHQVItazdrbmRXVlJrdWM4?oc=5"
+      "event": "US / global markets",
+      "impact": -0.7,
+      "headline": "Sensex Today Ends 121 Points Lower | Nifty Below 23,400 | Cochin Shipyard Down 9% - Equitymaster",
+      "url": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxPbExpcG9JX3ZXdUU3OFRweGFwTzBzcDdiY3pRX1lqVzdzNjhFWjVSYW5zdHY2ZFg3dXZJenY3ZEttMTJIU196cnh5WmVsMVJfeDFfSHZxX3FvNjJYSklOSEFLdEJkTE1xNnVpbk9NeFFLOVRpUkoycFVRMlNMaTR5ckhkMjNvUGJOcE50aW43Z3RQM2wzb2xxQzhDcW5zeHNkYkJSdXJwTlp2MGtWUnFVYklIcmsxclN1dUduYlZsb19pTGhUakUyMkNfNVk0ZU01X1ZpTA?oc=5"
     },
     {
       "event": "Crude oil",
-      "impact": -0.35,
-      "headline": "Gift Nifty Signals Flat Start; Crude Weak, Asia Mixed - HDFC Sky",
-      "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxPZVpnZ3U0WDJHQ2RscDZKaE5BME9zOVo1cDFWaDBkbXprZ20wbEZjUFJacGl1dTdfOFlTVjRCWHRQVFNlX0JMaXFGaWNaMUpRWG1QZDIwbnQxX1E0eTVwcUVqSVU2SWIzdFJGZFJySFRUczJKUTAwSVVGbjFvUHdORlY1WHZ1by1GRVVyek5n?oc=5"
+      "impact": 0.3,
+      "headline": "Trump\u2019s West Asia peace signal and falling crude prices may bring fresh cheer to Indian market - The New Indian Express",
+      "url": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxOS3ZUZ2VfRkc4aml3XzNTazFETTRUd0xwdTBXUkl5dFNKdUlpZklVN0Y0LU9OMTl0UmpfQS1PbERrVmQ1OVhfS3VBOEFpYlZrWEhsX3lKRG5LU1ZZMk4wXzNmSUJnWXRSWW42SHNvak1XenljMHFtcVlRR0JCX2dpUzZ6T3NVeGNnQjVGMzcyQjEzd2ZreEk5QjY4UkcyU0ROcms4T1dFQ3l1WDBXU3E0RjFnVGt3SXlKampjZ1JqWnJsUUhtLWh3UUJZQVhlamNpV1dSbzNBem0wekladmNiMNIB7gFBVV95cUxPSllzb0JWc0FxYVZoQVpydWdhRTI4UWdyX0kyRUIyVkZpdUtYVGxtSEplVGktTE1QUVlBSUJtaDQtaXZjNm1kOG9MbTZvQ3pwNEowelo0T3lEemQyOEJUOWdiSXF6WGtwTHNJNktvLVF4eWxCOVRuV1Fwbm1vU1laQ0RaOFB1N2xBckd2YnczTHhJMUVNU3VxeVN6VmJ3dFltSlVGZTh4c0pLMW5BOXJ5aUQxT2xlVjJLRlVFNEx0Qk9abXNJUndvQ0FtSkxaVEtveWpLa01BenZFdm9xalNKb3JFR1JKajhtWEliVHNn?oc=5"
     },
     {
       "event": "Crude oil",
-      "impact": 0.35,
-      "headline": "Sensex gains 107 points, Nifty reclaims 25k amid easing oil prices, buying in banks - The Meghalayan Express",
-      "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOTnVQc1c3R1pFVEJIZnI4MVdzRG9OOHg3NHNtS3oyZ294Vll2eENtQzhyWUZvQzBlbFMxT3lNV3lVdXNONHNBT182VWthN2FUZ1FBcmtXdERod3JjVU1IX01wVVBmeTZaQ1JhYXJFNkYxTmNIR2oyQkllakNSa3ozcVdSVXJkb3loSnZueWhLenZyRHR4OC1LT194VXQ1X2MwTHQxdTYxWGtWbXdLWjJFYlVRSHdaUQ?oc=5"
+      "impact": 0.3,
+      "headline": "Stock Market Holiday Today: BSE, NSE Shut For Trading; Asian Markets Rally, Crude Oil Falls - ETV Bharat",
+      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxPSDNnZnpqN0FxRFMwMklnSnlqWGlaU21mS21kOWU3M1g2aURuZ1R1c3l6aDBQZ3hCOEZtWFh2Uk9zOXl0a2dYOXJ6bDI5VXpOSk5LNTdEVFhXc21wNlpYVzgweWRGNjR3OXp2SVpHQnlLaE9CN2tqcXZRYm9WeW84elFCRmdpSi03d0YzOGlURFhtYzdOWlBmc2ZxV3JaY25lQmpMbzVpN2x4TWRJQXdVNnYyRElpbkpXVHBpVjloaW9hem5LNjM3dC14UEw2cUxfb1NuWWFpbWjSAd4BQVVfeXFMTjRGUmVMOHV4ZDNKZkRNXzdsdlFnZEpXbkNoMmFxZXBSYm05dFVBbEZHQXMwTmhzX3g3aFJKbjdyTU1PWFBDeDRnQzFzOFF1Z09heFdfT3pJS3J1UmV0S1NIV0o0TE1RLVYxSkpUY1hRbHlvUFBPU3pYRmtlQ2pabGdwV1dRc20tQkpjMTAtWExTNWo5TWFuQVVkVGtZbWdJMUFWTVkwVGFqejZHUGZuVDhRS3JnQnpPUGlteXhMX091clpRWVV2SjhQWGlGNzREa0xBR1JVTkVZMEpPM2d3?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": 0.0,
+      "headline": "Stock market holiday today: Are NSE, BSE open or closed on November 10 for Diwali-Balipratipada? Check de - The Times of India",
+      "url": "https://news.google.com/rss/articles/CBMingJBVV95cUxNSG96TGpSbmFPTFFkNUxndXlSNmRxTUNIY3BHb2JpcjM5cElMVk5xYlhSNHlPMXdhOUotZXRWYjNBYWVIWThmM2oxVm1YN3FfSjJaZWpZT21IQmVjYlM4NnV6QkZkUGVFZUtyR0ZnVTgxNFBWcnNpd2xGeE83TmRjc0JHcmNLamF0WDJETnpERnBkV3JvUmo5UnQ2c3F4d1loS245X2REWXhvS3FFd29wRFRHS1ZJajBRUUJXQmozMFcxUFhDTmpYcVhoaXh1bEluMFZwMlhpdVlzTXgyb2o4RGk2d2czS2xqQmhBOXl0OW9GMFVQajkzZjJHVHRySkpBclQzUzFpYjB2WFhZZi1wd1lXeWtOSVNZdDdkVHln0gGjAkFVX3lxTE9iR2wtek5KT0JHZGl5VnNaQzVKSndyZDBfdk9saTlBMVR1b3VrRFVacU9xYk5rTEdTR0ozRWl5Y3pRWmZVZXFpVXYtWDFydUFVVGt5ZHk0clEwcUxiMEhnOTdkajEwT0JqcG1tX3RzVG52TGZZVFgyRUdtd0VTV2tIRmlaMXFoS2NrSzdERXNTb1dENjZhVWlQMmp2VWxqN1YtTTk5Mm9Qb2VMa2FLcEU4dWtKaURwMV9IU19uMlpTYkx6Q2oxamgtLVlGNHBGUmd4LUNhM0xMN1UxYVpjd1BxMVhVa1FwWFdYVWRxdkktdng5c2k0NU9HT3ZPd202WnAyajNXcGtRemlIazBBeVhDV3E0UVNvQV9wS1p2WDMzNUhhbw?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": 0.0,
+      "headline": "Ahead of Market: 10 things that will decide stock market action on Wednesday - The Economic Times",
+      "url": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxOeEQ4OVQ1MTM5Vy16eGhvUF9YZlh5NHMzSWN1MXVkWnZwbGJUQVBmQklGR3VpdnVTeTBWa3Jhay1jbGJldF9Xd1lxNHU0RF9fSGV2RUpETnQ5TDdkcXp4SGlkZW52YlBnUEJPUEpKdmw1UThRWG5PeENWTDB4UVY0Ty1tRUNIaWVRRVJfaGIta2FGc0liZnBFU0ZHam1RT0dVMk5MNlN3a2dfRU9KNlIxWjlDcVdLaEFCUTQ3Nm01YkNIVmlHMEphYW5VTE04T0QzZEtSUkwxM3o2c2U5R2l4WTh2Y9IB6AFBVV95cUxNNklaVHZicXk5ekJ5TU1lTHpBNTRaY2hEUzFyU3N4MVN0OF9SN25WM0xEckNjZ0pSYlZQcXNRWTdUajU5Q3dKMlZVQmhqSkp1M3ltVENhN28wVEF5bE1IbTRxajllaXBlUlJXQUtfcU1ZVWtia0NrSTQtMmU5Q0FvRElnYmFQamc1bWQ1YXdwejVpZGNUbUZ4TEpnRk0yV29qNmNxcF9aYWxRRTBUa1NyTWJ4WkJyaGJESjBHakc2Z0FHaWNET1RXblYycFZKUHh2SkFMNWt2TUVQYW0yZkRQZFQ0R3h2dDVn?oc=5"
     }
   ],
-  "market_intelligence_score": 75.78960076045628,
+  "market_intelligence_score": 72.52760076045628,
   "risk_level": "RISK_ON",
-  "market_confidence": 0.7821064068441066,
+  "market_confidence": 0.7527484068441066,
   "data_quality": "HIGH",
   "index_data_available": true,
   "breadth_pct_above_sma20": 71.67300380228137,
   "sector_news_impacts": {
-    "airlines": 4.0,
-    "paints": 3.2,
-    "chemicals": 2.4,
-    "tyres": 2.4,
-    "oil & gas": -3.2,
-    "information technology": 0.6,
-    "it": 0.6,
-    "pharma": 0.3
+    "airlines": 3.0,
+    "paints": 2.4000000000000004,
+    "chemicals": 1.7999999999999998,
+    "tyres": 1.7999999999999998,
+    "oil & gas": -2.4000000000000004
   }
 }

@@ -194,3 +194,8 @@ row_index,symbol,target_date,missing_quantity,missing_entry_price,missing_exit_p
 332,GLENMARK,2026-11-09,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE
 333,SHYAMMETL,2026-11-09,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE
 334,EMCURE,2026-11-09,False,False,False,True,True,False,"gross_profit_loss,costs",True,True,INCOMPLETE_REQUIRES_SOURCE_TRACE
+340,IOC,2026-11-11,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+341,DIVISLAB,2026-11-11,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+342,ICICIBANK,2026-11-11,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+343,EMCURE,2026-11-11,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+344,SAILIFE,2026-11-11,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE

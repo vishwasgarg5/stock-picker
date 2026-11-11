@@ -8,13 +8,13 @@
   },
   "phase33_chronological_prediction_replay": {
     "status": "SCORED",
-    "scored_rows": 340,
-    "unique_target_dates": 34,
-    "holdout_target_dates": 13,
+    "scored_rows": 350,
+    "unique_target_dates": 35,
+    "holdout_target_dates": 14,
     "minimum_holdout_target_dates_required": 5,
     "invalid_prediction_order_rows": 0,
     "first_target_date": "2026-09-18",
-    "last_target_date": "2026-11-09",
+    "last_target_date": "2026-11-11",
     "holdout_start_date": "2026-10-21",
     "context_metrics": {
       "rows": 210,
@@ -26,16 +26,16 @@
       "status": "SCORED"
     },
     "holdout_metrics": {
-      "rows": 130,
-      "open_mape_pct": 0.9646856836249964,
-      "high_mape_pct": 1.5229138231155774,
-      "low_mape_pct": 1.37995331329076,
-      "close_mape_pct": 1.811224254228054,
-      "close_direction_accuracy_pct": 50.76923076923077,
+      "rows": 140,
+      "open_mape_pct": 0.9562807306340388,
+      "high_mape_pct": 1.4936055054214206,
+      "low_mape_pct": 1.3839433469388955,
+      "close_mape_pct": 1.7731354236513803,
+      "close_direction_accuracy_pct": 48.57142857142857,
       "status": "SCORED"
     },
-    "holdout_baseline_close_mape_pct": 1.8033771128714113,
-    "holdout_prediction_close_mape_pct": 1.811224254228054,
+    "holdout_baseline_close_mape_pct": 1.763573810675471,
+    "holdout_prediction_close_mape_pct": 1.7731354236513803,
     "method": "chronological replay of already-recorded predictions; no model refit performed",
     "promotion_allowed": false,
     "prediction_source": "evaluations.csv paired saved forecasts/outcomes (fallback because candidate-history match coverage was insufficient)",
@@ -45,22 +45,22 @@
   "phase35_trade_metrics": [
     {
       "model": "V1",
-      "executed_trades": 195,
+      "executed_trades": 200,
       "gross_pnl": -1632.6144809365508,
-      "net_pnl": -3573.3415548007924,
+      "net_pnl": -3753.02112023048,
       "recorded_costs": 698.4754030268396,
       "pnl_reconciliation_delta": -9.769962616701378e-14,
       "pnl_reconciliation_rows": 70,
-      "pnl_reconciliation_incomplete_rows": 125,
+      "pnl_reconciliation_incomplete_rows": 130,
       "pnl_reconciliation_status": "MISSING_GROSS_OR_COST_LEDGER",
-      "net_pnl_with_50pct_extra_cost_stress": -3922.579256314212,
-      "net_pnl_with_100pct_extra_cost_stress": -4271.816957827632,
+      "net_pnl_with_50pct_extra_cost_stress": -4102.2588217439,
+      "net_pnl_with_100pct_extra_cost_stress": -4451.4965232573195,
       "max_trade_sequence_drawdown_pct": -9.915510859991416,
-      "win_rate_pct": 42.56410256410256,
-      "expectancy_per_trade": -18.32482848615791,
+      "win_rate_pct": 42.5,
+      "expectancy_per_trade": -18.7651056011524,
       "status": "SAMPLE_GATE_MET",
       "costs_note": "Uses recorded costs and net profit_loss; stress cases subtract only additional assumed costs",
-      "mean_trade_return_pct": -0.15424113124739058
+      "mean_trade_return_pct": -0.1607504075027364
     },
     {
       "model": "V2",
@@ -83,12 +83,12 @@
     }
   ],
   "phase36_promotion_gate": {
-    "matched_sessions": 30,
+    "matched_sessions": 31,
     "minimum_matched_sessions": 20,
     "v2_executed_trades": 0,
     "minimum_v2_executed_trades": 50,
     "holdout_comparison_available": true,
-    "holdout_v1_net_pnl": 2435.6509170532227,
+    "holdout_v1_net_pnl": 3721.5227279663086,
     "holdout_v2_net_pnl": 0.0,
     "status": "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE",
     "production_champion": "V1",
@@ -100,7 +100,7 @@
       "check": "ohlcv_available",
       "status": "PASS",
       "affected_rows": 0,
-      "detail": "953175 OHLCV rows read"
+      "detail": "953672 OHLCV rows read"
     },
     {
       "check": "ohlcv_valid_dates",
@@ -130,7 +130,7 @@
       "check": "ohlcv_freshness",
       "status": "PASS",
       "affected_rows": 0,
-      "detail": "latest date=2026-11-09 00:00:00; calendar age days=1; weekends/holidays not adjusted"
+      "detail": "latest date=2026-11-11 00:00:00; calendar age days=0; weekends/holidays not adjusted"
     }
   ],
   "phase38_news_checks": [
@@ -171,7 +171,7 @@
       "detail": "Need at least 20 as-of index/date pairs; source timestamp quality must be verified"
     }
   ],
-  "phase39_drift_rows": 34,
+  "phase39_drift_rows": 35,
   "production_champion": "V1",
   "v2_promoted": false,
   "production_model_changed": false,

@@ -2,7 +2,7 @@
   "phase93_receipt_forensics": {
     "groups_with_multiple_message_ids": 4,
     "groups_with_timestamp_intervals": 4,
-    "hashed_rows": 164,
+    "hashed_rows": 165,
     "note": "Receipt logs lack full message bodies; same hash with multiple API message IDs warrants manual review but does not prove an unintended resend.",
     "repeated_hash_groups": 4,
     "resends_performed": false,
@@ -12,11 +12,11 @@
     "chronological_source": "phase33_chronological_prediction_scores.csv",
     "periods_scored": 2,
     "ranking_or_threshold_changed": false,
-    "rows_scored": 340,
+    "rows_scored": 350,
     "status": "SEGMENTED_DIAGNOSTIC_ONLY",
-    "symbols_better_than_baseline": 55,
-    "symbols_scored": 116,
-    "symbols_worse_than_baseline": 61,
+    "symbols_better_than_baseline": 56,
+    "symbols_scored": 119,
+    "symbols_worse_than_baseline": 63,
     "worst_symbols": [
       {
         "delta_pct_points": 1.369,
@@ -34,14 +34,19 @@
         "symbol": "NIACL"
       },
       {
-        "delta_pct_points": 0.3177,
-        "rows": 1,
+        "delta_pct_points": 0.3331,
+        "rows": 2,
         "symbol": "SAILIFE"
       },
       {
         "delta_pct_points": 0.2606,
         "rows": 1,
         "symbol": "MEESHO"
+      },
+      {
+        "delta_pct_points": 0.2508,
+        "rows": 1,
+        "symbol": "UNOMINDA"
       },
       {
         "delta_pct_points": 0.2094,
@@ -62,17 +67,12 @@
         "delta_pct_points": 0.1369,
         "rows": 1,
         "symbol": "MRPL"
-      },
-      {
-        "delta_pct_points": 0.1346,
-        "rows": 1,
-        "symbol": "REDINGTON"
       }
     ]
   },
   "phase95_v2_earliest_rejection": {
     "earliest_blocking_stage": "actual_data_join_and_validation",
-    "earliest_stage_input_rows": 350,
+    "earliest_stage_input_rows": 360,
     "earliest_stage_rejected_rows": 50,
     "funnel_stages": 10,
     "note": "The earliest stage with rejections is a funnel bottleneck candidate; later-stage counts are not additive unique candidates.",
@@ -80,14 +80,14 @@
     "signals_changed": false,
     "stages_with_rejections": 6,
     "status": "DIAGNOSTIC_ONLY",
-    "total_rejected_rows_stage_sum": 356
+    "total_rejected_rows_stage_sum": 366
   },
   "phase96_storage_preflight": {
     "backup_restore_tested": false,
     "error_type": null,
     "estimated_size_reduction_pct": 77.27,
     "first_100_rows_parity": true,
-    "gzip_size_bytes": 18437071,
+    "gzip_size_bytes": 18448334,
     "migration_executed": false,
     "next_required_steps": [
       "full-file parity validation",
@@ -98,9 +98,9 @@
     ],
     "production_reader_switched": false,
     "rollback_tested": false,
-    "source_sha256_after": "71b5f71efbaa85090c036d08fbeaf4a7238c9cc488d84c288fb37670c51153ca",
-    "source_sha256_before": "71b5f71efbaa85090c036d08fbeaf4a7238c9cc488d84c288fb37670c51153ca",
-    "source_size_bytes": 81115582,
+    "source_sha256_after": "32a0c35d3b9d05c5e1fa0537ad93e068f9181a80cfe412ea2ee484b5a5852c21",
+    "source_sha256_before": "32a0c35d3b9d05c5e1fa0537ad93e068f9181a80cfe412ea2ee484b5a5852c21",
+    "source_size_bytes": 81156638,
     "source_unchanged": true,
     "status": "PREFLIGHT_PASSED_NO_MIGRATION"
   },

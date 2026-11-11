@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-10T18:20:08.059896+00:00",
+  "as_of_utc": "2026-11-11T18:06:54.900987+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -7,7 +7,7 @@
   "sections": {
     "prediction_report": {
       "status": "PASS",
-      "target_date": "2026-11-11",
+      "target_date": "2026-11-12",
       "rows_for_target_date": 10,
       "top10_rows": 10,
       "top10_complete": true,
@@ -15,35 +15,35 @@
       "invalid_ohlc_rows": 0,
       "duplicate_symbol_rows": 0,
       "top10_symbols": [
-        "IOC",
+        "PNB",
+        "BANKBARODA",
+        "UNOMINDA",
+        "M&M",
         "DIVISLAB",
-        "ICICIBANK",
-        "EMCURE",
+        "NAVINFLUOR",
         "SAILIFE",
-        "HDFCBANK",
-        "GLENMARK",
-        "ANGELONE",
-        "MOTILALOFS",
-        "UNOMINDA"
+        "UNIONBANK",
+        "FORCEMOT",
+        "IOC"
       ],
       "ranked_candidates_are_not_buy_approval": true
     },
     "forecast_baseline": {
       "status": "BASELINE_NOT_BEATEN",
-      "scored_rows": 340,
-      "unique_dates": 34,
-      "model_close_mape_pct": 1.9116484604081232,
-      "baseline_close_mape_pct": 1.9030809528847386,
-      "error_delta_pct_points": 0.008567507523384643,
+      "scored_rows": 350,
+      "unique_dates": 35,
+      "model_close_mape_pct": 1.8935436651437372,
+      "baseline_close_mape_pct": 1.8843109508631244,
+      "error_delta_pct_points": 0.009232714280612786,
       "beats_baseline": false,
-      "directional_accuracy_pct": 48.8235294117647,
+      "directional_accuracy_pct": 48.0,
       "recent_5_sessions": 5,
       "recent_5_sessions_scored_rows": 50,
-      "recent_5_sessions_model_close_mape_pct": 1.7588258531615937,
-      "recent_5_sessions_baseline_close_mape_pct": 1.7558655250995963,
-      "recent_5_sessions_error_delta_pct_points": 0.0029603280619974193,
+      "recent_5_sessions_model_close_mape_pct": 1.6640275446464479,
+      "recent_5_sessions_baseline_close_mape_pct": 1.6618167656213194,
+      "recent_5_sessions_error_delta_pct_points": 0.002210779025128451,
       "recent_5_sessions_beats_baseline": false,
-      "recent_5_sessions_directional_accuracy_pct": 56.00000000000001,
+      "recent_5_sessions_directional_accuracy_pct": 52.0,
       "per_date_comparison": [
         {
           "target_date": "2026-09-18",
@@ -282,6 +282,13 @@
           "model_close_mape_pct": 1.4057487393502741,
           "baseline_close_mape_pct": 1.3695930971349468,
           "error_delta_pct_points": 0.0361556422153273
+        },
+        {
+          "target_date": "2026-11-11",
+          "scored_rows": 10,
+          "model_close_mape_pct": 1.2779806261546187,
+          "baseline_close_mape_pct": 1.2461308821282477,
+          "error_delta_pct_points": 0.031849744026370974
         }
       ],
       "same_scored_rows_for_comparison": true,
@@ -289,7 +296,7 @@
     },
     "paper_ledger": {
       "status": "PASS",
-      "rows": 340,
+      "rows": 350,
       "executed_rows": 70,
       "incomplete_executed_rows": 0,
       "net_pnl_reconciliation_mismatch_rows": 0,
@@ -298,14 +305,14 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 164,
-      "rows_with_usable_message_keys": 164,
-      "api_confirmed_rows": 91,
+      "rows": 165,
+      "rows_with_usable_message_keys": 165,
+      "api_confirmed_rows": 92,
       "duplicate_message_keys": 6,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 64,
-          "confirmed": 37,
+          "rows": 65,
+          "confirmed": 38,
           "legacy_unverified": 27,
           "duplicate_message_keys": 6,
           "rows_missing_message_key": 0,
@@ -341,10 +348,10 @@
     },
     "v2_evidence": {
       "status": "PASS",
-      "rows": 300,
-      "unique_sessions": 30,
+      "rows": 310,
+      "unique_sessions": 31,
       "buy_rows": 0,
-      "skip_rows": 300,
+      "skip_rows": 310,
       "skip_rows_without_reason": 0,
       "existing_promotion_safe": false,
       "promotion_ready": false,

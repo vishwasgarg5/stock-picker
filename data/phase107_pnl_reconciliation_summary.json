@@ -9,22 +9,22 @@
   "missing_facts_inferred": false,
   "status": "BLOCKED",
   "source": "data/paper_trades.csv",
-  "buy_rows": 204,
+  "buy_rows": 209,
   "missing_columns": [],
   "complete_rows": 70,
-  "incomplete_rows": 134,
+  "incomplete_rows": 139,
   "missing_values_by_field": {
     "entry_price": 0,
     "exit_price": 0,
-    "shares": 134,
-    "allocated_capital": 134,
-    "gross_profit_loss": 134,
-    "costs": 134,
+    "shares": 139,
+    "allocated_capital": 139,
+    "gross_profit_loss": 139,
+    "costs": 139,
     "profit_loss": 0,
     "return_pct": 0
   },
   "incomplete_rows_by_signal": {
-    "BUY": 134
+    "BUY": 139
   },
   "incomplete_rows_by_session": [
     {
@@ -161,18 +161,23 @@
       "target_date": "2026-11-09",
       "buy_rows": 5,
       "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-11",
+      "buy_rows": 5,
+      "incomplete_rows": 5
     }
   ],
   "first_complete_session": "2026-09-18",
   "last_complete_session": "2026-09-28",
   "first_incomplete_session": "2026-09-29",
-  "last_incomplete_session": "2026-11-09",
+  "last_incomplete_session": "2026-11-11",
   "record_vintage_classification": "EXPLICIT_METADATA_WHEN_AVAILABLE; OTHERWISE_UNCLASSIFIED",
   "record_vintage_counts": {
-    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 204
+    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 209
   },
   "incomplete_rows_by_record_vintage": {
-    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 134
+    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 139
   },
   "reconciliation_mismatch_rows": 0,
   "accounting_identity": "gross_profit_loss - costs = profit_loss",

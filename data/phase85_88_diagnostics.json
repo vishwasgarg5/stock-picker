@@ -7,40 +7,40 @@
   ],
   "phase85_receipt_anomaly_classification": {
     "status": "REVIEW_REQUIRED",
-    "rows": 165,
+    "rows": 169,
     "repeated_hash_rows": 10,
     "missing_hash_rows": 0,
     "hash_coverage_pct": 100.0,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 65,
+        "rows": 66,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 58.46,
+        "message_id_coverage_pct": 59.09,
         "repeated_hash_rows": 10,
         "unique_repeated_hashes": 4
       },
       "telegram_evening_sent.csv": {
-        "rows": 36,
+        "rows": 37,
+        "hash_coverage_pct": 100.0,
+        "status_coverage_pct": 100.0,
+        "message_id_coverage_pct": 51.35,
+        "repeated_hash_rows": 0,
+        "unique_repeated_hashes": 0
+      },
+      "telegram_paper_sent.csv": {
+        "rows": 38,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
         "message_id_coverage_pct": 50.0,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       },
-      "telegram_paper_sent.csv": {
-        "rows": 37,
-        "hash_coverage_pct": 100.0,
-        "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 48.65,
-        "repeated_hash_rows": 0,
-        "unique_repeated_hashes": 0
-      },
       "telegram_paper_v2_sent.csv": {
-        "rows": 27,
+        "rows": 28,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 66.67,
+        "message_id_coverage_pct": 67.86,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       }
@@ -78,10 +78,10 @@
   "phase88_storage_performance": {
     "status": "BENCHMARK_PARITY_PASS",
     "source_path": "data/ohlcv.csv",
-    "source_bytes": 81156638,
-    "gzip_bytes": 18448334,
+    "source_bytes": 81156803,
+    "gzip_bytes": 18448364,
     "size_reduction_pct": 77.27,
-    "rows": 953672,
+    "rows": 953674,
     "columns": [
       "date",
       "symbol",
@@ -91,15 +91,15 @@
       "close",
       "volume"
     ],
-    "raw_read_seconds": 0.2276,
-    "gzip_read_seconds": 0.4091,
-    "gzip_read_time_delta_pct": 79.79,
-    "raw_dataframe_memory_bytes": 163088899,
-    "gzip_dataframe_memory_bytes": 163088899,
+    "raw_read_seconds": 0.3011,
+    "gzip_read_seconds": 0.5219,
+    "gzip_read_time_delta_pct": 73.36,
+    "raw_dataframe_memory_bytes": 163089239,
+    "gzip_dataframe_memory_bytes": 163089239,
     "dataframe_memory_equal": true,
     "dataframe_parity": true,
-    "sha256_before": "32a0c35d3b9d05c5e1fa0537ad93e068f9181a80cfe412ea2ee484b5a5852c21",
-    "sha256_after": "32a0c35d3b9d05c5e1fa0537ad93e068f9181a80cfe412ea2ee484b5a5852c21",
+    "sha256_before": "16806c7da862af2c6e4107626c2c5beb972170108b89c7c7711a826292f387cf",
+    "sha256_after": "16806c7da862af2c6e4107626c2c5beb972170108b89c7c7711a826292f387cf",
     "source_unchanged": true,
     "prototype_only": true,
     "production_reader_switched": false,

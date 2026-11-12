@@ -1,2 +1,2 @@
 as_of,advanced_control_version,data_freshness,high_confidence_count,medium_confidence_count,low_confidence_count
-2026-11-11T18:06:44.478308+00:00,advanced_v1,"{'status': 'PASS', 'age_days': 0, 'latest_date': '2026-11-11'}",5,4,11
+2026-11-12T18:41:29.568648+00:00,advanced_v1,"{'status': 'PASS', 'age_days': 1, 'latest_date': '2026-11-11'}",5,4,11

@@ -1,5 +1,5 @@
 file,rows,file_present,has_delivery_status,delivery_status_nonempty_pct,has_message_hash,message_hash_nonempty_pct,has_telegram_message_id,telegram_message_id_nonempty_pct,schema_ready_for_future_receipts
-telegram_sent.csv,65,True,True,100.0,True,100.0,True,58.46,True
-telegram_evening_sent.csv,36,True,True,100.0,True,100.0,True,50.0,True
-telegram_paper_sent.csv,37,True,True,100.0,True,100.0,True,48.65,True
-telegram_paper_v2_sent.csv,27,True,True,100.0,True,100.0,True,66.67,True
+telegram_sent.csv,66,True,True,100.0,True,100.0,True,59.09,True
+telegram_evening_sent.csv,37,True,True,100.0,True,100.0,True,51.35,True
+telegram_paper_sent.csv,38,True,True,100.0,True,100.0,True,50.0,True
+telegram_paper_v2_sent.csv,28,True,True,100.0,True,100.0,True,67.86,True

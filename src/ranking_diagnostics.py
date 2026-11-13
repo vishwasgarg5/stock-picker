@@ -4,6 +4,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from .date_utils import parse_mixed_dates
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 CANDIDATES = DATA / "prediction_candidates_history.csv"
@@ -70,8 +72,8 @@ def run_multi_horizon_validation(candidates: pd.DataFrame, history: pd.DataFrame
         return _empty_horizons()
     c = candidates.copy()
     h = history.copy()
-    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
-    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    c["prediction_date"] = parse_mixed_dates(c["prediction_date"]).dt.normalize()
+    h["date"] = parse_mixed_dates(h["date"]).dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.strip()
     h["symbol"] = h["symbol"].astype(str).str.strip()
     c["rank"] = pd.to_numeric(c["rank"], errors="coerce")

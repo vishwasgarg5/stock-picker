@@ -123,29 +123,52 @@ def validate_data_quality(hist: pd.DataFrame, symbols: list[str], context: str =
 
 
 def _validate_prediction_session(prediction: pd.DataFrame, target_date: pd.Timestamp) -> None:
+    """Fail closed when a persisted next-session prediction is malformed."""
     target = pd.Timestamp(target_date).normalize()
+    required = {
+        "symbol", "target_date", "rank", "base_close",
+        "predicted_open", "predicted_high", "predicted_low", "predicted_close",
+    }
+    missing = sorted(required.difference(prediction.columns))
+    if missing:
+        raise RuntimeError(f"Prediction integrity gate failed: missing columns {missing}")
     if len(prediction) != 10:
         raise RuntimeError(f"Prediction integrity gate failed: expected 10 stocks, found {len(prediction)}")
-    if prediction["symbol"].astype(str).str.upper().duplicated().any():
+
+    symbols = prediction["symbol"].astype("string").str.strip().str.upper()
+    if symbols.isna().any() or symbols.eq("").any():
+        raise RuntimeError("Prediction integrity gate failed: blank stock symbol")
+    if symbols.duplicated().any():
         raise RuntimeError("Prediction integrity gate failed: duplicate symbols")
+
     stored_target = pd.to_datetime(prediction["target_date"], errors="coerce").dt.normalize()
     if stored_target.isna().any() or not (stored_target == target).all():
         raise RuntimeError(f"Prediction integrity gate failed: target date mismatch; expected {target.date()}")
+
+    ranks = pd.to_numeric(prediction["rank"], errors="coerce")
+    if (
+        ranks.isna().any()
+        or not np.isfinite(ranks.to_numpy(dtype=float)).all()
+        or not np.equal(ranks.to_numpy(dtype=float), np.floor(ranks.to_numpy(dtype=float))).all()
+        or set(ranks.astype(int).tolist()) != set(range(1, 11))
+    ):
+        raise RuntimeError("Prediction integrity gate failed: ranks must be the unique integers 1 through 10")
+
     numeric = ["base_close", "predicted_open", "predicted_high", "predicted_low", "predicted_close"]
     values = prediction[numeric].apply(pd.to_numeric, errors="coerce")
-    if not np.isfinite(values.to_numpy()).all() or (values <= 0).any().any():
+    array = values.to_numpy(dtype=float)
+    if not np.isfinite(array).all() or (array <= 0).any():
         raise RuntimeError("Prediction integrity gate failed: non-finite or non-positive OHLC prediction")
-    if (prediction["predicted_high"] < prediction[["predicted_open", "predicted_close"]].max(axis=1)).any():
+    if (values["predicted_high"] < values[["predicted_open", "predicted_close"]].max(axis=1)).any():
         raise RuntimeError("Prediction integrity gate failed: predicted high is below open/close")
-    if (prediction["predicted_low"] > prediction[["predicted_open", "predicted_close"]].min(axis=1)).any():
+    if (values["predicted_low"] > values[["predicted_open", "predicted_close"]].min(axis=1)).any():
         raise RuntimeError("Prediction integrity gate failed: predicted low is above open/close")
-    base = prediction["base_close"].abs().replace(0, np.nan)
-    moves = prediction[["predicted_open", "predicted_high", "predicted_low", "predicted_close"]].sub(prediction["base_close"], axis=0).abs().div(base, axis=0).max(axis=1)
+
+    base = values["base_close"]
+    moves = values[["predicted_open", "predicted_high", "predicted_low", "predicted_close"]].sub(base, axis=0).abs().div(base, axis=0).max(axis=1)
     if (moves > MAX_PREDICTED_MOVE).any():
-        offenders = prediction.loc[moves > MAX_PREDICTED_MOVE, "symbol"].astype(str).tolist()
+        offenders = symbols.loc[moves > MAX_PREDICTED_MOVE].tolist()
         raise RuntimeError(f"Prediction integrity gate failed: predicted move exceeds {MAX_PREDICTED_MOVE:.0%} for {offenders}")
-    if prediction["rank"].nunique() != 10:
-        raise RuntimeError("Prediction integrity gate failed: ranks are not unique")
     print(f"Prediction integrity gate passed: {target.date()}, 10 unique stocks")
 
 

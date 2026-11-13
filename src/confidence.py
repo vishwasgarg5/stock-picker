@@ -3,6 +3,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from .date_utils import normalize_date_column
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 CANDIDATES = DATA / "prediction_candidates_history.csv"

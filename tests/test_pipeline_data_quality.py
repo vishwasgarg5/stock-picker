@@ -38,3 +38,31 @@ def test_completed_session_quality_gate_uses_clean_session():
     result = validate_data_quality(hist, symbols, "test")
     assert result["latest_date"] == session
     assert result["coverage"] == 1.0
+
+
+
+def test_non_positive_open_and_low_prices_are_rejected():
+    symbol = "AAA"
+    fallback = pd.Timestamp.now().normalize() - pd.Timedelta(days=2)
+    newer = pd.Timestamp.now().normalize() - pd.Timedelta(days=1)
+    clean = pd.DataFrame(_rows(fallback, [symbol]))
+    corrupt = pd.DataFrame(_rows(newer, [symbol]))
+    corrupt.loc[0, "open"] = 0.0
+    corrupt.loc[0, "low"] = 0.0
+
+    hist = pd.concat([clean, corrupt], ignore_index=True)
+
+    assert _select_completed_market_date(hist, [symbol]) == fallback
+
+
+def test_non_finite_ohlc_prices_are_rejected():
+    symbol = "AAA"
+    fallback = pd.Timestamp.now().normalize() - pd.Timedelta(days=2)
+    newer = pd.Timestamp.now().normalize() - pd.Timedelta(days=1)
+    clean = pd.DataFrame(_rows(fallback, [symbol]))
+    corrupt = pd.DataFrame(_rows(newer, [symbol]))
+    corrupt.loc[0, "high"] = float("inf")
+
+    hist = pd.concat([clean, corrupt], ignore_index=True)
+
+    assert _select_completed_market_date(hist, [symbol]) == fallback

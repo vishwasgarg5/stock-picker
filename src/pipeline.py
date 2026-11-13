@@ -998,6 +998,12 @@ def _normalize_paper_trade_accounting(trades: pd.DataFrame) -> pd.DataFrame:
     missing_costs = pd.to_numeric(x["costs"], errors="coerce").isna()
     entry = pd.to_numeric(x.get("entry_price", pd.Series(np.nan, index=x.index)), errors="coerce")
     exit_price = pd.to_numeric(x.get("exit_price", pd.Series(np.nan, index=x.index)), errors="coerce")
+    # A previous fixed-budget writer stored the actual entry notional instead
+    # of share count or planned capital; both are recoverable from execution data.
+    if "position_value" in x.columns:
+        position_value = pd.to_numeric(x["position_value"], errors="coerce")
+        shares = shares.fillna(position_value / entry.replace(0, np.nan))
+        allocated = allocated.fillna(position_value)
 
     derived = {
         "shares": shares,

@@ -320,6 +320,15 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
         starts[symbol] = "2018-01-01" if needs_action_backfill or rows.empty else (rows["date"].max() - timedelta(days=10)).strftime("%Y-%m-%d")
     fresh_parts = [download_history([s for s, value in starts.items() if value == start], start) for start in sorted(set(starts.values()))]
     fresh = pd.concat(fresh_parts, ignore_index=True) if fresh_parts else pd.DataFrame(columns=EMPTY_HISTORY)
+    if needs_action_backfill:
+        refreshed_symbols = set(fresh["symbol"].astype(str).str.upper().str.strip()) if not fresh.empty else set()
+        missing_symbols = sorted(set(symbols) - refreshed_symbols)
+        if missing_symbols:
+            raise RuntimeError(
+                "Corporate-action backfill incomplete; refusing to train on potentially "
+                f"unadjusted legacy history for {len(missing_symbols)} symbols: "
+                f"{missing_symbols[:20]}"
+            )
     combined = pd.concat([existing, fresh], ignore_index=True)
     combined["date"] = pd.to_datetime(combined["date"], errors="coerce").dt.normalize()
     combined["symbol"] = combined["symbol"].astype(str).str.upper().str.strip()

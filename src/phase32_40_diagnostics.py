@@ -14,6 +14,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from .date_utils import parse_mixed_dates
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 MIN_HOLDOUT_DATES = 5
@@ -76,8 +78,8 @@ def score_historical_predictions(
 
     p = candidates.copy()
     a = actuals[list(actual_required)].copy()
-    p["prediction_date"] = pd.to_datetime(p["prediction_date"], errors="coerce").dt.normalize()
-    p["target_date"] = pd.to_datetime(p["target_date"], errors="coerce").dt.normalize()
+    p["prediction_date"] = parse_mixed_dates(p["prediction_date"]).dt.normalize()
+    p["target_date"] = parse_mixed_dates(p["target_date"]).dt.normalize()
     p["symbol"] = p["symbol"].astype(str).str.upper().str.strip()
     a["date"] = pd.to_datetime(a["date"], errors="coerce").dt.normalize()
     a["symbol"] = a["symbol"].astype(str).str.upper().str.strip()

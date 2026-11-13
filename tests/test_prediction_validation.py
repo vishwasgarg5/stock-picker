@@ -50,6 +50,14 @@ def test_prediction_integrity_gate_rejects_invalid_rows(column, value, message):
         _validate_prediction_session(prediction, TARGET)
 
 
+def test_prediction_integrity_gate_rejects_duplicate_ranks():
+    prediction = valid_predictions()
+    prediction.loc[1, "rank"] = 1
+
+    with pytest.raises(RuntimeError, match="ranks must be"):
+        _validate_prediction_session(prediction, TARGET)
+
+
 def test_prediction_integrity_gate_rejects_missing_required_columns():
     prediction = valid_predictions().drop(columns=["predicted_low"])
 

@@ -440,9 +440,9 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
 
 def market_regime(df: pd.DataFrame) -> str:
     """Classify market regime from the cross-sectional median of completed bars."""
-    x = df.copy()
+    x = _add_split_adjusted_columns(df)
     x["date"] = pd.to_datetime(x["date"], errors="coerce").dt.normalize()
-    daily = x.groupby("date")["close"].median().sort_index().dropna()
+    daily = x.groupby("date")["split_adjusted_close"].median().sort_index().dropna()
     if len(daily) < 50:
         return "NEUTRAL"
     sma20 = daily.rolling(20).mean().iloc[-1]
@@ -502,7 +502,10 @@ def technical_score(latest: pd.DataFrame) -> pd.Series:
     score += latest["return_5d"].rank(pct=True) * 15
     score += latest["volume_ratio"].rank(pct=True) * 10
     score += latest["rsi14"].rank(pct=True) * 10
-    score += (latest["close"] > latest["ema20"]).astype(float) * 10
+    # Features and moving averages are split-adjusted; compare like-for-like
+    # rather than mixing raw execution close with an adjusted EMA.
+    comparison_close = latest.get("split_adjusted_close", latest["close"])
+    score += (comparison_close > latest["ema20"]).astype(float) * 10
     score += (latest["ema20"] > latest["ema50"]).astype(float) * 10
     return score
 

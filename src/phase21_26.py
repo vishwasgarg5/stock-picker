@@ -11,6 +11,8 @@ import re
 import numpy as np
 import pandas as pd
 
+from .date_utils import parse_mixed_dates
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 SUMMARY = DATA / "phase21_26_summary.json"
@@ -48,10 +50,10 @@ def direction_calibration(evaluations: pd.DataFrame, candidates: pd.DataFrame) -
     e["close_mape_pct"] = e["close_abs_pct_error"] * 100
     e["baseline_mape_pct"] = e["baseline_close_abs_pct_error"] * 100
     if "prediction_date" in e:
-        e["prediction_date"] = pd.to_datetime(e["prediction_date"], errors="coerce").dt.normalize()
+        e["prediction_date"] = parse_mixed_dates(e["prediction_date"]).dt.normalize()
     if not candidates.empty and {"prediction_date", "symbol"}.issubset(candidates.columns) and {"prediction_date", "symbol"}.issubset(e.columns):
         c = candidates.copy()
-        c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+        c["prediction_date"] = parse_mixed_dates(c["prediction_date"]).dt.normalize()
         c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
         e["symbol"] = e["symbol"].astype(str).str.upper().str.strip()
         conf_col = next((x for x in ["adjusted_confidence_score", "confidence_score", "confidence"] if x in c), None)

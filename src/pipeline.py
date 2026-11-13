@@ -1077,13 +1077,18 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
 
     h = hist.copy()
     h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    if "stock_splits" in h.columns:
+        h["split_ratio"] = pd.to_numeric(h["stock_splits"], errors="coerce").fillna(0.0)
+        h["split_ratio"] = h["split_ratio"].where(h["split_ratio"].gt(0), 1.0)
+    else:
+        h["split_ratio"] = 1.0
     actual = h.rename(columns={
         "date": "target_date",
         "open": "actual_open",
         "high": "actual_high",
         "low": "actual_low",
         "close": "actual_close",
-    })[["symbol", "target_date", "actual_open", "actual_high", "actual_low", "actual_close"]]
+    })[["symbol", "target_date", "actual_open", "actual_high", "actual_low", "actual_close", "split_ratio"]]
 
     rows = p.merge(actual, on=["symbol", "target_date"], how="inner")
     rows = rows.dropna(subset=["actual_open", "actual_close"])
@@ -1105,14 +1110,21 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
     # This prevents hindsight from using the actual next-day open to size shares.
     allocation = PAPER_CAPITAL / PAPER_TRADE_TOP_N
     rows["reference_price"] = pd.to_numeric(rows.get("base_close"), errors="coerce")
-    rows["quantity"] = np.where(
+    rows["pre_split_quantity"] = np.where(
         rows["signal"].eq("BUY") & rows["reference_price"].gt(0),
         np.floor(allocation / rows["reference_price"]).astype(int),
         0,
     )
+    rows["split_ratio"] = pd.to_numeric(rows["split_ratio"], errors="coerce").fillna(1.0)
+    invalid_split_ratio = ~np.isfinite(rows["split_ratio"].to_numpy(dtype=float)) | rows["split_ratio"].le(0).to_numpy()
+    if invalid_split_ratio.any():
+        raise RuntimeError("Paper-trade integrity gate failed: invalid split ratio")
+    # A position sized before the ex-date receives the split-adjusted share
+    # count. Entry/exit prices remain raw prices from that trading session.
+    rows["quantity"] = rows["pre_split_quantity"] * rows["split_ratio"]
     rows["planned_capital"] = np.where(
         rows["signal"].eq("BUY"),
-        rows["quantity"] * rows["reference_price"],
+        rows["pre_split_quantity"] * rows["reference_price"],
         0.0,
     )
     rows["position_value"] = np.where(
@@ -1131,8 +1143,8 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
 
     keep = [
         "prediction_date", "target_date", "symbol", "rank", "score",
-        "signal", "reference_price", "quantity", "planned_capital",
-        "entry_price", "exit_price", "return_pct",
+        "signal", "reference_price", "pre_split_quantity", "split_ratio",
+        "quantity", "planned_capital", "entry_price", "exit_price", "return_pct",
         "position_value", "profit_loss",
     ]
     rows = rows[keep]
@@ -1250,8 +1262,14 @@ def run_evening() -> None:
         print("No completed prediction session to evaluate; ensured next session is predicted.")
         return
 
-    actual = hist.sort_values(["symbol", "date"]).rename(columns={"date": "target_date", "open": "actual_open", "high": "actual_high", "low": "actual_low", "close": "actual_close"})
-    evals = completed_predictions.merge(actual[["symbol", "target_date", "actual_open", "actual_high", "actual_low", "actual_close"]], on=["symbol", "target_date"], how="inner")
+    actual = hist.sort_values(["symbol", "date"]).copy()
+    actual["split_ratio"] = pd.to_numeric(actual.get("stock_splits", 0.0), errors="coerce")
+    actual["split_ratio"] = actual["split_ratio"].fillna(0.0).where(actual["split_ratio"].gt(0), 1.0)
+    actual = actual.rename(columns={"date": "target_date", "open": "actual_open", "high": "actual_high", "low": "actual_low", "close": "actual_close"})
+    # Compare forecasts and realized OHLC on the same pre-split share basis.
+    for field in ["open", "high", "low", "close"]:
+        actual[f"actual_{field}"] = pd.to_numeric(actual[f"actual_{field}"], errors="coerce") * actual["split_ratio"]
+    evals = completed_predictions.merge(actual[["symbol", "target_date", "actual_open", "actual_high", "actual_low", "actual_close", "split_ratio"]], on=["symbol", "target_date"], how="inner")
     evals = evals.dropna(subset=["actual_open", "actual_high", "actual_low", "actual_close", "base_close"])
     if evals.empty:
         print("Completed target dates exist, but actual OHLC rows are not available yet.")
@@ -1273,7 +1291,7 @@ def run_evening() -> None:
     evals["close_direction_correct"] = (evals["predicted_close_direction"] == evals["actual_close_direction"]).astype(int)
 
     keep = [
-        "prediction_date", "target_date", "symbol", "rank", "score", "base_close",
+        "prediction_date", "target_date", "symbol", "rank", "score", "base_close", "split_ratio",
         "predicted_open", "actual_open", "open_error", "open_abs_pct_error", "baseline_open_error", "baseline_open_abs_pct_error",
         "predicted_high", "actual_high", "high_error", "high_abs_pct_error", "baseline_high_error", "baseline_high_abs_pct_error",
         "predicted_low", "actual_low", "low_error", "low_abs_pct_error", "baseline_low_error", "baseline_low_abs_pct_error",

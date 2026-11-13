@@ -25,8 +25,8 @@ def run_confidence_analysis() -> pd.DataFrame:
     c = pd.read_csv(CANDIDATES)
     h = pd.read_csv(HISTORY, parse_dates=["date"])
     for col in ["prediction_date", "target_date"]:
-        c[col] = pd.to_datetime(c[col], errors="coerce").dt.normalize()
-    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+        c = normalize_date_column(c, col)
+    h = normalize_date_column(h, "date")
     actual = h.rename(columns={"date":"target_date","open":"actual_open","high":"actual_high","low":"actual_low","close":"actual_close"})
     x = c.merge(actual[["symbol","target_date","actual_open","actual_high","actual_low","actual_close"]], on=["symbol","target_date"], how="inner")
     if x.empty:

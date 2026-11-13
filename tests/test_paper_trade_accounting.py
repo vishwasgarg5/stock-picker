@@ -18,6 +18,11 @@ def test_normalizes_legacy_and_fixed_share_rows_without_overwriting_history():
             "entry_price": 100.0, "exit_price": 110.0,
             "profit_loss": 50.0, "return_pct": 10.0,
         },
+        {
+            "signal": "BUY", "position_value": 20000.0,
+            "entry_price": 100.0, "exit_price": 105.0,
+            "profit_loss": 1000.0, "return_pct": 5.0,
+        },
         {"signal": "SKIP"},
     ])
 
@@ -32,9 +37,15 @@ def test_normalizes_legacy_and_fixed_share_rows_without_overwriting_history():
     assert result.loc[1, "costs"] == pytest.approx(0.5)
     assert result.loc[1, "profit_loss"] == pytest.approx(49.5)
     assert result.loc[1, "return_pct"] == pytest.approx(9.9)
-    assert result.loc[2, "shares"] == 0.0
-    assert result.loc[2, "costs"] == 0.0
-    assert result.loc[2, "profit_loss"] == 0.0
+    assert result.loc[2, "shares"] == pytest.approx(200.0)
+    assert result.loc[2, "allocated_capital"] == pytest.approx(20000.0)
+    assert result.loc[2, "gross_profit_loss"] == pytest.approx(1000.0)
+    assert result.loc[2, "costs"] == pytest.approx(20.0)
+    assert result.loc[2, "profit_loss"] == pytest.approx(980.0)
+    assert result.loc[2, "return_pct"] == pytest.approx(4.9)
+    assert result.loc[3, "shares"] == 0.0
+    assert result.loc[3, "costs"] == 0.0
+    assert result.loc[3, "profit_loss"] == 0.0
 
 
 def test_does_not_invent_missing_buy_execution_values():

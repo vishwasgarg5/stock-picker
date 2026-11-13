@@ -83,10 +83,13 @@ def _select_completed_market_date(hist: pd.DataFrame, symbols: list[str]) -> pd.
         if coverage < MIN_OHLCV_COVERAGE:
             continue
         prices = latest[["open", "high", "low", "close"]].apply(pd.to_numeric, errors="coerce")
-        invalid = prices.isna().any(axis=1) | (
+        finite_positive = pd.Series(
+            np.isfinite(prices.to_numpy(dtype=float)).all(axis=1),
+            index=prices.index,
+        ) & prices.gt(0).all(axis=1)
+        invalid = ~finite_positive | (
             (prices["high"] < prices[["open", "close"]].max(axis=1)) |
-            (prices["low"] > prices[["open", "close"]].min(axis=1)) |
-            (prices["close"] <= 0)
+            (prices["low"] > prices[["open", "close"]].min(axis=1))
         )
         if not invalid.any():
             return candidate
@@ -104,10 +107,13 @@ def validate_data_quality(hist: pd.DataFrame, symbols: list[str], context: str =
     latest = x[(x["date"] == latest_date) & x["symbol"].isin(universe)].drop_duplicates("symbol", keep="last")
     coverage = len(latest) / max(len(universe), 1)
     prices = latest[["open", "high", "low", "close"]].apply(pd.to_numeric, errors="coerce")
-    bad_prices = int(prices.isna().any(axis=1).sum())
+    finite_positive = pd.Series(
+        np.isfinite(prices.to_numpy(dtype=float)).all(axis=1),
+        index=prices.index,
+    ) & prices.gt(0).all(axis=1)
+    bad_prices = int((~finite_positive).sum())
     invalid_ohlc = int(((prices["high"] < prices[["open", "close"]].max(axis=1)) |
-                        (prices["low"] > prices[["open", "close"]].min(axis=1)) |
-                        (prices["close"] <= 0)).sum())
+                        (prices["low"] > prices[["open", "close"]].min(axis=1))).sum())
     print(f"Data quality [{context}]: completed_session={latest_date.date()}, fresh={len(latest)}/{len(universe)} ({coverage:.1%}), bad_rows={bad_prices}, invalid_ohlc={invalid_ohlc}")
     if coverage < MIN_OHLCV_COVERAGE:
         raise RuntimeError(f"Data-quality gate failed: completed-session OHLCV coverage {coverage:.1%} ({len(latest)}/{len(universe)}), minimum {MIN_OHLCV_COVERAGE:.1%}")
@@ -286,11 +292,15 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
     # Validate OHLC integrity before persistence; reject invalid fresh rows rather
     # than allowing a partial download to poison future features/backtests.
     if {"open", "high", "low", "close"}.issubset(combined.columns):
+        ohlc = combined[["open", "high", "low", "close"]]
+        finite_positive = pd.Series(
+            np.isfinite(ohlc.to_numpy(dtype=float)).all(axis=1),
+            index=ohlc.index,
+        ) & ohlc.gt(0).all(axis=1)
         valid = (
-            combined[["open", "high", "low", "close"]].notna().all(axis=1)
+            finite_positive
             & combined["high"].ge(combined[["open", "close"]].max(axis=1))
             & combined["low"].le(combined[["open", "close"]].min(axis=1))
-            & combined["low"].gt(0)
         )
         invalid_count = int((~valid).sum())
         if invalid_count:

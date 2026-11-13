@@ -47,7 +47,7 @@ FEATURE_COLUMNS = [
     "close_sma50_gap", "volatility20", "volume_trend5",
 ]
 TARGETS = {"open": "target_open_return", "high": "target_high_return", "low": "target_low_return", "close": "target_close_return"}
-EMPTY_HISTORY = ["date", "symbol", "open", "high", "low", "close", "volume"]
+EMPTY_HISTORY = ["date", "symbol", "open", "high", "low", "close", "volume", "dividends", "stock_splits"]
 
 # Reliability gates for production data and predictions.
 MIN_OHLCV_COVERAGE = 0.95
@@ -206,10 +206,18 @@ def load_universe() -> list[str]:
 def _normalise_history(df: pd.DataFrame, symbol: str) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame(columns=EMPTY_HISTORY)
-    df = df.reset_index().rename(columns={"Date": "date", "Datetime": "date", "Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"})
-    required = set(EMPTY_HISTORY) - {"symbol"}
+    df = df.reset_index().rename(columns={
+        "Date": "date", "Datetime": "date", "Open": "open", "High": "high",
+        "Low": "low", "Close": "close", "Volume": "volume",
+        "Dividends": "dividends", "Stock Splits": "stock_splits",
+    })
+    required = {"date", "open", "high", "low", "close", "volume"}
     if not required.issubset(df.columns):
         return pd.DataFrame(columns=EMPTY_HISTORY)
+    for action_column in ["dividends", "stock_splits"]:
+        if action_column not in df.columns:
+            df[action_column] = 0.0
+        df[action_column] = pd.to_numeric(df[action_column], errors="coerce").fillna(0.0)
     df["symbol"] = symbol
     df["date"] = pd.to_datetime(df["date"], errors="coerce", utc=True).dt.tz_localize(None)
     return df[EMPTY_HISTORY].dropna(subset=["date", "close"])
@@ -234,6 +242,7 @@ def _download_yahoo_batch(batch: list[str], start: str) -> pd.DataFrame:
                 group_by="ticker",
                 progress=False,
                 threads=False,
+                actions=True,
             )
         except Exception as exc:
             last_error = exc
@@ -296,17 +305,28 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
         existing = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
     else:
         existing = pd.DataFrame(columns=EMPTY_HISTORY)
+    # The previous CSV schema discarded corporate actions. Rebuild all history
+    # once so older split events are recovered rather than assumed absent.
+    needs_action_backfill = not {"dividends", "stock_splits"}.issubset(existing.columns)
+    for action_column in ["dividends", "stock_splits"]:
+        if action_column not in existing.columns:
+            existing[action_column] = 0.0
+        existing[action_column] = pd.to_numeric(existing[action_column], errors="coerce").fillna(0.0)
     existing["date"] = pd.to_datetime(existing.get("date"), errors="coerce")
     existing = existing.dropna(subset=["date", "symbol", "close"])
     starts = {}
     for symbol in symbols:
         rows = existing.loc[existing["symbol"].astype(str).str.upper() == symbol]
-        starts[symbol] = "2018-01-01" if rows.empty else (rows["date"].max() - timedelta(days=10)).strftime("%Y-%m-%d")
+        starts[symbol] = "2018-01-01" if needs_action_backfill or rows.empty else (rows["date"].max() - timedelta(days=10)).strftime("%Y-%m-%d")
     fresh_parts = [download_history([s for s, value in starts.items() if value == start], start) for start in sorted(set(starts.values()))]
     fresh = pd.concat(fresh_parts, ignore_index=True) if fresh_parts else pd.DataFrame(columns=EMPTY_HISTORY)
     combined = pd.concat([existing, fresh], ignore_index=True)
     combined["date"] = pd.to_datetime(combined["date"], errors="coerce").dt.normalize()
     combined["symbol"] = combined["symbol"].astype(str).str.upper().str.strip()
+    for action_column in ["dividends", "stock_splits"]:
+        if action_column not in combined.columns:
+            combined[action_column] = 0.0
+        combined[action_column] = pd.to_numeric(combined[action_column], errors="coerce").fillna(0.0)
     for column in ["open", "high", "low", "close", "volume"]:
         if column in combined:
             combined[column] = pd.to_numeric(combined[column], errors="coerce")
@@ -339,6 +359,32 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
     return combined
 
 
+def _add_split_adjusted_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Add split-adjusted OHLCV columns while retaining raw execution prices.
+
+    Yahoo's split ratio is new shares per old share (2.0 for a 2:1 split).
+    Historical prices before a later split are divided by that ratio and
+    volume is multiplied by it. Dividends are retained, not applied here.
+    """
+    out = df.sort_values(["symbol", "date"]).copy()
+    if "stock_splits" not in out.columns:
+        out["stock_splits"] = 0.0
+    ratios = pd.to_numeric(out["stock_splits"], errors="coerce").fillna(0.0)
+    ratio_values = ratios.to_numpy(dtype=float)
+    if not np.isfinite(ratio_values).all() or (ratio_values < 0).any():
+        raise RuntimeError("Corporate-action integrity gate failed: invalid stock split ratio")
+    inverse_ratio = ratios.where(ratios.eq(0), 1.0 / ratios.replace(0, np.nan)).fillna(1.0)
+    out["_inverse_split_ratio"] = inverse_ratio
+    out["_future_split_factor"] = out.groupby("symbol", sort=False)["_inverse_split_ratio"].transform(
+        lambda values: values.iloc[::-1].cumprod().iloc[::-1].shift(-1, fill_value=1.0)
+    )
+    factor = out["_future_split_factor"].astype(float)
+    for field in ["open", "high", "low", "close"]:
+        out[f"split_adjusted_{field}"] = pd.to_numeric(out[field], errors="coerce") * factor
+    out["split_adjusted_volume"] = pd.to_numeric(out["volume"], errors="coerce") / factor
+    return out.drop(columns=["_inverse_split_ratio", "_future_split_factor"])
+
+
 def rsi(close: pd.Series, period: int = 14) -> pd.Series:
     delta = close.diff()
     gain = delta.clip(lower=0).rolling(period).mean()
@@ -349,32 +395,36 @@ def rsi(close: pd.Series, period: int = 14) -> pd.Series:
 
 def features(df: pd.DataFrame) -> pd.DataFrame:
     """Build strictly historical, next-day-safe features for each stock."""
-    df = df.sort_values(["symbol", "date"]).copy()
+    df = _add_split_adjusted_columns(df)
     g = df.groupby("symbol", group_keys=False)
-    df["return_1d"] = g["close"].pct_change()
-    df["return_5d"] = g["close"].pct_change(5)
-    df["return_20d"] = g["close"].pct_change(20)
-    df["sma20"] = g["close"].transform(lambda x: x.rolling(20).mean())
-    df["sma50"] = g["close"].transform(lambda x: x.rolling(50).mean())
-    df["ema20"] = g["close"].transform(lambda x: x.ewm(span=20, adjust=False).mean())
-    df["ema50"] = g["close"].transform(lambda x: x.ewm(span=50, adjust=False).mean())
-    df["rsi14"] = g["close"].transform(rsi)
-    prev_close = g["close"].shift(1)
-    true_range = pd.concat([df["high"] - df["low"], (df["high"] - prev_close).abs(), (df["low"] - prev_close).abs()], axis=1).max(axis=1)
-    df["atr14_pct"] = true_range.groupby(df["symbol"], group_keys=False).transform(lambda x: x.rolling(14).mean()) / df["close"].replace(0, np.nan)
-    df["range_pct"] = (df["high"] - df["low"]) / df["close"].replace(0, np.nan)
+    close = df["split_adjusted_close"]
+    high = df["split_adjusted_high"]
+    low = df["split_adjusted_low"]
+    volume = df["split_adjusted_volume"]
+    df["return_1d"] = g["split_adjusted_close"].pct_change()
+    df["return_5d"] = g["split_adjusted_close"].pct_change(5)
+    df["return_20d"] = g["split_adjusted_close"].pct_change(20)
+    df["sma20"] = g["split_adjusted_close"].transform(lambda x: x.rolling(20).mean())
+    df["sma50"] = g["split_adjusted_close"].transform(lambda x: x.rolling(50).mean())
+    df["ema20"] = g["split_adjusted_close"].transform(lambda x: x.ewm(span=20, adjust=False).mean())
+    df["ema50"] = g["split_adjusted_close"].transform(lambda x: x.ewm(span=50, adjust=False).mean())
+    df["rsi14"] = g["split_adjusted_close"].transform(rsi)
+    prev_close = g["split_adjusted_close"].shift(1)
+    true_range = pd.concat([high - low, (high - prev_close).abs(), (low - prev_close).abs()], axis=1).max(axis=1)
+    df["atr14_pct"] = true_range.groupby(df["symbol"], group_keys=False).transform(lambda x: x.rolling(14).mean()) / close.replace(0, np.nan)
+    df["range_pct"] = (high - low) / close.replace(0, np.nan)
     df["volatility20"] = g["return_1d"].transform(lambda x: x.rolling(20).std())
-    ema12 = g["close"].transform(lambda x: x.ewm(span=12, adjust=False).mean())
-    ema26 = g["close"].transform(lambda x: x.ewm(span=26, adjust=False).mean())
+    ema12 = g["split_adjusted_close"].transform(lambda x: x.ewm(span=12, adjust=False).mean())
+    ema26 = g["split_adjusted_close"].transform(lambda x: x.ewm(span=26, adjust=False).mean())
     df["macd"] = ema12 - ema26
     df["macd_signal"] = df.groupby("symbol")["macd"].transform(lambda x: x.ewm(span=9, adjust=False).mean())
-    rolling_std20 = g["close"].transform(lambda x: x.rolling(20).std())
-    df["bb_position"] = (df["close"] - df["sma20"]) / (2.0 * rolling_std20.replace(0, np.nan))
-    df["close_sma20_gap"] = df["close"] / df["sma20"].replace(0, np.nan) - 1.0
-    df["close_sma50_gap"] = df["close"] / df["sma50"].replace(0, np.nan) - 1.0
-    df["volume_ma20"] = g["volume"].transform(lambda x: x.rolling(20).mean())
-    df["volume_ratio"] = df["volume"] / df["volume_ma20"].replace(0, np.nan)
-    df["volume_ma5"] = g["volume"].transform(lambda x: x.rolling(5).mean())
+    rolling_std20 = g["split_adjusted_close"].transform(lambda x: x.rolling(20).std())
+    df["bb_position"] = (close - df["sma20"]) / (2.0 * rolling_std20.replace(0, np.nan))
+    df["close_sma20_gap"] = close / df["sma20"].replace(0, np.nan) - 1.0
+    df["close_sma50_gap"] = close / df["sma50"].replace(0, np.nan) - 1.0
+    df["volume_ma20"] = g["split_adjusted_volume"].transform(lambda x: x.rolling(20).mean())
+    df["volume_ratio"] = volume / df["volume_ma20"].replace(0, np.nan)
+    df["volume_ma5"] = g["split_adjusted_volume"].transform(lambda x: x.rolling(5).mean())
     df["volume_trend5"] = df["volume_ma5"] / df["volume_ma20"].replace(0, np.nan)
     return df
 
@@ -630,11 +680,11 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_
 
 
 def add_targets(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.sort_values(["symbol", "date"]).copy()
+    df = _add_split_adjusted_columns(df)
     g = df.groupby("symbol", group_keys=False)
-    base = df["close"]
+    base = df["split_adjusted_close"]
     for field in ["open", "high", "low", "close"]:
-        df[f"target_{field}_return"] = g[field].shift(-1) / base - 1
+        df[f"target_{field}_return"] = g[f"split_adjusted_{field}"].shift(-1) / base - 1
     return df
 
 

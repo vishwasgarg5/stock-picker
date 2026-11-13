@@ -14,6 +14,7 @@ import yfinance as yf
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor
 
 from .new_listing_model import challenger_ready, latest_challenger_features, predict_challenger_ohlc
+from .date_utils import normalize_date_column, parse_mixed_dates
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -122,7 +123,7 @@ def _validate_prediction_session(prediction: pd.DataFrame, target_date: pd.Times
         raise RuntimeError(f"Prediction integrity gate failed: expected 10 stocks, found {len(prediction)}")
     if prediction["symbol"].astype(str).str.upper().duplicated().any():
         raise RuntimeError("Prediction integrity gate failed: duplicate symbols")
-    stored_target = pd.to_datetime(prediction["target_date"], errors="coerce").dt.normalize()
+    stored_target = parse_mixed_dates(prediction["target_date"]).dt.normalize()
     if stored_target.isna().any() or not (stored_target == target).all():
         raise RuntimeError(f"Prediction integrity gate failed: target date mismatch; expected {target.date()}")
     numeric = ["base_close", "predicted_open", "predicted_high", "predicted_low", "predicted_close"]

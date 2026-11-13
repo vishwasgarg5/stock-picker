@@ -38,6 +38,7 @@ PAPER_TRADES_FILE = DATA / "paper_trades.csv"
 PORTFOLIO_FILE = DATA / "portfolio_daily.csv"
 PAPER_TRADE_TOP_N = 5
 PAPER_CAPITAL = 100000.0
+ROUND_TRIP_COST_PCT = 0.001  # 0.10% round-trip cost, matching the legacy paper ledger.
 
 FEATURE_COLUMNS = [
     "return_1d", "return_5d", "return_20d",
@@ -974,6 +975,51 @@ def run_morning() -> None:
 
 
 
+def _normalize_paper_trade_accounting(trades: pd.DataFrame) -> pd.DataFrame:
+    """Normalize legacy and fixed-share paper trades to one auditable schema.
+
+    Preserve recorded history; derive missing fields only when prices and
+    sizing inputs are available to reconcile them.
+    """
+    x = trades.copy()
+    fields = ["shares", "allocated_capital", "gross_profit_loss", "costs", "profit_loss", "return_pct"]
+    for field in fields:
+        if field not in x.columns:
+            x[field] = np.nan
+
+    signal = x.get("signal", pd.Series("", index=x.index)).astype(str).str.upper().str.strip()
+    buy = signal.eq("BUY")
+    shares = pd.to_numeric(x["shares"], errors="coerce")
+    if "quantity" in x.columns:
+        shares = shares.fillna(pd.to_numeric(x["quantity"], errors="coerce"))
+    allocated = pd.to_numeric(x["allocated_capital"], errors="coerce")
+    if "planned_capital" in x.columns:
+        allocated = allocated.fillna(pd.to_numeric(x["planned_capital"], errors="coerce"))
+    entry = pd.to_numeric(x.get("entry_price", pd.Series(np.nan, index=x.index)), errors="coerce")
+    exit_price = pd.to_numeric(x.get("exit_price", pd.Series(np.nan, index=x.index)), errors="coerce")
+
+    derived = {
+        "shares": shares,
+        "allocated_capital": allocated,
+        "gross_profit_loss": shares * (exit_price - entry),
+        "costs": allocated * ROUND_TRIP_COST_PCT,
+    }
+    for field, values in derived.items():
+        current = pd.to_numeric(x[field], errors="coerce")
+        x[field] = current.where(current.notna(), values.where(buy, 0.0))
+
+    net = pd.to_numeric(x["gross_profit_loss"], errors="coerce") - pd.to_numeric(x["costs"], errors="coerce")
+    current_net = pd.to_numeric(x["profit_loss"], errors="coerce")
+    x["profit_loss"] = current_net.where(current_net.notna(), net.where(buy, 0.0))
+    capital = pd.to_numeric(x["allocated_capital"], errors="coerce").replace(0, np.nan)
+    expected_return = pd.to_numeric(x["profit_loss"], errors="coerce") / capital * 100.0
+    current_return = pd.to_numeric(x["return_pct"], errors="coerce")
+    x["return_pct"] = current_return.where(current_return.notna(), expected_return.where(buy, 0.0))
+    for field in fields:
+        x.loc[~buy, field] = pd.to_numeric(x.loc[~buy, field], errors="coerce").fillna(0.0)
+    return x
+
+
 def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataFrame) -> pd.DataFrame:
     """Evaluate the Top-5 paper portfolio for every newly completed prediction session.
 
@@ -1009,12 +1055,6 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
     rows["signal"] = np.where(rows["rank"] <= PAPER_TRADE_TOP_N, "BUY", "SKIP")
     rows["entry_price"] = np.where(rows["signal"].eq("BUY"), rows["actual_open"], np.nan)
     rows["exit_price"] = np.where(rows["signal"].eq("BUY"), rows["actual_close"], np.nan)
-    rows["return_pct"] = np.where(
-        rows["signal"].eq("BUY") & rows["entry_price"].ne(0),
-        (rows["exit_price"] / rows["entry_price"] - 1.0) * 100.0,
-        np.nan,
-    )
-
     # Fixed-share paper portfolio: determine integer quantity from the
     # latest completed close (base_close) before the target session.
     # This prevents hindsight from using the actual next-day open to size shares.
@@ -1022,9 +1062,9 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
     rows["reference_price"] = pd.to_numeric(rows.get("base_close"), errors="coerce")
     rows["quantity"] = np.where(
         rows["signal"].eq("BUY") & rows["reference_price"].gt(0),
-        np.floor(allocation / rows["reference_price"]).astype(int),
+        np.floor(allocation / rows["reference_price"]).fillna(0),
         0,
-    )
+    ).astype(int)
     rows["planned_capital"] = np.where(
         rows["signal"].eq("BUY"),
         rows["quantity"] * rows["reference_price"],
@@ -1035,20 +1075,33 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
         rows["quantity"] * pd.to_numeric(rows["entry_price"], errors="coerce"),
         0.0,
     )
-    rows["profit_loss"] = np.where(
+    rows["shares"] = rows["quantity"].astype(float)
+    rows["allocated_capital"] = rows["planned_capital"]
+    rows["gross_profit_loss"] = np.where(
         rows["signal"].eq("BUY"),
-        rows["quantity"] * (
+        rows["shares"] * (
             pd.to_numeric(rows["exit_price"], errors="coerce")
             - pd.to_numeric(rows["entry_price"], errors="coerce")
         ),
+        0.0,
+    )
+    rows["costs"] = np.where(
+        rows["signal"].eq("BUY"),
+        rows["allocated_capital"] * ROUND_TRIP_COST_PCT,
+        0.0,
+    )
+    rows["profit_loss"] = rows["gross_profit_loss"] - rows["costs"]
+    rows["return_pct"] = np.where(
+        rows["signal"].eq("BUY") & pd.to_numeric(rows["allocated_capital"], errors="coerce").gt(0),
+        rows["profit_loss"] / rows["allocated_capital"] * 100.0,
         0.0,
     )
 
     keep = [
         "prediction_date", "target_date", "symbol", "rank", "score",
         "signal", "reference_price", "quantity", "planned_capital",
-        "entry_price", "exit_price", "return_pct",
-        "position_value", "profit_loss",
+        "shares", "allocated_capital", "entry_price", "exit_price",
+        "return_pct", "position_value", "gross_profit_loss", "costs", "profit_loss",
     ]
     rows = rows[keep]
 
@@ -1063,58 +1116,31 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
     combined = combined.dropna(subset=["target_date", "symbol"])
     combined = combined.drop_duplicates(["target_date", "symbol"], keep="first")
     combined = combined.sort_values(["target_date", "rank"]).reset_index(drop=True)
+    combined = _normalize_paper_trade_accounting(combined)
     combined.to_csv(PAPER_TRADES_FILE, index=False)
 
-    # Daily portfolio return is actual fixed-share P&L divided by the
-    # fixed ₹100,000 paper capital. This includes the cash left unused by
-    # integer-share sizing and avoids fractional-share assumptions.
-    buy = combined[combined["signal"].eq("BUY")].copy()
+    # Rebuild all sessions from the canonical ledger so stale cost-free
+    # portfolio rows cannot survive a schema migration.
+    buy = combined[combined["signal"].astype(str).str.upper().str.strip().eq("BUY")].copy()
+    if buy.empty:
+        return combined
     daily = buy.groupby("target_date", as_index=False).agg(
         trades=("symbol", "count"),
-        daily_profit_loss=("profit_loss", "sum"),
+        winners=("profit_loss", lambda values: int((values > 0).sum())),
+        losers=("profit_loss", lambda values: int((values < 0).sum())),
+        gross_pnl=("gross_profit_loss", "sum"),
+        costs=("costs", "sum"),
+        net_pnl=("profit_loss", "sum"),
     )
-    daily["daily_return_pct"] = daily["daily_profit_loss"] / PAPER_CAPITAL * 100.0
-    if daily.empty:
-        return combined
-
-    daily = daily.sort_values("target_date")
-    existing_portfolio = pd.read_csv(PORTFOLIO_FILE) if PORTFOLIO_FILE.exists() else pd.DataFrame()
-    if not existing_portfolio.empty:
-        existing_portfolio["target_date"] = pd.to_datetime(existing_portfolio["target_date"], errors="coerce").dt.normalize()
-
-    history = daily.copy()
-    history["portfolio_value"] = np.nan
-    history["cumulative_return_pct"] = np.nan
-    prior_dates = set(existing_portfolio["target_date"].dropna()) if not existing_portfolio.empty else set()
-
-    # Position sizing is fixed from the original ₹100,000 paper capital, so
-    # portfolio P&L is additive rather than compounded. Recompute the
-    # cumulative value from the fixed starting capital for all known sessions.
-    combined_daily = pd.concat(
-        [
-            existing_portfolio[["target_date", "daily_profit_loss"]]
-            if not existing_portfolio.empty and "daily_profit_loss" in existing_portfolio.columns
-            else pd.DataFrame(columns=["target_date", "daily_profit_loss"]),
-            history[["target_date", "daily_profit_loss"]],
-        ],
-        ignore_index=True,
-    )
-    combined_daily["target_date"] = pd.to_datetime(combined_daily["target_date"], errors="coerce").dt.normalize()
-    combined_daily["daily_profit_loss"] = pd.to_numeric(combined_daily["daily_profit_loss"], errors="coerce").fillna(0.0)
-    combined_daily = combined_daily.dropna(subset=["target_date"]).drop_duplicates("target_date", keep="last").sort_values("target_date")
-    combined_daily["portfolio_value"] = PAPER_CAPITAL + combined_daily["daily_profit_loss"].cumsum()
-    combined_daily["cumulative_return_pct"] = (combined_daily["portfolio_value"] / PAPER_CAPITAL - 1.0) * 100.0
-
-    history = history.drop(columns=["portfolio_value", "cumulative_return_pct"], errors="ignore").merge(
-        combined_daily[["target_date", "portfolio_value", "cumulative_return_pct"]],
-        on="target_date",
-        how="left",
-    )
-
-    history["target_date"] = pd.to_datetime(history["target_date"]).dt.normalize()
-    history = pd.concat([existing_portfolio, history], ignore_index=True)
-    history = history.drop_duplicates(["target_date"], keep="last").sort_values("target_date")
-    history.to_csv(PORTFOLIO_FILE, index=False)
+    daily["daily_profit_loss"] = daily["net_pnl"]
+    daily["daily_return_pct"] = daily["net_pnl"] / PAPER_CAPITAL * 100.0
+    daily = daily.sort_values("target_date").reset_index(drop=True)
+    daily["portfolio_value"] = PAPER_CAPITAL + daily["net_pnl"].cumsum()
+    daily["cumulative_return_pct"] = (daily["portfolio_value"] / PAPER_CAPITAL - 1.0) * 100.0
+    daily["peak_value"] = daily["portfolio_value"].cummax()
+    daily["drawdown_pct"] = (daily["portfolio_value"] / daily["peak_value"] - 1.0) * 100.0
+    daily["win_rate_pct"] = daily["winners"] / daily["trades"] * 100.0
+    daily.to_csv(PORTFOLIO_FILE, index=False)
     print(
         f"Paper trading updated: Top-{PAPER_TRADE_TOP_N}, "
         f"sessions={len(history)}, latest={history['target_date'].max().date()}, "

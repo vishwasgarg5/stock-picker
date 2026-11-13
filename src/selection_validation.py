@@ -3,6 +3,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from .date_utils import normalize_date_column
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 CANDIDATES_FILE = DATA / "prediction_candidates_history.csv"
@@ -39,9 +41,9 @@ def run_selection_validation() -> pd.DataFrame:
 
     c = candidates.copy()
     h = hist.copy()
-    c["target_date"] = pd.to_datetime(c["target_date"], errors="coerce").dt.normalize()
+    c = normalize_date_column(c, "target_date")
     c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
-    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    h = normalize_date_column(h, "date")
     h["symbol"] = h["symbol"].astype(str).str.upper().str.strip()
     h["close"] = pd.to_numeric(h["close"], errors="coerce")
     h = h[["date", "symbol", "close"]].dropna().drop_duplicates(["date", "symbol"], keep="last")

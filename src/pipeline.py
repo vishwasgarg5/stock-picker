@@ -995,6 +995,7 @@ def _normalize_paper_trade_accounting(trades: pd.DataFrame) -> pd.DataFrame:
     allocated = pd.to_numeric(x["allocated_capital"], errors="coerce")
     if "planned_capital" in x.columns:
         allocated = allocated.fillna(pd.to_numeric(x["planned_capital"], errors="coerce"))
+    missing_costs = pd.to_numeric(x["costs"], errors="coerce").isna()
     entry = pd.to_numeric(x.get("entry_price", pd.Series(np.nan, index=x.index)), errors="coerce")
     exit_price = pd.to_numeric(x.get("exit_price", pd.Series(np.nan, index=x.index)), errors="coerce")
 
@@ -1010,11 +1011,13 @@ def _normalize_paper_trade_accounting(trades: pd.DataFrame) -> pd.DataFrame:
 
     net = pd.to_numeric(x["gross_profit_loss"], errors="coerce") - pd.to_numeric(x["costs"], errors="coerce")
     current_net = pd.to_numeric(x["profit_loss"], errors="coerce")
-    x["profit_loss"] = current_net.where(current_net.notna(), net.where(buy, 0.0))
+    # Rows with no recorded cost used the old gross-as-net convention. Once
+    # their cost is derived, recompute net P&L instead of preserving that value.
+    x["profit_loss"] = current_net.where(~missing_costs & current_net.notna(), net.where(buy, 0.0))
     capital = pd.to_numeric(x["allocated_capital"], errors="coerce").replace(0, np.nan)
     expected_return = pd.to_numeric(x["profit_loss"], errors="coerce") / capital * 100.0
-    current_return = pd.to_numeric(x["return_pct"], errors="coerce")
-    x["return_pct"] = current_return.where(current_return.notna(), expected_return.where(buy, 0.0))
+    # Canonical return_pct is net P&L divided by allocated capital.
+    x["return_pct"] = expected_return.where(buy, 0.0)
     for field in fields:
         x.loc[~buy, field] = pd.to_numeric(x.loc[~buy, field], errors="coerce").fillna(0.0)
     return x

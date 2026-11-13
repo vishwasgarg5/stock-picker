@@ -112,7 +112,7 @@ def leakage_audit(evaluations: pd.DataFrame, candidates: pd.DataFrame, history: 
         # pipeline's historical business key and Phases 27-30 audit semantics.
         # prediction_date alone is not the business key for this table.
         business_date_col = "target_date" if "target_date" in c.columns else "prediction_date"
-        business_dates = pd.to_datetime(c[business_date_col], errors="coerce").dt.normalize()
+        business_dates = parse_mixed_dates(c[business_date_col]).dt.normalize()
         symbols = c["symbol"].astype(str).str.upper().str.strip()
         valid = business_dates.notna() & ~symbols.isin(["", "NAN", "NONE"])
         keyed = pd.DataFrame({

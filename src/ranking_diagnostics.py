@@ -214,8 +214,8 @@ def run_mfe_mae_validation(candidates: pd.DataFrame, history: pd.DataFrame) -> p
 
     c = candidates.copy()
     h = history.copy()
-    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
-    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    c["prediction_date"] = parse_mixed_dates(c["prediction_date"]).dt.normalize()
+    h["date"] = parse_mixed_dates(h["date"]).dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.strip()
     h["symbol"] = h["symbol"].astype(str).str.strip()
     c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
@@ -283,7 +283,7 @@ def run_ranking_stability(candidates: pd.DataFrame) -> pd.DataFrame:
         return _empty_stability()
 
     c = candidates.copy()
-    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    c["prediction_date"] = parse_mixed_dates(c["prediction_date"]).dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.strip()
     c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
     c = c.dropna(subset=["prediction_date", "symbol", "rank"])
@@ -343,7 +343,7 @@ def run_ranking_turnover(candidates: pd.DataFrame) -> pd.DataFrame:
         return _empty_turnover()
 
     c = candidates.copy()
-    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    c["prediction_date"] = parse_mixed_dates(c["prediction_date"]).dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.strip()
     c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
     c = c.dropna(subset=["prediction_date", "symbol", "rank"])
@@ -398,8 +398,8 @@ def run_transaction_cost_validation(
 
     c = candidates.copy()
     h = history.copy()
-    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
-    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    c["prediction_date"] = parse_mixed_dates(c["prediction_date"]).dt.normalize()
+    h["date"] = parse_mixed_dates(h["date"]).dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.strip()
     h["symbol"] = h["symbol"].astype(str).str.strip()
     c["rank"] = pd.to_numeric(c["rank"], errors="coerce")
@@ -478,7 +478,7 @@ def run_sector_risk_validation(
 
     c = candidates.copy()
     f = fundamentals_history.copy()
-    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    c["prediction_date"] = parse_mixed_dates(c["prediction_date"]).dt.normalize()
     f["as_of_date"] = pd.to_datetime(f["as_of_date"], errors="coerce").dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
     f["symbol"] = f["symbol"].astype(str).str.upper().str.strip()
@@ -535,9 +535,9 @@ def run_ranking_diagnostics() -> pd.DataFrame:
 
     c = pd.read_csv(CANDIDATES)
     h = pd.read_csv(HISTORY, parse_dates=["date"])
-    c["target_date"] = pd.to_datetime(c["target_date"], errors="coerce").dt.normalize()
-    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
-    h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
+    c["target_date"] = parse_mixed_dates(c["target_date"]).dt.normalize()
+    c["prediction_date"] = parse_mixed_dates(c["prediction_date"]).dt.normalize()
+    h["date"] = parse_mixed_dates(h["date"]).dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.strip()
     h["symbol"] = h["symbol"].astype(str).str.strip()
 

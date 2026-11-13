@@ -13,6 +13,8 @@ import json
 import numpy as np
 import pandas as pd
 
+from .date_utils import parse_mixed_dates
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 CANDIDATES = DATA / "prediction_candidates_history.csv"
@@ -38,7 +40,7 @@ def _read(path: Path) -> pd.DataFrame:
 
 
 def _norm_dates(x: pd.Series) -> pd.Series:
-    return pd.to_datetime(x, errors="coerce").dt.normalize()
+    return parse_mixed_dates(x).dt.normalize()
 
 
 def _directional_history(c: pd.DataFrame, e: pd.DataFrame) -> pd.DataFrame:

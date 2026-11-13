@@ -57,7 +57,7 @@ def _merge_evidence(evaluations: pd.DataFrame, candidates: pd.DataFrame) -> pd.D
         return e
     c = candidates.copy()
     c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
-    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
+    c["prediction_date"] = parse_mixed_dates(c["prediction_date"]).dt.normalize()
     cols = ["prediction_date", "symbol"] + [x for x in FEATURE_COLUMNS + [
         "confidence_tier", "risk_level", "market_regime", "index_market_regime",
         "sector", "sector_name", "selection_method", "selected"

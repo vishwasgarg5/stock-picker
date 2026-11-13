@@ -14,9 +14,15 @@ def parse_mixed_dates(values: pd.Series) -> pd.Series:
     try:
         parsed = pd.to_datetime(source, errors="coerce", format="mixed", utc=True)
     except (TypeError, ValueError):
-        parsed = source.map(
-            lambda value: pd.to_datetime(value, errors="coerce", utc=True)
-        )
+        parsed = pd.Series(pd.NaT, index=source.index, dtype="datetime64[ns, UTC]")
+    # Older pandas versions may accept format="mixed" as a literal format
+    # without raising, silently coercing valid values. Compare with a scalar
+    # parser and use whichever recovers more values.
+    fallback = source.map(
+        lambda value: pd.to_datetime(value, errors="coerce", utc=True)
+    )
+    if fallback.notna().sum() > parsed.notna().sum():
+        parsed = fallback
     return parsed.dt.tz_convert(None)
 
 

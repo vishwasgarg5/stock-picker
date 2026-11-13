@@ -904,9 +904,15 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     candidates["selected"] = candidates["symbol"].isin(selected_symbols).astype(int)
     candidates.to_csv(CANDIDATES_FILE, index=False)
     existing_candidates = pd.read_csv(CANDIDATE_HISTORY_FILE) if CANDIDATE_HISTORY_FILE.exists() else pd.DataFrame()
+    # Normalize every date key before concatenating old and new rows. This
+    # preserves legacy records while ensuring future writes use one format.
+    for date_column in ("prediction_date", "target_date"):
+        existing_candidates = normalize_date_column(existing_candidates, date_column)
+        candidates = normalize_date_column(candidates, date_column)
     history_candidates = pd.concat([existing_candidates, candidates], ignore_index=True)
+    history_candidates = history_candidates.dropna(subset=["target_date"])
     history_candidates = history_candidates.drop_duplicates(["target_date", "symbol"], keep="first")
-    history_candidates.to_csv(CANDIDATE_HISTORY_FILE, index=False)
+    history_candidates.to_csv(CANDIDATE_HISTORY_FILE, index=False, date_format="%Y-%m-%d")
     selected = candidates[candidates["selected"] == 1].copy()
     if len(selected) != 10:
         raise RuntimeError(f"Confidence selector produced {len(selected)} stocks; expected 10")

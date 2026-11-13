@@ -16,6 +16,7 @@ def test_normalizes_legacy_and_fixed_share_rows_without_overwriting_history():
         {
             "signal": "BUY", "quantity": 5, "planned_capital": 500.0,
             "entry_price": 100.0, "exit_price": 110.0,
+            "profit_loss": 50.0, "return_pct": 10.0,
         },
         {"signal": "SKIP"},
     ])

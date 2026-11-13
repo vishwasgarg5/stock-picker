@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-12T18:41:44.461773+00:00",
+  "as_of_utc": "2026-11-13T18:23:05.929995+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -7,7 +7,7 @@
   "sections": {
     "prediction_report": {
       "status": "PASS",
-      "target_date": "2026-11-12",
+      "target_date": "2026-11-16",
       "rows_for_target_date": 10,
       "top10_rows": 10,
       "top10_complete": true,
@@ -15,35 +15,35 @@
       "invalid_ohlc_rows": 0,
       "duplicate_symbol_rows": 0,
       "top10_symbols": [
+        "MCX",
         "PNB",
-        "BANKBARODA",
-        "UNOMINDA",
-        "M&M",
-        "DIVISLAB",
         "NAVINFLUOR",
-        "SAILIFE",
-        "UNIONBANK",
-        "FORCEMOT",
-        "IOC"
+        "MOTILALOFS",
+        "CDSL",
+        "DIVISLAB",
+        "ANGELONE",
+        "BANKINDIA",
+        "CHOLAFIN",
+        "BANKBARODA"
       ],
       "ranked_candidates_are_not_buy_approval": true
     },
     "forecast_baseline": {
       "status": "BASELINE_NOT_BEATEN",
-      "scored_rows": 350,
-      "unique_dates": 35,
-      "model_close_mape_pct": 1.8935436651437372,
-      "baseline_close_mape_pct": 1.8843109508631244,
-      "error_delta_pct_points": 0.009232714280612786,
+      "scored_rows": 360,
+      "unique_dates": 36,
+      "model_close_mape_pct": 1.8774769087285914,
+      "baseline_close_mape_pct": 1.8687623686595538,
+      "error_delta_pct_points": 0.008714540069037602,
       "beats_baseline": false,
-      "directional_accuracy_pct": 48.0,
+      "directional_accuracy_pct": 48.05555555555556,
       "recent_5_sessions": 5,
       "recent_5_sessions_scored_rows": 50,
-      "recent_5_sessions_model_close_mape_pct": 1.6640275446464479,
-      "recent_5_sessions_baseline_close_mape_pct": 1.6618167656213194,
-      "recent_5_sessions_error_delta_pct_points": 0.002210779025128451,
-      "recent_5_sessions_beats_baseline": false,
-      "recent_5_sessions_directional_accuracy_pct": 52.0,
+      "recent_5_sessions_model_close_mape_pct": 1.5768444591874393,
+      "recent_5_sessions_baseline_close_mape_pct": 1.58316977310223,
+      "recent_5_sessions_error_delta_pct_points": -0.006325313914790742,
+      "recent_5_sessions_beats_baseline": true,
+      "recent_5_sessions_directional_accuracy_pct": 54.0,
       "per_date_comparison": [
         {
           "target_date": "2026-09-18",
@@ -289,6 +289,13 @@
           "model_close_mape_pct": 1.2779806261546187,
           "baseline_close_mape_pct": 1.2461308821282477,
           "error_delta_pct_points": 0.031849744026370974
+        },
+        {
+          "target_date": "2026-11-12",
+          "scored_rows": 10,
+          "model_close_mape_pct": 1.3151404341984851,
+          "baseline_close_mape_pct": 1.3245619915345725,
+          "error_delta_pct_points": -0.009421557336087405
         }
       ],
       "same_scored_rows_for_comparison": true,
@@ -296,7 +303,7 @@
     },
     "paper_ledger": {
       "status": "PASS",
-      "rows": 350,
+      "rows": 360,
       "executed_rows": 70,
       "incomplete_executed_rows": 0,
       "net_pnl_reconciliation_mismatch_rows": 0,
@@ -305,14 +312,14 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 169,
-      "rows_with_usable_message_keys": 169,
-      "api_confirmed_rows": 96,
+      "rows": 170,
+      "rows_with_usable_message_keys": 170,
+      "api_confirmed_rows": 97,
       "duplicate_message_keys": 6,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 66,
-          "confirmed": 39,
+          "rows": 67,
+          "confirmed": 40,
           "legacy_unverified": 27,
           "duplicate_message_keys": 6,
           "rows_missing_message_key": 0,
@@ -348,10 +355,10 @@
     },
     "v2_evidence": {
       "status": "PASS",
-      "rows": 310,
-      "unique_sessions": 31,
+      "rows": 320,
+      "unique_sessions": 32,
       "buy_rows": 0,
-      "skip_rows": 310,
+      "skip_rows": 320,
       "skip_rows_without_reason": 0,
       "existing_promotion_safe": false,
       "promotion_ready": false,

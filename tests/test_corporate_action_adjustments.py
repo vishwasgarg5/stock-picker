@@ -70,7 +70,7 @@ def test_yahoo_action_fields_are_preserved_by_history_normalizer():
         "Volume": [2000],
         "Dividends": [1.5],
         "Stock Splits": [2.0],
-    }, index=pd.to_datetime(["2026-01-02"]))
+    }, index=pd.DatetimeIndex(["2026-01-02"], name="Date"))
 
     normalized = _normalise_history(raw, "ABC")
 

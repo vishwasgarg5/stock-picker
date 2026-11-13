@@ -44,7 +44,11 @@ def test_valid_prediction_session_passes():
 )
 def test_prediction_integrity_gate_rejects_invalid_rows(column, value, message):
     prediction = valid_predictions()
+    if column == "rank":
+        prediction["rank"] = prediction["rank"].astype(float)
     prediction.loc[0, column] = value
+    if column == "predicted_open":
+        prediction.loc[0, "predicted_high"] = 153.0
 
     with pytest.raises(RuntimeError, match=message):
         _validate_prediction_session(prediction, TARGET)

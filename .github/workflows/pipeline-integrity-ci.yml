@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - ".github/workflows/pipeline-integrity-ci.yml"
       - "src/pipeline.py"
       - "tests/test_pipeline_data_quality.py"
       - "tests/test_prediction_validation.py"

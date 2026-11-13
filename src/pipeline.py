@@ -382,7 +382,7 @@ def _add_split_adjusted_columns(df: pd.DataFrame) -> pd.DataFrame:
     ratio_values = ratios.to_numpy(dtype=float)
     if not np.isfinite(ratio_values).all() or (ratio_values < 0).any():
         raise RuntimeError("Corporate-action integrity gate failed: invalid stock split ratio")
-    inverse_ratio = ratios.where(ratios.eq(0), 1.0 / ratios.replace(0, np.nan)).fillna(1.0)
+    inverse_ratio = (1.0 / ratios.replace(0, np.nan)).fillna(1.0)
     out["_inverse_split_ratio"] = inverse_ratio
     out["_future_split_factor"] = out.groupby("symbol", sort=False)["_inverse_split_ratio"].transform(
         lambda values: values.iloc[::-1].cumprod().iloc[::-1].shift(-1, fill_value=1.0)

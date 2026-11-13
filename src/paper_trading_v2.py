@@ -25,6 +25,15 @@ SHADOW_CONFIDENCE_PERCENTILE = 0.50
 MAX_SHADOW_ATR_PCT = 8.0
 
 
+def _net_return_pct(profit_loss: pd.Series, entry_price: pd.Series, quantity: pd.Series) -> pd.Series:
+    """Return net P&L as a percentage of actual entry notional."""
+    net = pd.to_numeric(profit_loss, errors="coerce")
+    entry = pd.to_numeric(entry_price, errors="coerce")
+    shares = pd.to_numeric(quantity, errors="coerce")
+    invested = entry * shares
+    return net.div(invested.where(invested.gt(0))) * 100.0
+
+
 def _confidence_gate() -> bool:
     if not CONF_SUMMARY.exists():
         return False
@@ -278,9 +287,11 @@ def run_paper_trading_v2() -> pd.DataFrame:
         0.0,
     )
     x["profit_loss"] = x["gross_profit_loss"] - x["trading_cost"]
+    # Return is net of both-side trading costs and uses the actual entry
+    # notional, not the gross price move.
     x["return_pct"] = np.where(
-        x["signal"].eq("BUY") & x["entry_price"].ne(0),
-        (x["exit_price"] / x["entry_price"] - 1.0) * 100.0,
+        x["signal"].eq("BUY"),
+        _net_return_pct(x["profit_loss"], x["entry_price"], x["quantity"]),
         np.nan,
     )
 

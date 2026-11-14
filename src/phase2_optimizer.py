@@ -22,7 +22,7 @@ OUT = DATA / "phase2_optimized_candidates.csv"
 SUMMARY = DATA / "phase2_performance_summary.csv"
 STATE = DATA / "phase2_state.json"
 
-MIN_SESSIONS = 20
+MIN_SESSIONS = 17
 MIN_TRADES = 50
 MAX_REPEAT_PENALTY = 2.0
 DECAY_SESSIONS = 10

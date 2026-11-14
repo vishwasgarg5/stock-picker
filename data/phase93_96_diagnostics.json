@@ -2,7 +2,7 @@
   "phase93_receipt_forensics": {
     "groups_with_multiple_message_ids": 4,
     "groups_with_timestamp_intervals": 4,
-    "hashed_rows": 174,
+    "hashed_rows": 175,
     "note": "Receipt logs lack full message bodies; same hash with multiple API message IDs warrants manual review but does not prove an unintended resend.",
     "repeated_hash_groups": 4,
     "resends_performed": false,
@@ -74,20 +74,20 @@
     "earliest_blocking_stage": "actual_data_join_and_validation",
     "earliest_stage_input_rows": 370,
     "earliest_stage_rejected_rows": 50,
-    "funnel_stages": 10,
+    "funnel_stages": 13,
     "note": "The earliest stage with rejections is a funnel bottleneck candidate; later-stage counts are not additive unique candidates.",
     "risk_thresholds_changed": false,
     "signals_changed": false,
     "stages_with_rejections": 6,
     "status": "DIAGNOSTIC_ONLY",
-    "total_rejected_rows_stage_sum": 376
+    "total_rejected_rows_stage_sum": 558
   },
   "phase96_storage_preflight": {
     "backup_restore_tested": false,
     "error_type": null,
-    "estimated_size_reduction_pct": 77.27,
+    "estimated_size_reduction_pct": 78.79,
     "first_100_rows_parity": true,
-    "gzip_size_bytes": 18464183,
+    "gzip_size_bytes": 18955795,
     "migration_executed": false,
     "next_required_steps": [
       "full-file parity validation",
@@ -98,9 +98,9 @@
     ],
     "production_reader_switched": false,
     "rollback_tested": false,
-    "source_sha256_after": "db024644755818d736f6816b8ec958a50eb30916ba6e76211d083dd8c010b45d",
-    "source_sha256_before": "db024644755818d736f6816b8ec958a50eb30916ba6e76211d083dd8c010b45d",
-    "source_size_bytes": 81238734,
+    "source_sha256_after": "5177220c367a8d80410ee4d39dc5798cde376ba5017463081fb83329bd5a3f0e",
+    "source_sha256_before": "5177220c367a8d80410ee4d39dc5798cde376ba5017463081fb83329bd5a3f0e",
+    "source_size_bytes": 89382276,
     "source_unchanged": true,
     "status": "PREFLIGHT_PASSED_NO_MIGRATION"
   },

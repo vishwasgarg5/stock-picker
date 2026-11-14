@@ -1,7 +1,7 @@
 {
   "matched_sessions": 32,
   "minimum_matched_sessions": 20,
-  "v2_executed_trades": 0,
+  "v2_executed_trades": 2,
   "minimum_v2_executed_trades": 50,
   "holdout_comparison_available": true,
   "holdout_v1_net_pnl": 6366.270721435547,

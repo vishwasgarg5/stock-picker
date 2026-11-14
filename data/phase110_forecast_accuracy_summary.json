@@ -8,34 +8,35 @@
   "automatic_promotion": false,
   "missing_facts_inferred": false,
   "status": "SCORED",
+  "source": "data/evaluations.csv",
   "matched_rows": 360,
   "metrics": {
     "open": {
       "n": 360,
       "mae": 19.2060504146744,
-      "bias": 2.8159978161998236,
-      "mape_pct": 0.8054733820149538
+      "bias": 2.815997816199824,
+      "mape_pct": 0.8054733820149537
     },
     "high": {
       "n": 360,
       "mae": 41.78639151101778,
-      "bias": -2.6583682767796484,
+      "bias": -2.6583682767796475,
       "mape_pct": 1.4674457475966063
     },
     "low": {
       "n": 360,
-      "mae": 38.17224337074321,
-      "bias": 15.599537158058038,
-      "mape_pct": 1.4235779578981145
+      "mae": 38.10996570401551,
+      "bias": 15.537259491330335,
+      "mape_pct": 1.4156190301797302
     },
     "close": {
       "n": 360,
-      "mae": 57.691530217837055,
-      "bias": 0.9313998082341335,
-      "mape_pct": 1.8852623049326815
+      "mae": 57.59653031108521,
+      "bias": 0.8313997658486073,
+      "mape_pct": 1.8774769087285914
     }
   },
   "close_directional_accuracy_pct": 48.333333333333336,
   "chronological_split_used_for_this_summary": false,
-  "note": "Descriptive matched historical forecast accuracy; use Phase 111 for chronological replay."
+  "note": "Descriptive accuracy over persisted realized forecast evaluations; all evaluation rows are validated and scored. Use Phase 111 for chronological replay."
 }

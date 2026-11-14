@@ -1,6 +1,7 @@
 {
   "status": "SCORED",
   "scored_rows": 360,
+  "invalid_non_finite_rows": 0,
   "symbols": 122,
   "target_sessions": 36,
   "prediction_sessions": 36,

@@ -1,11 +1,14 @@
 stage,input_rows,output_rows,rejected_rows,detail,drop_rows,drop_pct_of_input
-predictions_loaded,370,370,0,Raw prediction rows loaded,0,0.0
-phase2_join,370,370,0,Phase-2 metadata joined; selection flag is applied at phase2_selected_gate,0,0.0
-actual_data_join_and_validation,370,320,50,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history,50,13.513513513513514
-confidence_percentile_gate,320,192,128,Required percentile >= 0.50,128,40.0
-phase2_selected_gate,192,6,186,Phase 2 selected flag equals 1,186,96.875
-phase4_reject:phase4_confidence_floor,3,0,3,3 candidates rejected for phase4_confidence_floor; diagnostic only,3,100.0
-phase4_reject:minimum_expected_return,3,0,3,3 candidates rejected for minimum_expected_return; diagnostic only,3,100.0
-phase4_eligibility_gate,6,0,6,phase4_eligible flag true,6,100.0
-atr_sanity_gate,0,0,0,ATR percent <= 8.00; missing ATR is currently allowed,0,
-daily_trade_cap,0,0,0,Maximum 5 selected rows per target date,0,
+predictions_loaded,370,370,0.0,Raw prediction rows loaded,0,0.0
+phase2_join,370,370,,"Rows with a matching Phase-2 record; unmatched rows are missing metadata, not explicit rejections",0,0.0
+actual_data_join_and_validation,370,320,50.0,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history,50,13.513513513513514
+confidence_percentile_gate,320,192,128.0,Required percentile >= 0.50,128,40.0
+phase2_metadata_coverage,192,192,0.0,Only matched Phase-2 records can be classified as selected or explicitly rejected,0,0.0
+phase2_selected_gate,192,192,0.0,Phase 2 selected flag equals 1 among matched records,0,0.0
+phase4_reject:minimum_expected_return,151,0,151.0,151 candidates rejected for minimum_expected_return; diagnostic only,151,100.0
+phase4_reject:phase4_confidence_floor,32,0,32.0,32 candidates rejected for phase4_confidence_floor; diagnostic only,32,100.0
+phase4_reject:symbol_cooldown,7,0,7.0,7 candidates rejected for symbol_cooldown; diagnostic only,7,100.0
+phase4_eligibility_gate,192,2,190.0,phase4_eligible flag true,190,98.95833333333334
+atr_sanity_gate,2,2,0.0,ATR percent <= 8.00; missing ATR is currently allowed,0,0.0
+daily_trade_cap,2,2,0.0,Maximum 5 selected rows per target date,0,0.0
+whole_share_sizing_gate,2,2,0.0,BUY rows must afford at least one whole share at the recorded reference price,0,0.0

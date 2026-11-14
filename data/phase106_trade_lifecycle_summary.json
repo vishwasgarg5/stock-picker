@@ -46,7 +46,9 @@
   },
   "missing_core_fields": [],
   "invalid_price_rows": 0,
-  "invalid_quantity_rows": 145,
+  "invalid_quantity_rows": 4,
+  "missing_quantity_on_executed_rows": 75,
+  "quantity_validation_scope": "Executed BUY/LONG/EXECUTED/CLOSED/COMPLETED/EXITED/SELL/SOLD rows only; SKIP candidates are excluded.",
   "entry_after_exit_rows": 0,
   "duplicate_symbol_entry_date_rows": 0,
   "status_counts": {

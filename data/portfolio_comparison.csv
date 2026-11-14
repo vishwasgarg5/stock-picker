@@ -10,9 +10,9 @@ V1,losing_trades,119
 V1,win_rate_pct,42.05607476635514
 V1,net_pnl,-5245.32486500364
 V2,latest_date,2026-11-12
-V2,portfolio_value,100000.0
-V2,cumulative_return_pct,0.0
-V2,max_drawdown_pct,0.0
+V2,portfolio_value,100936.70339157105
+V2,cumulative_return_pct,0.9367033915710588
+V2,max_drawdown_pct,-0.020562739280804987
 V2,sessions,32
-V2,buy_trades,0
+V2,buy_trades,2
 V2,status,COLLECTING

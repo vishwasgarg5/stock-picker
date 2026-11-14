@@ -10,6 +10,7 @@
   "status": "INSUFFICIENT_EVIDENCE",
   "gates": {
     "pnl_reconciliation_pass": false,
+    "loss_concentration_evidence_available": true,
     "selection_reasons_complete": true,
     "selection_funnel_stage_coverage": true,
     "exit_reason_attribution_complete": false,

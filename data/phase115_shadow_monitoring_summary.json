@@ -7,8 +7,9 @@
   "risk_or_sizing_changed": false,
   "automatic_promotion": false,
   "missing_facts_inferred": false,
-  "status": "PASS",
-  "status_semantics": "PASS means all diagnostic reports were generated; it does not mean profitability or promotion readiness.",
+  "status": "GENERATED",
+  "diagnostic_reports_generated": true,
+  "status_semantics": "GENERATED means all diagnostic reports were written; it does not mean the evidence passed, the model is profitable, or V2 is ready for promotion.",
   "phase_statuses": {
     "107_pnl": "BLOCKED",
     "108_losses": "SCORED",

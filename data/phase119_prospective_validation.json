@@ -3,6 +3,7 @@
   "lock_date": "2026-10-14",
   "cohort_rule": "Include only rows whose prediction_date is strictly later than lock_date; cohort membership is not backfilled with pre-lock predictions.",
   "prospective_rows": 170,
+  "invalid_non_finite_rows": 0,
   "prospective_symbols": 72,
   "prospective_sessions": 17,
   "minimum_sessions_before_review": 20,

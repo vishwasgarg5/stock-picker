@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-14T09:08:46.092585+00:00",
+  "as_of_utc": "2026-11-14T20:45:18.752899+00:00",
   "phases": [
     77,
     78,
@@ -8,16 +8,16 @@
   ],
   "phase77_delivery": {
     "status": "RECEIPT_AUDIT_INCOMPLETE",
-    "rows": 174,
-    "confirmed": 101,
+    "rows": 175,
+    "confirmed": 102,
     "legacy_unverified": 73,
     "missing_status": 0,
     "duplicates": 6,
-    "confirmed_receipt_pct": 58.05,
+    "confirmed_receipt_pct": 58.29,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 68,
-        "confirmed": 41,
+        "rows": 69,
+        "confirmed": 42,
         "legacy_unverified": 27,
         "missing_status": 0,
         "duplicate_keys": 6,
@@ -52,22 +52,21 @@
     "production_behavior_changed": false
   },
   "phase78_v2_funnel": {
-    "status": "ZERO_BUY",
+    "status": "BUY_ACTIVITY_PRESENT",
     "rows": 320,
-    "buy_rows": 0,
-    "skip_rows": 320,
+    "buy_rows": 2,
+    "skip_rows": 318,
     "skip_reason_counts": {
-      "phase2_not_selected": 186,
-      "confidence_percentile": 128,
-      "phase4_ineligible": 6
+      "phase4_ineligible": 190,
+      "confidence_percentile": 128
     },
     "missing_skip_reason_rows": 0,
-    "funnel_rows": 10,
+    "funnel_rows": 13,
     "funnel_schema_valid": true,
-    "largest_recorded_drop_stage": "phase2_selected_gate",
+    "largest_recorded_drop_stage": "phase4_eligibility_gate",
     "production_filters_changed": false,
     "thresholds_deployed": false,
-    "largest_recorded_drop_rows": 186
+    "largest_recorded_drop_rows": 190
   },
   "phase79_forecast_evidence": {
     "status": "BASELINE_NOT_BEATEN",
@@ -89,8 +88,8 @@
   "phase80_storage_migration_plan": {
     "status": "PLAN_REQUIRED",
     "source_path": "data/ohlcv.csv",
-    "source_bytes": 81238734,
-    "source_mib": 77.48,
+    "source_bytes": 89382276,
+    "source_mib": 85.24,
     "steps": [
       "Create a checksum and row/date/symbol baseline before any change.",
       "Prototype compressed or partitioned output beside the original file.",

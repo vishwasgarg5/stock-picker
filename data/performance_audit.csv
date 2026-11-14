@@ -19,32 +19,32 @@ V1,sessions,36,2026-11-14
 V1,net_pnl,-5245.32486500364,2026-11-14
 V1,max_drawdown_pct,,2026-11-14
 V2,sessions,32,2026-11-14
-V2,net_pnl,0.0,2026-11-14
-V2,max_drawdown_pct,0.0,2026-11-14
-V2,trades,0.0,2026-11-14
-Confidence,rows,310,2026-11-14
-Confidence,sessions,31,2026-11-14
-Confidence,top_confidence_mape_pct,1.4533290220650736,2026-11-14
-Confidence,bottom_confidence_mape_pct,2.2659167738824837,2026-11-14
-Confidence,top_bottom_mape_improvement_pct,35.86132382192926,2026-11-14
-Confidence,top_confidence_direction_pct,45.16129032258064,2026-11-14
-Confidence,bottom_confidence_direction_pct,46.774193548387096,2026-11-14
+V2,net_pnl,936.7033915710449,2026-11-14
+V2,max_drawdown_pct,-0.020562739280804987,2026-11-14
+V2,trades,2.0,2026-11-14
+Confidence,rows,320,2026-11-14
+Confidence,sessions,32,2026-11-14
+Confidence,top_confidence_mape_pct,1.4582761195679772,2026-11-14
+Confidence,bottom_confidence_mape_pct,2.23123868810995,2026-11-14
+Confidence,top_bottom_mape_improvement_pct,34.642755732993244,2026-11-14
+Confidence,top_confidence_direction_pct,45.83333333333333,2026-11-14
+Confidence,bottom_confidence_direction_pct,46.875,2026-11-14
 Confidence,confidence_promotion_evidence,False,2026-11-14
-Ranking challenger,sessions,643,2026-11-14
-Ranking challenger,rows,317714,2026-11-14
-Ranking challenger,mean_top10_return_lift_pct,0.10206692425422707,2026-11-14
-Ranking challenger,positive_rate_lift_pct,1.104199066874024,2026-11-14
+Ranking challenger,sessions,644,2026-11-14
+Ranking challenger,rows,318886,2026-11-14
+Ranking challenger,mean_top10_return_lift_pct,0.14926146703879292,2026-11-14
+Ranking challenger,positive_rate_lift_pct,1.6459627329192514,2026-11-14
 Ranking challenger,promotion_evidence,True,2026-11-14
 Ranking challenger,production_ready,True,2026-11-14
 Ranking challenger,status,promote,2026-11-14
-Ranking challenger,recent_5_lift_pct,1.1997383311536212,2026-11-14
-Ranking challenger,recent_10_lift_pct,0.6965551564252151,2026-11-14
-Ranking challenger,recent_20_lift_pct,0.29441794565232904,2026-11-14
+Ranking challenger,recent_5_lift_pct,0.8692888906183203,2026-11-14
+Ranking challenger,recent_10_lift_pct,0.4070395662219427,2026-11-14
+Ranking challenger,recent_20_lift_pct,0.5598668601013064,2026-11-14
 Ranking challenger,recent_5_positive_lift_pct,18.0,2026-11-14
-Ranking challenger,recent_10_positive_lift_pct,16.0,2026-11-14
-Ranking challenger,recent_20_positive_lift_pct,9.0,2026-11-14
+Ranking challenger,recent_10_positive_lift_pct,12.0,2026-11-14
+Ranking challenger,recent_20_positive_lift_pct,12.5,2026-11-14
 Strategy A/B,common_sessions,32,2026-11-14
-Strategy A/B,v2_trades,0,2026-11-14
+Strategy A/B,v2_trades,2,2026-11-14
 Strategy A/B,pnl_lift,0.0,2026-11-14
 Strategy A/B,return_lift_pct,0.0,2026-11-14
 Strategy A/B,session_win_rate_pct,0.0,2026-11-14

@@ -7,7 +7,7 @@
 
 ## Selection funnel
 - Status: OBSERVED
-- Details: {'status': 'OBSERVED', 'stages': 10, 'final_selected_rows': 0}
+- Details: {'status': 'OBSERVED', 'stages': 13, 'final_selected_rows': 2}
 
 ## Historical prediction replay
 - Status: SCORED
@@ -16,7 +16,7 @@
 
 ## Trading evidence
 - Promotion gate: NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE
-- Matched sessions: 32; V2 executed trades: 0
+- Matched sessions: 32; V2 executed trades: 2
 
 ## Data and news audits
 - Data checks: 6

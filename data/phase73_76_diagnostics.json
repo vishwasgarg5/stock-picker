@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-14T09:08:45.669503+00:00",
+  "as_of_utc": "2026-11-14T20:45:18.358500+00:00",
   "phases": [
     73,
     74,
@@ -7,14 +7,13 @@
     76
   ],
   "phase73_v2_zero_buy": {
-    "status": "ZERO_BUY_DIAGNOSED",
+    "status": "BUY_ACTIVITY_PRESENT",
     "rows": 320,
-    "buy_rows": 0,
-    "skip_rows": 320,
+    "buy_rows": 2,
+    "skip_rows": 318,
     "skip_reason_counts": {
-      "phase2_not_selected": 186,
-      "confidence_percentile": 128,
-      "phase4_ineligible": 6
+      "phase4_ineligible": 190,
+      "confidence_percentile": 128
     },
     "missing_skip_reasons": 0,
     "production_filters_changed": false,
@@ -37,9 +36,9 @@
   "phase76_storage_audit": {
     "status": "ABOVE_GITHUB_RECOMMENDED_SIZE",
     "path": "data/ohlcv.csv",
-    "bytes": 81238734,
-    "size_mb": 77.48,
-    "rows": 954670,
+    "bytes": 89382276,
+    "size_mb": 85.24,
+    "rows": 956841,
     "duplicate_symbol_date_keys": 0,
     "date_span": {
       "first": "2018-01-01",

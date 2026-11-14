@@ -23,6 +23,17 @@
     "profit_loss": 0,
     "return_pct": 0
   },
+  "invalid_non_finite_values_by_field": {
+    "entry_price": 0,
+    "exit_price": 0,
+    "shares": 0,
+    "allocated_capital": 0,
+    "gross_profit_loss": 0,
+    "costs": 0,
+    "profit_loss": 0,
+    "return_pct": 0
+  },
+  "invalid_non_finite_rows": 144,
   "incomplete_rows_by_signal": {
     "BUY": 144
   },
@@ -193,14 +204,308 @@
   "max_abs_return_delta_pct_points": 4.440892098500626e-16,
   "costs_subtracted_again": false,
   "fixed_share_source_evidence": {
-    "status": "GROSS_SOURCE_EVIDENCE_PARTIAL",
-    "candidate_rows": 135,
-    "validated_rows": 135,
+    "status": "NO_VALID_SOURCE_EVIDENCE",
+    "candidate_rows": 0,
+    "validated_rows": 0,
     "mismatch_rows": 0,
-    "invalid_or_incomplete_source_rows": 79,
-    "max_abs_position_value_delta": 7.275957614183426e-12,
-    "max_abs_gross_pnl_delta": 5.6132876125047915e-12,
-    "max_abs_return_delta_pct_points": 1.0989473220313073e-14,
+    "invalid_or_incomplete_source_rows": 214,
+    "invalid_or_incomplete_source_rows_by_reason": {
+      "INVALID_SPLIT_METADATA": 214
+    },
+    "source_evidence_by_session": [
+      {
+        "target_date": "2026-09-18",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-21",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-22",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-23",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-24",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-25",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-28",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-29",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-09-30",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-01",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-05",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-06",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-07",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-08",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-09",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-12",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-13",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-14",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-15",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-16",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-19",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-21",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-22",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-23",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-26",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-27",
+        "buy_rows": 4,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 4
+      },
+      {
+        "target_date": "2026-10-28",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-29",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-30",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-02",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-04",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-05",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-06",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-09",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-11",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-12",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      }
+    ],
+    "invalid_split_metadata_rows": 214,
+    "max_abs_position_value_delta": null,
+    "max_abs_gross_pnl_delta": null,
+    "max_abs_return_delta_pct_points": null,
     "source_semantics": "quantity and position_value are recorded source fields; profit_loss is gross P&L from quantity * (exit_price - entry_price)",
     "costs_modeled": false,
     "net_profit_loss_verified": false,

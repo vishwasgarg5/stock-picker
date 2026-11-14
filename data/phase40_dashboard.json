@@ -3,8 +3,8 @@
   "diagnostics_only": true,
   "phase32_selection_funnel": {
     "status": "OBSERVED",
-    "stages": 10,
-    "final_selected_rows": 0
+    "stages": 13,
+    "final_selected_rows": 2
   },
   "phase33_chronological_prediction_replay": {
     "status": "SCORED",
@@ -64,28 +64,28 @@
     },
     {
       "model": "V2",
-      "executed_trades": 0,
-      "gross_pnl": 0.0,
-      "net_pnl": 0.0,
-      "recorded_costs": 0.0,
+      "executed_trades": 2,
+      "gross_pnl": 976.99951171875,
+      "net_pnl": 936.7033915710449,
+      "recorded_costs": 40.29612014770508,
       "pnl_reconciliation_delta": 0.0,
-      "pnl_reconciliation_rows": 0,
+      "pnl_reconciliation_rows": 2,
       "pnl_reconciliation_incomplete_rows": 0,
       "pnl_reconciliation_status": "RECONCILED",
-      "net_pnl_with_50pct_extra_cost_stress": 0.0,
-      "net_pnl_with_100pct_extra_cost_stress": 0.0,
-      "max_trade_sequence_drawdown_pct": NaN,
-      "win_rate_pct": NaN,
-      "expectancy_per_trade": NaN,
+      "net_pnl_with_50pct_extra_cost_stress": 916.5553314971924,
+      "net_pnl_with_100pct_extra_cost_stress": 896.4072714233398,
+      "max_trade_sequence_drawdown_pct": -0.020562739280804987,
+      "win_rate_pct": 50.0,
+      "expectancy_per_trade": 468.35169578552245,
       "status": "SMALL_SAMPLE",
       "costs_note": "Uses recorded costs and net profit_loss; stress cases subtract only additional assumed costs",
-      "mean_trade_return_pct": NaN
+      "mean_trade_return_pct": 2.46329007489175
     }
   ],
   "phase36_promotion_gate": {
     "matched_sessions": 32,
     "minimum_matched_sessions": 20,
-    "v2_executed_trades": 0,
+    "v2_executed_trades": 2,
     "minimum_v2_executed_trades": 50,
     "holdout_comparison_available": true,
     "holdout_v1_net_pnl": 6366.270721435547,
@@ -100,7 +100,7 @@
       "check": "ohlcv_available",
       "status": "PASS",
       "affected_rows": 0,
-      "detail": "954670 OHLCV rows read"
+      "detail": "956841 OHLCV rows read"
     },
     {
       "check": "ohlcv_valid_dates",

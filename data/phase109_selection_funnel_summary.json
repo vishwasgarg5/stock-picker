@@ -9,19 +9,19 @@
   "missing_facts_inferred": false,
   "status": "SCORED",
   "v2_rows": 320,
-  "buy_rows": 0,
-  "skip_rows": 320,
+  "buy_rows": 2,
+  "skip_rows": 318,
   "skip_rows_without_reason": 0,
   "skip_reason_counts": {
-    "phase2_not_selected": 186,
-    "confidence_percentile": 128,
-    "phase4_ineligible": 6
+    "phase4_ineligible": 190,
+    "confidence_percentile": 128
   },
   "phase4_reject_reason_counts": {
-    "minimum_expected_return": 3,
-    "phase4_confidence_floor": 3
+    "minimum_expected_return": 151,
+    "phase4_confidence_floor": 32,
+    "symbol_cooldown": 7
   },
-  "zero_buy_bottleneck": "PHASE4_ELIGIBILITY_GATE_ZERO_OUTPUT",
+  "zero_buy_bottleneck": "BUY_ROWS_PRESENT",
   "confidence_column_diagnostics": {
     "confidence_pct": {
       "non_null_rows": 320,
@@ -31,9 +31,9 @@
     },
     "confidence_v3": {
       "non_null_rows": 320,
-      "min": 0.0,
-      "median": 34.4445295055054,
-      "max": 95.0
+      "min": 18.03809523809524,
+      "median": 49.421428571428564,
+      "max": 84.1015873015873
     },
     "confidence_score": {
       "non_null_rows": 320,
@@ -49,11 +49,11 @@
     "confidence_gate_output_rows": 192,
     "confidence_gate_rejected_rows": 128,
     "phase2_gate_input_rows": 192,
-    "phase2_gate_output_rows": 6,
-    "phase2_gate_rejected_rows": 186,
-    "phase4_eligibility_input_rows": 6,
-    "phase4_eligibility_output_rows": 0,
-    "phase4_eligibility_rejected_rows": 6,
+    "phase2_gate_output_rows": 192,
+    "phase2_gate_rejected_rows": 0,
+    "phase4_eligibility_input_rows": 192,
+    "phase4_eligibility_output_rows": 2,
+    "phase4_eligibility_rejected_rows": 190,
     "confidence_pct_non_null_rows": 320,
     "confidence_pct_missing_rows": 0,
     "phase2_flag_persisted_in_decision_ledger": false,
@@ -64,79 +64,114 @@
   "skip_reasons_by_phase2_flag": {},
   "skip_reason_cross_tab_status": "UNAVAILABLE_PHASE2_FLAG_NOT_PERSISTED; USE_FUNNEL_STAGE_COUNTS",
   "existing_funnel_valid": true,
+  "funnel_validation_errors": [],
   "required_gate_stages_present": true,
   "missing_required_gate_stages": [],
-  "funnel_stage_rows": 10,
+  "funnel_stage_rows": 13,
   "funnel_stages": [
     {
       "stage": "predictions_loaded",
       "input_rows": 370,
       "output_rows": 370,
       "rejected_rows": 0,
-      "detail": "Raw prediction rows loaded"
+      "detail": "Raw prediction rows loaded",
+      "unclassified_rows": 0
     },
     {
       "stage": "phase2_join",
       "input_rows": 370,
       "output_rows": 370,
       "rejected_rows": 0,
-      "detail": "Phase-2 metadata joined; selection flag is applied at phase2_selected_gate"
+      "detail": "Rows with a matching Phase-2 record; unmatched rows are missing metadata, not explicit rejections",
+      "unclassified_rows": 0
     },
     {
       "stage": "actual_data_join_and_validation",
       "input_rows": 370,
       "output_rows": 320,
       "rejected_rows": 50,
-      "detail": "Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history"
+      "detail": "Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history",
+      "unclassified_rows": 0
     },
     {
       "stage": "confidence_percentile_gate",
       "input_rows": 320,
       "output_rows": 192,
       "rejected_rows": 128,
-      "detail": "Required percentile >= 0.50"
+      "detail": "Required percentile >= 0.50",
+      "unclassified_rows": 0
+    },
+    {
+      "stage": "phase2_metadata_coverage",
+      "input_rows": 192,
+      "output_rows": 192,
+      "rejected_rows": 0,
+      "detail": "Only matched Phase-2 records can be classified as selected or explicitly rejected",
+      "unclassified_rows": 0
     },
     {
       "stage": "phase2_selected_gate",
       "input_rows": 192,
-      "output_rows": 6,
-      "rejected_rows": 186,
-      "detail": "Phase 2 selected flag equals 1"
-    },
-    {
-      "stage": "phase4_reject:phase4_confidence_floor",
-      "input_rows": 3,
-      "output_rows": 0,
-      "rejected_rows": 3,
-      "detail": "3 candidates rejected for phase4_confidence_floor; diagnostic only"
+      "output_rows": 192,
+      "rejected_rows": 0,
+      "detail": "Phase 2 selected flag equals 1 among matched records",
+      "unclassified_rows": 0
     },
     {
       "stage": "phase4_reject:minimum_expected_return",
-      "input_rows": 3,
+      "input_rows": 151,
       "output_rows": 0,
-      "rejected_rows": 3,
-      "detail": "3 candidates rejected for minimum_expected_return; diagnostic only"
+      "rejected_rows": 151,
+      "detail": "151 candidates rejected for minimum_expected_return; diagnostic only",
+      "unclassified_rows": 0
+    },
+    {
+      "stage": "phase4_reject:phase4_confidence_floor",
+      "input_rows": 32,
+      "output_rows": 0,
+      "rejected_rows": 32,
+      "detail": "32 candidates rejected for phase4_confidence_floor; diagnostic only",
+      "unclassified_rows": 0
+    },
+    {
+      "stage": "phase4_reject:symbol_cooldown",
+      "input_rows": 7,
+      "output_rows": 0,
+      "rejected_rows": 7,
+      "detail": "7 candidates rejected for symbol_cooldown; diagnostic only",
+      "unclassified_rows": 0
     },
     {
       "stage": "phase4_eligibility_gate",
-      "input_rows": 6,
-      "output_rows": 0,
-      "rejected_rows": 6,
-      "detail": "phase4_eligible flag true"
+      "input_rows": 192,
+      "output_rows": 2,
+      "rejected_rows": 190,
+      "detail": "phase4_eligible flag true",
+      "unclassified_rows": 0
     },
     {
       "stage": "atr_sanity_gate",
-      "input_rows": 0,
-      "output_rows": 0,
+      "input_rows": 2,
+      "output_rows": 2,
       "rejected_rows": 0,
-      "detail": "ATR percent <= 8.00; missing ATR is currently allowed"
+      "detail": "ATR percent <= 8.00; missing ATR is currently allowed",
+      "unclassified_rows": 0
     },
     {
       "stage": "daily_trade_cap",
-      "input_rows": 0,
-      "output_rows": 0,
+      "input_rows": 2,
+      "output_rows": 2,
       "rejected_rows": 0,
-      "detail": "Maximum 5 selected rows per target date"
+      "detail": "Maximum 5 selected rows per target date",
+      "unclassified_rows": 0
+    },
+    {
+      "stage": "whole_share_sizing_gate",
+      "input_rows": 2,
+      "output_rows": 2,
+      "rejected_rows": 0,
+      "detail": "BUY rows must afford at least one whole share at the recorded reference price",
+      "unclassified_rows": 0
     }
   ],
   "interpretation": "Rejection counts describe the recorded shadow run; they do not prove a gate is miscalibrated. Review source-stage counts and confidence distributions before considering any threshold changes.",

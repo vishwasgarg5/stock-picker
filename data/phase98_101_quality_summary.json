@@ -17,7 +17,7 @@
   },
   "phase99_feature_integrity": {
     "status": "SCORED",
-    "feature_rows": 954670,
+    "feature_rows": 956841,
     "features": [
       "ret_1",
       "ret_5",
@@ -26,7 +26,7 @@
       "volume_ratio_20"
     ],
     "feature_date_after_target_rows": 0,
-    "target_rows": 954143,
+    "target_rows": 956314,
     "point_in_time_rule": "Features use OHLCV available on feature_date; supervised label is the next observed close return.",
     "row_level_feature_export_written": false,
     "compact_symbol_summary_written": true,
@@ -37,7 +37,7 @@
     "candidate_rows": 360,
     "candidate_symbols": 122,
     "target_dates": 36,
-    "candidate_close_mape_pct": 1.903658277303376,
+    "candidate_close_mape_pct": 1.9022193744059006,
     "previous_close_baseline_mape_pct": 1.8687623686595538,
     "candidate_beats_previous_close": false,
     "walk_forward": true,
@@ -54,8 +54,8 @@
     "status": "SCORED",
     "rows": 320,
     "rows_with_actuals": 320,
-    "buy_rows": 0,
-    "skipped_rows": 320,
+    "buy_rows": 2,
+    "skipped_rows": 318,
     "confidence_field_used": "confidence_score",
     "confidence_buckets_are_rank_quantiles_not_calibrated_probabilities": true,
     "interpretation": "Skipped-name returns are diagnostic counterfactuals, not executable portfolio returns. Confidence buckets are descriptive, not calibrated probabilities.",
@@ -76,9 +76,18 @@
     "performance_is_paper_only": true
   },
   "phase101_v2_paper_performance": {
-    "status": "INSUFFICIENT_DATA",
-    "trade_rows": 0,
-    "source": "V2 paper_trades_v2.csv"
+    "status": "SMALL_SAMPLE",
+    "source": "V2 paper_trades_v2.csv",
+    "executed_trade_rows": 2,
+    "sessions": 2,
+    "net_pnl_sum": 936.7033915710449,
+    "win_rate_pct": 50.0,
+    "average_win": 957.4630114746094,
+    "average_loss": -20.759619903564452,
+    "profit_factor": 46.121413394000136,
+    "reported_costs_sum_not_subtracted_again": 40.29612014770508,
+    "max_drawdown_pct_on_100k_reference_equity": -0.020562739280804987,
+    "performance_is_paper_only": true
   },
   "phase102_v1_loss_attribution": {
     "status": "SCORED",
@@ -93,12 +102,12 @@
   },
   "phase102_v2_rejection_diagnostics": {
     "status": "SCORED",
-    "skipped_rows_with_actuals": 320,
-    "rejection_reasons": 3,
+    "skipped_rows_with_actuals": 318,
+    "rejection_reasons": 2,
     "confidence_field_used": "confidence_v3",
-    "high_confidence_skips": 63,
-    "high_confidence_mean_close_return_pct": 0.4401139735210162,
-    "high_confidence_positive_rate_pct": 53.96825396825397,
+    "high_confidence_skips": 64,
+    "high_confidence_mean_close_return_pct": -0.25191215285744417,
+    "high_confidence_positive_rate_pct": 46.875,
     "counterfactuals_are_not_executable_pnl": true,
     "selection_gates_changed": false,
     "production_model_changed": false

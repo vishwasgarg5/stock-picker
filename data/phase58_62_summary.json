@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-14T09:08:43.976645+00:00",
+  "as_of": "2026-11-14T20:45:16.609247+00:00",
   "phase58_accounting": {
     "status": "INCOMPLETE",
     "rows_examined": 360,
@@ -34,31 +34,31 @@
   "phase60_v2": {
     "status": "PASS",
     "rows": 320,
-    "buy_rows": 0,
-    "skip_rows": 320,
+    "buy_rows": 2,
+    "skip_rows": 318,
     "missing_skip_reason_rows": 0,
     "primary_reason_counts": {
-      "phase2_not_selected": 186,
-      "confidence_percentile": 128,
-      "phase4_ineligible": 6
+      "phase4_ineligible": 190,
+      "confidence_percentile": 128
     },
     "phase4_reason_counts": {
-      "NOT_RECORDED": 314,
-      "minimum_expected_return": 3,
-      "phase4_confidence_floor": 3
+      "minimum_expected_return": 151,
+      "NOT_RECORDED": 128,
+      "phase4_confidence_floor": 32,
+      "symbol_cooldown": 7
     },
     "production_filters_changed": false
   },
   "phase61_telegram": {
     "status": "PASS",
-    "rows_across_logs": 174,
-    "api_confirmed_rows": 101,
+    "rows_across_logs": 175,
+    "api_confirmed_rows": 102,
     "legacy_unverified_rows": 73,
     "missing_status_rows": 0,
     "by_file": {
       "telegram_sent.csv": {
-        "rows": 68,
-        "confirmed": 41,
+        "rows": 69,
+        "confirmed": 42,
         "legacy_unverified": 27,
         "missing_status": 0
       },

@@ -283,7 +283,7 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
     buys = v2.loc[signal.isin(["BUY", "LONG", "EXECUTED"])]
     reasons = skips.get("no_trade_reason", pd.Series("", index=skips.index)).fillna("").astype(str).str.strip()
     funnel = _read("phase32_v2_selection_funnel.csv")
-    required = {"stage", "input_rows", "output_rows", "rejected_rows"}
+    required = {"stage", "input_rows", "output_rows"}
     funnel_valid = bool(not funnel.empty and required.issubset(funnel.columns))
     funnel_stages = []
     funnel_validation_errors = []
@@ -294,7 +294,7 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
         if stage_names.duplicated(keep=False).any():
             funnel_validation_errors.append("duplicate_stage_name")
         normalized_counts = {}
-        for column in ("input_rows", "output_rows", "rejected_rows"):
+        for column in ("input_rows", "output_rows"):
             values = pd.to_numeric(funnel[column], errors="coerce")
             valid_counts = (
                 values.notna()
@@ -305,6 +305,29 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
             if not valid_counts.all():
                 funnel_validation_errors.append(f"invalid_{column}")
             normalized_counts[column] = values
+        output_exceeds_input = normalized_counts["output_rows"] > normalized_counts["input_rows"]
+        if output_exceeds_input.any():
+            funnel_validation_errors.append("output_rows_exceed_input_rows")
+        if "rejected_rows" in funnel.columns:
+            rejected = pd.to_numeric(funnel["rejected_rows"], errors="coerce")
+            supplied = funnel["rejected_rows"].notna()
+            valid_rejected = (
+                ~supplied
+                | (
+                    rejected.notna()
+                    & np.isfinite(rejected.fillna(0).to_numpy(dtype=float))
+                    & rejected.ge(0)
+                    & rejected.mod(1).eq(0)
+                    & rejected.eq(normalized_counts["input_rows"] - normalized_counts["output_rows"])
+                )
+            )
+            if not valid_rejected.all():
+                funnel_validation_errors.append("invalid_rejected_rows")
+            normalized_counts["rejected_rows"] = rejected.fillna(0)
+        else:
+            normalized_counts["rejected_rows"] = (
+                normalized_counts["input_rows"] - normalized_counts["output_rows"]
+            )
         if not funnel_validation_errors:
             normalized = funnel.copy()
             for column, values in normalized_counts.items():

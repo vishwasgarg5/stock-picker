@@ -47,3 +47,15 @@ def test_confidence_percentile_is_ranked_against_full_candidate_universe():
     # Filtering Phase 2 candidates must not silently change their percentile
     # denominator from four validated predictions to two selected predictions.
     assert phase2_selected["confidence_pct"].tolist() == [0.5, 0.75]
+
+
+
+def test_phase2_metadata_flags_distinguish_missing_join_from_rejection():
+    from src.paper_trading_v2 import _phase2_metadata_flags
+
+    predictions = pd.DataFrame({
+        "phase2_metadata_matched": [True, False, None],
+        "phase2_selected": [0, 0, 1],
+    })
+
+    assert _phase2_metadata_flags(predictions).tolist() == [True, False, False]

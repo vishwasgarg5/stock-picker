@@ -12,6 +12,7 @@ def _trade(symbol, date, entry, exit_price, rank=1):
         "signal": "BUY",
         "entry_price": entry,
         "exit_price": exit_price,
+        "exit_reason": "target",
     }
 
 
@@ -115,7 +116,7 @@ def test_training_rows_only_use_matching_actual_session():
 
 def test_accounting_ledger_audit_passes_complete_reconciled_rows():
     trades = pd.DataFrame([
-        {"signal": "BUY", "entry_price": 100.0, "exit_price": 110.0,
+        {"signal": "BUY", "entry_price": 100.0, "exit_price": 110.0, "exit_reason": "target",
          "shares": 100.0, "allocated_capital": 10000.0,
          "gross_profit_loss": 1000.0, "costs": 10.0,
          "profit_loss": 990.0, "return_pct": 9.9},
@@ -169,7 +170,7 @@ def test_legacy_buy_rows_are_reaccounted_case_insensitively():
     trades = pd.DataFrame([
         {
             "symbol": "AAA", "target_date": "2026-01-02", "rank": 1, "signal": "buy",
-            "entry_price": 100.0, "exit_price": 110.0,
+            "entry_price": 100.0, "exit_price": 110.0, "exit_reason": "target",
             "shares": float("nan"), "allocated_capital": float("nan"),
             "gross_profit_loss": float("nan"), "costs": float("nan"),
             "profit_loss": float("nan"), "return_pct": float("nan"),
@@ -187,7 +188,7 @@ def test_legacy_buy_rows_are_reaccounted_case_insensitively():
 
 def test_accounting_ledger_audit_blocks_gross_and_return_identity_mismatch():
     trades = pd.DataFrame([{
-        "signal": "BUY", "entry_price": 100.0, "exit_price": 110.0,
+        "signal": "BUY", "entry_price": 100.0, "exit_price": 110.0, "exit_reason": "target",
         "shares": 100.0, "allocated_capital": 10000.0,
         "gross_profit_loss": 900.0, "costs": 10.0,
         "profit_loss": 890.0, "return_pct": 9.0,
@@ -203,3 +204,38 @@ def test_portfolio_builder_rejects_invalid_buy_prices():
     trades = pd.DataFrame([_trade("AAA", "2026-01-02", 0.0, 110.0)])
     with pytest.raises(ValueError, match="invalid entry/exit prices"):
         pt._build_portfolio(trades)
+
+
+def test_exit_reason_audit_blocks_missing_reason_without_inference():
+    trades = pd.DataFrame([{
+        "signal": "BUY", "entry_price": 100.0, "exit_price": 110.0,
+        "shares": 100.0, "allocated_capital": 10000.0,
+        "gross_profit_loss": 1000.0, "costs": 10.0,
+        "profit_loss": 990.0, "return_pct": 9.9,
+        "exit_reason": " ",
+    }])
+    audit = pt._accounting_ledger_audit(trades)
+    assert audit["status"] == "BLOCK"
+    assert audit["complete_ledger_rows"] == 1
+    assert audit["missing_exit_reason_rows"] == 1
+    assert audit["exit_reason_coverage_pct"] == pytest.approx(0.0)
+    assert audit["exit_reason_counts_json"] == "{}"
+
+
+def test_exit_reason_audit_reports_reason_distribution():
+    trades = pd.DataFrame([
+        {"signal": "BUY", "entry_price": 100.0, "exit_price": 110.0,
+         "shares": 100.0, "allocated_capital": 10000.0,
+         "gross_profit_loss": 1000.0, "costs": 10.0,
+         "profit_loss": 990.0, "return_pct": 9.9, "exit_reason": "target"},
+        {"signal": "BUY", "entry_price": 100.0, "exit_price": 95.0,
+         "shares": 100.0, "allocated_capital": 10000.0,
+         "gross_profit_loss": -500.0, "costs": 10.0,
+         "profit_loss": -510.0, "return_pct": -5.1, "exit_reason": "stop_loss"},
+    ])
+    audit = pt._accounting_ledger_audit(trades)
+    assert audit["status"] == "PASS"
+    assert audit["missing_exit_reason_rows"] == 0
+    assert audit["exit_reason_coverage_pct"] == pytest.approx(100.0)
+    assert '"target": 1' in audit["exit_reason_counts_json"]
+    assert '"stop_loss": 1' in audit["exit_reason_counts_json"]

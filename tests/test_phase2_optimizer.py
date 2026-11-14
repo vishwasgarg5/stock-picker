@@ -245,3 +245,36 @@ def test_phase2_reconciles_canonical_predictions_missing_from_candidate_history(
     current = refreshed.loc[refreshed["symbol"].eq("CURRENT")].iloc[0]
     assert current["phase2_selected"] == 1
     assert current["phase2_rank"] == 1
+
+
+
+def test_phase2_excludes_candidates_with_invalid_target_dates(tmp_path, monkeypatch):
+    from src import phase2_optimizer as phase2
+
+    candidates = tmp_path / "candidates.csv"
+    pd.DataFrame({
+        "prediction_date": ["2026-11-13", "2026-11-13"],
+        "target_date": ["2026-11-16", None],
+        "symbol": ["VALID", "INVALID"],
+        "score": [90.0, 99.0],
+        "rank": [1, 2],
+        "prediction_spread": [0.02, 0.01],
+        "predicted_close": [202.0, 303.0],
+        "base_close": [200.0, 300.0],
+    }).to_csv(candidates, index=False)
+
+    monkeypatch.setattr(phase2, "CANDIDATES", candidates)
+    monkeypatch.setattr(phase2, "PREDICTIONS", tmp_path / "missing-predictions.csv")
+    monkeypatch.setattr(phase2, "EVALS", tmp_path / "missing-evaluations.csv")
+    monkeypatch.setattr(phase2, "HISTORY", tmp_path / "missing-ohlcv.csv")
+    output = tmp_path / "phase2.csv"
+    monkeypatch.setattr(phase2, "OUT", output)
+    monkeypatch.setattr(phase2, "SUMMARY", tmp_path / "summary.csv")
+    monkeypatch.setattr(phase2, "STATE", tmp_path / "state.json")
+
+    refreshed = phase2.run_phase2()
+
+    assert refreshed["symbol"].tolist() == ["VALID"]
+    persisted = pd.read_csv(output)
+    assert persisted["symbol"].tolist() == ["VALID"]
+    assert persisted[["prediction_date", "target_date", "symbol"]].notna().all().all()

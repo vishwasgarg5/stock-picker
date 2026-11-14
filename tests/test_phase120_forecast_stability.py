@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.phase120_forecast_stability import audit_forecast_stability
+from src.phase120_forecast_stability import _mape, audit_forecast_stability
 
 
 def _scores() -> pd.DataFrame:
@@ -108,3 +108,12 @@ def test_stability_audit_rejects_overflowed_derived_returns():
     assert summary["invalid_non_finite_rows"] == 1
     assert summary["scored_rows"] == len(scores) - 1
     assert sessions["rows"].sum() == summary["scored_rows"]
+
+
+
+def test_mape_ignores_non_finite_actual_and_prediction_values():
+    actual = pd.Series([100.0, 100.0, float("inf"), 100.0])
+    predicted = pd.Series([101.0, float("inf"), 101.0, float("-inf")])
+
+    assert _mape(actual, predicted) == 1.0
+    assert _mape(pd.Series([100.0]), pd.Series([float("inf")])) is None

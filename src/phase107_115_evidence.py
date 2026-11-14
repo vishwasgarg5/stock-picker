@@ -694,10 +694,13 @@ def phase114_promotion_gate(
     replay: dict[str, Any],
     sustained: dict[str, Any],
     exit_attribution: dict[str, Any] | None = None,
+    loss_concentration: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     exit_attribution = exit_attribution or {}
+    loss_concentration = loss_concentration or {}
     gates = {
         "pnl_reconciliation_pass": recon.get("status") == "PASS",
+        "loss_concentration_evidence_available": loss_concentration.get("status") == "SCORED",
         "selection_reasons_complete": funnel.get("status") == "SCORED" and funnel.get("skip_rows_without_reason", 0) == 0,
         "selection_funnel_stage_coverage": funnel.get("existing_funnel_valid") is True and funnel.get("required_gate_stages_present") is True,
         "exit_reason_attribution_complete": (
@@ -728,8 +731,33 @@ def run() -> dict[str, Any]:
         )
     except (OSError, ValueError, UnicodeDecodeError):
         exit_attribution = {}
-    gate = phase114_promotion_gate(recon, funnel, forecast, replay, sustained, exit_attribution)
-    monitor = _write("phase115_shadow_monitoring_summary.json", {"status": "PASS" if all((DATA / name).exists() for name in ["phase107_pnl_reconciliation_summary.json", "phase108_loss_concentration_summary.json", "phase109_selection_funnel_summary.json", "phase110_forecast_accuracy_summary.json", "phase111_chronological_replay_summary.json", "phase112_market_intelligence_summary.json", "phase113_sustained_evidence_summary.json", "phase114_promotion_readiness_summary.json"]) else "BLOCKED", "status_semantics": "PASS means all diagnostic reports were generated; it does not mean profitability or promotion readiness.", "phase_statuses": {"107_pnl": recon.get("status"), "108_losses": loss.get("status"), "109_funnel": funnel.get("status"), "110_forecast": forecast.get("status"), "111_replay": replay.get("status"), "112_market": market.get("status"), "113_sustained": sustained.get("status"), "114_gate": gate.get("status")}, "production_changes_authorized": False, "v1_champion_v2_shadow_only": True})
+    gate = phase114_promotion_gate(
+        recon, funnel, forecast, replay, sustained, exit_attribution, loss
+    )
+    required_reports = [
+        "phase107_pnl_reconciliation_summary.json",
+        "phase108_loss_concentration_summary.json",
+        "phase109_selection_funnel_summary.json",
+        "phase110_forecast_accuracy_summary.json",
+        "phase111_chronological_replay_summary.json",
+        "phase112_market_intelligence_summary.json",
+        "phase113_sustained_evidence_summary.json",
+        "phase114_promotion_readiness_summary.json",
+    ]
+    reports_generated = all((DATA / name).is_file() for name in required_reports)
+    monitor = _write("phase115_shadow_monitoring_summary.json", {
+        "status": "GENERATED" if reports_generated else "BLOCKED",
+        "diagnostic_reports_generated": reports_generated,
+        "status_semantics": "GENERATED means all diagnostic reports were written; it does not mean the evidence passed, the model is profitable, or V2 is ready for promotion.",
+        "phase_statuses": {
+            "107_pnl": recon.get("status"), "108_losses": loss.get("status"),
+            "109_funnel": funnel.get("status"), "110_forecast": forecast.get("status"),
+            "111_replay": replay.get("status"), "112_market": market.get("status"),
+            "113_sustained": sustained.get("status"), "114_gate": gate.get("status"),
+        },
+        "production_changes_authorized": False,
+        "v1_champion_v2_shadow_only": True,
+    })
     print(json.dumps(monitor, indent=2, default=str))
     return monitor
 

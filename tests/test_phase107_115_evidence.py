@@ -447,7 +447,7 @@ def test_phase110_blocks_overflowed_derived_forecast_metrics(tmp_path, monkeypat
     }])
     history = pd.DataFrame([{
         "symbol": "AAA", "date": "2026-01-02",
-        "open": 100, "high": 1e308, "low": 99, "close": 1e-308,
+        "open": 100, "high": 1e308, "low": 1e-308, "close": 1e-308,
     }])
     monkeypatch.setattr(
         module, "_read",

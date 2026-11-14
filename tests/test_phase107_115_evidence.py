@@ -530,3 +530,18 @@ def test_phase109_blocks_funnel_output_greater_than_input(tmp_path, monkeypatch)
     result = module.phase109_selection_funnel(v2)
     assert result["existing_funnel_valid"] is False
     assert "output_rows_exceed_input_rows" in result["funnel_validation_errors"]
+
+
+
+def test_phase113_blocks_invalid_executed_session_dates(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    v1 = pd.DataFrame([
+        {"signal": "BUY", "target_date": "2026-01-02", "profit_loss": 10},
+        {"signal": "BUY", "target_date": "not-a-date", "profit_loss": 20},
+    ])
+    v2 = pd.DataFrame(columns=["signal", "target_date", "profit_loss"])
+    result = module.phase113_sustained_evidence(v1, v2)
+    assert result["status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["v1"]["valid"] is False
+    assert result["v1"]["invalid_session_date_rows"] == 1

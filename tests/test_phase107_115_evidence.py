@@ -417,3 +417,21 @@ def test_phase109_blocks_malformed_persisted_funnel_counts(tmp_path, monkeypatch
     assert "invalid_output_rows" in result["funnel_validation_errors"]
     assert result["required_gate_stages_present"] is False
     assert result["zero_buy_bottleneck"] == "INCOMPLETE_FUNNEL_STAGE_DIAGNOSTICS"
+
+
+
+def test_phase111_blocks_unparseable_pnl_and_missing_session_dates(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    v1 = pd.DataFrame([
+        {"signal": "BUY", "target_date": "2026-01-02", "profit_loss": "not-a-number"},
+        {"signal": "BUY", "target_date": "invalid-date", "profit_loss": 25},
+    ])
+    v2 = pd.DataFrame(columns=["signal", "target_date", "profit_loss"])
+    result = module.phase111_chronological_replay(v1, v2)
+    assert result["status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["v1"]["valid"] is False
+    assert result["v1"]["invalid_metric_rows"] == 2
+    assert result["v1"]["invalid_date_rows"] == 1
+    assert result["v1"]["invalid_pnl_rows"] == 1
+    assert result["v1"]["net_pnl"] is None

@@ -98,3 +98,20 @@ def test_ledger_does_not_expose_unreconciled_recorded_pnl_as_net():
     assert detail.iloc[0]["recorded_profit_loss"] == 10.0
     assert pd.isna(detail.iloc[0]["net_pnl"])
     assert detail.iloc[0]["status"] == "RECONCILIATION_MISMATCH"
+
+
+def test_ledger_rejects_non_finite_accounting_values():
+    frame = pd.DataFrame([
+        {"symbol": "INF", "target_date": "2026-10-01", "signal": "BUY",
+         "shares": 2, "gross_profit_loss": float("inf"), "costs": 1.0, "profit_loss": float("inf")},
+        {"symbol": "OVERFLOW", "target_date": "2026-10-02", "signal": "BUY",
+         "shares": 2, "entry_price": 1e308, "exit_price": 1.0,
+         "gross_profit_loss": None, "costs": 1.0, "profit_loss": 1.0},
+    ])
+    summary, detail = _ledger(frame, "V1", "gross_profit_loss", "costs", "profit_loss")
+    assert summary["ledger_status"] == "INCOMPLETE_OR_MISMATCH"
+    assert summary["net_pnl"] is None
+    assert summary["invalid_non_finite_rows"] == 2
+    assert detail.iloc[0]["status"] == "INVALID_NON_FINITE_ACCOUNTING_VALUE"
+    assert detail.iloc[1]["status"] == "INVALID_NON_FINITE_ACCOUNTING_VALUE"
+    assert detail["net_pnl"].isna().all()

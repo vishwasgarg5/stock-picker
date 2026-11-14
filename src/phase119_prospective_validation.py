@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,7 +27,8 @@ REQUIRED = {"prediction_date", "target_date", "symbol", "base_close", "predicted
 
 
 def _mape(actual: pd.Series, pred: pd.Series) -> float | None:
-    valid = actual.notna() & pred.notna() & actual.gt(0)
+    finite = pd.Series(np.isfinite(actual), index=actual.index) & pd.Series(np.isfinite(pred), index=pred.index)
+    valid = actual.notna() & pred.notna() & finite & actual.gt(0) & pred.gt(0)
     if not valid.any():
         return None
     return float((pred[valid] - actual[valid]).abs().div(actual[valid]).mean() * 100)
@@ -59,7 +61,6 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
     # can never enter the prospective scoring cohort.
     min_train_rows = 30
     min_train_sessions = 5
-    import numpy as np
     with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
         x["raw_return"] = x["predicted_close"] / x["base_close"] - 1.0
         x["actual_return"] = x["actual_close"] / x["base_close"] - 1.0

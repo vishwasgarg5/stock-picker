@@ -316,3 +316,35 @@ def test_phase111_blocks_non_finite_replay_pnl(tmp_path, monkeypatch):
     assert result["v1"]["valid"] is False
     assert result["v1"]["invalid_metric_rows"] == 1
     assert result["v1"]["net_pnl"] is None
+
+
+
+def test_phase107_rejects_incomplete_split_source_metadata(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    trades = pd.DataFrame([{
+        "signal": "BUY", "entry_price": 100, "exit_price": 110,
+        "quantity": 2, "position_value": 200, "planned_capital": 190,
+        "reference_price": 95, "pre_split_quantity": None, "split_ratio": 1,
+        "profit_loss": 20, "return_pct": 10,
+    }])
+    result = phase107_pnl_reconciliation(trades)
+    evidence = result["fixed_share_source_evidence"]
+    assert evidence["validated_rows"] == 0
+    assert evidence["invalid_split_metadata_rows"] == 1
+    assert evidence["invalid_or_incomplete_source_rows"] == 1
+
+
+def test_phase107_rejects_unpaired_split_source_metadata(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    trades = pd.DataFrame([{
+        "signal": "BUY", "entry_price": 100, "exit_price": 110,
+        "quantity": 2, "position_value": 200, "planned_capital": 190,
+        "reference_price": 95, "pre_split_quantity": 2,
+        "profit_loss": 20, "return_pct": 10,
+    }])
+    result = phase107_pnl_reconciliation(trades)
+    evidence = result["fixed_share_source_evidence"]
+    assert evidence["validated_rows"] == 0
+    assert evidence["invalid_split_metadata_rows"] == 1

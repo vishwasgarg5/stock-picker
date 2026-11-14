@@ -49,12 +49,19 @@ def diagnose_forecast_errors(scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
     x["prediction_date"] = pd.to_datetime(x["prediction_date"], errors="coerce")
     x["target_date"] = pd.to_datetime(x["target_date"], errors="coerce")
     x["symbol"] = x["symbol"].astype(str).str.strip().str.upper()
-    for col in ("base_close", "predicted_close", "actual_close"):
+    numeric_columns = ["base_close", "predicted_close", "actual_close"]
+    for col in numeric_columns:
         x[col] = pd.to_numeric(x[col], errors="coerce")
-    x = x.dropna(subset=list(REQUIRED))
-    x = x[(x["target_date"] > x["prediction_date"]) & x["base_close"].gt(0) & x["actual_close"].gt(0)]
+    finite_inputs = pd.DataFrame(np.isfinite(x[numeric_columns]), index=x.index, columns=numeric_columns).all(axis=1)
+    invalid_non_finite_rows = int((x[numeric_columns].notna().any(axis=1) & ~finite_inputs).sum())
+    x = x.loc[finite_inputs].dropna(subset=list(REQUIRED))
+    x = x[(x["target_date"] > x["prediction_date"]) & x["base_close"].gt(0) & x["predicted_close"].gt(0) & x["actual_close"].gt(0)]
     x = x.drop_duplicates(["prediction_date", "target_date", "symbol"], keep="last")
-    x["realized_abs_move_pct"] = (x["actual_close"] / x["base_close"] - 1).abs() * 100
+    with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+        x["realized_abs_move_pct"] = (x["actual_close"] / x["base_close"] - 1).abs() * 100
+    finite_moves = np.isfinite(x["realized_abs_move_pct"])
+    invalid_non_finite_rows += int((~finite_moves).sum())
+    x = x.loc[finite_moves].copy()
     symbol_rows = []
     for symbol, part in x.groupby("symbol"):
         if len(part) < 3:
@@ -74,7 +81,7 @@ def diagnose_forecast_errors(scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
         for period, part in x.groupby("period", dropna=False):
             period_rows.append({"period": str(period), **_metrics(part)})
     summary = {"status": "SCORED" if len(x) >= 20 else "SMALL_SAMPLE",
-        "scored_rows": int(len(x)), "symbols": int(x["symbol"].nunique()),
+        "scored_rows": int(len(x)), "invalid_non_finite_rows": invalid_non_finite_rows, "symbols": int(x["symbol"].nunique()),
         "target_sessions": int(x["target_date"].nunique()),
         "symbol_rows_reported_minimum_3_observations": int(len(by_symbol)),
         "regime_definition": "Absolute realized close move from base_close: quiet <1%, normal 1%-<2.5%, volatile >=2.5%.",

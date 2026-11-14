@@ -436,6 +436,23 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
     actual["symbol"] = actual["symbol"].astype(str).str.upper().str.strip()
     pred["target_date"] = pd.to_datetime(pred["target_date"], errors="coerce").dt.normalize()
     actual["target_date"] = pd.to_datetime(actual["target_date"], errors="coerce").dt.normalize()
+    invalid_prediction_keys = int((
+        pred["symbol"].eq("") | pred["symbol"].eq("NAN") | pred["target_date"].isna()
+    ).sum())
+    invalid_actual_keys = int((
+        actual["symbol"].eq("") | actual["symbol"].eq("NAN") | actual["target_date"].isna()
+    ).sum())
+    if invalid_prediction_keys or invalid_actual_keys:
+        return _write("phase110_forecast_accuracy_summary.json", {
+            "status": "BLOCKED_INVALID_KEYS",
+            "matched_rows": 0,
+            "invalid_prediction_key_rows": invalid_prediction_keys,
+            "invalid_actual_key_rows": invalid_actual_keys,
+            "metrics": {},
+            "close_directional_accuracy_pct": None,
+            "chronological_split_used_for_this_summary": False,
+            "note": "Missing or unparseable symbol/date keys detected; forecast accuracy was not scored.",
+        })
     cols = ["symbol", "target_date"] + [v for v in predicted.values() if v in pred.columns]
     if "base_close" in pred.columns:
         cols.append("base_close")
@@ -455,6 +472,26 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
             "note": "Duplicate symbol/target_date keys detected; ambiguous rows were not silently deduplicated or scored.",
         })
     merged = pred[cols].merge(actual[["symbol", "target_date"] + [f"actual_{k}" for k in predicted]], on=["symbol", "target_date"], how="inner", validate="one_to_one")
+    actual_ohlc = [f"actual_{field}" for field in ("open", "high", "low", "close")]
+    ohlc = merged[actual_ohlc].apply(pd.to_numeric, errors="coerce")
+    ohlc_values = ohlc.to_numpy(dtype=float)
+    finite_ohlc = np.isfinite(ohlc_values).all(axis=1)
+    positive_ohlc = (ohlc_values > 0).all(axis=1)
+    internally_consistent = (
+        (ohlc["actual_high"] >= ohlc[["actual_open", "actual_low", "actual_close"]].max(axis=1))
+        & (ohlc["actual_low"] <= ohlc[["actual_open", "actual_high", "actual_close"]].min(axis=1))
+    ).to_numpy(dtype=bool)
+    invalid_ohlc = ~(finite_ohlc & positive_ohlc & internally_consistent)
+    if invalid_ohlc.any():
+        return _write("phase110_forecast_accuracy_summary.json", {
+            "status": "BLOCKED_INVALID_OHLC",
+            "matched_rows": int(len(merged)),
+            "invalid_actual_ohlc_rows": int(invalid_ohlc.sum()),
+            "metrics": {},
+            "close_directional_accuracy_pct": None,
+            "chronological_split_used_for_this_summary": False,
+            "note": "Matched actual OHLC rows contain missing, non-finite, non-positive, or internally inconsistent prices; no forecast metrics were scored.",
+        })
     metrics = {}
     for k, pcol in predicted.items():
         acol = f"actual_{k}"

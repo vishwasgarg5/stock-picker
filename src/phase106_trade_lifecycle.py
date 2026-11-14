@@ -66,11 +66,23 @@ def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
         if column:
             values = pd.to_numeric(x[column], errors="coerce")
             price_bad |= values.notna() & (values <= 0)
+    # SKIP rows are candidate decisions, not executed trades. Their
+    # absent/zero quantity is expected and must not inflate lifecycle defects.
+    status_col = fields["status"]
+    status_values = x[status_col].astype(str).str.upper().str.strip() if status_col else pd.Series("", index=x.index)
+    executed_mask = status_values.isin([
+        "BUY", "LONG", "EXECUTED", "CLOSED", "COMPLETED", "EXITED", "SELL", "SOLD",
+    ])
+
     quantity_bad = pd.Series(False, index=x.index)
+    missing_quantity_on_executed = pd.Series(False, index=x.index)
     quantity_col = fields["quantity"]
     if quantity_col:
         quantities = pd.to_numeric(x[quantity_col], errors="coerce")
-        quantity_bad = quantities.notna() & (quantities <= 0)
+        quantity_bad = executed_mask & quantities.notna() & (quantities <= 0)
+        missing_quantity_on_executed = executed_mask & quantities.isna()
+    else:
+        missing_quantity_on_executed = executed_mask.copy()
 
     entry_after_exit = pd.Series(False, index=x.index)
     entry_col, exit_col = fields["entry_date"], fields["exit_date"]
@@ -89,14 +101,12 @@ def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
         valid_keys = keys["symbol"].notna() & keys["symbol"].ne("") & keys["entry_date"].notna()
         duplicate_rows = int(keys.loc[valid_keys].duplicated(["symbol", "entry_date"], keep=False).sum())
 
-    status_col = fields["status"]
     status_counts = {}
     if status_col:
         status_counts = (
             x[status_col].fillna("MISSING").astype(str).str.strip()
             .replace("", "MISSING").value_counts(dropna=False).to_dict()
         )
-    status_values = x[status_col].astype(str).str.upper().str.strip() if status_col else pd.Series("", index=x.index)
     exit_price_col = fields["exit_price"]
     has_exit_price = x[exit_price_col].notna() if exit_price_col else pd.Series(False, index=x.index)
     completed_mask = status_values.isin(["CLOSED", "COMPLETED", "EXITED", "SELL", "SOLD"]) | (
@@ -122,6 +132,8 @@ def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
         "missing_core_fields": missing_core_fields,
         "invalid_price_rows": int(price_bad.sum()),
         "invalid_quantity_rows": int(quantity_bad.sum()),
+        "missing_quantity_on_executed_rows": int(missing_quantity_on_executed.sum()),
+        "quantity_validation_scope": "Executed BUY/LONG/EXECUTED/CLOSED/COMPLETED/EXITED/SELL/SOLD rows only; SKIP candidates are excluded.",
         "entry_after_exit_rows": int(entry_after_exit.sum()),
         "duplicate_symbol_entry_date_rows": duplicate_rows,
         "status_counts": {str(key): int(value) for key, value in status_counts.items()},

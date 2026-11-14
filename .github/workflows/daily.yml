@@ -151,13 +151,23 @@ jobs:
           expected_counts = candidate_counts.clip(upper=10)
           if not selected_counts.reindex(expected_counts.index).eq(expected_counts).all():
               raise SystemExit("Phase 2 did not select up to 10 candidates per prediction session")
-          coverage = predictions[keys].drop_duplicates().merge(
+          # predictions.csv is a rolling evaluation history, not a current-session
+          # file. Older rows can predate Phase 2 candidate-history collection.
+          # Validate the latest prediction session here; validate the complete
+          # Phase 2 history against candidate_history below.
+          latest_prediction_date = predictions["prediction_date"].max()
+          current_predictions = predictions.loc[
+              predictions["prediction_date"].eq(latest_prediction_date)
+          ]
+          if current_predictions.empty:
+              raise SystemExit("No valid latest prediction session was found")
+          coverage = current_predictions[keys].drop_duplicates().merge(
               phase2[keys].drop_duplicates(), on=keys, how="left", indicator=True
           )
           missing = coverage.loc[coverage["_merge"].eq("left_only"), keys]
           if not missing.empty:
               raise SystemExit(
-                  f"Phase 2 metadata missing for {len(missing)} current prediction(s): "
+                  f"Phase 2 metadata missing for {len(missing)} latest-session prediction(s): "
                   f"{missing.head(10).to_dict(orient='records')}"
               )
           history_coverage = candidate_history[keys].drop_duplicates().merge(

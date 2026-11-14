@@ -20,6 +20,9 @@ def test_ledger_does_not_impute_missing_accounting_fields():
     assert summary["ledger_status"] == "INCOMPLETE_OR_MISMATCH"
     assert summary["missing_values_imputed"] is False
     assert detail.iloc[0]["status"] == "MISSING_ACCOUNTING_FIELD"
+    assert detail.iloc[0]["recorded_profit_loss"] == 12.0
+    assert pd.isna(detail.iloc[0]["net_pnl"])
+    assert summary["net_pnl"] is None
 
 
 def test_ledger_reconciles_gross_less_costs_to_net():
@@ -82,3 +85,16 @@ def test_ledger_uses_rowwise_quantity_fallback_and_reconstructs_gross():
     assert summary["ledger_status"] == "RECONCILED"
     assert detail["quantity_used"].tolist() == [2.0, 3.0]
     assert detail.iloc[0]["gross_pnl_source"] == "DERIVED_FROM_RECORDED_ENTRY_EXIT_AND_QUANTITY"
+
+
+def test_ledger_does_not_expose_unreconciled_recorded_pnl_as_net():
+    frame = pd.DataFrame([
+        {"symbol": "ABC", "target_date": "2026-10-01", "signal": "BUY",
+         "shares": 2, "gross_profit_loss": 12.0, "costs": 1.0, "profit_loss": 10.0},
+    ])
+    summary, detail = _ledger(frame, "V1", "gross_profit_loss", "costs", "profit_loss")
+    assert summary["ledger_status"] == "INCOMPLETE_OR_MISMATCH"
+    assert summary["net_pnl"] is None
+    assert detail.iloc[0]["recorded_profit_loss"] == 10.0
+    assert pd.isna(detail.iloc[0]["net_pnl"])
+    assert detail.iloc[0]["status"] == "RECONCILIATION_MISMATCH"

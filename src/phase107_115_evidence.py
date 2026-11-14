@@ -482,6 +482,7 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
         })
     available_predictions = {field: column for field, column in predicted.items() if column in merged.columns}
     numeric_columns = list(available_predictions.values()) + actual_ohlc + ["base_close"]
+    numeric_columns = list(available_predictions.values()) + actual_ohlc + ["base_close"]
     numeric = merged[numeric_columns].apply(pd.to_numeric, errors="coerce")
     numeric_values = numeric.to_numpy(dtype=float)
     finite = np.isfinite(numeric_values).all(axis=1)

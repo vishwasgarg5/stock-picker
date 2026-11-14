@@ -282,10 +282,22 @@ def _accounting_ledger_audit(trades: pd.DataFrame) -> dict:
         )
     bad_reconciliation = int(mismatch_mask.sum()) if not missing_columns else 0
     missing_rows = int((~complete).sum()) if len(complete) else 0
+    if "exit_reason" not in buys.columns:
+        missing_exit_reason_rows = int(len(buys))
+        exit_reason_counts = {}
+    else:
+        reasons = buys["exit_reason"].astype("string").str.strip()
+        valid_reasons = reasons.notna() & reasons.ne("")
+        missing_exit_reason_rows = int((~valid_reasons).sum())
+        exit_reason_counts = reasons[valid_reasons].value_counts().sort_index().astype(int).to_dict()
+    exit_reason_coverage_pct = (
+        float((len(buys) - missing_exit_reason_rows) / len(buys) * 100.0)
+        if len(buys) else None
+    )
     return {
         "status": (
             "INSUFFICIENT_DATA" if len(buys) == 0 else
-            "PASS" if missing_rows == 0 and bad_reconciliation == 0 else "BLOCK"
+            "PASS" if missing_rows == 0 and bad_reconciliation == 0 and missing_exit_reason_rows == 0 else "BLOCK"
         ),
         "buy_rows": int(len(buys)),
         "complete_ledger_rows": int(complete.sum()) if len(complete) else 0,
@@ -295,8 +307,11 @@ def _accounting_ledger_audit(trades: pd.DataFrame) -> dict:
         "max_abs_gross_delta": float(gross_delta.abs().max()) if not missing_columns and len(buys) and complete.any() else None,
         "max_abs_return_delta_pct_points": float(return_delta.abs().max()) if not missing_columns and len(buys) and complete.any() else None,
         "invalid_allocated_capital_rows": int(invalid_capital.sum()) if not missing_columns else None,
+        "missing_exit_reason_rows": missing_exit_reason_rows,
+        "exit_reason_coverage_pct": exit_reason_coverage_pct,
+        "exit_reason_counts_json": __import__("json").dumps(exit_reason_counts, sort_keys=True),
         "missing_by_field_json": __import__("json").dumps(missing_by_field, sort_keys=True),
-        "policy": "missing historical values are not backfilled or inferred",
+        "policy": "missing historical values and exit reasons are not backfilled or inferred",
     }
 
 
@@ -368,7 +383,7 @@ def run_paper_trading() -> pd.DataFrame:
         return trades
     if audit["status"] != "PASS":
         raise ValueError(
-            "Paper-trading accounting ledger failed integrity audit; "
+            "Paper-trading accounting or exit-attribution ledger failed integrity audit; "
             "outputs were not overwritten. See data/paper_trading_ledger_audit.csv"
         )
     trades.to_csv(TRADES_FILE, index=False)

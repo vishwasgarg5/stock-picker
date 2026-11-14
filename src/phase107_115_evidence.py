@@ -403,9 +403,20 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
             continue
         p = pd.to_numeric(merged[pcol], errors="coerce")
         a = pd.to_numeric(merged[acol], errors="coerce")
-        valid = p.notna() & a.notna()
+        present = p.notna() & a.notna()
+        finite = pd.Series(np.isfinite(p.to_numpy(dtype=float)) & np.isfinite(a.to_numpy(dtype=float)), index=merged.index)
+        invalid = present & (~finite | p.le(0) | a.le(0))
+        if invalid.any():
+            return _write("phase110_forecast_accuracy_summary.json", {
+                "status": "BLOCKED_INVALID_METRICS", "matched_rows": int(len(merged)),
+                "invalid_metric_rows": int(invalid.sum()), "metrics": {},
+                "close_directional_accuracy_pct": None,
+                "chronological_split_used_for_this_summary": False,
+                "note": "Non-finite or non-positive forecast/actual price values detected; no accuracy metrics were scored.",
+            })
+        valid = present & finite & p.gt(0) & a.gt(0)
         if valid.any():
-            metrics[k] = {"n": int(valid.sum()), "mae": float((p[valid] - a[valid]).abs().mean()), "bias": float((p[valid] - a[valid]).mean()), "mape_pct": float(((p[valid] - a[valid]).abs() / a[valid].abs().replace(0, np.nan)).dropna().mean() * 100)}
+            metrics[k] = {"n": int(valid.sum()), "mae": float((p[valid] - a[valid]).abs().mean()), "bias": float((p[valid] - a[valid]).mean()), "mape_pct": float(((p[valid] - a[valid]).abs() / a[valid].abs()).mean() * 100)}
     directional = None
     if "predicted_close" in merged and "base_close" in merged:
         pc, ac, base = (pd.to_numeric(merged[c], errors="coerce") for c in ["predicted_close", "actual_close", "base_close"])
@@ -433,6 +444,10 @@ def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str
     x = x.dropna(subset=[date_col, pnl_col]).sort_values(date_col)
     if x.empty:
         return empty
+    pnl_values = x[pnl_col].to_numpy(dtype=float)
+    if not np.isfinite(pnl_values).all():
+        return {**empty, "invalid_metric_rows": int((~np.isfinite(pnl_values)).sum()), "valid": False}
+    x = x.loc[x[pnl_col].gt(-np.inf) & x[pnl_col].lt(np.inf)].copy()
     daily = x.groupby(date_col)[pnl_col].sum().sort_index()
     starting_capital = 100000.0
     # Include starting equity in the peak series so a first-session loss is
@@ -449,6 +464,8 @@ def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str
     return {
         "rows": int(len(x)),
         "sessions": int(daily.size),
+        "invalid_metric_rows": 0,
+        "valid": True,
         "net_pnl": float(daily.sum()),
         "max_drawdown_pct_from_100k_start": float(drawdown.min()) if len(drawdown) else None,
         "win_rate_pct": float((trade_pnl > 0).mean() * 100.0) if len(trade_pnl) else None,
@@ -467,7 +484,11 @@ def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str
 def phase111_chronological_replay(v1: pd.DataFrame, v2: pd.DataFrame) -> dict[str, Any]:
     v1m = _daily_metrics(_buy_rows(v1), "target_date", "profit_loss")
     v2m = _daily_metrics(_buy_rows(v2), "target_date", "profit_loss")
-    enough = v1m["sessions"] >= MIN_V1_CHRONOLOGICAL_SESSIONS and v2m["sessions"] >= MIN_V2_SESSIONS
+    enough = (
+        v1m.get("valid", True) and v2m.get("valid", True)
+        and v1m["sessions"] >= MIN_V1_CHRONOLOGICAL_SESSIONS
+        and v2m["sessions"] >= MIN_V2_SESSIONS
+    )
     return _write("phase111_chronological_replay_summary.json", {"status": "SCORED" if enough else "INSUFFICIENT_EVIDENCE", "v1": v1m, "v2": v2m, "minimum_v1_sessions_for_evidence": MIN_V1_CHRONOLOGICAL_SESSIONS, "minimum_v2_sessions_for_evidence": MIN_V2_SESSIONS, "caveat": "Chronological aggregation of recorded simulated outcomes, not a claim of executable live returns."})
 
 

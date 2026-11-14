@@ -104,6 +104,42 @@ jobs:
       - name: Run Phase 4 adaptive performance optimizer
         run: python -m src.phase4_optimizer
 
+      - name: Verify Phase 2 metadata covers current predictions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+
+          predictions_path = Path("data/predictions.csv")
+          phase2_path = Path("data/phase2_optimized_candidates.csv")
+          if not predictions_path.exists() or not phase2_path.exists():
+              raise SystemExit("Current predictions and Phase 2 output are both required")
+          predictions = pd.read_csv(predictions_path, usecols=["prediction_date", "target_date", "symbol"])
+          phase2 = pd.read_csv(phase2_path, usecols=["prediction_date", "target_date", "symbol", "phase2_selected"])
+          keys = ["prediction_date", "target_date", "symbol"]
+          for frame in (predictions, phase2):
+              frame["prediction_date"] = pd.to_datetime(frame["prediction_date"], errors="coerce").dt.normalize()
+              frame["target_date"] = pd.to_datetime(frame["target_date"], errors="coerce").dt.normalize()
+              frame["symbol"] = frame["symbol"].astype(str).str.upper().str.strip()
+          if predictions.empty:
+              raise SystemExit("Current predictions are empty; refusing to treat missing Phase 2 evidence as a no-trade result")
+          if phase2.duplicated(keys).any():
+              raise SystemExit("Phase 2 output contains duplicate prediction keys")
+          phase2["phase2_selected"] = pd.to_numeric(phase2["phase2_selected"], errors="coerce")
+          if not phase2["phase2_selected"].isin([0, 1]).all():
+              raise SystemExit("Phase 2 output contains missing or invalid selection flags")
+          coverage = predictions[keys].drop_duplicates().merge(
+              phase2[keys].drop_duplicates(), on=keys, how="left", indicator=True
+          )
+          missing = coverage.loc[coverage["_merge"].eq("left_only"), keys]
+          if not missing.empty:
+              raise SystemExit(
+                  f"Phase 2 metadata missing for {len(missing)} current prediction(s): "
+                  f"{missing.head(10).to_dict(orient='records')}"
+              )
+          print(f"Phase 2 coverage passed: {len(coverage)} current prediction keys matched")
+          PY
+
       - name: Run Paper Trading V2 confidence-filtered benchmark with Phase 4 overlay
         run: python -m src.paper_trading_v2
 

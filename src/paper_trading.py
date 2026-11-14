@@ -294,11 +294,35 @@ def _accounting_ledger_audit(trades: pd.DataFrame) -> dict:
         float((len(buys) - missing_exit_reason_rows) / len(buys) * 100.0)
         if len(buys) else None
     )
+    # Historical rows may predate the explicit exit-reason field. Keep those
+    # gaps visible, but do not let them prevent clean schema-v2 rows from being
+    # persisted. Current-schema rows with missing reasons remain a hard block.
+    if "ledger_schema_version" in buys.columns:
+        schema_version = pd.to_numeric(buys["ledger_schema_version"], errors="coerce")
+        current_schema_mask = schema_version.ge(2)
+    else:
+        current_schema_mask = pd.Series(False, index=buys.index)
+    current_schema_missing_reason_rows = int(
+        (current_schema_mask & ~(
+            buys["exit_reason"].astype("string").str.strip().notna()
+            & buys["exit_reason"].astype("string").str.strip().ne("")
+        )).sum()
+    ) if "exit_reason" in buys.columns else int(current_schema_mask.sum())
+    legacy_missing_exit_reason_rows = missing_exit_reason_rows - current_schema_missing_reason_rows
+    write_allowed = bool(
+        len(buys) > 0
+        and missing_rows == 0
+        and bad_reconciliation == 0
+        and current_schema_missing_reason_rows == 0
+    )
     return {
         "status": (
             "INSUFFICIENT_DATA" if len(buys) == 0 else
             "PASS" if missing_rows == 0 and bad_reconciliation == 0 and missing_exit_reason_rows == 0 else "BLOCK"
         ),
+        "write_allowed": write_allowed,
+        "legacy_missing_exit_reason_rows": int(legacy_missing_exit_reason_rows),
+        "current_schema_missing_exit_reason_rows": current_schema_missing_reason_rows,
         "buy_rows": int(len(buys)),
         "complete_ledger_rows": int(complete.sum()) if len(complete) else 0,
         "incomplete_ledger_rows": missing_rows,
@@ -381,9 +405,9 @@ def run_paper_trading() -> pd.DataFrame:
         daily.to_csv(PORTFOLIO_FILE, index=False)
         print("Paper trading completed with no BUY outcomes; accounting metrics are unavailable.")
         return trades
-    if audit["status"] != "PASS":
+    if not audit["write_allowed"]:
         raise ValueError(
-            "Paper-trading accounting or exit-attribution ledger failed integrity audit; "
+            "Paper-trading accounting integrity failed or a current-schema exit reason is missing; "
             "outputs were not overwritten. See data/paper_trading_ledger_audit.csv"
         )
     trades.to_csv(TRADES_FILE, index=False)

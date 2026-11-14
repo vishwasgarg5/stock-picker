@@ -230,7 +230,9 @@ def _merge_current_predictions(candidates: pd.DataFrame, predictions: pd.DataFra
     existing["prediction_date"] = _norm_dates(existing["prediction_date"])
     existing["target_date"] = _norm_dates(existing["target_date"])
     existing["symbol"] = existing["symbol"].astype(str).str.upper().str.strip()
-    known = set(existing.dropna(subset=keys)[keys].itertuples(index=False, name=None))
+    existing = existing.dropna(subset=keys)
+    existing = existing.loc[existing["symbol"].ne("")].copy()
+    known = set(existing[keys].itertuples(index=False, name=None))
     incoming_keys = incoming[keys].apply(tuple, axis=1)
     additions = incoming.loc[~incoming_keys.isin(known)]
     if additions.empty:
@@ -252,7 +254,8 @@ def run_phase2() -> pd.DataFrame:
 
     c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
     c["prediction_date"] = _norm_dates(c["prediction_date"])
-    c = c.dropna(subset=["symbol", "prediction_date"]).copy()
+    c["target_date"] = _norm_dates(c["target_date"])
+    c = c.dropna(subset=["symbol", "prediction_date", "target_date"]).copy()
     if c.empty:
         # Invalid-only input is also a failed refresh; clear stale candidate rows.
         pd.DataFrame(columns=["prediction_date", "target_date", "symbol", "phase2_selected", "phase2_rank"]).to_csv(OUT, index=False)

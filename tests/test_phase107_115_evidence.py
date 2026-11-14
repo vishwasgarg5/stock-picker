@@ -242,3 +242,46 @@ def test_phase107_fixed_share_source_evidence_rejects_inconsistent_quantity(tmp_
     assert evidence["validated_rows"] == 0
     assert evidence["mismatch_rows"] == 1
     assert evidence["status"] == "NO_VALID_SOURCE_EVIDENCE"
+
+
+
+def test_v2_17_sessions_and_100_trades_meet_sample_thresholds(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    dates_v2 = pd.date_range("2026-01-01", periods=17, freq="B")
+    v2 = pd.DataFrame([
+        {"signal": "BUY", "target_date": dates_v2[i % 17], "profit_loss": 1.0}
+        for i in range(100)
+    ])
+    v1_dates = pd.date_range("2025-10-01", periods=60, freq="B")
+    v1 = pd.DataFrame([
+        {"signal": "BUY", "target_date": date, "profit_loss": 1.0}
+        for date in v1_dates
+    ])
+
+    sustained = phase113_sustained_evidence(v1, v2)
+    assert sustained["status"] == "SCORED"
+    assert sustained["v2"]["executed_rows"] == 100
+    assert sustained["v2"]["distinct_sessions"] == 17
+    assert sustained["v2"]["minimum_trade_count_met"] is True
+    assert sustained["v2"]["minimum_session_count_met"] is True
+    assert sustained["minimum_distinct_sessions"] == 17
+
+    replay = module.phase111_chronological_replay(v1, v2)
+    assert replay["status"] == "SCORED"
+    assert replay["minimum_v1_sessions_for_evidence"] == 60
+    assert replay["minimum_v2_sessions_for_evidence"] == 17
+
+
+def test_v2_17_sessions_without_100_trades_does_not_meet_sustained_gate(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    dates = pd.date_range("2026-01-01", periods=17, freq="B")
+    v2 = pd.DataFrame([
+        {"signal": "BUY", "target_date": dates[i % 17], "profit_loss": 1.0}
+        for i in range(99)
+    ])
+    result = phase113_sustained_evidence(pd.DataFrame(), v2)
+    assert result["v2"]["minimum_session_count_met"] is True
+    assert result["v2"]["minimum_trade_count_met"] is False
+    assert result["status"] == "INSUFFICIENT_EVIDENCE"

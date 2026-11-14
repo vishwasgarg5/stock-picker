@@ -57,18 +57,21 @@ def _ledger(frame: pd.DataFrame, model: str, gross_col: str, cost_col: str, net_
     gross_source.loc[reconstructable] = "DERIVED_FROM_RECORDED_ENTRY_EXIT_AND_QUANTITY"
     missing = gross.isna() | cost.isna() | net.isna()
     delta = gross - cost - net
+    mismatch_mask = ~missing & delta.abs().gt(0.02)
+    verified_mask = ~missing & ~mismatch_mask
+    verified_net = net.where(verified_mask)
     status = np.where(missing, "MISSING_ACCOUNTING_FIELD",
-                      np.where(delta.abs() > 0.02, "RECONCILIATION_MISMATCH",
+                      np.where(mismatch_mask, "RECONCILIATION_MISMATCH",
                                np.where(gross_source.eq("RECORDED"), "RECONCILED", "RECONCILED_WITH_DERIVED_GROSS")))
     detail = pd.DataFrame({
         "model": model, "row_index": x.index, "symbol": x.get("symbol", pd.Series("", index=x.index)).astype(str),
         "target_date": x.get("target_date", pd.Series("", index=x.index)).astype(str),
         "quantity_used": qty, "gross_pnl": gross, "gross_pnl_source": gross_source,
-        "recorded_costs": cost, "net_pnl": net,
+        "recorded_costs": cost, "recorded_profit_loss": net, "net_pnl": verified_net,
         "reconciliation_delta": delta, "status": status,
     })
     incomplete = int(missing.sum())
-    mismatch = int((~missing & delta.abs().gt(0.02)).sum())
+    mismatch = int(mismatch_mask.sum())
     complete = not x.empty and incomplete == 0 and mismatch == 0
     summary = {
         "model": model, "rows": int(len(frame)), "executed_trades": int(len(x)),
@@ -76,7 +79,8 @@ def _ledger(frame: pd.DataFrame, model: str, gross_col: str, cost_col: str, net_
         "gross_rows_reconstructed_from_prices": int(reconstructable.sum()),
         "ledger_status": "RECONCILED" if complete else ("NO_EXECUTED_TRADES" if x.empty else "INCOMPLETE_OR_MISMATCH"),
         "gross_pnl": float(gross.sum()) if gross.notna().all() and len(gross) else (0.0 if x.empty else None),
-        "net_pnl": float(net.sum()) if net.notna().all() and len(net) else (0.0 if x.empty else None),
+        # Net P&L is reportable only when every executed row reconciles.
+        "net_pnl": float(verified_net.sum()) if complete else (0.0 if x.empty else None),
         "recorded_costs": float(cost.sum()) if cost.notna().all() and len(cost) else (0.0 if x.empty else None),
         "missing_values_imputed": False,
         "derived_gross_values_are_flagged": True,

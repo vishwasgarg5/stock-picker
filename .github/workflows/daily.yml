@@ -147,6 +147,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import numpy as np
           import pandas as pd
 
           trades_path = Path("data/paper_trades_v2.csv")
@@ -170,12 +171,12 @@ jobs:
           if not buys.empty:
               quantity = pd.to_numeric(buys["quantity"], errors="coerce")
               planned_capital = pd.to_numeric(buys["planned_capital"], errors="coerce")
-              if quantity.isna().any() or (~quantity.map(lambda value: value > 0)).any():
-                  raise SystemExit("Every V2 BUY must have a positive whole-share quantity")
+              if not (np.isfinite(quantity).all() and quantity.gt(0).all()):
+                  raise SystemExit("Every V2 BUY must have a finite positive whole-share quantity")
               if (quantity % 1 != 0).any():
                   raise SystemExit("V2 BUY quantities must be whole shares")
-              if planned_capital.isna().any() or (~planned_capital.map(lambda value: value > 0)).any():
-                  raise SystemExit("Every V2 BUY must have positive planned capital")
+              if not (np.isfinite(planned_capital).all() and planned_capital.gt(0).all()):
+                  raise SystemExit("Every V2 BUY must have finite positive planned capital")
           funnel = pd.read_csv(funnel_path)
           if funnel.empty or not {"stage", "input_rows", "output_rows", "rejected_rows"}.issubset(funnel.columns):
               raise SystemExit("V2 funnel is empty or missing required count columns")

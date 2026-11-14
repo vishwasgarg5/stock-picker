@@ -115,7 +115,10 @@ jobs:
           if not predictions_path.exists() or not phase2_path.exists():
               raise SystemExit("Current predictions and Phase 2 output are both required")
           predictions = pd.read_csv(predictions_path, usecols=["prediction_date", "target_date", "symbol"])
-          phase2 = pd.read_csv(phase2_path, usecols=["prediction_date", "target_date", "symbol", "phase2_selected"])
+          phase2 = pd.read_csv(
+              phase2_path,
+              usecols=["prediction_date", "target_date", "symbol", "phase2_selected", "phase2_rank"],
+          )
           keys = ["prediction_date", "target_date", "symbol"]
           for frame in (predictions, phase2):
               frame["prediction_date"] = pd.to_datetime(frame["prediction_date"], errors="coerce").dt.normalize()
@@ -126,8 +129,21 @@ jobs:
           if phase2.duplicated(keys).any():
               raise SystemExit("Phase 2 output contains duplicate prediction keys")
           phase2["phase2_selected"] = pd.to_numeric(phase2["phase2_selected"], errors="coerce")
+          phase2["phase2_rank"] = pd.to_numeric(phase2["phase2_rank"], errors="coerce")
           if not phase2["phase2_selected"].isin([0, 1]).all():
               raise SystemExit("Phase 2 output contains missing or invalid selection flags")
+          if phase2["phase2_rank"].isna().any() or not phase2["phase2_rank"].gt(0).all():
+              raise SystemExit("Phase 2 output contains missing or non-positive ranks")
+          expected_selected = phase2["phase2_rank"].le(10).astype(int)
+          if not phase2["phase2_selected"].eq(expected_selected).all():
+              raise SystemExit("Phase 2 selected flags do not match the top-10 rank rule")
+          selected_counts = phase2.assign(
+              selected=phase2["phase2_selected"].astype(int)
+          ).groupby("prediction_date")["selected"].sum()
+          candidate_counts = phase2.groupby("prediction_date").size()
+          expected_counts = candidate_counts.clip(upper=10)
+          if not selected_counts.reindex(expected_counts.index).eq(expected_counts).all():
+              raise SystemExit("Phase 2 did not select up to 10 candidates per prediction session")
           coverage = predictions[keys].drop_duplicates().merge(
               phase2[keys].drop_duplicates(), on=keys, how="left", indicator=True
           )

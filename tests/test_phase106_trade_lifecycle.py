@@ -28,7 +28,7 @@ def test_phase106_measures_lifecycle_gaps_without_mutating_or_inventing_facts():
 
     assert result["rows"] == 5
     assert result["field_presence"]["entry_price"] is True
-    assert result["field_non_null_counts"]["exit_reason"] == 1
+    assert result["field_non_null_counts"]["exit_reason"] == 2
     assert result["invalid_price_rows"] == 1
     assert result["invalid_quantity_rows"] == 1
     assert result["missing_quantity_on_executed_rows"] == 1

@@ -452,7 +452,7 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
     evaluations = _read("evaluations.csv")
     predicted = {"open": "predicted_open", "high": "predicted_high", "low": "predicted_low", "close": "predicted_close"}
     actual_ohlc = [f"actual_{field}" for field in ("open", "high", "low", "close")]
-    required = {"symbol", "target_date", "base_close", *predicted.values(), *actual_ohlc}
+    required = {"symbol", "target_date", "base_close", "predicted_close", *actual_ohlc}
     missing = sorted(required.difference(evaluations.columns))
     if evaluations.empty or missing:
         return _write("phase110_forecast_accuracy_summary.json", {
@@ -480,7 +480,7 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
             "close_directional_accuracy_pct": None,
             "note": "Duplicate symbol/target_date keys detected in realized evaluations; ambiguous rows were not scored.",
         })
-    numeric_columns = list(predicted.values()) + actual_ohlc + ["base_close"]
+    available_predictions = {field: column for field, column in predicted.items() if column in merged.columns}\n    numeric_columns = list(available_predictions.values()) + actual_ohlc + ["base_close"]
     numeric = merged[numeric_columns].apply(pd.to_numeric, errors="coerce")
     numeric_values = numeric.to_numpy(dtype=float)
     finite = np.isfinite(numeric_values).all(axis=1)

@@ -815,6 +815,14 @@ def _merge_candidate_history(existing: pd.DataFrame, candidates: pd.DataFrame) -
     missing = [key for key in keys if key not in combined.columns]
     if missing:
         raise ValueError(f"Candidate history is missing required key columns: {missing}")
+    # Historical append-only files can contain malformed legacy keys. They
+    # cannot be matched to predictions or evaluated safely, so discard them
+    # before persisting the canonical history rather than propagating NaT rows.
+    combined["prediction_date"] = pd.to_datetime(combined["prediction_date"], errors="coerce").dt.normalize()
+    combined["target_date"] = pd.to_datetime(combined["target_date"], errors="coerce").dt.normalize()
+    combined["symbol"] = combined["symbol"].astype(str).str.upper().str.strip()
+    combined = combined.dropna(subset=keys)
+    combined = combined.loc[combined["symbol"].ne("")]
     return combined.drop_duplicates(keys, keep="last").reset_index(drop=True)
 
 

@@ -51,18 +51,30 @@ def _ledger(frame: pd.DataFrame, model: str, gross_col: str, cost_col: str, net_
     gross, cost, net = _num(x, gross_col), _num(x, cost_col), _num(x, net_col)
     gross_source = pd.Series("RECORDED", index=x.index, dtype=object)
     # A missing gross value can be reconstructed from recorded entry/exit prices and quantity.
-    price_gross = (_num(x, "exit_price") - _num(x, "entry_price")) * qty
-    reconstructable = gross.isna() & price_gross.notna() & _num(x, "entry_price").gt(0) & _num(x, "exit_price").gt(0)
+    entry_price, exit_price = _num(x, "entry_price"), _num(x, "exit_price")
+    with np.errstate(over="ignore", invalid="ignore"):
+        price_gross = (exit_price - entry_price) * qty
+    reconstructable = (
+        gross.isna() & np.isfinite(price_gross) & entry_price.gt(0) & exit_price.gt(0)
+        & np.isfinite(entry_price) & np.isfinite(exit_price) & np.isfinite(qty) & qty.gt(0)
+    )
     gross = gross.where(~reconstructable, price_gross)
     gross_source.loc[reconstructable] = "DERIVED_FROM_RECORDED_ENTRY_EXIT_AND_QUANTITY"
     missing = gross.isna() | cost.isna() | net.isna()
+    finite_inputs = (
+        np.isfinite(qty) & np.isfinite(gross) & np.isfinite(cost) & np.isfinite(net)
+    )
+    invalid_non_finite = ~finite_inputs
     delta = gross - cost - net
-    mismatch_mask = ~missing & delta.abs().gt(0.02)
-    verified_mask = ~missing & ~mismatch_mask
+    mismatch_mask = ~missing & finite_inputs & np.isfinite(delta) & delta.abs().gt(0.02)
+    invalid_derived = ~missing & finite_inputs & ~np.isfinite(delta)
+    invalid_non_finite = invalid_non_finite | invalid_derived
+    verified_mask = ~missing & ~mismatch_mask & ~invalid_non_finite
     verified_net = net.where(verified_mask)
     status = np.where(missing, "MISSING_ACCOUNTING_FIELD",
-                      np.where(mismatch_mask, "RECONCILIATION_MISMATCH",
-                               np.where(gross_source.eq("RECORDED"), "RECONCILED", "RECONCILED_WITH_DERIVED_GROSS")))
+                      np.where(invalid_non_finite, "INVALID_NON_FINITE_ACCOUNTING_VALUE",
+                               np.where(mismatch_mask, "RECONCILIATION_MISMATCH",
+                                        np.where(gross_source.eq("RECORDED"), "RECONCILED", "RECONCILED_WITH_DERIVED_GROSS"))))
     detail = pd.DataFrame({
         "model": model, "row_index": x.index, "symbol": x.get("symbol", pd.Series("", index=x.index)).astype(str),
         "target_date": x.get("target_date", pd.Series("", index=x.index)).astype(str),
@@ -72,10 +84,12 @@ def _ledger(frame: pd.DataFrame, model: str, gross_col: str, cost_col: str, net_
     })
     incomplete = int(missing.sum())
     mismatch = int(mismatch_mask.sum())
-    complete = not x.empty and incomplete == 0 and mismatch == 0
+    invalid_non_finite_rows = int(invalid_non_finite.sum())
+    complete = not x.empty and incomplete == 0 and mismatch == 0 and invalid_non_finite_rows == 0
     summary = {
         "model": model, "rows": int(len(frame)), "executed_trades": int(len(x)),
         "incomplete_rows": incomplete, "reconciliation_mismatch_rows": mismatch,
+        "invalid_non_finite_rows": invalid_non_finite_rows,
         "gross_rows_reconstructed_from_prices": int(reconstructable.sum()),
         "ledger_status": "RECONCILED" if complete else ("NO_EXECUTED_TRADES" if x.empty else "INCOMPLETE_OR_MISMATCH"),
         "gross_pnl": float(gross.sum()) if gross.notna().all() and len(gross) else (0.0 if x.empty else None),

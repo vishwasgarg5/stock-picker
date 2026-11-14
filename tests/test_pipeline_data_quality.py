@@ -1,5 +1,6 @@
 import pandas as pd
 
+from src import pipeline
 from src.pipeline import _merge_candidate_history, _select_completed_market_date, validate_data_quality
 
 
@@ -96,3 +97,41 @@ def test_candidate_history_rerun_refreshes_same_prediction_session():
 
     assert len(result) == 1
     assert result.iloc[0]["score"] == 85.0
+
+
+
+def test_existing_prediction_refreshes_candidate_history_without_replacing_prediction(monkeypatch):
+    target_date = pd.Timestamp("2026-11-16")
+    existing = pd.DataFrame([
+        {
+            "prediction_date": pd.Timestamp("2026-11-13"),
+            "target_date": target_date,
+            "symbol": f"STOCK{i}",
+            "rank": i + 1,
+        }
+        for i in range(10)
+    ])
+    calls = []
+
+    monkeypatch.setattr(
+        pipeline,
+        "_validate_prediction_session",
+        lambda frame, target: calls.append(("validate", len(frame), target)),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "predict_top10",
+        lambda hist, ranking, target: calls.append(("refresh", target)),
+    )
+
+    pipeline._save_next_session_prediction(
+        pd.DataFrame({"symbol": ["STOCK0"]}),
+        pd.DataFrame({"symbol": ["STOCK0"]}),
+        target_date,
+        existing,
+    )
+
+    assert calls == [
+        ("validate", 10, target_date),
+        ("refresh", target_date),
+    ]

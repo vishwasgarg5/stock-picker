@@ -43,10 +43,13 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
     x["prediction_date"] = pd.to_datetime(x["prediction_date"], errors="coerce").dt.normalize()
     x["target_date"] = pd.to_datetime(x["target_date"], errors="coerce").dt.normalize()
     x["symbol"] = x["symbol"].astype(str).str.strip().str.upper()
-    for col in ("base_close", "predicted_close", "actual_close"):
+    numeric_columns = ["base_close", "predicted_close", "actual_close"]
+    for col in numeric_columns:
         x[col] = pd.to_numeric(x[col], errors="coerce")
-    x = x.dropna(subset=list(REQUIRED))
-    x = x[(x["target_date"] > x["prediction_date"]) & x["base_close"].gt(0) & x["actual_close"].gt(0)]
+    finite_inputs = pd.DataFrame(pd.notna(x[numeric_columns]) & (x[numeric_columns].abs() != float("inf")), index=x.index, columns=numeric_columns).all(axis=1)
+    invalid_non_finite_rows = int((x[numeric_columns].notna().any(axis=1) & ~finite_inputs).sum())
+    x = x.loc[finite_inputs].dropna(subset=list(REQUIRED))
+    x = x[(x["target_date"] > x["prediction_date"]) & x["base_close"].gt(0) & x["predicted_close"].gt(0) & x["actual_close"].gt(0)]
     x = x.drop_duplicates(["prediction_date", "target_date", "symbol"], keep="last")
     # Only predictions made strictly after the frozen lock date can enter.
     prospective = x.loc[x["prediction_date"] > pd.Timestamp(lock_date).normalize()].copy()
@@ -56,9 +59,16 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
     # can never enter the prospective scoring cohort.
     min_train_rows = 30
     min_train_sessions = 5
-    x["raw_return"] = x["predicted_close"] / x["base_close"] - 1.0
-    x["actual_return"] = x["actual_close"] / x["base_close"] - 1.0
-    x["realized_return_bias"] = x["raw_return"] - x["actual_return"]
+    import numpy as np
+    with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+        x["raw_return"] = x["predicted_close"] / x["base_close"] - 1.0
+        x["actual_return"] = x["actual_close"] / x["base_close"] - 1.0
+        x["realized_return_bias"] = x["raw_return"] - x["actual_return"]
+    derived_columns = ["raw_return", "actual_return", "realized_return_bias"]
+    finite_derived = pd.DataFrame(np.isfinite(x[derived_columns]), index=x.index, columns=derived_columns).all(axis=1)
+    invalid_non_finite_rows += int((~finite_derived).sum())
+    x = x.loc[finite_derived].copy()
+    prospective = x.loc[x["prediction_date"] > pd.Timestamp(lock_date).normalize()].copy()
     daily_rows = []
     corrected_parts = []
     shrinkage_parts = []
@@ -129,6 +139,7 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
         "lock_date": str(pd.Timestamp(lock_date).date()),
         "cohort_rule": "Include only rows whose prediction_date is strictly later than lock_date; cohort membership is not backfilled with pre-lock predictions.",
         "prospective_rows": int(len(prospective)),
+        "invalid_non_finite_rows": invalid_non_finite_rows,
         "prospective_symbols": int(prospective["symbol"].nunique()) if not prospective.empty else 0,
         "prospective_sessions": sessions,
         "minimum_sessions_before_review": MIN_PROSPECTIVE_SESSIONS,

@@ -239,7 +239,8 @@ def _merge_current_predictions(candidates: pd.DataFrame, predictions: pd.DataFra
 
 
 def run_phase2() -> pd.DataFrame:
-    c = _merge_current_predictions(_read(CANDIDATES), _read(PREDICTIONS))    e = _read(EVALS)
+    c = _merge_current_predictions(_read(CANDIDATES), _read(PREDICTIONS))
+    e = _read(EVALS)
     h = _read(HISTORY)
     if c.empty:
         # Never leave a previous run's candidate output looking current.

@@ -59,3 +59,17 @@ def test_phase2_metadata_flags_distinguish_missing_join_from_rejection():
     })
 
     assert _phase2_metadata_flags(predictions).tolist() == [True, False, False]
+
+
+
+def test_v2_whole_share_sizing_rejects_positions_below_one_share():
+    from src.paper_trading_v2 import _whole_share_quantity
+
+    quantity = _whole_share_quantity(
+        pd.Series([400.0, 600.0, 0.0, np.nan]),
+        pd.Series([1.0, 1.0, 1.0, 1.0]),
+        capital=1000.0,
+        max_trades=2,
+    )
+
+    assert quantity.tolist() == [1, 0, 0, 0]

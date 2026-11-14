@@ -198,3 +198,47 @@ def test_phase114_requires_exit_attribution_and_never_auto_promotes(tmp_path, mo
     assert review["status"] == "REVIEW_REQUIRED"
     assert review["automatic_promotion"] is False
     assert review["production_changes_authorized"] is False
+
+
+def test_phase107_validates_fixed_share_source_evidence_without_backfilling(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    trades = pd.DataFrame([{
+        "signal": "BUY", "target_date": "2026-10-08",
+        "entry_price": 348.5, "exit_price": 356.6499938964844,
+        "quantity": 58, "position_value": 20213.0,
+        "planned_capital": 19949.1, "reference_price": 343.95,
+        "pre_split_quantity": 58, "split_ratio": 1.0,
+        "profit_loss": 472.69964599609375, "return_pct": 2.338592222807568,
+        "shares": None, "allocated_capital": None,
+        "gross_profit_loss": None, "costs": None,
+    }])
+    original = trades.copy(deep=True)
+    result = phase107_pnl_reconciliation(trades)
+    evidence = result["fixed_share_source_evidence"]
+    assert evidence["status"] == "GROSS_SOURCE_EVIDENCE_VALIDATED"
+    assert evidence["candidate_rows"] == 1
+    assert evidence["validated_rows"] == 1
+    assert evidence["mismatch_rows"] == 0
+    assert evidence["costs_modeled"] is False
+    assert evidence["net_profit_loss_verified"] is False
+    assert evidence["source_ledger_mutated"] is False
+    assert result["status"] == "BLOCKED"
+    pd.testing.assert_frame_equal(trades, original)
+
+
+def test_phase107_fixed_share_source_evidence_rejects_inconsistent_quantity(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    trades = pd.DataFrame([{
+        "signal": "BUY", "entry_price": 100, "exit_price": 110,
+        "quantity": 2, "position_value": 200, "planned_capital": 190,
+        "reference_price": 95, "pre_split_quantity": 2, "split_ratio": 1,
+        "profit_loss": 25, "return_pct": 12.5,
+    }])
+    result = phase107_pnl_reconciliation(trades)
+    evidence = result["fixed_share_source_evidence"]
+    assert evidence["candidate_rows"] == 1
+    assert evidence["validated_rows"] == 0
+    assert evidence["mismatch_rows"] == 1
+    assert evidence["status"] == "NO_VALID_SOURCE_EVIDENCE"

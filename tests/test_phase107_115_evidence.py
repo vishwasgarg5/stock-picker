@@ -457,3 +457,44 @@ def test_phase110_blocks_overflowed_derived_forecast_metrics(tmp_path, monkeypat
     assert result["status"] == "BLOCKED_INVALID_METRICS"
     assert result["metrics"] == {}
     assert result["close_directional_accuracy_pct"] is None
+
+
+
+def test_phase110_blocks_invalid_actual_ohlc_relationships(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pred = pd.DataFrame([{
+        "symbol": "AAA", "target_date": "2026-01-02", "predicted_close": 105,
+    }])
+    history = pd.DataFrame([{
+        "symbol": "AAA", "date": "2026-01-02",
+        "open": 100, "high": 98, "low": 99, "close": 104,
+    }])
+    monkeypatch.setattr(
+        module, "_read",
+        lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy(),
+    )
+    result = module.phase110_forecast_accuracy()
+    assert result["status"] == "BLOCKED_INVALID_OHLC"
+    assert result["invalid_actual_ohlc_rows"] == 1
+    assert result["metrics"] == {}
+
+
+def test_phase110_blocks_unparseable_forecast_dates(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pred = pd.DataFrame([{
+        "symbol": "AAA", "target_date": "not-a-date", "predicted_close": 105,
+    }])
+    history = pd.DataFrame([{
+        "symbol": "AAA", "date": "2026-01-02",
+        "open": 100, "high": 107, "low": 99, "close": 104,
+    }])
+    monkeypatch.setattr(
+        module, "_read",
+        lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy(),
+    )
+    result = module.phase110_forecast_accuracy()
+    assert result["status"] == "BLOCKED_INVALID_KEYS"
+    assert result["invalid_prediction_key_rows"] == 1
+    assert result["metrics"] == {}

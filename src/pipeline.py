@@ -803,6 +803,21 @@ def apply_risk_off_selection(candidates: pd.DataFrame, risk_level: str = "NEUTRA
     x=x.sort_values(["risk_off_selection_score","rank","symbol"],ascending=[False,True,True],kind="mergesort")
     return x,"risk_off_defensive_v1"
 
+def _merge_candidate_history(existing: pd.DataFrame, candidates: pd.DataFrame) -> pd.DataFrame:
+    """Append candidate sessions without collapsing repeated target dates.
+
+    A symbol may be reconsidered for the same target date in a later
+    prediction session. Keep each prediction_date/target_date/symbol key,
+    and let a rerun refresh that exact session's candidate row.
+    """
+    combined = pd.concat([existing, candidates], ignore_index=True)
+    keys = ["prediction_date", "target_date", "symbol"]
+    missing = [key for key in keys if key not in combined.columns]
+    if missing:
+        raise ValueError(f"Candidate history is missing required key columns: {missing}")
+    return combined.drop_duplicates(keys, keep="last").reset_index(drop=True)
+
+
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:
     ranked = ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score", "market_regime", "sector"]].copy() if "sector" in ranking.columns else ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score", "market_regime"]].copy()
     if len(ranked) < 10:
@@ -1028,8 +1043,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     candidates["selected"] = candidates["symbol"].isin(selected_symbols).astype(int)
     candidates.to_csv(CANDIDATES_FILE, index=False)
     existing_candidates = pd.read_csv(CANDIDATE_HISTORY_FILE) if CANDIDATE_HISTORY_FILE.exists() else pd.DataFrame()
-    history_candidates = pd.concat([existing_candidates, candidates], ignore_index=True)
-    history_candidates = history_candidates.drop_duplicates(["target_date", "symbol"], keep="first")
+    history_candidates = _merge_candidate_history(existing_candidates, candidates)
     history_candidates.to_csv(CANDIDATE_HISTORY_FILE, index=False)
     selected = candidates[candidates["selected"] == 1].copy()
     if len(selected) != 10:

@@ -33,3 +33,41 @@ def test_diagnosis_missing_schema_is_safe():
     assert regimes.empty
     assert summary["status"] == "INSUFFICIENT_DATA"
     assert summary["automatic_promotion"] is False
+
+
+
+def test_diagnosis_rejects_non_finite_and_non_positive_forecast_prices():
+    dates = pd.bdate_range("2026-01-01", periods=4)
+    rows = []
+    for i in range(3):
+        rows.append({
+            "prediction_date": dates[i].strftime("%Y-%m-%d"),
+            "target_date": dates[i + 1].strftime("%Y-%m-%d"),
+            "symbol": f"S{i}",
+            "base_close": 100.0,
+            "predicted_close": [float("inf"), -1.0, 101.0][i],
+            "actual_close": [102.0, 102.0, float("-inf")][i],
+        })
+    symbols, regimes, summary = diagnose_forecast_errors(pd.DataFrame(rows))
+
+    assert summary["invalid_non_finite_rows"] == 2
+    assert summary["scored_rows"] == 0
+    assert symbols.empty
+    assert regimes.empty
+
+
+def test_diagnosis_rejects_overflowed_realized_move():
+    row = {
+        "prediction_date": "2026-01-01",
+        "target_date": "2026-01-02",
+        "symbol": "AAA",
+        "base_close": 1e-320,
+        "predicted_close": 1.0,
+        "actual_close": 1e308,
+    }
+    symbols, regimes, summary = diagnose_forecast_errors(pd.DataFrame([row]))
+
+    assert summary["invalid_non_finite_rows"] == 1
+    assert summary["scored_rows"] == 0
+    assert symbols.empty
+    assert regimes.empty

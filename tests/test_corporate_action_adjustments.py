@@ -98,7 +98,7 @@ def test_market_regime_uses_split_adjusted_close():
         "low": raw_prices * 0.99,
         "close": raw_prices,
         "volume": 1000.0,
-        "stock_splits": [0.0] * 39 + [2.0] + [0.0] * 20,
+        "stock_splits": [0.0] * 40 + [2.0] + [0.0] * 19,
     })
 
     assert market_regime(history) == "BULL"

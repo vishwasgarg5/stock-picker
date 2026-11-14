@@ -100,3 +100,28 @@ def test_bias_correction_uses_only_prior_realized_sessions_and_same_locked_cohor
     assert summary["production_model_changed"] is False
     assert summary["automatic_promotion"] is False
     assert summary["promotion_allowed"] is False
+
+
+
+def test_prospective_validation_rejects_non_finite_and_non_positive_forecasts():
+    rows = [
+        _row("2026-10-15", "2026-10-16", predicted=float("inf")),
+        _row("2026-10-15", "2026-10-16", symbol="BBB", predicted=-1.0),
+        _row("2026-10-15", "2026-10-16", symbol="CCC", actual=float("-inf")),
+        _row("2026-10-15", "2026-10-16", symbol="DDD"),
+    ]
+    daily, summary = evaluate_prospective(pd.DataFrame(rows), pd.Timestamp("2026-10-14"))
+
+    assert summary["invalid_non_finite_rows"] == 2
+    assert summary["prospective_rows"] == 1
+    assert summary["prospective_rows"] == int(daily["rows"].sum())
+
+
+def test_prospective_validation_rejects_overflowed_derived_returns():
+    row = _row("2026-10-15", "2026-10-16", predicted=1e308)
+    row["base_close"] = 1e-320
+    daily, summary = evaluate_prospective(pd.DataFrame([row]), pd.Timestamp("2026-10-14"))
+
+    assert summary["invalid_non_finite_rows"] == 1
+    assert summary["prospective_rows"] == 0
+    assert daily.empty

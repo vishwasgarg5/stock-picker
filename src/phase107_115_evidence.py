@@ -475,7 +475,19 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
             })
         valid = present & finite & p.gt(0) & a.gt(0)
         if valid.any():
-            metrics[k] = {"n": int(valid.sum()), "mae": float((p[valid] - a[valid]).abs().mean()), "bias": float((p[valid] - a[valid]).mean()), "mape_pct": float(((p[valid] - a[valid]).abs() / a[valid].abs()).mean() * 100)}
+            mae = float((p[valid] - a[valid]).abs().mean())
+            bias = float((p[valid] - a[valid]).mean())
+            mape_pct = float(((p[valid] - a[valid]).abs() / a[valid].abs()).mean() * 100)
+            derived = np.asarray([mae, bias, mape_pct], dtype=float)
+            if not np.isfinite(derived).all():
+                return _write("phase110_forecast_accuracy_summary.json", {
+                    "status": "BLOCKED_INVALID_METRICS", "matched_rows": int(len(merged)),
+                    "invalid_metric_rows": int(valid.sum()), "metrics": {},
+                    "close_directional_accuracy_pct": None,
+                    "chronological_split_used_for_this_summary": False,
+                    "note": "Derived forecast error metrics overflowed to non-finite values; no accuracy metrics were scored.",
+                })
+            metrics[k] = {"n": int(valid.sum()), "mae": mae, "bias": bias, "mape_pct": mape_pct}
     directional = None
     if "predicted_close" in merged and "base_close" in merged:
         pc, ac, base = (pd.to_numeric(merged[c], errors="coerce") for c in ["predicted_close", "actual_close", "base_close"])

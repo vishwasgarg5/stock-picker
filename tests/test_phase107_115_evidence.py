@@ -348,3 +348,32 @@ def test_phase107_rejects_unpaired_split_source_metadata(tmp_path, monkeypatch):
     evidence = result["fixed_share_source_evidence"]
     assert evidence["validated_rows"] == 0
     assert evidence["invalid_split_metadata_rows"] == 1
+
+
+
+def test_phase107_blocks_non_finite_canonical_accounting_values(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    trades = pd.DataFrame([{
+        "signal": "BUY", "entry_price": 100, "exit_price": 110, "shares": 2,
+        "allocated_capital": 200, "gross_profit_loss": float("inf"), "costs": 1,
+        "profit_loss": 19, "return_pct": 9.5,
+    }])
+    result = phase107_pnl_reconciliation(trades)
+    assert result["status"] == "BLOCKED"
+    assert result["invalid_non_finite_rows"] == 1
+    assert result["invalid_non_finite_values_by_field"]["gross_profit_loss"] == 1
+
+
+def test_phase108_blocks_non_finite_pnl_instead_of_scoring_losses(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    trades = pd.DataFrame([
+        {"signal": "BUY", "symbol": "AAA", "profit_loss": float("-inf")},
+        {"signal": "BUY", "symbol": "BBB", "profit_loss": 10},
+    ])
+    result = phase108_loss_concentration(trades)
+    assert result["status"] == "BLOCKED_INVALID_METRICS"
+    assert result["invalid_non_finite_rows"] == 1
+    assert result["gross_loss"] is None
+    assert result["group_reports"] == []

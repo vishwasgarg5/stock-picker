@@ -19,7 +19,7 @@
     "src/phase103_forecast_evidence.py": "ea9afd2b8d442fdc39ea7a08e2c36073af9d214c11c15ad09a4438d2a3d8885a",
     "src/phase104_loss_concentration.py": "c41fcbead1112939dd96ff464e150a2bf85daa1a9a99dabf119663b5c5c7fcd5",
     "src/phase105_exit_attribution.py": "caf654619590245a58ff819872e5af0d5712fe9b8d2a3619575c0fedcb561d92",
-    "src/phase106_trade_lifecycle.py": "2b28b263a072f722e930ebca4665bdfa15c0849dae8673689b706c39aa8a7929",
+    "src/phase106_trade_lifecycle.py": "3cf130f203df300ab1e904a64ddd80e54206996c145cbd45d229880252b11728",
     "src/phase107_115_evidence.py": "60dc332063427b245e881ac8d5c4a1e7e82a24cdef061b52615741007d31806b",
     "src/phase116_shrinkage_calibration.py": "05bffe2b27efd167656b396d41b8568a79481de26c4c3a83c4492461fcc27174",
     "src/phase117_bias_correction.py": "c4f3edc7cb923742b555b294e6a2d05cac5f94b506b526349a86a5a75a8e0d04",

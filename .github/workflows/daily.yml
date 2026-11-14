@@ -154,7 +154,7 @@ jobs:
           if not trades_path.exists() or not funnel_path.exists():
               raise SystemExit("V2 engine must produce both trade history and selection funnel reports")
           trades = pd.read_csv(trades_path, low_memory=False)
-          required = {"signal", "no_trade_reason", "symbol", "target_date"}
+          required = {"signal", "no_trade_reason", "symbol", "target_date", "quantity", "planned_capital"}
           missing = required.difference(trades.columns)
           if missing:
               raise SystemExit(f"V2 trade report missing columns: {sorted(missing)}")
@@ -164,13 +164,24 @@ jobs:
           if reasons.eq("").any():
               examples = skips.loc[reasons.eq(""), ["target_date", "symbol"]].head(10)
               raise SystemExit(f"SKIP rows without reasons: {examples.to_dict(orient='records')}")
-          buys = trades.loc[signal.eq("BUY")]
+          buys = trades.loc[signal.eq("BUY")].copy()
           if buys["no_trade_reason"].fillna("").astype(str).str.strip().ne("").any():
               raise SystemExit("BUY rows must not carry a no-trade rejection reason")
+          if not buys.empty:
+              quantity = pd.to_numeric(buys["quantity"], errors="coerce")
+              planned_capital = pd.to_numeric(buys["planned_capital"], errors="coerce")
+              if quantity.isna().any() or (~quantity.map(lambda value: value > 0)).any():
+                  raise SystemExit("Every V2 BUY must have a positive whole-share quantity")
+              if (quantity % 1 != 0).any():
+                  raise SystemExit("V2 BUY quantities must be whole shares")
+              if planned_capital.isna().any() or (~planned_capital.map(lambda value: value > 0)).any():
+                  raise SystemExit("Every V2 BUY must have positive planned capital")
           funnel = pd.read_csv(funnel_path)
           if funnel.empty or not {"stage", "input_rows", "output_rows", "rejected_rows"}.issubset(funnel.columns):
               raise SystemExit("V2 funnel is empty or missing required count columns")
-          print(f"V2 reason audit passed: rows={len(trades)}, BUY={len(buys)}, SKIP={len(skips)}")
+          if not funnel["stage"].astype(str).eq("whole_share_sizing_gate").any():
+              raise SystemExit("V2 funnel is missing the whole-share sizing gate")
+          print(f"V2 reason/sizing audit passed: rows={len(trades)}, BUY={len(buys)}, SKIP={len(skips)}")
           print("SKIP reason counts:", reasons.value_counts().to_dict())
           print("V2 funnel stages recorded:", len(funnel))
           PY

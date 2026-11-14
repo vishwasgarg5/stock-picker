@@ -74,9 +74,12 @@ def audit_forecast_stability(scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
     x["prediction_date"] = pd.to_datetime(x["prediction_date"], errors="coerce").dt.normalize()
     x["target_date"] = pd.to_datetime(x["target_date"], errors="coerce").dt.normalize()
     x["symbol"] = x["symbol"].astype(str).str.upper().str.strip()
-    for col in ("base_close", "predicted_close", "actual_close"):
+    numeric_columns = ["base_close", "predicted_close", "actual_close"]
+    for col in numeric_columns:
         x[col] = pd.to_numeric(x[col], errors="coerce")
-    x = x.dropna(subset=list(REQUIRED)).copy()
+    finite_inputs = pd.DataFrame(np.isfinite(x[numeric_columns]), index=x.index, columns=numeric_columns).all(axis=1)
+    invalid_non_finite_rows = int((x[numeric_columns].notna().any(axis=1) & ~finite_inputs).sum())
+    x = x.loc[finite_inputs].dropna(subset=list(REQUIRED)).copy()
     x = x[
         (x["target_date"] > x["prediction_date"])
         & x["base_close"].gt(0)
@@ -97,9 +100,23 @@ def audit_forecast_stability(scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
             "automatic_promotion": False, "promotion_allowed": False,
         }
 
-    x["raw_return"] = x["predicted_close"] / x["base_close"] - 1.0
-    x["actual_return"] = x["actual_close"] / x["base_close"] - 1.0
-    x["realized_return_bias"] = x["raw_return"] - x["actual_return"]
+    with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+        x["raw_return"] = x["predicted_close"] / x["base_close"] - 1.0
+        x["actual_return"] = x["actual_close"] / x["base_close"] - 1.0
+        x["realized_return_bias"] = x["raw_return"] - x["actual_return"]
+    derived_columns = ["raw_return", "actual_return", "realized_return_bias"]
+    finite_derived = pd.DataFrame(np.isfinite(x[derived_columns]), index=x.index, columns=derived_columns).all(axis=1)
+    invalid_non_finite_rows += int((~finite_derived).sum())
+    x = x.loc[finite_derived].copy()
+    if x.empty:
+        return empty, empty, empty, {
+            "status": "INSUFFICIENT_DATA", "missing_columns": [], "scored_rows": 0,
+            "invalid_non_finite_rows": invalid_non_finite_rows,
+            "duplicate_rows_excluded": duplicate_rows, "strict_no_lookahead": True,
+            "production_champion": "V1", "v2_mode": "SHADOW_ONLY",
+            "production_model_changed": False, "ranking_or_risk_changed": False,
+            "automatic_promotion": False, "promotion_allowed": False,
+        }
 
     session_rows: list[dict[str, Any]] = []
     no_lookahead_checks: list[bool] = []
@@ -158,6 +175,7 @@ def audit_forecast_stability(scores: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
     summary: dict[str, Any] = {
         "status": "SCORED" if len(x) >= 20 else ("SMALL_SAMPLE" if len(x) else "INSUFFICIENT_DATA"),
         "scored_rows": int(len(x)),
+        "invalid_non_finite_rows": invalid_non_finite_rows,
         "symbols": int(x["symbol"].nunique()),
         "target_sessions": int(x["target_date"].nunique()),
         "prediction_sessions": int(x["prediction_date"].nunique()),

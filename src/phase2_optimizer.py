@@ -16,6 +16,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 CANDIDATES = DATA / "prediction_candidates_history.csv"
+PREDICTIONS = DATA / "predictions.csv"
 EVALS = DATA / "evaluations.csv"
 HISTORY = DATA / "ohlcv.csv"
 OUT = DATA / "phase2_optimized_candidates.csv"
@@ -207,9 +208,38 @@ def _production_gate(summary: dict) -> tuple[bool, str]:
     return True, "all_phase2_gates_passed"
 
 
+def _merge_current_predictions(candidates: pd.DataFrame, predictions: pd.DataFrame) -> pd.DataFrame:
+    """Ensure canonical predictions are represented in Phase 2, even if history refresh lagged."""
+    if predictions.empty:
+        return candidates
+    keys = ["prediction_date", "target_date", "symbol"]
+    missing = [key for key in keys if key not in predictions.columns]
+    if missing:
+        raise ValueError(f"Canonical predictions are missing Phase 2 key columns: {missing}")
+    incoming = predictions.copy()
+    incoming["prediction_date"] = _norm_dates(incoming["prediction_date"])
+    incoming["target_date"] = _norm_dates(incoming["target_date"])
+    incoming["symbol"] = incoming["symbol"].astype(str).str.upper().str.strip()
+    incoming = incoming.dropna(subset=keys)
+    if candidates.empty:
+        return incoming
+    existing = candidates.copy()
+    missing_existing = [key for key in keys if key not in existing.columns]
+    if missing_existing:
+        raise ValueError(f"Candidate history is missing Phase 2 key columns: {missing_existing}")
+    existing["prediction_date"] = _norm_dates(existing["prediction_date"])
+    existing["target_date"] = _norm_dates(existing["target_date"])
+    existing["symbol"] = existing["symbol"].astype(str).str.upper().str.strip()
+    known = set(existing.dropna(subset=keys)[keys].itertuples(index=False, name=None))
+    incoming_keys = incoming[keys].apply(tuple, axis=1)
+    additions = incoming.loc[~incoming_keys.isin(known)]
+    if additions.empty:
+        return existing
+    return pd.concat([existing, additions], ignore_index=True, sort=False)
+
+
 def run_phase2() -> pd.DataFrame:
-    c = _read(CANDIDATES)
-    e = _read(EVALS)
+    c = _merge_current_predictions(_read(CANDIDATES), _read(PREDICTIONS))    e = _read(EVALS)
     h = _read(HISTORY)
     if c.empty:
         # Never leave a previous run's candidate output looking current.

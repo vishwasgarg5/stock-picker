@@ -32,3 +32,18 @@ def test_malformed_phase2_selection_metadata_fails_closed():
     selected = _phase2_selection_flags(predictions)
 
     assert selected.tolist() == [True, False, False, False, False]
+
+
+def test_confidence_percentile_is_ranked_against_full_candidate_universe():
+    from src.paper_trading_v2 import _add_confidence_percentile
+
+    candidates = pd.DataFrame({
+        "target_date": [pd.Timestamp("2026-11-13")] * 4,
+        "confidence_v3": [10.0, 20.0, 30.0, 40.0],
+    })
+    ranked = _add_confidence_percentile(candidates)
+    phase2_selected = ranked.iloc[[1, 2]].copy()
+
+    # Filtering Phase 2 candidates must not silently change their percentile
+    # denominator from four validated predictions to two selected predictions.
+    assert phase2_selected["confidence_pct"].tolist() == [0.5, 0.75]

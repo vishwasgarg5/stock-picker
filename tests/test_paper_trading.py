@@ -239,3 +239,37 @@ def test_exit_reason_audit_reports_reason_distribution():
     assert audit["exit_reason_coverage_pct"] == pytest.approx(100.0)
     assert '"target": 1' in audit["exit_reason_counts_json"]
     assert '"stop_loss": 1' in audit["exit_reason_counts_json"]
+
+
+
+def test_legacy_missing_exit_reason_does_not_block_new_schema_writes():
+    trades = pd.DataFrame([{
+        "signal": "BUY", "ledger_schema_version": 1,
+        "entry_price": 100.0, "exit_price": 110.0,
+        "shares": 100.0, "allocated_capital": 10000.0,
+        "gross_profit_loss": 1000.0, "costs": 10.0,
+        "profit_loss": 990.0, "return_pct": 9.9,
+        "exit_reason": None,
+    }])
+    audit = pt._accounting_ledger_audit(trades)
+    # Overall historical evidence remains blocked/incomplete, but valid new
+    # trades must not be prevented from being persisted because of legacy gaps.
+    assert audit["status"] == "BLOCK"
+    assert audit["legacy_missing_exit_reason_rows"] == 1
+    assert audit["current_schema_missing_exit_reason_rows"] == 0
+    assert audit["write_allowed"] is True
+
+
+def test_current_schema_missing_exit_reason_still_blocks_persistence():
+    trades = pd.DataFrame([{
+        "signal": "BUY", "ledger_schema_version": 2,
+        "entry_price": 100.0, "exit_price": 110.0,
+        "shares": 100.0, "allocated_capital": 10000.0,
+        "gross_profit_loss": 1000.0, "costs": 10.0,
+        "profit_loss": 990.0, "return_pct": 9.9,
+        "exit_reason": None,
+    }])
+    audit = pt._accounting_ledger_audit(trades)
+    assert audit["status"] == "BLOCK"
+    assert audit["current_schema_missing_exit_reason_rows"] == 1
+    assert audit["write_allowed"] is False

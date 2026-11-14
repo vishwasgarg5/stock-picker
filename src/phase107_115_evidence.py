@@ -104,7 +104,7 @@ def _fixed_share_source_evidence(buys: pd.DataFrame) -> dict[str, Any]:
     candidate_count = int(candidates.sum())
     mismatch_count = int((candidates & mismatch).sum())
     return {
-        "status": "GROSS_SOURCE_EVIDENCE_VALIDATED" if candidate_count and mismatch_count == 0 else (
+        "status": "GROSS_SOURCE_EVIDENCE_VALIDATED" if candidate_count == len(buys) and candidate_count > 0 and mismatch_count == 0 else (
             "GROSS_SOURCE_EVIDENCE_PARTIAL" if valid.any() else "NO_VALID_SOURCE_EVIDENCE"
         ),
         "candidate_rows": candidate_count,

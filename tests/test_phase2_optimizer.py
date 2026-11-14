@@ -121,6 +121,7 @@ def test_phase2_clears_stale_output_when_candidate_input_is_empty(tmp_path, monk
                    "symbol": "STALE", "phase2_selected": 1, "phase2_rank": 1}]).to_csv(output, index=False)
 
     monkeypatch.setattr(phase2, "CANDIDATES", candidates)
+    monkeypatch.setattr(phase2, "PREDICTIONS", tmp_path / "missing-predictions.csv")
     monkeypatch.setattr(phase2, "EVALS", tmp_path / "missing-evaluations.csv")
     monkeypatch.setattr(phase2, "HISTORY", tmp_path / "missing-ohlcv.csv")
     monkeypatch.setattr(phase2, "OUT", output)
@@ -150,6 +151,7 @@ def test_phase2_clears_stale_output_when_all_candidate_dates_are_invalid(tmp_pat
                    "symbol": "STALE", "phase2_selected": 1, "phase2_rank": 1}]).to_csv(output, index=False)
 
     monkeypatch.setattr(phase2, "CANDIDATES", candidates)
+    monkeypatch.setattr(phase2, "PREDICTIONS", tmp_path / "missing-predictions.csv")
     monkeypatch.setattr(phase2, "EVALS", tmp_path / "missing-evaluations.csv")
     monkeypatch.setattr(phase2, "HISTORY", tmp_path / "missing-ohlcv.csv")
     monkeypatch.setattr(phase2, "OUT", output)
@@ -185,6 +187,7 @@ def test_phase2_persists_all_candidate_sessions_without_stale_rows(tmp_path, mon
     }]).to_csv(output, index=False)
 
     monkeypatch.setattr(phase2, "CANDIDATES", candidates)
+    monkeypatch.setattr(phase2, "PREDICTIONS", tmp_path / "missing-predictions.csv")
     monkeypatch.setattr(phase2, "EVALS", tmp_path / "missing-evaluations.csv")
     monkeypatch.setattr(phase2, "HISTORY", tmp_path / "missing-ohlcv.csv")
     monkeypatch.setattr(phase2, "OUT", output)
@@ -199,3 +202,46 @@ def test_phase2_persists_all_candidate_sessions_without_stale_rows(tmp_path, mon
     assert set(pd.to_datetime(refreshed["prediction_date"]).dt.strftime("%Y-%m-%d")) == {
         "2026-11-12", "2026-11-13",
     }
+
+def test_phase2_reconciles_canonical_predictions_missing_from_candidate_history(tmp_path, monkeypatch):
+    from src import phase2_optimizer as phase2
+
+    candidates = tmp_path / "candidates.csv"
+    pd.DataFrame({
+        "prediction_date": ["2026-11-12"],
+        "target_date": ["2026-11-13"],
+        "symbol": ["OLD"],
+        "score": [80.0],
+        "rank": [1],
+        "prediction_spread": [0.01],
+        "predicted_close": [101.0],
+        "base_close": [100.0],
+    }).to_csv(candidates, index=False)
+    predictions = tmp_path / "predictions.csv"
+    pd.DataFrame({
+        "prediction_date": ["2026-11-13"],
+        "target_date": ["2026-11-16"],
+        "symbol": ["CURRENT"],
+        "score": [90.0],
+        "rank": [1],
+        "prediction_spread": [0.02],
+        "predicted_close": [202.0],
+        "base_close": [200.0],
+    }).to_csv(predictions, index=False)
+
+    monkeypatch.setattr(phase2, "CANDIDATES", candidates)
+    monkeypatch.setattr(phase2, "PREDICTIONS", predictions)
+    monkeypatch.setattr(phase2, "EVALS", tmp_path / "missing-evaluations.csv")
+    monkeypatch.setattr(phase2, "HISTORY", tmp_path / "missing-ohlcv.csv")
+    output = tmp_path / "phase2.csv"
+    monkeypatch.setattr(phase2, "OUT", output)
+    monkeypatch.setattr(phase2, "SUMMARY", tmp_path / "summary.csv")
+    monkeypatch.setattr(phase2, "STATE", tmp_path / "state.json")
+
+    phase2.run_phase2()
+
+    refreshed = pd.read_csv(output)
+    assert set(refreshed["symbol"]) == {"OLD", "CURRENT"}
+    current = refreshed.loc[refreshed["symbol"].eq("CURRENT")].iloc[0]
+    assert current["phase2_selected"] == 1
+    assert current["phase2_rank"] == 1

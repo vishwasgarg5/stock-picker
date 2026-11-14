@@ -400,3 +400,20 @@ def test_phase110_blocks_non_finite_base_close_before_directional_scoring(tmp_pa
     assert result["invalid_metric_rows"] == 1
     assert result["metrics"] == {}
     assert result["close_directional_accuracy_pct"] is None
+
+
+
+def test_phase109_blocks_malformed_persisted_funnel_counts(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pd.DataFrame([
+        {"stage": "confidence_percentile_gate", "input_rows": 10, "output_rows": "invalid", "rejected_rows": 5},
+        {"stage": "phase2_selected_gate", "input_rows": 5, "output_rows": 2.5, "rejected_rows": 2},
+        {"stage": "phase4_eligibility_gate", "input_rows": 2, "output_rows": 1, "rejected_rows": 1},
+    ]).to_csv(tmp_path / "phase32_v2_selection_funnel.csv", index=False)
+    v2 = pd.DataFrame([{"signal": "SKIP", "no_trade_reason": "phase2_not_selected"}])
+    result = module.phase109_selection_funnel(v2)
+    assert result["existing_funnel_valid"] is False
+    assert "invalid_output_rows" in result["funnel_validation_errors"]
+    assert result["required_gate_stages_present"] is False
+    assert result["zero_buy_bottleneck"] == "INCOMPLETE_FUNNEL_STAGE_DIAGNOSTICS"

@@ -11,7 +11,7 @@ from src.phase2_optimizer import (
 
 def test_phase2_gate_requires_both_evidence_thresholds():
     ok, reason = _production_gate({
-        "matched_sessions": 20, "v2_trades": 50,
+        "matched_sessions": 17, "v2_trades": 50,
         "direction_lift_pct": 1.0, "return_lift_pct": 0.10,
     })
     assert ok
@@ -20,7 +20,7 @@ def test_phase2_gate_requires_both_evidence_thresholds():
 
 def test_phase2_gate_holds_when_directional_lift_is_weak():
     ok, reason = _production_gate({
-        "matched_sessions": 20, "v2_trades": 50,
+        "matched_sessions": 17, "v2_trades": 50,
         "direction_lift_pct": 0.1, "return_lift_pct": 1.0,
     })
     assert not ok
@@ -100,3 +100,12 @@ def test_repeat_penalty_replaces_existing_candidate_column_without_suffixes():
     assert "repeat_loss_penalty_x" not in out.columns
     assert "repeat_loss_penalty_y" not in out.columns
     assert out["repeat_loss_penalty"].tolist() == [1.25, 0.0]
+
+
+def test_phase2_gate_still_holds_below_17_matched_sessions():
+    ok, reason = _production_gate({
+        "matched_sessions": 16, "v2_trades": 50,
+        "direction_lift_pct": 1.0, "return_lift_pct": 0.10,
+    })
+    assert not ok
+    assert reason == "insufficient_evidence"

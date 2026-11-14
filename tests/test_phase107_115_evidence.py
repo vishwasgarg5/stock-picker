@@ -435,3 +435,25 @@ def test_phase111_blocks_unparseable_pnl_and_missing_session_dates(tmp_path, mon
     assert result["v1"]["invalid_date_rows"] == 1
     assert result["v1"]["invalid_pnl_rows"] == 1
     assert result["v1"]["net_pnl"] is None
+
+
+
+def test_phase110_blocks_overflowed_derived_forecast_metrics(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pred = pd.DataFrame([{
+        "symbol": "AAA", "target_date": "2026-01-02",
+        "predicted_close": 1e308, "base_close": 100,
+    }])
+    history = pd.DataFrame([{
+        "symbol": "AAA", "date": "2026-01-02",
+        "open": 100, "high": 1e308, "low": 99, "close": 1e-308,
+    }])
+    monkeypatch.setattr(
+        module, "_read",
+        lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy(),
+    )
+    result = module.phase110_forecast_accuracy()
+    assert result["status"] == "BLOCKED_INVALID_METRICS"
+    assert result["metrics"] == {}
+    assert result["close_directional_accuracy_pct"] is None

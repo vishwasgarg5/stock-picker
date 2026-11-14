@@ -268,7 +268,9 @@ def _accounting_ledger_audit(trades: pd.DataFrame) -> dict:
         delta = pd.Series(dtype=float)
     else:
         numeric = buys[required].apply(pd.to_numeric, errors="coerce")
-        complete = numeric.notna().all(axis=1)
+        finite = pd.DataFrame(np.isfinite(numeric), index=numeric.index, columns=numeric.columns)
+        complete = numeric.notna().all(axis=1) & finite.all(axis=1)
+        invalid_non_finite = (numeric.notna() & ~finite).any(axis=1)
         delta = numeric["gross_profit_loss"] - numeric["costs"] - numeric["profit_loss"]
         gross_delta = numeric["shares"] * (numeric["exit_price"] - numeric["entry_price"]) - numeric["gross_profit_loss"]
         expected_return = numeric["profit_loss"] / numeric["allocated_capital"].replace(0, np.nan) * 100.0
@@ -279,7 +281,10 @@ def _accounting_ledger_audit(trades: pd.DataFrame) -> dict:
             | gross_delta.abs().gt(0.05)
             | return_delta.abs().gt(0.05)
             | invalid_capital
+            | invalid_non_finite
         )
+    if missing_columns:
+        invalid_non_finite = pd.Series(False, index=buys.index)
     bad_reconciliation = int(mismatch_mask.sum()) if not missing_columns else 0
     missing_rows = int((~complete).sum()) if len(complete) else 0
     if "exit_reason" not in buys.columns:
@@ -333,7 +338,8 @@ def _accounting_ledger_audit(trades: pd.DataFrame) -> dict:
         "complete_ledger_rows": int(complete.sum()) if len(complete) else 0,
         "incomplete_ledger_rows": missing_rows,
         "reconciliation_mismatch_rows": bad_reconciliation,
-        "max_abs_reconciliation_delta": float(delta.abs().max()) if not delta.empty else None,
+        "invalid_non_finite_rows": int(invalid_non_finite.sum()),
+        "max_abs_reconciliation_delta": float(delta.abs().replace([np.inf, -np.inf], np.nan).max()) if not delta.empty else None,
         "max_abs_gross_delta": float(gross_delta.abs().max()) if not missing_columns and len(buys) and complete.any() else None,
         "max_abs_return_delta_pct_points": float(return_delta.abs().max()) if not missing_columns and len(buys) and complete.any() else None,
         "invalid_allocated_capital_rows": int(invalid_capital.sum()) if not missing_columns else None,

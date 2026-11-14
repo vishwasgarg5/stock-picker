@@ -119,3 +119,62 @@ def test_technical_score_compares_adjusted_close_to_adjusted_ema():
     scores = technical_score(latest)
 
     assert scores.iloc[0] > scores.iloc[1]
+
+
+
+def _history_rows(symbol):
+    return pd.DataFrame({
+        "date": pd.to_datetime(["2026-01-01"]),
+        "symbol": [symbol],
+        "open": [100.0],
+        "high": [102.0],
+        "low": [99.0],
+        "close": [101.0],
+        "volume": [1000.0],
+    })
+
+
+def test_action_backfill_does_not_require_symbols_without_legacy_history(tmp_path, monkeypatch):
+    from src import pipeline
+
+    history_file = tmp_path / "ohlcv.csv"
+    _history_rows("AAA").to_csv(history_file, index=False)
+    monkeypatch.setattr(pipeline, "HISTORY_FILE", history_file)
+    monkeypatch.setattr(pipeline, "download_history", lambda symbols, start: _history_rows("AAA"))
+
+    result = pipeline.update_history(["AAA", "NEWLISTING"])
+
+    assert set(result["symbol"]) == {"AAA"}
+    assert {"dividends", "stock_splits"}.issubset(result.columns)
+
+
+def test_action_backfill_still_fails_when_legacy_symbol_cannot_be_refreshed(tmp_path, monkeypatch):
+    from src import pipeline
+
+    history_file = tmp_path / "ohlcv.csv"
+    _history_rows("AAA").to_csv(history_file, index=False)
+    monkeypatch.setattr(pipeline, "HISTORY_FILE", history_file)
+    monkeypatch.setattr(
+        pipeline,
+        "download_history",
+        lambda symbols, start: pd.DataFrame(columns=pipeline.EMPTY_HISTORY),
+    )
+
+    with pytest.raises(RuntimeError, match="Corporate-action backfill incomplete"):
+        pipeline.update_history(["AAA", "NEWLISTING"])
+
+
+def test_load_universe_excludes_synthetic_dummy_index_symbols(tmp_path, monkeypatch):
+    from src import pipeline
+
+    universe_file = tmp_path / "universe.csv"
+    pd.DataFrame({"symbol": [f"STOCK{i}" for i in range(100)] + ["DUMMYHEG"]}).to_csv(
+        universe_file, index=False
+    )
+    monkeypatch.setattr(pipeline, "UNIVERSE_FILE", universe_file)
+    monkeypatch.setattr(pipeline, "NEW_LISTINGS_FILE", tmp_path / "missing_new_listings.csv")
+
+    symbols = pipeline.load_universe()
+
+    assert "DUMMYHEG" not in symbols
+    assert len(symbols) == 100

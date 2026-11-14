@@ -34,6 +34,15 @@ def _net_return_pct(profit_loss: pd.Series, entry_price: pd.Series, quantity: pd
     return net.div(invested.where(invested.gt(0))) * 100.0
 
 
+def _add_confidence_percentile(candidates: pd.DataFrame) -> pd.DataFrame:
+    """Rank confidence once against the full validated candidate universe."""
+    x = candidates.copy()
+    x["confidence_pct"] = x.groupby("target_date")["confidence_v3"].rank(
+        pct=True, method="first"
+    )
+    return x
+
+
 def _phase2_selection_flags(predictions: pd.DataFrame) -> pd.Series:
     """Return Phase-2 selection flags, failing closed when metadata is absent."""
     raw = predictions.get(
@@ -148,9 +157,10 @@ def run_paper_trading_v2() -> pd.DataFrame:
 
     confidence_promoted = _confidence_gate()
 
-    # Evidence collection is independent of production promotion. V2 benchmarks
-    # the Phase-2 selector itself; production remains protected by the governor.
-    x["confidence_pct"] = x.groupby("target_date")["confidence_v3"].rank(pct=True, method="first")
+    # Rank once against every validated candidate for the session. Re-ranking
+    # after Phase-2 selection would change the percentile denominator and make
+    # the downstream Phase-4 gate compare a different population.
+    x = _add_confidence_percentile(x)
     confidence_pass = x["confidence_pct"] >= SHADOW_CONFIDENCE_PERCENTILE
     phase2_pass = x["phase2_selected"].eq(1)
     confidence_eligible = x[confidence_pass].copy()
@@ -179,11 +189,8 @@ def run_paper_trading_v2() -> pd.DataFrame:
     ).fillna(0.50)
 
     # Phase 4 is an adaptive overlay learned only from already-realized data.
-    # It improves signal thresholds, symbol weighting, regime handling and
-    # losing-symbol cooldowns while remaining downstream of Phase 2.
-    eligible["confidence_pct"] = eligible.groupby("target_date")["confidence_v3"].rank(
-        pct=True, method="first"
-    )
+    # Keep the full-universe confidence percentile computed above; do not
+    # recompute it on the much smaller Phase-2-selected subset.
     eligible = apply_phase4(eligible)
     # Preserve the exact Phase-4 rejection cause for diagnostics. This is
     # telemetry only: it does not alter eligibility or any threshold.

@@ -14,7 +14,7 @@
   "production_enabled": false,
   "status": "shadow",
   "reason": "insufficient_evidence",
-  "min_matched_sessions": 20,
+  "min_matched_sessions": 17,
   "min_v2_trades": 50,
   "min_direction_lift_pct": 0.5,
   "min_return_lift_pct": 0.05

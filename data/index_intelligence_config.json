@@ -3,11 +3,17 @@
   "market_regime": "BULL",
   "risk_multiplier": 1.0,
   "news_sentiment": "BULLISH",
-  "news_score": -0.25999999999999995,
-  "market_reason": "General market: Indian stock markets gain in early trade over positive Asian cues - DD News",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPd21vYlZhMy1tdHVnSmFtUVhvUm5QbDZxUXJSWjVxcFIyZ1NHNHc5QTdsNHZtR1gtLUw3YmtvTUxCaG5RZXpiVWNLVmFiUWFhY3EwQWRTcmhvQk5wLVdhbl8wdUU4X1ZlMDFQeko4STJnVjUtWWpwWlFFSExyWnp1WWMtMmZua3ptc19OZXFiNmhUbENVQlE?oc=5",
-  "news_headline": "General market: Indian stock markets gain in early trade over positive Asian cues - DD News",
+  "news_score": 0.6,
+  "market_reason": "General market: Market weekly wrap: NIFTY50, SENSEX extend rally for 3rd week; PSU Banks top sectoral gainers - Upstox",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMiigJBVV95cUxOMWlBS0s0Y09Oa1J6eHpzYXcyZjgyQllHcnFVeFJCNTgtOWtMZ2RPdzhNNWxVSG5NYThGWDQ1cTZGQ0dBQXJPM1BPUG5pYVZPRHhmaDhlVmxHZDM2X1ZOaUd4QWtGZ2p4TFdtLXA3SzFrM1VtSHNqRlNTdkhlWjNXNy02eWs2eTFBc3Q3eFpXOFN3cmlRbnd0aUtvaHc4bmloWWc1eG9udDBNNnRCQTJiMXdkNk5LVDBpc01kTmJxNzlKREt1MFBMaElOMkx5UjUwTWVSMzJPMmk2Nlp3M1NkbTFkWXZGTUxmZk1ERUhTU19zSDg1MFM5QzQ2OGpGSVNpWENSOXhSdWFFZw?oc=5",
+  "news_headline": "General market: Market weekly wrap: NIFTY50, SENSEX extend rally for 3rd week; PSU Banks top sectoral gainers - Upstox",
   "news_reasons": [
+    {
+      "event": "General market",
+      "impact": 1.0,
+      "headline": "Market weekly wrap: NIFTY50, SENSEX extend rally for 3rd week; PSU Banks top sectoral gainers - Upstox",
+      "url": "https://news.google.com/rss/articles/CBMiigJBVV95cUxOMWlBS0s0Y09Oa1J6eHpzYXcyZjgyQllHcnFVeFJCNTgtOWtMZ2RPdzhNNWxVSG5NYThGWDQ1cTZGQ0dBQXJPM1BPUG5pYVZPRHhmaDhlVmxHZDM2X1ZOaUd4QWtGZ2p4TFdtLXA3SzFrM1VtSHNqRlNTdkhlWjNXNy02eWs2eTFBc3Q3eFpXOFN3cmlRbnd0aUtvaHc4bmloWWc1eG9udDBNNnRCQTJiMXdkNk5LVDBpc01kTmJxNzlKREt1MFBMaElOMkx5UjUwTWVSMzJPMmk2Nlp3M1NkbTFkWXZGTUxmZk1ERUhTU19zSDg1MFM5QzQ2OGpGSVNpWENSOXhSdWFFZw?oc=5"
+    },
     {
       "event": "General market",
       "impact": 1.0,
@@ -15,16 +21,10 @@
       "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPd21vYlZhMy1tdHVnSmFtUVhvUm5QbDZxUXJSWjVxcFIyZ1NHNHc5QTdsNHZtR1gtLUw3YmtvTUxCaG5RZXpiVWNLVmFiUWFhY3EwQWRTcmhvQk5wLVdhbl8wdUU4X1ZlMDFQeko4STJnVjUtWWpwWlFFSExyWnp1WWMtMmZua3ptc19OZXFiNmhUbENVQlE?oc=5"
     },
     {
-      "event": "RBI / rates",
-      "impact": -0.9,
-      "headline": "Rate Hike Fears Set to Test India\u2019s Stock Rally as Inflation Rises - Bloomberg.com",
-      "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxNdGRoYnhoNmZMUTVFODRONTJZQmhGTEphQ3NpaVVpMXlGeXR3N05MblVRZU4tRUtsM3Z6czJUbDJfNktJamFJOExMS2V2VVl2ZDN0N2lLdDdzMllzT1NBOXhrc0JsUGg1LS04OTI4Y3I1bE5YM1JSRE9oWVkwTnFuRmZtaXI5VnU5VEVzTXQybndSd0lBTlRPWjNWZVo5ZWFlak9tQ0lTUVFfWS1SUzJCVDl4S01RSXpYNllEWTFscVhfcjZt?oc=5"
-    },
-    {
-      "event": "US / global markets",
-      "impact": -0.7,
-      "headline": "Sensex Today Ends 318 Points Lower | Nifty Below 25,150 | Manappuram Finance Down 4% - Equitymaster",
-      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxOOEdlSnRORmgtLVBCeDZ4QlJOSU1JSURHckM4UmZRMFd3QXVTYWdSVmhLb1E3MURFWVppaGhPV0VGYWdUVjJDS2FUcjBtY2ZLQVZMWUhzdHpaZzlBZmg2aTlZSDNOdUFCc3kwUE5nSlhvQVBsSHo0MUJJZnREUHVNSVlGUkJ0eXBjaXhPUzNEUWU4R3NDMGNtakd1aTgwWnEweUp1RVQ0YzVFN2Y5WTFmYjVRRlloN1FnUE1MS0liSy01SDdlbFJOaUxoWXBnTzBOUVY4eElvak4?oc=5"
+      "event": "General market",
+      "impact": 1.0,
+      "headline": "Indian markets extend gains for 3rd straight week despite Nvidia crisis - Business Standard",
+      "url": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxOT3k1MllsTVlwSWpyeEVRV0NtckxGTTQwWDVUc2NpOUp3OGZQWUJPOWlNeFpyeWEzblBKanp3OW9BNTUyY1N2YmgtY2Z1Z09HYzBEOVlfOFNnbUluUDVvamZ4ZHlUTmg2UGxlSFJXdXRWRUNwazhGUllKSW13cTNqSEk2eW9LT3RKOXNkN25rMkMyMTZuUEJaSEtUMGRNS2JpRTJoWnViNUVOcUE1TmsxZmIwcGt0QzFkdFp6em9ZX2o1eEJ4VkFCUldzcTdtYVVOMVJBctIB2gFBVV95cUxON2d3R19ZVmJqWEFXdU40TVVIYXd5LTI2ZEYzQXZ0TnhZZlFRWk56MTdnSGw0cVNlcG1XbDNUbFdpSnl0aVFfdlB5UDMwSHk2Y19LbWpuTjJCbmVDMjVOdlIzNkZGNGJlZEZ3d3Vtd0cwTWdoZHVzQlltQkFHdlJkdzh3SW9ITmplUlpDbWJBNXNNLVFNUGhRczBNaWVGQXB3NGRBRzNhRjlLc2FQVmtvSU9ybnpCZEU2RVRja2djV1dCdjBlRVptM2hfODFiODQ2VzZhbzlGdms5Zw?oc=5"
     },
     {
       "event": "General market",
@@ -33,23 +33,19 @@
       "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPcWhfcXNmcy03Y2JVZVlqS2wzTVFUU2NnTWJmbVJLQkZBbHhoTlkxb0x4X1R4MGNZNk5OM25YYW1NN0JWQ25FclJCX1pUaEVadE9XaFdiVmM1eFZvSTM0N0lCNzFDRkNSQnF3MmJDc3I2OXNOTFB0N19wbXdMeUdNYzZZZGlMQV9NUk9QRG41MjZ5ZkMzY1hLWkt5ODJjTDlMQW5RbEF4MXRtUmtxUzBTVGNjRDVFVWxZX0VwRENNT0FqQXo1Z2c?oc=5"
     },
     {
-      "event": "General market",
-      "impact": -0.35,
-      "headline": "Sensex Falls 319 Points, Nifty Slips Below 25,200: What Dragged Dalal Street? - Equitypandit",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxNNGx4TmJscno3WFN0SzhUcHk0Qy1Bd19VbmxubWM4ZTlSUUFiYWhsLVpYWXptcG9nMmNKcmFhUE4wT1diXy1FeXNvMkNXaW9reUJPM3RLME1SX0ltU0d6RUtsTlJkZDV4ZWY1N2ROcmhQRnVzTWVmUlpLQlFRRWVPZHBQVFd1Z2RVZWVFdGZhR2JCbjlRdzU2Ymp5X2ZBTUU3cVFMN2F3?oc=5"
+      "event": "FII / DII flows",
+      "impact": 0.35,
+      "headline": "Sensex, Nifty Gain for Third Straight Week as FIIs Buy - HDFC Sky",
+      "url": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxNOFA0ckZudHU4QmNFMWo2bFU4dEQtY3BDZ2tWNmVCaWxmVGplY3VocWZLMlNoRUJZeGIxaDg3QUZnNHBNTE9PdDl2bWVNc3FqRVFUeDdrdHFiX0k1d1laNjNNdFp5dVQ3S0cycFJtNHYtOWNCbnF6QXAzUHdUcDU5eEJQZDQ4cnpBNnRSZVJhX0xlSFhHUDhYWUt4QlZYemQ5aDR1VEMzSUdLTEprTDhUcVFUOHNKOEM5OHVNdktKQTBMdWJHRmRXVzBlS2JxSDYxSFhpdXpndVNVNi05X0RmVTNPQnhhZw?oc=5"
     }
   ],
-  "market_intelligence_score": 76.49492030360533,
+  "market_intelligence_score": 77.90887096774193,
   "risk_level": "RISK_ON",
-  "market_confidence": 0.788454282732448,
+  "market_confidence": 0.8011798387096775,
   "data_quality": "HIGH",
   "index_data_available": true,
-  "breadth_pct_above_sma20": 77.22960151802657,
+  "breadth_pct_above_sma20": 77.41935483870968,
   "sector_news_impacts": {
-    "bank": 0.8,
-    "financial": 0.8,
-    "real estate": 0.7,
-    "auto": 0.4,
     "airlines": 1.0,
     "paints": 0.8,
     "chemicals": 0.6,

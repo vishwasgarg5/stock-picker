@@ -285,15 +285,22 @@ def run_phase2() -> pd.DataFrame:
             f"Phase 2 output refresh incomplete: input_rows={len(c)}, "
             f"persisted_rows={len(persisted)}"
         )
-    for key in required_keys:
-        if key == "symbol":
-            expected = set(c[key].astype(str).str.upper().str.strip())
-            actual = set(persisted[key].astype(str).str.upper().str.strip())
-        else:
-            expected = set(_norm_dates(c[key]).dropna())
-            actual = set(_norm_dates(persisted[key]).dropna())
-        if not expected.issubset(actual):
-            raise RuntimeError(f"Phase 2 persisted output is missing values for key column: {key}")
+    def _key_tuples(frame: pd.DataFrame) -> set[tuple]:
+        normalized = frame[required_keys].copy()
+        normalized["prediction_date"] = _norm_dates(normalized["prediction_date"])
+        normalized["target_date"] = _norm_dates(normalized["target_date"])
+        normalized["symbol"] = normalized["symbol"].astype(str).str.upper().str.strip()
+        return set(normalized.dropna(subset=required_keys).itertuples(index=False, name=None))
+
+    expected_keys = _key_tuples(c)
+    persisted_keys = _key_tuples(persisted)
+    if expected_keys != persisted_keys:
+        missing = expected_keys - persisted_keys
+        unexpected = persisted_keys - expected_keys
+        raise RuntimeError(
+            "Phase 2 persisted candidate keys do not match input: "
+            f"missing={len(missing)}, unexpected={len(unexpected)}"
+        )
 
     feedback = _portfolio_feedback(_read(DATA / "paper_trades.csv"))
     direction_lift, return_lift, matched_eval_sessions = _shadow_selection_metrics(c, e)

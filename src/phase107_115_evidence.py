@@ -665,10 +665,26 @@ def phase112_market_intelligence() -> dict[str, Any]:
 def phase113_sustained_evidence(v1: pd.DataFrame, v2: pd.DataFrame) -> dict[str, Any]:
     def evidence(frame: pd.DataFrame) -> dict[str, Any]:
         buys = _buy_rows(frame)
-        dates = pd.to_datetime(buys.get("target_date", pd.Series(dtype=str)), errors="coerce").dt.normalize().dropna()
-        return {"executed_rows": int(len(buys)), "distinct_sessions": int(dates.nunique()), "first_session": str(dates.min().date()) if len(dates) else None, "last_session": str(dates.max().date()) if len(dates) else None, "minimum_trade_count_met": bool(len(buys) >= MIN_V2_TRADES), "minimum_session_count_met": bool(dates.nunique() >= MIN_V2_SESSIONS)}
+        raw_dates = buys.get("target_date", pd.Series(dtype=str))
+        parsed_dates = pd.to_datetime(raw_dates, errors="coerce").dt.normalize()
+        invalid_date_rows = int(parsed_dates.isna().sum())
+        dates = parsed_dates.dropna()
+        return {
+            "executed_rows": int(len(buys)),
+            "invalid_session_date_rows": invalid_date_rows,
+            "valid": invalid_date_rows == 0,
+            "distinct_sessions": int(dates.nunique()),
+            "first_session": str(dates.min().date()) if len(dates) else None,
+            "last_session": str(dates.max().date()) if len(dates) else None,
+            "minimum_trade_count_met": bool(len(buys) >= MIN_V2_TRADES),
+            "minimum_session_count_met": bool(dates.nunique() >= MIN_V2_SESSIONS),
+        }
     v1e, v2e = evidence(v1), evidence(v2)
-    return _write("phase113_sustained_evidence_summary.json", {"status": "SCORED" if v2e["minimum_trade_count_met"] and v2e["minimum_session_count_met"] else "INSUFFICIENT_EVIDENCE", "v1": v1e, "v2": v2e, "minimum_v2_trades": MIN_V2_TRADES, "minimum_distinct_sessions": MIN_V2_SESSIONS, "note": "Minimum counts are necessary but not sufficient; market-regime coverage and uncertainty still require review."})
+    enough = (
+        v1e["valid"] and v2e["valid"]
+        and v2e["minimum_trade_count_met"] and v2e["minimum_session_count_met"]
+    )
+    return _write("phase113_sustained_evidence_summary.json", {"status": "SCORED" if enough else "INSUFFICIENT_EVIDENCE", "v1": v1e, "v2": v2e, "minimum_v2_trades": MIN_V2_TRADES, "minimum_distinct_sessions": MIN_V2_SESSIONS, "note": "Minimum counts are necessary but not sufficient; invalid execution dates block sustained-evidence scoring; market-regime coverage and uncertainty still require review."})
 
 
 def phase114_promotion_gate(

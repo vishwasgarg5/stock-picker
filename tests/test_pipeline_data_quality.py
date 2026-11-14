@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.pipeline import _select_completed_market_date, validate_data_quality
+from src.pipeline import _merge_candidate_history, _select_completed_market_date, validate_data_quality
 
 
 def _rows(date, symbols, invalid=False):
@@ -66,3 +66,33 @@ def test_non_finite_ohlc_prices_are_rejected():
     hist = pd.concat([clean, corrupt], ignore_index=True)
 
     assert _select_completed_market_date(hist, [symbol]) == fallback
+
+
+
+def test_candidate_history_preserves_repeated_target_date_across_prediction_sessions():
+    existing = pd.DataFrame([
+        {"prediction_date": "2026-11-12", "target_date": "2026-11-16", "symbol": "MCX", "score": 70.0},
+    ])
+    current = pd.DataFrame([
+        {"prediction_date": "2026-11-13", "target_date": "2026-11-16", "symbol": "MCX", "score": 80.0},
+    ])
+
+    result = _merge_candidate_history(existing, current)
+
+    assert len(result) == 2
+    assert set(result["prediction_date"]) == {"2026-11-12", "2026-11-13"}
+    assert result["symbol"].tolist() == ["MCX", "MCX"]
+
+
+def test_candidate_history_rerun_refreshes_same_prediction_session():
+    existing = pd.DataFrame([
+        {"prediction_date": "2026-11-13", "target_date": "2026-11-16", "symbol": "MCX", "score": 70.0},
+    ])
+    rerun = pd.DataFrame([
+        {"prediction_date": "2026-11-13", "target_date": "2026-11-16", "symbol": "MCX", "score": 85.0},
+    ])
+
+    result = _merge_candidate_history(existing, rerun)
+
+    assert len(result) == 1
+    assert result.iloc[0]["score"] == 85.0

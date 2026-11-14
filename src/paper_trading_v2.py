@@ -54,6 +54,15 @@ def _phase2_selection_flags(predictions: pd.DataFrame) -> pd.Series:
     return flags.eq(1)
 
 
+def _phase2_metadata_flags(predictions: pd.DataFrame) -> pd.Series:
+    """Distinguish a recorded Phase-2 rejection from a missing metadata join."""
+    raw = predictions.get(
+        "phase2_metadata_matched",
+        pd.Series(False, index=predictions.index, dtype=bool),
+    )
+    return raw.fillna(False).astype(bool)
+
+
 def _confidence_gate() -> bool:
     if not CONF_SUMMARY.exists():
         return False
@@ -79,13 +88,17 @@ def _atr14(hist: pd.DataFrame) -> pd.DataFrame:
 
 
 def _phase2_confidence(p: pd.DataFrame) -> pd.DataFrame:
+    """Join Phase-2 output and retain whether each prediction had matching metadata."""
+    out = p.drop(columns=["phase2_metadata_matched"], errors="ignore").copy()
     if not PHASE2_FILE.exists():
-        return p
+        out["phase2_metadata_matched"] = False
+        return out
     try:
         q = pd.read_csv(PHASE2_FILE)
         required = {"prediction_date", "target_date", "symbol"}
         if q.empty or not required.issubset(q.columns):
-            return p
+            out["phase2_metadata_matched"] = False
+            return out
         q["prediction_date"] = pd.to_datetime(q["prediction_date"], errors="coerce").dt.normalize()
         q["target_date"] = pd.to_datetime(q["target_date"], errors="coerce").dt.normalize()
         q["symbol"] = q["symbol"].astype(str).str.upper().str.strip()
@@ -94,9 +107,15 @@ def _phase2_confidence(p: pd.DataFrame) -> pd.DataFrame:
             "phase2_selected", "phase2_score", "confidence_v3", "direction_score_v3"
         ] if c in q.columns]
         q = q[keep].drop_duplicates(["prediction_date", "target_date", "symbol"], keep="last")
-        return p.merge(q, on=["prediction_date", "target_date", "symbol"], how="left")
+        out = out.merge(
+            q, on=["prediction_date", "target_date", "symbol"], how="left",
+            indicator="_phase2_merge_status",
+        )
+        out["phase2_metadata_matched"] = out["_phase2_merge_status"].eq("both")
+        return out.drop(columns=["_phase2_merge_status"])
     except Exception:
-        return p
+        out["phase2_metadata_matched"] = False
+        return out
 
 
 def run_paper_trading_v2() -> pd.DataFrame:
@@ -133,8 +152,8 @@ def run_paper_trading_v2() -> pd.DataFrame:
     p["phase2_selected"] = _phase2_selection_flags(p).astype("int8")
     # This is a feature/metadata join, not an eligibility gate. Keep all
     # prediction rows in the flow; the actual Phase-2 filter is recorded below.
-    record("phase2_join", len(p), len(p),
-           "Phase-2 metadata joined; selection flag is applied at phase2_selected_gate")
+    record("phase2_join", len(p), int(_phase2_metadata_flags(p).sum()),
+           "Rows with a matching Phase-2 record; unmatched rows are not counted as explicit Phase-2 rejections")
 
     actual = h.rename(columns={
         "date": "target_date",
@@ -166,9 +185,13 @@ def run_paper_trading_v2() -> pd.DataFrame:
     confidence_eligible = x[confidence_pass].copy()
     record("confidence_percentile_gate", len(x), len(confidence_eligible),
            f"Required percentile >= {SHADOW_CONFIDENCE_PERCENTILE:.2f}")
-    eligible = confidence_eligible[confidence_eligible["phase2_selected"].eq(1)].copy()
-    record("phase2_selected_gate", len(confidence_eligible), len(eligible),
-           "Phase 2 selected flag equals 1")
+    metadata_pass = _phase2_metadata_flags(confidence_eligible)
+    metadata_matched = confidence_eligible[metadata_pass].copy()
+    record("phase2_metadata_coverage", len(confidence_eligible), len(metadata_matched),
+           "Only matched Phase-2 records can be classified as selected or explicitly rejected")
+    eligible = metadata_matched[metadata_matched["phase2_selected"].eq(1)].copy()
+    record("phase2_selected_gate", len(metadata_matched), len(eligible),
+           "Phase 2 selected flag equals 1 among matched records")
 
     eligible["expected_return_pct"] = (
         eligible["predicted_close"] / eligible["base_close"].replace(0, np.nan) - 1.0
@@ -242,7 +265,9 @@ def run_paper_trading_v2() -> pd.DataFrame:
     x["signal"] = "SKIP"
     x["no_trade_reason"] = "daily_trade_cap"
     x.loc[~confidence_pass, "no_trade_reason"] = "confidence_percentile"
-    x.loc[confidence_pass & ~phase2_pass, "no_trade_reason"] = "phase2_not_selected"
+    metadata_matched_all = _phase2_metadata_flags(x)
+    x.loc[confidence_pass & ~metadata_matched_all, "no_trade_reason"] = "phase2_metadata_missing"
+    x.loc[confidence_pass & metadata_matched_all & ~phase2_pass, "no_trade_reason"] = "phase2_not_selected"
     for row_idx, row in x.iterrows():
         key = (row["symbol"], row["target_date"])
         if bool(confidence_pass.loc[row_idx]) and bool(phase2_pass.loc[row_idx]):

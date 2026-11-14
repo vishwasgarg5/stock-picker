@@ -31,3 +31,20 @@ def test_phase103_missing_inputs_are_not_reported_as_success():
     assert daily.empty
     assert summary["status"] == "INSUFFICIENT_DATA"
     assert summary["promotion_allowed"] is False
+
+
+
+def test_phase103_blocks_duplicate_forecast_keys_instead_of_overweighting_them():
+    scores = pd.DataFrame([
+        {"target_date": "2026-01-02", "symbol": "AAA", "close_ape": 0.01,
+         "baseline_close_ape": 0.02, "close_direction_correct": 1},
+        {"target_date": "2026-01-02", "symbol": "aaa", "close_ape": 0.02,
+         "baseline_close_ape": 0.02, "close_direction_correct": 0},
+    ])
+    daily, summary = evaluate_forecast_evidence(scores)
+    assert daily.empty
+    assert summary["status"] == "BLOCKED_AMBIGUOUS_KEYS"
+    assert summary["duplicate_forecast_key_rows"] == 2
+    assert summary["promotion_allowed"] is False
+    assert summary["production_champion"] == "V1"
+    assert summary["v2_mode"] == "SHADOW_ONLY"

@@ -470,7 +470,7 @@ def test_phase110_blocks_invalid_actual_ohlc_relationships(tmp_path, monkeypatch
     import src.phase107_115_evidence as module
     monkeypatch.setattr(module, "DATA", tmp_path)
     pred = pd.DataFrame([{
-        "symbol": "AAA", "target_date": "2026-01-02", "predicted_close": 105,
+        "symbol": "AAA", "target_date": "2026-01-02", "predicted_close": 105, "base_close": 100,
     }])
     history = pd.DataFrame([{
         "symbol": "AAA", "date": "2026-01-02",
@@ -490,7 +490,7 @@ def test_phase110_blocks_unparseable_forecast_dates(tmp_path, monkeypatch):
     import src.phase107_115_evidence as module
     monkeypatch.setattr(module, "DATA", tmp_path)
     pred = pd.DataFrame([{
-        "symbol": "AAA", "target_date": "not-a-date", "predicted_close": 105,
+        "symbol": "AAA", "target_date": "not-a-date", "predicted_close": 105, "base_close": 100,
     }])
     history = pd.DataFrame([{
         "symbol": "AAA", "date": "2026-01-02",

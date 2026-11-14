@@ -189,13 +189,19 @@ def test_phase114_requires_exit_attribution_and_never_auto_promotes(tmp_path, mo
     forecast = {"status": "SCORED"}
     replay = {"status": "SCORED"}
     sustained = {"status": "SCORED"}
+    loss = {"status": "SCORED"}
     incomplete_attribution = {"status": "SCORED", "unknown_or_unrecorded_reason_rows": 1}
-    blocked = phase114_promotion_gate(recon, funnel, forecast, replay, sustained, incomplete_attribution)
+    blocked = phase114_promotion_gate(
+        recon, funnel, forecast, replay, sustained, incomplete_attribution, loss
+    )
     assert blocked["gates"]["exit_reason_attribution_complete"] is False
     assert blocked["automatic_promotion"] is False
     complete_attribution = {"status": "SCORED", "unknown_or_unrecorded_reason_rows": 0}
-    review = phase114_promotion_gate(recon, funnel, forecast, replay, sustained, complete_attribution)
+    review = phase114_promotion_gate(
+        recon, funnel, forecast, replay, sustained, complete_attribution, loss
+    )
     assert review["status"] == "REVIEW_REQUIRED"
+    assert review["gates"]["loss_concentration_evidence_available"] is True
     assert review["automatic_promotion"] is False
     assert review["production_changes_authorized"] is False
 
@@ -545,3 +551,25 @@ def test_phase113_blocks_invalid_executed_session_dates(tmp_path, monkeypatch):
     assert result["status"] == "INSUFFICIENT_EVIDENCE"
     assert result["v1"]["valid"] is False
     assert result["v1"]["invalid_session_date_rows"] == 1
+
+
+def test_phase114_requires_loss_concentration_evidence(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    recon = {"status": "PASS"}
+    funnel = {
+        "status": "SCORED", "skip_rows_without_reason": 0,
+        "existing_funnel_valid": True, "required_gate_stages_present": True,
+    }
+    forecast = {"status": "SCORED"}
+    replay = {"status": "SCORED"}
+    sustained = {"status": "SCORED"}
+    attribution = {"status": "SCORED", "unknown_or_unrecorded_reason_rows": 0}
+    missing_loss_evidence = phase114_promotion_gate(
+        recon, funnel, forecast, replay, sustained, attribution,
+        {"status": "SMALL_SAMPLE"},
+    )
+    assert missing_loss_evidence["status"] == "INSUFFICIENT_EVIDENCE"
+    assert missing_loss_evidence["gates"]["loss_concentration_evidence_available"] is False
+    assert "loss_concentration_evidence_available" in missing_loss_evidence["unmet_gates"]
+    assert missing_loss_evidence["automatic_promotion"] is False

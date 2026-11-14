@@ -272,9 +272,8 @@ def test_phase2_excludes_candidates_with_invalid_target_dates(tmp_path, monkeypa
     monkeypatch.setattr(phase2, "SUMMARY", tmp_path / "summary.csv")
     monkeypatch.setattr(phase2, "STATE", tmp_path / "state.json")
 
-    refreshed = phase2.run_phase2()
+    phase2.run_phase2()
 
-    assert refreshed["symbol"].tolist() == ["VALID"]
     persisted = pd.read_csv(output)
     assert persisted["symbol"].tolist() == ["VALID"]
     assert persisted[["prediction_date", "target_date", "symbol"]].notna().all().all()

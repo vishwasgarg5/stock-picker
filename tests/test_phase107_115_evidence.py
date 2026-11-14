@@ -573,3 +573,57 @@ def test_phase114_requires_loss_concentration_evidence(tmp_path, monkeypatch):
     assert missing_loss_evidence["gates"]["loss_concentration_evidence_available"] is False
     assert "loss_concentration_evidence_available" in missing_loss_evidence["unmet_gates"]
     assert missing_loss_evidence["automatic_promotion"] is False
+
+
+def test_phase112_requires_index_dates_to_match_latest_ohlcv_session(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    intelligence = pd.DataFrame([
+        {"index": "NIFTY50", "as_of": "2026-11-13"},
+        {"index": "BANKNIFTY", "as_of": "2026-11-12"},
+    ])
+    history = pd.DataFrame([{"date": "2026-11-13"}])
+    monkeypatch.setattr(
+        module, "_read",
+        lambda name, **kwargs: intelligence.copy() if name == "index_intelligence_summary.csv" else history.copy(),
+    )
+    result = module.phase112_market_intelligence()
+    assert result["status"] == "STALE_DATA"
+    assert result["reference_ohlcv_session"] == "2026-11-13"
+    assert result["stale_index_rows"] == 1
+
+
+def test_phase112_rejects_invalid_or_duplicate_index_metadata(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    intelligence = pd.DataFrame([
+        {"index": "NIFTY50", "as_of": "not-a-date"},
+        {"index": "NIFTY50", "as_of": "2026-11-13"},
+    ])
+    history = pd.DataFrame([{"date": "2026-11-13"}])
+    monkeypatch.setattr(
+        module, "_read",
+        lambda name, **kwargs: intelligence.copy() if name == "index_intelligence_summary.csv" else history.copy(),
+    )
+    result = module.phase112_market_intelligence()
+    assert result["status"] == "BLOCKED_INVALID_DATA"
+    assert result["invalid_as_of_rows"] == 1
+    assert result["duplicate_index_rows"] == 2
+
+
+def test_phase112_scores_aligned_index_session_metadata(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    intelligence = pd.DataFrame([
+        {"index": "NIFTY50", "as_of": "2026-11-13"},
+        {"index": "BANKNIFTY", "as_of": "2026-11-13"},
+    ])
+    history = pd.DataFrame([{"date": "2026-11-13"}])
+    monkeypatch.setattr(
+        module, "_read",
+        lambda name, **kwargs: intelligence.copy() if name == "index_intelligence_summary.csv" else history.copy(),
+    )
+    result = module.phase112_market_intelligence()
+    assert result["status"] == "SCORED"
+    assert result["stale_index_rows"] == 0
+    assert result["future_index_rows"] == 0

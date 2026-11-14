@@ -498,3 +498,35 @@ def test_phase110_blocks_unparseable_forecast_dates(tmp_path, monkeypatch):
     assert result["status"] == "BLOCKED_INVALID_KEYS"
     assert result["invalid_prediction_key_rows"] == 1
     assert result["metrics"] == {}
+
+
+
+def test_phase109_accepts_unclassified_phase2_metadata_rows(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pd.DataFrame([
+        {"stage": "phase2_join", "input_rows": 10, "output_rows": 8, "rejected_rows": None},
+        {"stage": "confidence_percentile_gate", "input_rows": 8, "output_rows": 4, "rejected_rows": 4},
+        {"stage": "phase2_selected_gate", "input_rows": 4, "output_rows": 2, "rejected_rows": 2},
+        {"stage": "phase4_eligibility_gate", "input_rows": 2, "output_rows": 1, "rejected_rows": 1},
+    ]).to_csv(tmp_path / "phase32_v2_selection_funnel.csv", index=False)
+    v2 = pd.DataFrame([{"signal": "SKIP", "no_trade_reason": "phase2_not_selected"}])
+    result = module.phase109_selection_funnel(v2)
+    assert result["existing_funnel_valid"] is True
+    assert result["funnel_validation_errors"] == []
+    assert result["funnel_stages"][0]["rejected_rows"] == 0
+    assert result["required_gate_stages_present"] is True
+
+
+def test_phase109_blocks_funnel_output_greater_than_input(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pd.DataFrame([
+        {"stage": "confidence_percentile_gate", "input_rows": 2, "output_rows": 3, "rejected_rows": -1},
+        {"stage": "phase2_selected_gate", "input_rows": 3, "output_rows": 2, "rejected_rows": 1},
+        {"stage": "phase4_eligibility_gate", "input_rows": 2, "output_rows": 1, "rejected_rows": 1},
+    ]).to_csv(tmp_path / "phase32_v2_selection_funnel.csv", index=False)
+    v2 = pd.DataFrame([{"signal": "SKIP", "no_trade_reason": "phase2_not_selected"}])
+    result = module.phase109_selection_funnel(v2)
+    assert result["existing_funnel_valid"] is False
+    assert "output_rows_exceed_input_rows" in result["funnel_validation_errors"]

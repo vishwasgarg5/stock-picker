@@ -25,6 +25,21 @@ SHADOW_CONFIDENCE_PERCENTILE = 0.50
 MAX_SHADOW_ATR_PCT = 8.0
 
 
+def _whole_share_quantity(
+    reference_price: pd.Series,
+    weight: pd.Series,
+    capital: float = CAPITAL,
+    max_trades: int = MAX_TRADES,
+) -> pd.Series:
+    """Size whole-share positions and return zero when one share is unaffordable."""
+    prices = pd.to_numeric(reference_price, errors="coerce")
+    weights = pd.to_numeric(weight, errors="coerce").fillna(0.0).clip(0.0, 1.0)
+    valid_prices = prices.where(np.isfinite(prices) & prices.gt(0))
+    budget_per_trade = (float(capital) / max(int(max_trades), 1)) * weights
+    quantity = np.floor(budget_per_trade / valid_prices).replace([np.inf, -np.inf], np.nan)
+    return quantity.fillna(0).clip(lower=0).astype(int)
+
+
 def _net_return_pct(profit_loss: pd.Series, entry_price: pd.Series, quantity: pd.Series) -> pd.Series:
     """Return net P&L as a percentage of actual entry notional."""
     net = pd.to_numeric(profit_loss, errors="coerce")
@@ -272,8 +287,6 @@ def run_paper_trading_v2() -> pd.DataFrame:
         ascending=[True, False, False, False]
     ).groupby("target_date", group_keys=False).head(MAX_TRADES).copy()
     record("daily_trade_cap", len(eligible), len(selected), f"Maximum {MAX_TRADES} selected rows per target date")
-    pd.DataFrame(funnel).to_csv(FUNNEL_FILE, index=False)
-
     x["strategy"] = "V2_SHADOW_BENCHMARK" if not confidence_promoted else "V2_CONFIDENCE_BENCHMARK"
     x["signal"] = "SKIP"
     x["no_trade_reason"] = "daily_trade_cap"
@@ -323,9 +336,20 @@ def run_paper_trading_v2() -> pd.DataFrame:
         weight = pd.Series(1.0, index=x.index, dtype=float)
     x["quantity"] = np.where(
         x["signal"].eq("BUY"),
-        np.floor((CAPITAL / MAX_TRADES) * weight / x["reference_price"].replace(0, np.nan)).fillna(0),
+        _whole_share_quantity(x["reference_price"], weight),
         0,
     ).astype(int)
+    requested_buys = int(x["signal"].eq("BUY").sum())
+    unfillable = x["signal"].eq("BUY") & x["quantity"].le(0)
+    x.loc[unfillable, "signal"] = "SKIP"
+    x.loc[unfillable, "no_trade_reason"] = "minimum_one_share_not_affordable"
+    record(
+        "whole_share_sizing_gate",
+        requested_buys,
+        requested_buys - int(unfillable.sum()),
+        "BUY rows must afford at least one whole share at the recorded reference price",
+    )
+    pd.DataFrame(funnel).to_csv(FUNNEL_FILE, index=False)
     x["planned_capital"] = np.where(x["signal"].eq("BUY"), x["quantity"] * x["reference_price"], 0.0)
     x["entry_price"] = np.where(x["signal"].eq("BUY"), x["actual_open"], np.nan)
     x["exit_price"] = np.where(x["signal"].eq("BUY"), x["actual_close"], np.nan)

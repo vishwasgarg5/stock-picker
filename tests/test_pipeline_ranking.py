@@ -152,3 +152,26 @@ def test_transaction_cost_validation_applies_entry_exit_cost():
     assert row["turnover_pct"] == pytest.approx(40.0)
     assert row["transaction_cost_pct"] == pytest.approx(0.08)
     assert row["net_return_pct"] == pytest.approx(100.0 / 101.0 - 0.08)
+
+
+
+def test_candidate_history_drops_rows_with_invalid_composite_keys():
+    from src.pipeline import _merge_candidate_history
+
+    existing = pd.DataFrame({
+        "prediction_date": ["2026-01-01", "not-a-date"],
+        "target_date": ["2026-01-02", "2026-01-02"],
+        "symbol": ["GOOD", "BAD"],
+        "score": [80.0, 90.0],
+    })
+    incoming = pd.DataFrame({
+        "prediction_date": ["2026-01-03", "2026-01-03"],
+        "target_date": ["2026-01-04", None],
+        "symbol": ["NEXT", "MISSING_TARGET"],
+        "score": [85.0, 70.0],
+    })
+
+    merged = _merge_candidate_history(existing, incoming)
+
+    assert merged["symbol"].tolist() == ["GOOD", "NEXT"]
+    assert merged[["prediction_date", "target_date", "symbol"]].notna().all().all()

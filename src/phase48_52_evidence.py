@@ -54,25 +54,32 @@ def _ledger(frame: pd.DataFrame, model: str, gross_col: str, cost_col: str, net_
     entry_price, exit_price = _num(x, "entry_price"), _num(x, "exit_price")
     with np.errstate(over="ignore", invalid="ignore"):
         price_gross = (exit_price - entry_price) * qty
-    reconstructable = (
-        gross.isna() & np.isfinite(price_gross) & entry_price.gt(0) & exit_price.gt(0)
+    reconstruction_attempted = (
+        gross.isna() & entry_price.gt(0) & exit_price.gt(0)
         & np.isfinite(entry_price) & np.isfinite(exit_price) & np.isfinite(qty) & qty.gt(0)
     )
+    invalid_reconstruction = reconstruction_attempted & ~np.isfinite(price_gross)
+    reconstructable = reconstruction_attempted & np.isfinite(price_gross)
     gross = gross.where(~reconstructable, price_gross)
     gross_source.loc[reconstructable] = "DERIVED_FROM_RECORDED_ENTRY_EXIT_AND_QUANTITY"
     missing = gross.isna() | cost.isna() | net.isna()
     finite_inputs = (
-        np.isfinite(qty) & np.isfinite(gross) & np.isfinite(cost) & np.isfinite(net)
+        (qty.isna() | np.isfinite(qty)) & (gross.isna() | np.isfinite(gross))
+        & (cost.isna() | np.isfinite(cost)) & (net.isna() | np.isfinite(net))
     )
-    invalid_non_finite = ~finite_inputs
+    invalid_non_finite = (
+        (qty.notna() & ~np.isfinite(qty)) | (gross.notna() & ~np.isfinite(gross))
+        | (cost.notna() & ~np.isfinite(cost)) | (net.notna() & ~np.isfinite(net))
+        | invalid_reconstruction
+    )
     delta = gross - cost - net
     mismatch_mask = ~missing & finite_inputs & np.isfinite(delta) & delta.abs().gt(0.02)
     invalid_derived = ~missing & finite_inputs & ~np.isfinite(delta)
     invalid_non_finite = invalid_non_finite | invalid_derived
     verified_mask = ~missing & ~mismatch_mask & ~invalid_non_finite
     verified_net = net.where(verified_mask)
-    status = np.where(missing, "MISSING_ACCOUNTING_FIELD",
-                      np.where(invalid_non_finite, "INVALID_NON_FINITE_ACCOUNTING_VALUE",
+    status = np.where(invalid_non_finite, "INVALID_NON_FINITE_ACCOUNTING_VALUE",
+                      np.where(missing, "MISSING_ACCOUNTING_FIELD",
                                np.where(mismatch_mask, "RECONCILIATION_MISMATCH",
                                         np.where(gross_source.eq("RECORDED"), "RECONCILED", "RECONCILED_WITH_DERIVED_GROSS"))))
     detail = pd.DataFrame({

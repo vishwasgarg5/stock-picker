@@ -48,3 +48,24 @@ def test_phase103_blocks_duplicate_forecast_keys_instead_of_overweighting_them()
     assert summary["promotion_allowed"] is False
     assert summary["production_champion"] == "V1"
     assert summary["v2_mode"] == "SHADOW_ONLY"
+
+
+
+def test_phase103_blocks_nonfinite_negative_and_invalid_direction_metrics():
+    base = {
+        "target_date": "2026-01-02", "symbol": "AAA",
+        "close_ape": 0.01, "baseline_close_ape": 0.02,
+        "close_direction_correct": 1,
+    }
+    for changes in (
+        {"close_ape": float("inf")},
+        {"baseline_close_ape": -0.01},
+        {"close_direction_correct": 2},
+    ):
+        row = {**base, **changes}
+        daily, summary = evaluate_forecast_evidence(pd.DataFrame([row]))
+        assert daily.empty
+        assert summary["status"] == "BLOCKED_INVALID_METRICS"
+        assert summary["invalid_metric_rows"] == 1
+        assert summary["promotion_allowed"] is False
+        assert summary["production_champion"] == "V1"

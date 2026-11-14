@@ -323,11 +323,18 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
             )
             if not valid_rejected.all():
                 funnel_validation_errors.append("invalid_rejected_rows")
+            normalized_counts["unclassified_rows"] = (
+                normalized_counts["input_rows"] - normalized_counts["output_rows"]
+            ).where(~supplied, 0)
+            # Keep the legacy numeric rejected_rows field for downstream
+            # compatibility, but never interpret an absent value as a
+            # confirmed zero-rejection count.
             normalized_counts["rejected_rows"] = rejected.fillna(0)
         else:
             normalized_counts["rejected_rows"] = (
                 normalized_counts["input_rows"] - normalized_counts["output_rows"]
             )
+            normalized_counts["unclassified_rows"] = 0
         if not funnel_validation_errors:
             normalized = funnel.copy()
             for column, values in normalized_counts.items():

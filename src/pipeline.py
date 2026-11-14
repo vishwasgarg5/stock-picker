@@ -1059,6 +1059,11 @@ def _save_next_session_prediction(hist: pd.DataFrame, ranking: pd.DataFrame, tar
         if (existing_dates == target_date.normalize()).any():
             same_target = existing[existing_dates == target_date.normalize()].copy()
             _validate_prediction_session(same_target, target_date)
+            # The prediction may already exist while candidate history is missing
+            # (for example, after a prior run wrote predictions but stopped before
+            # candidate metadata was persisted). Rebuild the candidate metadata for
+            # this exact session without replacing the canonical stored prediction.
+            predict_top10(hist, ranking, target_date)
             return
     prediction = predict_top10(hist, ranking, target_date)
     combined = pd.concat([existing, prediction], ignore_index=True) if not existing.empty else prediction

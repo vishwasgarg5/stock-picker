@@ -46,9 +46,86 @@ def _buy_rows(frame: pd.DataFrame) -> pd.DataFrame:
     return frame.loc[frame["signal"].astype(str).str.upper().str.strip().isin(["BUY", "LONG", "EXECUTED"])].copy()
 
 
+def _fixed_share_source_evidence(buys: pd.DataFrame) -> dict[str, Any]:
+    """Validate alternate fixed-share source fields without populating ledger columns.
+
+    The pipeline's fixed-share path records quantity, position_value, planned_capital,
+    and gross profit_loss, but does not model transaction costs. These facts are
+    therefore reported separately and can never make the net-accounting gate pass.
+    """
+    required = [
+        "quantity", "position_value", "planned_capital", "reference_price",
+        "entry_price", "exit_price", "profit_loss", "return_pct",
+    ]
+    if not all(column in buys.columns for column in required):
+        return {
+            "status": "UNAVAILABLE",
+            "candidate_rows": 0,
+            "validated_rows": 0,
+            "mismatch_rows": None,
+            "missing_source_fields": [c for c in required if c not in buys.columns],
+            "costs_modeled": False,
+            "source_ledger_mutated": False,
+        }
+    numeric = buys[required].apply(pd.to_numeric, errors="coerce")
+    finite = pd.Series(
+        np.isfinite(numeric.to_numpy(dtype=float)).all(axis=1), index=buys.index
+    )
+    positive = (
+        numeric["quantity"].gt(0)
+        & numeric["position_value"].gt(0)
+        & numeric["planned_capital"].gt(0)
+        & numeric["reference_price"].gt(0)
+        & numeric["entry_price"].gt(0)
+        & numeric["exit_price"].gt(0)
+    )
+    candidates = finite & positive
+    position_delta = numeric["quantity"] * numeric["entry_price"] - numeric["position_value"]
+    gross_delta = numeric["quantity"] * (numeric["exit_price"] - numeric["entry_price"]) - numeric["profit_loss"]
+    return_delta = (
+        numeric["profit_loss"] / numeric["position_value"].replace(0, np.nan) * 100.0
+        - numeric["return_pct"]
+    )
+    mismatch = (
+        position_delta.abs().gt(0.05)
+        | gross_delta.abs().gt(0.05)
+        | return_delta.abs().gt(0.05)
+    )
+    if "pre_split_quantity" in buys.columns:
+        pre_split = pd.to_numeric(buys["pre_split_quantity"], errors="coerce")
+        if "split_ratio" in buys.columns:
+            ratio = pd.to_numeric(buys["split_ratio"], errors="coerce")
+            split_delta = pre_split * ratio - numeric["quantity"]
+            mismatch |= split_delta.abs().gt(0.05)
+    if "pre_split_quantity" in buys.columns:
+        reference_delta = pre_split * numeric["reference_price"] - numeric["planned_capital"]
+        mismatch |= reference_delta.abs().gt(0.05)
+    valid = candidates & ~mismatch
+    candidate_count = int(candidates.sum())
+    mismatch_count = int((candidates & mismatch).sum())
+    return {
+        "status": "GROSS_SOURCE_EVIDENCE_VALIDATED" if candidate_count and mismatch_count == 0 else (
+            "GROSS_SOURCE_EVIDENCE_PARTIAL" if valid.any() else "NO_VALID_SOURCE_EVIDENCE"
+        ),
+        "candidate_rows": candidate_count,
+        "validated_rows": int(valid.sum()),
+        "mismatch_rows": mismatch_count,
+        "invalid_or_incomplete_source_rows": int((~candidates).sum()),
+        "max_abs_position_value_delta": float(position_delta[candidates].abs().max()) if candidates.any() else None,
+        "max_abs_gross_pnl_delta": float(gross_delta[candidates].abs().max()) if candidates.any() else None,
+        "max_abs_return_delta_pct_points": float(return_delta[candidates].abs().max()) if candidates.any() else None,
+        "source_semantics": "quantity and position_value are recorded source fields; profit_loss is gross P&L from quantity * (exit_price - entry_price)",
+        "costs_modeled": False,
+        "net_profit_loss_verified": False,
+        "source_ledger_mutated": False,
+        "policy": "Validate alternate source fields only; do not copy them into canonical accounting columns or assume transaction costs are zero.",
+    }
+
+
 def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
     """Reconcile recorded accounting and localize gaps without backfilling values."""
     buys = _buy_rows(trades)
+    source_evidence = _fixed_share_source_evidence(buys)
     required = ["entry_price", "exit_price", "shares", "allocated_capital", "gross_profit_loss", "costs", "profit_loss", "return_pct"]
     missing_columns = [c for c in required if c not in buys.columns]
     if missing_columns:
@@ -56,6 +133,7 @@ def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
             "status": "BLOCKED", "source": "data/paper_trades.csv", "buy_rows": len(buys),
             "missing_columns": missing_columns, "incomplete_rows": len(buys),
             "reconciliation_mismatch_rows": None,
+            "fixed_share_source_evidence": source_evidence,
             "policy": "No historical values are backfilled or inferred.",
         })
 
@@ -141,7 +219,8 @@ def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
         "max_abs_gross_delta": float(share_delta[~incomplete].abs().max()) if (~incomplete).any() else None,
         "max_abs_return_delta_pct_points": float(return_delta[~incomplete].abs().max()) if (~incomplete).any() else None,
         "costs_subtracted_again": False,
-        "policy": "Uses recorded values only; reports missing-field/session patterns for triage. No historical values are backfilled or inferred; session age alone is not treated as proof a row is legacy.",
+        "fixed_share_source_evidence": source_evidence,
+        "policy": "Uses recorded canonical values for the net ledger and separately validates alternate fixed-share source fields. No historical values are backfilled or inferred; source-evidence validation does not model costs or satisfy the net-accounting gate.",
     })
 
 def phase108_loss_concentration(trades: pd.DataFrame) -> dict[str, Any]:

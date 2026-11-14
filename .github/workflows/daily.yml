@@ -111,10 +111,15 @@ jobs:
           import pandas as pd
 
           predictions_path = Path("data/predictions.csv")
+          candidate_history_path = Path("data/prediction_candidates_history.csv")
           phase2_path = Path("data/phase2_optimized_candidates.csv")
-          if not predictions_path.exists() or not phase2_path.exists():
-              raise SystemExit("Current predictions and Phase 2 output are both required")
+          required_paths = [predictions_path, candidate_history_path, phase2_path]
+          if not all(path.exists() for path in required_paths):
+              raise SystemExit("Current predictions, candidate history, and Phase 2 output are all required")
           predictions = pd.read_csv(predictions_path, usecols=["prediction_date", "target_date", "symbol"])
+          candidate_history = pd.read_csv(
+              candidate_history_path, usecols=["prediction_date", "target_date", "symbol"]
+          )
           phase2 = pd.read_csv(
               phase2_path,
               usecols=["prediction_date", "target_date", "symbol", "phase2_selected", "phase2_rank"],
@@ -126,6 +131,8 @@ jobs:
               frame["symbol"] = frame["symbol"].astype(str).str.upper().str.strip()
           if predictions.empty:
               raise SystemExit("Current predictions are empty; refusing to treat missing Phase 2 evidence as a no-trade result")
+          if candidate_history.empty:
+              raise SystemExit("Prediction candidate history is empty; refusing to accept stale Phase 2 output")
           if phase2.duplicated(keys).any():
               raise SystemExit("Phase 2 output contains duplicate prediction keys")
           phase2["phase2_selected"] = pd.to_numeric(phase2["phase2_selected"], errors="coerce")
@@ -153,7 +160,19 @@ jobs:
                   f"Phase 2 metadata missing for {len(missing)} current prediction(s): "
                   f"{missing.head(10).to_dict(orient='records')}"
               )
-          print(f"Phase 2 coverage passed: {len(coverage)} current prediction keys matched")
+          history_coverage = candidate_history[keys].drop_duplicates().merge(
+              phase2[keys].drop_duplicates(), on=keys, how="left", indicator=True
+          )
+          missing_history = history_coverage.loc[history_coverage["_merge"].eq("left_only"), keys]
+          if not missing_history.empty:
+              raise SystemExit(
+                  f"Phase 2 output is stale/incomplete: missing {len(missing_history)} "
+                  f"candidate-history key(s): {missing_history.head(10).to_dict(orient='records')}"
+              )
+          print(
+              f"Phase 2 coverage passed: {len(coverage)} current prediction keys and "
+              f"{len(history_coverage)} candidate-history keys matched"
+          )
           PY
 
       - name: Run Paper Trading V2 confidence-filtered benchmark with Phase 4 overlay

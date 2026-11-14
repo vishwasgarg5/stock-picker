@@ -286,8 +286,33 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
     required = {"stage", "input_rows", "output_rows", "rejected_rows"}
     funnel_valid = bool(not funnel.empty and required.issubset(funnel.columns))
     funnel_stages = []
+    funnel_validation_errors = []
     if funnel_valid:
-        funnel_stages = funnel.fillna("").to_dict(orient="records")
+        stage_names = funnel["stage"].fillna("").astype(str).str.strip()
+        if stage_names.eq("").any():
+            funnel_validation_errors.append("missing_stage_name")
+        if stage_names.duplicated(keep=False).any():
+            funnel_validation_errors.append("duplicate_stage_name")
+        normalized_counts = {}
+        for column in ("input_rows", "output_rows", "rejected_rows"):
+            values = pd.to_numeric(funnel[column], errors="coerce")
+            valid_counts = (
+                values.notna()
+                & np.isfinite(values.to_numpy(dtype=float))
+                & values.ge(0)
+                & values.mod(1).eq(0)
+            )
+            if not valid_counts.all():
+                funnel_validation_errors.append(f"invalid_{column}")
+            normalized_counts[column] = values
+        if not funnel_validation_errors:
+            normalized = funnel.copy()
+            for column, values in normalized_counts.items():
+                normalized[column] = values.astype(int)
+            normalized["stage"] = stage_names
+            funnel_stages = normalized.to_dict(orient="records")
+        else:
+            funnel_valid = False
     phase4_reasons = {}
     if "phase4_reject_reason" in skips:
         phase4 = skips["phase4_reject_reason"].fillna("").astype(str).str.strip()
@@ -381,6 +406,7 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
         "skip_reasons_by_phase2_flag": reason_by_phase2,
         "skip_reason_cross_tab_status": "AVAILABLE" if has_phase2_flag else "UNAVAILABLE_PHASE2_FLAG_NOT_PERSISTED; USE_FUNNEL_STAGE_COUNTS",
         "existing_funnel_valid": funnel_valid,
+        "funnel_validation_errors": funnel_validation_errors,
         "required_gate_stages_present": required_gate_stages_present,
         "missing_required_gate_stages": missing_required_gate_stages,
         "funnel_stage_rows": int(len(funnel)) if funnel_valid else 0,

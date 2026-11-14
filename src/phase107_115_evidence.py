@@ -92,15 +92,29 @@ def _fixed_share_source_evidence(buys: pd.DataFrame) -> dict[str, Any]:
         | gross_delta.abs().gt(0.05)
         | return_delta.abs().gt(0.05)
     )
-    if "pre_split_quantity" in buys.columns:
-        pre_split = pd.to_numeric(buys["pre_split_quantity"], errors="coerce")
-        if "split_ratio" in buys.columns:
+    split_metadata_present = (
+        "pre_split_quantity" in buys.columns or "split_ratio" in buys.columns
+    )
+    invalid_split_metadata = pd.Series(False, index=buys.index)
+    if split_metadata_present:
+        if not {"pre_split_quantity", "split_ratio"}.issubset(buys.columns):
+            invalid_split_metadata |= True
+        else:
+            pre_split = pd.to_numeric(buys["pre_split_quantity"], errors="coerce")
             ratio = pd.to_numeric(buys["split_ratio"], errors="coerce")
+            split_metadata_finite = pd.Series(
+                np.isfinite(pre_split.to_numpy(dtype=float))
+                & np.isfinite(ratio.to_numpy(dtype=float)),
+                index=buys.index,
+            )
+            invalid_split_metadata = (
+                ~split_metadata_finite | pre_split.le(0) | ratio.le(0)
+            )
             split_delta = pre_split * ratio - numeric["quantity"]
             mismatch |= split_delta.abs().gt(0.05)
-    if "pre_split_quantity" in buys.columns:
-        reference_delta = pre_split * numeric["reference_price"] - numeric["planned_capital"]
-        mismatch |= reference_delta.abs().gt(0.05)
+            reference_delta = pre_split * numeric["reference_price"] - numeric["planned_capital"]
+            mismatch |= reference_delta.abs().gt(0.05)
+    candidates &= ~invalid_split_metadata
     valid = candidates & ~mismatch
     candidate_count = int(candidates.sum())
     mismatch_count = int((candidates & mismatch).sum())
@@ -112,6 +126,7 @@ def _fixed_share_source_evidence(buys: pd.DataFrame) -> dict[str, Any]:
         "validated_rows": int(valid.sum()),
         "mismatch_rows": mismatch_count,
         "invalid_or_incomplete_source_rows": int((~candidates).sum()),
+        "invalid_split_metadata_rows": int(invalid_split_metadata.sum()),
         "max_abs_position_value_delta": float(position_delta[candidates].abs().max()) if candidates.any() else None,
         "max_abs_gross_pnl_delta": float(gross_delta[candidates].abs().max()) if candidates.any() else None,
         "max_abs_return_delta_pct_points": float(return_delta[candidates].abs().max()) if candidates.any() else None,

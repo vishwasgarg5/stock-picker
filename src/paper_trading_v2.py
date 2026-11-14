@@ -124,9 +124,21 @@ def run_paper_trading_v2() -> pd.DataFrame:
 
     p = pd.read_csv(PREDICTIONS_FILE, parse_dates=["prediction_date", "target_date"])
     funnel = []
-    def record(stage: str, input_rows: int, output_rows: int, detail: str = "") -> None:
-        funnel.append({"stage": stage, "input_rows": int(input_rows), "output_rows": int(output_rows),
-                       "rejected_rows": int(max(0, input_rows - output_rows)), "detail": detail})
+    def record(
+        stage: str, input_rows: int, output_rows: int, detail: str = "",
+        rejected_rows: int | None = None,
+    ) -> None:
+        funnel.append({
+            "stage": stage,
+            "input_rows": int(input_rows),
+            "output_rows": int(output_rows),
+            "rejected_rows": (
+                int(max(0, input_rows - output_rows))
+                if rejected_rows is None and stage != "phase2_join"
+                else rejected_rows
+            ),
+            "detail": detail,
+        })
     record("predictions_loaded", len(p), len(p), "Raw prediction rows loaded")
     h = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
     if p.empty or h.empty or "confidence_score" not in p.columns:
@@ -153,7 +165,8 @@ def run_paper_trading_v2() -> pd.DataFrame:
     # This is a feature/metadata join, not an eligibility gate. Keep all
     # prediction rows in the flow; the actual Phase-2 filter is recorded below.
     record("phase2_join", len(p), int(_phase2_metadata_flags(p).sum()),
-           "Rows with a matching Phase-2 record; unmatched rows are not counted as explicit Phase-2 rejections")
+           "Rows with a matching Phase-2 record; unmatched rows are missing metadata, not explicit rejections",
+           rejected_rows=None)
 
     actual = h.rename(columns={
         "date": "target_date",

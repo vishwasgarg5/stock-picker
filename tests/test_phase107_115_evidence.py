@@ -285,3 +285,34 @@ def test_v2_17_sessions_without_100_trades_does_not_meet_sustained_gate(tmp_path
     assert result["v2"]["minimum_session_count_met"] is True
     assert result["v2"]["minimum_trade_count_met"] is False
     assert result["status"] == "INSUFFICIENT_EVIDENCE"
+
+
+
+def test_phase110_blocks_non_finite_or_non_positive_forecast_prices(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pred = pd.DataFrame([
+        {"symbol": "AAA", "target_date": "2026-01-02", "predicted_close": float("inf"), "base_close": 100},
+    ])
+    history = pd.DataFrame([{
+        "symbol": "AAA", "date": "2026-01-02", "open": 100, "high": 107, "low": 99, "close": 104,
+    }])
+    monkeypatch.setattr(module, "_read", lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy())
+    result = module.phase110_forecast_accuracy()
+    assert result["status"] == "BLOCKED_INVALID_METRICS"
+    assert result["invalid_metric_rows"] == 1
+    assert result["metrics"] == {}
+
+
+def test_phase111_blocks_non_finite_replay_pnl(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    v1 = pd.DataFrame([
+        {"signal": "BUY", "target_date": "2026-01-02", "profit_loss": float("inf")},
+    ])
+    v2 = pd.DataFrame(columns=["signal", "target_date", "profit_loss"])
+    result = module.phase111_chronological_replay(v1, v2)
+    assert result["status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["v1"]["valid"] is False
+    assert result["v1"]["invalid_metric_rows"] == 1
+    assert result["v1"]["net_pnl"] is None

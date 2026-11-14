@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.phase119_prospective_validation import evaluate_prospective
+from src.phase119_prospective_validation import _mape, evaluate_prospective
 
 
 def _row(prediction_date, target_date, symbol="AAA", actual=102.0, predicted=101.0):
@@ -125,3 +125,12 @@ def test_prospective_validation_rejects_overflowed_derived_returns():
     assert summary["invalid_non_finite_rows"] == 1
     assert summary["prospective_rows"] == 0
     assert daily.empty
+
+
+
+def test_prospective_mape_ignores_non_finite_metric_values():
+    actual = pd.Series([100.0, 100.0, float("inf")])
+    predicted = pd.Series([101.0, float("inf"), 101.0])
+
+    assert _mape(actual, predicted) == 1.0
+    assert _mape(pd.Series([100.0]), pd.Series([float("inf")])) is None

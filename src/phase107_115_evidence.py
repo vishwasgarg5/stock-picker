@@ -657,10 +657,49 @@ def phase111_chronological_replay(v1: pd.DataFrame, v2: pd.DataFrame) -> dict[st
 
 
 def phase112_market_intelligence() -> dict[str, Any]:
+    """Validate market-intelligence dates against the latest available OHLCV session."""
     frame = _read("index_intelligence_summary.csv")
-    latest = frame.tail(1).to_dict(orient="records") if not frame.empty else []
-    return _write("phase112_market_intelligence_summary.json", {"status": "SCORED" if latest else "INSUFFICIENT_DATA", "source": "data/index_intelligence_summary.csv", "rows": int(len(frame)), "latest_record": latest[0] if latest else None, "news_context_source_present": (DATA / "phase26_news_impact.csv").exists(), "note": "Reports existing market-intelligence outputs; does not create unsupported news or index facts."})
-
+    history = _read("ohlcv.csv", usecols=lambda c: c in {"date"})
+    required = {"index", "as_of"}
+    if frame.empty or not required.issubset(frame.columns) or history.empty or "date" not in history:
+        return _write("phase112_market_intelligence_summary.json", {
+            "status": "INSUFFICIENT_DATA",
+            "source": "data/index_intelligence_summary.csv",
+            "rows": int(len(frame)),
+            "latest_record": frame.tail(1).to_dict(orient="records")[0] if not frame.empty else None,
+            "missing_columns": sorted(required.difference(frame.columns)),
+            "reference_ohlcv_session": None,
+            "invalid_as_of_rows": 0,
+            "duplicate_index_rows": 0,
+            "stale_index_rows": None,
+            "news_context_source_present": (DATA / "phase26_news_impact.csv").exists(),
+            "note": "A market-intelligence row is not considered current without valid index dates and an OHLCV session reference.",
+        })
+    dates = pd.to_datetime(frame["as_of"], errors="coerce").dt.normalize()
+    names = frame["index"].fillna("").astype(str).str.strip().str.upper()
+    invalid = int((dates.isna() | names.eq("")).sum())
+    duplicate = int(names[names.ne("")].duplicated(keep=False).sum())
+    ohlcv_dates = pd.to_datetime(history["date"], errors="coerce").dropna().dt.normalize()
+    reference = ohlcv_dates.max() if len(ohlcv_dates) else pd.NaT
+    stale = int((dates.notna() & dates.lt(reference)).sum()) if pd.notna(reference) else None
+    future = int((dates.notna() & dates.gt(reference)).sum()) if pd.notna(reference) else None
+    valid = invalid == 0 and duplicate == 0 and pd.notna(reference) and stale == 0 and future == 0
+    status = "SCORED" if valid else "BLOCKED_INVALID_DATA" if invalid or duplicate or future else "STALE_DATA" if stale else "INSUFFICIENT_DATA"
+    latest = frame.tail(1).to_dict(orient="records")
+    return _write("phase112_market_intelligence_summary.json", {
+        "status": status,
+        "source": "data/index_intelligence_summary.csv",
+        "rows": int(len(frame)),
+        "latest_record": latest[0] if latest else None,
+        "reference_ohlcv_session": str(reference.date()) if pd.notna(reference) else None,
+        "latest_index_session": str(dates.max().date()) if dates.notna().any() else None,
+        "invalid_as_of_rows": invalid,
+        "duplicate_index_rows": duplicate,
+        "stale_index_rows": stale,
+        "future_index_rows": future,
+        "news_context_source_present": (DATA / "phase26_news_impact.csv").exists(),
+        "note": "Market intelligence is current only when every index has one valid dated record aligned to the latest available OHLCV session; no arbitrary calendar-day freshness window is assumed.",
+    })
 
 def phase113_sustained_evidence(v1: pd.DataFrame, v2: pd.DataFrame) -> dict[str, Any]:
     def evidence(frame: pd.DataFrame) -> dict[str, Any]:

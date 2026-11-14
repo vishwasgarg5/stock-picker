@@ -12,8 +12,8 @@
     "src/new_listing_model.py": "dd51412fa28c2a393811a4839e23764df5079c40ccf4cf93c6896f2fd931142c",
     "src/news_context.py": "59a6970d4a9eecdb7b9885fb031fe473f9be4b9ae621a52a427eb89895b3f803",
     "src/outcomes.py": "15da3c0da4c855b7318f62dfa34aefb8f523c7db1aeef8dec5b66f604356795e",
-    "src/paper_trading.py": "b16aa6502c7aab32d0dad2383e4d56a0d83869bd72e18435e3004f6517d8288e",
-    "src/paper_trading_v2.py": "3f2c4bef5237f05216e7726260c6afe1cd77a05b190dcedf0cd6369aef88ee8a",
+    "src/paper_trading.py": "b7fe22e02b33752d1f0a5ac9f84e96fe1dc186871a19912d4888efa10b2bc266",
+    "src/paper_trading_v2.py": "1b059cd3f0fcd030a2bf5754354c34d664e1bca2721b944d48712afac77ce493",
     "src/performance_audit.py": "6aa6d26cf448e0fed7c45db578fc4ea9804ef971a762f29b9c351d02335ba288",
     "src/performance_history.py": "d3206b0360f533fb333725fc842a4e769191d0ea8ba8b6815827fb200142b074",
     "src/phase103_forecast_evidence.py": "ea9afd2b8d442fdc39ea7a08e2c36073af9d214c11c15ad09a4438d2a3d8885a",
@@ -31,7 +31,7 @@
     "src/phase27_data_quality.py": "e05782a65e5ed40b959da312323552f7f429c10f88bb9dc925e0f49cf6b04259",
     "src/phase28_30_foundation.py": "17724555012b3759ea0b49f4d675a1b0589285e1ed7671fc6e7f0b14ceb859fe",
     "src/phase2_dashboard.py": "2b799129504235a0811e120747c70eed7b8ca9aef47569f0d17d6ad8d8e1e798",
-    "src/phase2_optimizer.py": "66a69de7f9a1837a55d73607dbcb0192317053b7f4d9df3e8eb3d74f6b0b626c",
+    "src/phase2_optimizer.py": "be71208536f7032e3599dbd3efd817185d165631eae5e809b1256b4b229ba2d1",
     "src/phase31_walk_forward.py": "c3ad6d16a28a8119fe76769306e235519e48c97e31d41b6a4bf3ae6b715886ef",
     "src/phase32_40_diagnostics.py": "de49cbce5ab35d93c26b1bc54fbcb8e8c7a3bbc67d9bb2a58c1f5d2d04a09b72",
     "src/phase41_43_diagnostics.py": "d9de5f67d142e1c51051c1ac20d57c99f9e3aa002403872605abcb59c16ca704",
@@ -61,9 +61,9 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "62d104fc351bc98168eec524775bdc3e0a9a5b366d329bd6bb79277a9657deb2",
+    ".github/workflows/daily.yml": "d05a89605400fc5f83d3decf3da7839d496810bd0d39d060f95af822b9cd3735",
     ".github/workflows/forecast-calibration-ci.yml": "ee67298e71994b179f42071f5b198d491e9f4f7fcc20f3a640a054134e5d4715",
-    ".github/workflows/pipeline-integrity-ci.yml": "3443aa399259206cc21fef88d1ad0b44df811b3a7a07572d35c43ce3e8304acb"
+    ".github/workflows/pipeline-integrity-ci.yml": "05401e5d599a0fab64afd5516a8ccc05d6fdbcb7e0fbccf6a586a174931f5762"
   },
   "manifest_version": "governance_v1"
 }

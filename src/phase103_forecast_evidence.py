@@ -27,6 +27,21 @@ def evaluate_forecast_evidence(scores: pd.DataFrame, bootstrap_repeats: int = 20
         }
     x = scores.copy()
     x["target_date"] = pd.to_datetime(x["target_date"], errors="coerce").dt.normalize()
+    x["symbol"] = x["symbol"].astype("string").str.strip().str.upper()
+    valid_keys = x["target_date"].notna() & x["symbol"].notna() & x["symbol"].ne("")
+    duplicate_keys = x.loc[valid_keys].duplicated(["target_date", "symbol"], keep=False)
+    duplicate_key_rows = int(duplicate_keys.sum())
+    if duplicate_key_rows:
+        return pd.DataFrame(), {
+            "status": "BLOCKED_AMBIGUOUS_KEYS",
+            "scored_rows": 0,
+            "duplicate_forecast_key_rows": duplicate_key_rows,
+            "promotion_allowed": False,
+            "production_champion": "V1",
+            "v2_mode": "SHADOW_ONLY",
+            "production_model_changed": False,
+            "interpretation": "Duplicate target_date/symbol forecast rows are ambiguous and are not silently overweighted.",
+        }
     for col in ("close_ape", "baseline_close_ape", "close_direction_correct"):
         x[col] = pd.to_numeric(x[col], errors="coerce")
     x = x.dropna(subset=["target_date", "close_ape", "baseline_close_ape"])

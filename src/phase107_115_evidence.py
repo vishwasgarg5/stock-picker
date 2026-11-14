@@ -518,13 +518,28 @@ def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str
     x = frame.copy()
     x[date_col] = pd.to_datetime(x[date_col], errors="coerce").dt.normalize()
     x[pnl_col] = pd.to_numeric(x[pnl_col], errors="coerce")
-    x = x.dropna(subset=[date_col, pnl_col]).sort_values(date_col)
+    valid_dates = x[date_col].notna()
+    finite_pnl = pd.Series(
+        np.isfinite(x[pnl_col].to_numpy(dtype=float)), index=x.index
+    )
+    invalid_date_rows = int((~valid_dates).sum())
+    invalid_pnl_rows = int((~x[pnl_col].notna() | ~finite_pnl).sum())
+    invalid_metric_rows = int((~valid_dates | ~x[pnl_col].notna() | ~finite_pnl).sum())
+    if invalid_metric_rows:
+        return {
+            **empty,
+            "rows": int(len(x)),
+            "invalid_metric_rows": invalid_metric_rows,
+            "invalid_date_rows": invalid_date_rows,
+            "invalid_pnl_rows": invalid_pnl_rows,
+            "valid": False,
+        }
+    x = x.sort_values(date_col)
     if x.empty:
         return empty
     pnl_values = x[pnl_col].to_numpy(dtype=float)
     if not np.isfinite(pnl_values).all():
         return {**empty, "invalid_metric_rows": int((~np.isfinite(pnl_values)).sum()), "valid": False}
-    x = x.loc[x[pnl_col].gt(-np.inf) & x[pnl_col].lt(np.inf)].copy()
     daily = x.groupby(date_col)[pnl_col].sum().sort_index()
     starting_capital = 100000.0
     # Include starting equity in the peak series so a first-session loss is

@@ -446,141 +446,83 @@ def phase109_selection_funnel(v2: pd.DataFrame) -> dict[str, Any]:
     })
 
 def phase110_forecast_accuracy() -> dict[str, Any]:
-    pred = _read("predictions.csv")
-    history = _read("ohlcv.csv", usecols=lambda c: c in {"symbol", "date", "open", "high", "low", "close"})
-    required_prediction_keys = {"symbol", "target_date"}
-    required_history_columns = {"symbol", "date", "open", "high", "low", "close"}
-    if (
-        pred.empty or history.empty
-        or not required_prediction_keys.issubset(pred.columns)
-        or not required_history_columns.issubset(history.columns)
-    ):
+    # Score only persisted realized evaluations. Joining the current forecast
+    # file to OHLCV here can silently discard unmatched forecasts and mixes
+    # next-session predictions with already-realized observations.
+    evaluations = _read("evaluations.csv")
+    predicted = {"open": "predicted_open", "high": "predicted_high", "low": "predicted_low", "close": "predicted_close"}
+    actual_ohlc = [f"actual_{field}" for field in ("open", "high", "low", "close")]
+    required = {"symbol", "target_date", "base_close", *predicted.values(), *actual_ohlc}
+    missing = sorted(required.difference(evaluations.columns))
+    if evaluations.empty or missing:
         return _write("phase110_forecast_accuracy_summary.json", {
             "status": "INSUFFICIENT_DATA", "matched_rows": 0, "metrics": {},
-            "missing_prediction_key_columns": sorted(required_prediction_keys.difference(pred.columns)),
-            "missing_history_columns": sorted(required_history_columns.difference(history.columns)),
+            "missing_evaluation_columns": missing,
+            "source": "data/evaluations.csv",
+            "note": "Phase 110 requires persisted realized evaluations; it does not fall back to current predictions or inner-join away unmatched forecasts.",
         })
-    predicted = {"open": "predicted_open", "high": "predicted_high", "low": "predicted_low", "close": "predicted_close"}
-    actual = history.rename(columns={"date": "target_date", **{k: f"actual_{k}" for k in predicted}})
-    pred["symbol"] = pred["symbol"].astype(str).str.upper().str.strip()
-    actual["symbol"] = actual["symbol"].astype(str).str.upper().str.strip()
-    pred["target_date"] = pd.to_datetime(pred["target_date"], errors="coerce").dt.normalize()
-    actual["target_date"] = pd.to_datetime(actual["target_date"], errors="coerce").dt.normalize()
-    invalid_prediction_keys = int((
-        pred["symbol"].eq("") | pred["symbol"].eq("NAN") | pred["target_date"].isna()
-    ).sum())
-    invalid_actual_keys = int((
-        actual["symbol"].eq("") | actual["symbol"].eq("NAN") | actual["target_date"].isna()
-    ).sum())
-    if invalid_prediction_keys or invalid_actual_keys:
+    merged = evaluations.copy()
+    merged["symbol"] = merged["symbol"].astype(str).str.upper().str.strip()
+    merged["target_date"] = pd.to_datetime(merged["target_date"], errors="coerce").dt.normalize()
+    invalid_keys = int((merged["symbol"].eq("") | merged["symbol"].eq("NAN") | merged["target_date"].isna()).sum())
+    if invalid_keys:
         return _write("phase110_forecast_accuracy_summary.json", {
-            "status": "BLOCKED_INVALID_KEYS",
-            "matched_rows": 0,
-            "invalid_prediction_key_rows": invalid_prediction_keys,
-            "invalid_actual_key_rows": invalid_actual_keys,
-            "metrics": {},
+            "status": "BLOCKED_INVALID_KEYS", "matched_rows": 0,
+            "invalid_evaluation_key_rows": invalid_keys, "metrics": {},
             "close_directional_accuracy_pct": None,
-            "chronological_split_used_for_this_summary": False,
-            "note": "Missing or unparseable symbol/date keys detected; forecast accuracy was not scored.",
+            "note": "Missing or unparseable symbol/date keys detected in realized evaluations; no forecast metrics were scored.",
         })
-    cols = ["symbol", "target_date"] + [v for v in predicted.values() if v in pred.columns]
-    if "base_close" in pred.columns:
-        cols.append("base_close")
-    pred_key_duplicates = int(pred.duplicated(["symbol", "target_date"], keep=False).sum())
-    actual_key_duplicates = int(actual.duplicated(["symbol", "target_date"], keep=False).sum())
-    # A many-to-many merge would silently overweight duplicate records and make
-    # forecast accuracy look more precise than the underlying data supports.
-    if pred_key_duplicates or actual_key_duplicates:
+    duplicates = int(merged.duplicated(["symbol", "target_date"], keep=False).sum())
+    if duplicates:
         return _write("phase110_forecast_accuracy_summary.json", {
-            "status": "BLOCKED_AMBIGUOUS_KEYS",
-            "matched_rows": 0,
-            "duplicate_prediction_key_rows": pred_key_duplicates,
-            "duplicate_actual_key_rows": actual_key_duplicates,
-            "metrics": {},
+            "status": "BLOCKED_AMBIGUOUS_KEYS", "matched_rows": 0,
+            "duplicate_evaluation_key_rows": duplicates, "metrics": {},
             "close_directional_accuracy_pct": None,
-            "chronological_split_used_for_this_summary": False,
-            "note": "Duplicate symbol/target_date keys detected; ambiguous rows were not silently deduplicated or scored.",
+            "note": "Duplicate symbol/target_date keys detected in realized evaluations; ambiguous rows were not scored.",
         })
-    merged = pred[cols].merge(actual[["symbol", "target_date"] + [f"actual_{k}" for k in predicted]], on=["symbol", "target_date"], how="inner", validate="one_to_one")
-    actual_ohlc = [f"actual_{field}" for field in ("open", "high", "low", "close")]
-    ohlc = merged[actual_ohlc].apply(pd.to_numeric, errors="coerce")
-    ohlc_values = ohlc.to_numpy(dtype=float)
-    finite_ohlc = np.isfinite(ohlc_values).all(axis=1)
-    positive_ohlc = (ohlc_values > 0).all(axis=1)
+    numeric_columns = list(predicted.values()) + actual_ohlc + ["base_close"]
+    numeric = merged[numeric_columns].apply(pd.to_numeric, errors="coerce")
+    numeric_values = numeric.to_numpy(dtype=float)
+    finite = np.isfinite(numeric_values).all(axis=1)
+    positive = numeric.gt(0).all(axis=1).to_numpy(dtype=bool)
+    ohlc = numeric[actual_ohlc]
     internally_consistent = (
         (ohlc["actual_high"] >= ohlc[["actual_open", "actual_low", "actual_close"]].max(axis=1))
         & (ohlc["actual_low"] <= ohlc[["actual_open", "actual_high", "actual_close"]].min(axis=1))
     ).to_numpy(dtype=bool)
-    invalid_ohlc = ~(finite_ohlc & positive_ohlc & internally_consistent)
-    if invalid_ohlc.any():
+    invalid_rows = ~(finite & positive & internally_consistent)
+    if invalid_rows.any():
         return _write("phase110_forecast_accuracy_summary.json", {
-            "status": "BLOCKED_INVALID_OHLC",
-            "matched_rows": int(len(merged)),
-            "invalid_actual_ohlc_rows": int(invalid_ohlc.sum()),
-            "metrics": {},
+            "status": "BLOCKED_INVALID_METRICS", "matched_rows": int(len(merged)),
+            "invalid_metric_rows": int(invalid_rows.sum()), "metrics": {},
             "close_directional_accuracy_pct": None,
-            "chronological_split_used_for_this_summary": False,
-            "note": "Matched actual OHLC rows contain missing, non-finite, non-positive, or internally inconsistent prices; no forecast metrics were scored.",
+            "note": "Realized evaluation rows contain missing, non-finite, non-positive, or internally inconsistent forecast/actual OHLC or base-close values; no metrics were scored.",
         })
     metrics = {}
-    for k, pcol in predicted.items():
-        acol = f"actual_{k}"
-        if pcol not in merged:
-            continue
-        p = pd.to_numeric(merged[pcol], errors="coerce")
-        a = pd.to_numeric(merged[acol], errors="coerce")
-        present = p.notna() & a.notna()
-        finite = pd.Series(np.isfinite(p.to_numpy(dtype=float)) & np.isfinite(a.to_numpy(dtype=float)), index=merged.index)
-        invalid = present & (~finite | p.le(0) | a.le(0))
-        if invalid.any():
+    for field, pcol in predicted.items():
+        p = numeric[pcol]
+        a = numeric[f"actual_{field}"]
+        mae = float((p - a).abs().mean())
+        bias = float((p - a).mean())
+        mape_pct = float(((p - a).abs() / a.abs()).mean() * 100.0)
+        if not np.isfinite(np.asarray([mae, bias, mape_pct], dtype=float)).all():
             return _write("phase110_forecast_accuracy_summary.json", {
                 "status": "BLOCKED_INVALID_METRICS", "matched_rows": int(len(merged)),
-                "invalid_metric_rows": int(invalid.sum()), "metrics": {},
+                "invalid_metric_rows": int(len(merged)), "metrics": {},
                 "close_directional_accuracy_pct": None,
-                "chronological_split_used_for_this_summary": False,
-                "note": "Non-finite or non-positive forecast/actual price values detected; no accuracy metrics were scored.",
+                "note": "Derived forecast error metrics overflowed; no accuracy metrics were scored.",
             })
-        valid = present & finite & p.gt(0) & a.gt(0)
-        if valid.any():
-            mae = float((p[valid] - a[valid]).abs().mean())
-            bias = float((p[valid] - a[valid]).mean())
-            mape_pct = float(((p[valid] - a[valid]).abs() / a[valid].abs()).mean() * 100)
-            derived = np.asarray([mae, bias, mape_pct], dtype=float)
-            if not np.isfinite(derived).all():
-                return _write("phase110_forecast_accuracy_summary.json", {
-                    "status": "BLOCKED_INVALID_METRICS", "matched_rows": int(len(merged)),
-                    "invalid_metric_rows": int(valid.sum()), "metrics": {},
-                    "close_directional_accuracy_pct": None,
-                    "chronological_split_used_for_this_summary": False,
-                    "note": "Derived forecast error metrics overflowed to non-finite values; no accuracy metrics were scored.",
-                })
-            metrics[k] = {"n": int(valid.sum()), "mae": mae, "bias": bias, "mape_pct": mape_pct}
-    directional = None
-    if "predicted_close" in merged and "base_close" in merged:
-        pc, ac, base = (pd.to_numeric(merged[c], errors="coerce") for c in ["predicted_close", "actual_close", "base_close"])
-        present = pc.notna() & ac.notna() & base.notna()
-        finite = pd.Series(
-            np.isfinite(pc.to_numpy(dtype=float))
-            & np.isfinite(ac.to_numpy(dtype=float))
-            & np.isfinite(base.to_numpy(dtype=float)),
-            index=merged.index,
-        )
-        invalid_base = present & (~finite | base.le(0) | pc.le(0) | ac.le(0))
-        if invalid_base.any():
-            return _write("phase110_forecast_accuracy_summary.json", {
-                "status": "BLOCKED_INVALID_METRICS",
-                "matched_rows": int(len(merged)),
-                "invalid_metric_rows": int(invalid_base.sum()),
-                "metrics": {},
-                "close_directional_accuracy_pct": None,
-                "chronological_split_used_for_this_summary": False,
-                "note": "Non-finite or non-positive base/forecast/actual close values detected; directional accuracy was not scored.",
-            })
-        valid = present & finite & base.gt(0) & pc.gt(0) & ac.gt(0)
-        if valid.any():
-            directional = float((((pc[valid] > base[valid]) == (ac[valid] > base[valid])).mean()) * 100)
-    return _write("phase110_forecast_accuracy_summary.json", {"status": "SCORED" if any(m.get("n", 0) for m in metrics.values()) else "INSUFFICIENT_DATA", "matched_rows": int(len(merged)), "metrics": metrics, "close_directional_accuracy_pct": directional, "chronological_split_used_for_this_summary": False, "note": "Descriptive matched historical forecast accuracy; use Phase 111 for chronological replay."})
-
+        metrics[field] = {"n": int(len(merged)), "mae": mae, "bias": bias, "mape_pct": mape_pct}
+    pc, ac, base = numeric["predicted_close"], numeric["actual_close"], numeric["base_close"]
+    directional = float((((pc > base) == (ac > base)).mean()) * 100.0)
+    return _write("phase110_forecast_accuracy_summary.json", {
+        "status": "SCORED" if len(merged) else "INSUFFICIENT_DATA",
+        "source": "data/evaluations.csv",
+        "matched_rows": int(len(merged)), "metrics": metrics,
+        "close_directional_accuracy_pct": directional,
+        "chronological_split_used_for_this_summary": False,
+        "note": "Descriptive accuracy over persisted realized forecast evaluations; all evaluation rows are validated and scored. Use Phase 111 for chronological replay.",
+    })
 
 def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str, Any]:
     empty = {

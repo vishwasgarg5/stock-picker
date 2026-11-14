@@ -377,3 +377,26 @@ def test_phase108_blocks_non_finite_pnl_instead_of_scoring_losses(tmp_path, monk
     assert result["invalid_non_finite_rows"] == 1
     assert result["gross_loss"] is None
     assert result["group_reports"] == []
+
+
+
+def test_phase110_blocks_non_finite_base_close_before_directional_scoring(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pred = pd.DataFrame([{
+        "symbol": "AAA", "target_date": "2026-01-02",
+        "predicted_close": 105, "base_close": float("inf"),
+    }])
+    history = pd.DataFrame([{
+        "symbol": "AAA", "date": "2026-01-02",
+        "open": 100, "high": 107, "low": 99, "close": 104,
+    }])
+    monkeypatch.setattr(
+        module, "_read",
+        lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy(),
+    )
+    result = module.phase110_forecast_accuracy()
+    assert result["status"] == "BLOCKED_INVALID_METRICS"
+    assert result["invalid_metric_rows"] == 1
+    assert result["metrics"] == {}
+    assert result["close_directional_accuracy_pct"] is None

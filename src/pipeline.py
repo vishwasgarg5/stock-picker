@@ -182,7 +182,10 @@ def load_universe() -> list[str]:
     post-IPO observations from being treated like established stocks.
     """
     df = pd.read_csv(UNIVERSE_FILE)
-    core = df["symbol"].dropna().astype(str).str.upper().str.strip().unique().tolist()
+    core = [
+        symbol for symbol in df["symbol"].dropna().astype(str).str.upper().str.strip().unique().tolist()
+        if not symbol.startswith("DUMMY")
+    ]
 
     eligible_new = []
     if NEW_LISTINGS_FILE.exists():
@@ -287,11 +290,33 @@ def download_history(symbols: list[str], start: str) -> pd.DataFrame:
                     elif symbol in levels:
                         part = raw[symbol].copy()
                     else:
-                        continue
+                        # Yahoo can omit one ticker from an otherwise successful
+                        # batch response. Retry that symbol alone before treating
+                        # it as unavailable; this is especially important during
+                        # a one-time corporate-action backfill.
+                        isolated = _download_yahoo_batch([symbol], start)
+                        if isolated.empty:
+                            continue
+                        if isinstance(isolated.columns, pd.MultiIndex):
+                            isolated_levels = isolated.columns.get_level_values(0)
+                            if ticker in isolated_levels:
+                                part = isolated[ticker].copy()
+                            elif symbol in isolated_levels:
+                                part = isolated[symbol].copy()
+                            else:
+                                continue
+                        else:
+                            part = isolated.copy()
                 else:
                     if len(batch) != 1:
-                        continue
-                    part = raw.copy()
+                        # A single-symbol retry avoids silently losing a ticker
+                        # omitted from a multi-symbol Yahoo response.
+                        isolated = _download_yahoo_batch([symbol], start)
+                        if isolated.empty:
+                            continue
+                        part = isolated.copy()
+                    else:
+                        part = raw.copy()
                 x = _normalise_history(part, symbol)
                 if not x.empty:
                     rows.append(x)
@@ -321,8 +346,13 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
     fresh_parts = [download_history([s for s, value in starts.items() if value == start], start) for start in sorted(set(starts.values()))]
     fresh = pd.concat(fresh_parts, ignore_index=True) if fresh_parts else pd.DataFrame(columns=EMPTY_HISTORY)
     if needs_action_backfill:
+        # Only symbols with persisted legacy bars need a historical action
+        # backfill. A symbol newly added to the universe has no legacy prices
+        # to adjust, so an empty provider response for it must not block the
+        # rebuild of unrelated, established symbols.
+        legacy_symbols = set(existing["symbol"].astype(str).str.upper().str.strip()) & set(symbols)
         refreshed_symbols = set(fresh["symbol"].astype(str).str.upper().str.strip()) if not fresh.empty else set()
-        missing_symbols = sorted(set(symbols) - refreshed_symbols)
+        missing_symbols = sorted(legacy_symbols - refreshed_symbols)
         if missing_symbols:
             raise RuntimeError(
                 "Corporate-action backfill incomplete; refusing to train on potentially "

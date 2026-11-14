@@ -31,7 +31,7 @@
     "src/phase27_data_quality.py": "e05782a65e5ed40b959da312323552f7f429c10f88bb9dc925e0f49cf6b04259",
     "src/phase28_30_foundation.py": "17724555012b3759ea0b49f4d675a1b0589285e1ed7671fc6e7f0b14ceb859fe",
     "src/phase2_dashboard.py": "2b799129504235a0811e120747c70eed7b8ca9aef47569f0d17d6ad8d8e1e798",
-    "src/phase2_optimizer.py": "be71208536f7032e3599dbd3efd817185d165631eae5e809b1256b4b229ba2d1",
+    "src/phase2_optimizer.py": "c335a1a4360265bd56278ff9f7a3ef71e75d5a8b8ace09326ffd0486139b502b",
     "src/phase31_walk_forward.py": "c3ad6d16a28a8119fe76769306e235519e48c97e31d41b6a4bf3ae6b715886ef",
     "src/phase32_40_diagnostics.py": "de49cbce5ab35d93c26b1bc54fbcb8e8c7a3bbc67d9bb2a58c1f5d2d04a09b72",
     "src/phase41_43_diagnostics.py": "d9de5f67d142e1c51051c1ac20d57c99f9e3aa002403872605abcb59c16ca704",
@@ -47,7 +47,7 @@
     "src/phase93_96_diagnostics.py": "cf5b0494d73619728d57457b5483ff4527d7c12eb01f96ff7ec505e0445d3c5b",
     "src/phase97_forecast_quality.py": "a4a22118f6e63cf7002ede6b5fc875be1f803a389d4bdf661e3fbcb92e860876",
     "src/phase98_101_quality.py": "d12815e7579c64427a68f6e40988489b2cb05ce0a30bc8e65542b5f282842070",
-    "src/pipeline.py": "a88450ecf6c5560184cfb4f20e811bda0f19016e0a037eed5b265a99dd0cc0d9",
+    "src/pipeline.py": "f666c7dfe3120aeead98786f1a9b66dc0ff40f855ec56b406777e0f05c83fc51",
     "src/portfolio_comparison.py": "05827dcd8cbf6d69e1721c3399a13dade47bafae50800bc47772f99fb91536f5",
     "src/ranking_diagnostics.py": "31f63139e10640ac713df564420f4823dbbff82ac11c4c02731a31588cf5875f",
     "src/ranking_model.py": "58fd15e9a244dbaa5d4aec072fcc07187caa79226276d089d126bcffb6b3c13c",
@@ -61,9 +61,9 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "a268767eaec61cd169a9c52b3568be3406c3e55c4f7e1743694b56959242ec3b",
+    ".github/workflows/daily.yml": "a9c3b8323a739a7e364f388ef527688efde9fa0857ef37363a8f7f65ad4108ac",
     ".github/workflows/forecast-calibration-ci.yml": "ee67298e71994b179f42071f5b198d491e9f4f7fcc20f3a640a054134e5d4715",
-    ".github/workflows/pipeline-integrity-ci.yml": "21a93e25cb7e4cc074df0d70ab9edb2687fd35dbc63b19f4dcbe18f8875462bd"
+    ".github/workflows/pipeline-integrity-ci.yml": "de341ca383d12ae56969b9002c11dd624a431d17f67cdce3fc9bb7c592e9fa03"
   },
   "manifest_version": "governance_v1"
 }

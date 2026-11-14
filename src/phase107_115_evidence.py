@@ -453,7 +453,25 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
     directional = None
     if "predicted_close" in merged and "base_close" in merged:
         pc, ac, base = (pd.to_numeric(merged[c], errors="coerce") for c in ["predicted_close", "actual_close", "base_close"])
-        valid = pc.notna() & ac.notna() & base.notna() & base.ne(0)
+        present = pc.notna() & ac.notna() & base.notna()
+        finite = pd.Series(
+            np.isfinite(pc.to_numpy(dtype=float))
+            & np.isfinite(ac.to_numpy(dtype=float))
+            & np.isfinite(base.to_numpy(dtype=float)),
+            index=merged.index,
+        )
+        invalid_base = present & (~finite | base.le(0) | pc.le(0) | ac.le(0))
+        if invalid_base.any():
+            return _write("phase110_forecast_accuracy_summary.json", {
+                "status": "BLOCKED_INVALID_METRICS",
+                "matched_rows": int(len(merged)),
+                "invalid_metric_rows": int(invalid_base.sum()),
+                "metrics": {},
+                "close_directional_accuracy_pct": None,
+                "chronological_split_used_for_this_summary": False,
+                "note": "Non-finite or non-positive base/forecast/actual close values detected; directional accuracy was not scored.",
+            })
+        valid = present & finite & base.gt(0) & pc.gt(0) & ac.gt(0)
         if valid.any():
             directional = float((((pc[valid] > base[valid]) == (ac[valid] > base[valid])).mean()) * 100)
     return _write("phase110_forecast_accuracy_summary.json", {"status": "SCORED" if any(m.get("n", 0) for m in metrics.values()) else "INSUFFICIENT_DATA", "matched_rows": int(len(merged)), "metrics": metrics, "close_directional_accuracy_pct": directional, "chronological_split_used_for_this_summary": False, "note": "Descriptive matched historical forecast accuracy; use Phase 111 for chronological replay."})

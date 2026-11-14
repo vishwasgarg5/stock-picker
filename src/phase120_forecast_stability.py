@@ -30,7 +30,8 @@ REQUIRED = {"prediction_date", "target_date", "symbol", "base_close", "predicted
 def _mape(actual: pd.Series, predicted: pd.Series) -> float | None:
     a = pd.to_numeric(actual, errors="coerce")
     p = pd.to_numeric(predicted, errors="coerce")
-    valid = a.notna() & p.notna() & a.gt(0) & p.notna()
+    finite = pd.Series(np.isfinite(a), index=a.index) & pd.Series(np.isfinite(p), index=p.index)
+    valid = a.notna() & p.notna() & finite & a.gt(0) & p.gt(0)
     if not valid.any():
         return None
     return float((p[valid] - a[valid]).abs().div(a[valid]).mean() * 100.0)

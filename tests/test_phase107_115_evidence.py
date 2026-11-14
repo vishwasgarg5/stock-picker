@@ -152,7 +152,7 @@ def test_phase110_blocks_duplicate_forecast_keys_instead_of_overweighting_them(t
     history = pd.DataFrame([{
         "symbol": "AAA", "date": "2026-01-02", "open": 100, "high": 107, "low": 99, "close": 104,
     }])
-    monkeypatch.setattr(module, "_read", lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy())
+    monkeypatch.setattr(module, "_read", lambda name, **kwargs: pred.copy() if name == "evaluations.csv" else pd.DataFrame())
     result = module.phase110_forecast_accuracy()
     assert result["status"] == "BLOCKED_AMBIGUOUS_KEYS"
     assert result["duplicate_prediction_key_rows"] == 2
@@ -303,7 +303,7 @@ def test_phase110_blocks_non_finite_or_non_positive_forecast_prices(tmp_path, mo
     history = pd.DataFrame([{
         "symbol": "AAA", "date": "2026-01-02", "open": 100, "high": 107, "low": 99, "close": 104,
     }])
-    monkeypatch.setattr(module, "_read", lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy())
+    monkeypatch.setattr(module, "_read", lambda name, **kwargs: pred.copy() if name == "evaluations.csv" else pd.DataFrame())
     result = module.phase110_forecast_accuracy()
     assert result["status"] == "BLOCKED_INVALID_METRICS"
     assert result["invalid_metric_rows"] == 1
@@ -399,7 +399,7 @@ def test_phase110_blocks_non_finite_base_close_before_directional_scoring(tmp_pa
     }])
     monkeypatch.setattr(
         module, "_read",
-        lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy(),
+        lambda name, **kwargs: pred.copy() if name == "evaluations.csv" else pd.DataFrame(),
     )
     result = module.phase110_forecast_accuracy()
     assert result["status"] == "BLOCKED_INVALID_METRICS"
@@ -457,7 +457,7 @@ def test_phase110_blocks_overflowed_derived_forecast_metrics(tmp_path, monkeypat
     }])
     monkeypatch.setattr(
         module, "_read",
-        lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy(),
+        lambda name, **kwargs: pred.copy() if name == "evaluations.csv" else pd.DataFrame(),
     )
     result = module.phase110_forecast_accuracy()
     assert result["status"] == "BLOCKED_INVALID_METRICS"
@@ -478,7 +478,7 @@ def test_phase110_blocks_invalid_actual_ohlc_relationships(tmp_path, monkeypatch
     }])
     monkeypatch.setattr(
         module, "_read",
-        lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy(),
+        lambda name, **kwargs: pred.copy() if name == "evaluations.csv" else pd.DataFrame(),
     )
     result = module.phase110_forecast_accuracy()
     assert result["status"] == "BLOCKED_INVALID_OHLC"
@@ -498,7 +498,7 @@ def test_phase110_blocks_unparseable_forecast_dates(tmp_path, monkeypatch):
     }])
     monkeypatch.setattr(
         module, "_read",
-        lambda name, **kwargs: pred.copy() if name == "predictions.csv" else history.copy(),
+        lambda name, **kwargs: pred.copy() if name == "evaluations.csv" else pd.DataFrame(),
     )
     result = module.phase110_forecast_accuracy()
     assert result["status"] == "BLOCKED_INVALID_KEYS"

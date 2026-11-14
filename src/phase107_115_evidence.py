@@ -491,16 +491,24 @@ def phase110_forecast_accuracy() -> dict[str, Any]:
         (ohlc["actual_high"] >= ohlc[["actual_open", "actual_low", "actual_close"]].max(axis=1))
         & (ohlc["actual_low"] <= ohlc[["actual_open", "actual_high", "actual_close"]].min(axis=1))
     ).to_numpy(dtype=bool)
-    invalid_rows = ~(finite & positive & internally_consistent)
+    invalid_ohlc = ~internally_consistent
+    if invalid_ohlc.any():
+        return _write("phase110_forecast_accuracy_summary.json", {
+            "status": "BLOCKED_INVALID_OHLC", "matched_rows": int(len(merged)),
+            "invalid_actual_ohlc_rows": int(invalid_ohlc.sum()), "metrics": {},
+            "close_directional_accuracy_pct": None,
+            "note": "Realized actual OHLC values are internally inconsistent; no metrics were scored.",
+        })
+    invalid_rows = ~(finite & positive)
     if invalid_rows.any():
         return _write("phase110_forecast_accuracy_summary.json", {
             "status": "BLOCKED_INVALID_METRICS", "matched_rows": int(len(merged)),
             "invalid_metric_rows": int(invalid_rows.sum()), "metrics": {},
             "close_directional_accuracy_pct": None,
-            "note": "Realized evaluation rows contain missing, non-finite, non-positive, or internally inconsistent forecast/actual OHLC or base-close values; no metrics were scored.",
+            "note": "Realized evaluation rows contain missing, non-finite, or non-positive forecast/actual prices or base-close values; no metrics were scored.",
         })
     metrics = {}
-    for field, pcol in predicted.items():
+    for field, pcol in available_predictions.items():
         p = numeric[pcol]
         a = numeric[f"actual_{field}"]
         mae = float((p - a).abs().mean())

@@ -213,7 +213,7 @@ def run_phase2() -> pd.DataFrame:
     h = _read(HISTORY)
     if c.empty:
         # Never leave a previous run's candidate output looking current.
-        pd.DataFrame().to_csv(OUT, index=False)
+        pd.DataFrame(columns=["prediction_date", "target_date", "symbol", "phase2_selected", "phase2_rank"]).to_csv(OUT, index=False)
         state = {"status": "collecting", "production_enabled": False, "reason": "no_candidates"}
         STATE.write_text(json.dumps(state, indent=2))
         pd.DataFrame([state]).to_csv(SUMMARY, index=False)
@@ -224,7 +224,7 @@ def run_phase2() -> pd.DataFrame:
     c = c.dropna(subset=["symbol", "prediction_date"]).copy()
     if c.empty:
         # Invalid-only input is also a failed refresh; clear stale candidate rows.
-        pd.DataFrame().to_csv(OUT, index=False)
+        pd.DataFrame(columns=["prediction_date", "target_date", "symbol", "phase2_selected", "phase2_rank"]).to_csv(OUT, index=False)
         state = {"status": "collecting", "production_enabled": False, "reason": "no_valid_candidates"}
         STATE.write_text(json.dumps(state, indent=2))
         pd.DataFrame([state]).to_csv(SUMMARY, index=False)

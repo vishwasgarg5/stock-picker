@@ -192,5 +192,20 @@
   "max_abs_gross_delta": 5.684341886080802e-14,
   "max_abs_return_delta_pct_points": 4.440892098500626e-16,
   "costs_subtracted_again": false,
-  "policy": "Uses recorded values only; reports missing-field/session patterns for triage. No historical values are backfilled or inferred; session age alone is not treated as proof a row is legacy."
+  "fixed_share_source_evidence": {
+    "status": "GROSS_SOURCE_EVIDENCE_PARTIAL",
+    "candidate_rows": 135,
+    "validated_rows": 135,
+    "mismatch_rows": 0,
+    "invalid_or_incomplete_source_rows": 79,
+    "max_abs_position_value_delta": 7.275957614183426e-12,
+    "max_abs_gross_pnl_delta": 5.6132876125047915e-12,
+    "max_abs_return_delta_pct_points": 1.0989473220313073e-14,
+    "source_semantics": "quantity and position_value are recorded source fields; profit_loss is gross P&L from quantity * (exit_price - entry_price)",
+    "costs_modeled": false,
+    "net_profit_loss_verified": false,
+    "source_ledger_mutated": false,
+    "policy": "Validate alternate source fields only; do not copy them into canonical accounting columns or assume transaction costs are zero."
+  },
+  "policy": "Uses recorded canonical values for the net ledger and separately validates alternate fixed-share source fields. No historical values are backfilled or inferred; alternate gross source evidence is not treated as proof of net accounting because costs are not modeled and it does not satisfy the net-accounting gate."
 }

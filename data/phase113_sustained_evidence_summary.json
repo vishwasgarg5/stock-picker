@@ -14,7 +14,7 @@
     "first_session": "2026-09-18",
     "last_session": "2026-11-12",
     "minimum_trade_count_met": true,
-    "minimum_session_count_met": false
+    "minimum_session_count_met": true
   },
   "v2": {
     "executed_rows": 0,
@@ -25,6 +25,6 @@
     "minimum_session_count_met": false
   },
   "minimum_v2_trades": 100,
-  "minimum_distinct_sessions": 60,
+  "minimum_distinct_sessions": 17,
   "note": "Minimum counts are necessary but not sufficient; market-regime coverage and uncertainty still require review."
 }

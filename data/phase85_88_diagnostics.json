@@ -7,40 +7,40 @@
   ],
   "phase85_receipt_anomaly_classification": {
     "status": "REVIEW_REQUIRED",
-    "rows": 170,
+    "rows": 174,
     "repeated_hash_rows": 10,
     "missing_hash_rows": 0,
     "hash_coverage_pct": 100.0,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 67,
+        "rows": 68,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 59.7,
+        "message_id_coverage_pct": 60.29,
         "repeated_hash_rows": 10,
         "unique_repeated_hashes": 4
       },
       "telegram_evening_sent.csv": {
-        "rows": 37,
+        "rows": 38,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 51.35,
+        "message_id_coverage_pct": 52.63,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       },
       "telegram_paper_sent.csv": {
-        "rows": 38,
+        "rows": 39,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 50.0,
+        "message_id_coverage_pct": 51.28,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       },
       "telegram_paper_v2_sent.csv": {
-        "rows": 28,
+        "rows": 29,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 67.86,
+        "message_id_coverage_pct": 68.97,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       }
@@ -91,9 +91,9 @@
       "close",
       "volume"
     ],
-    "raw_read_seconds": 0.3561,
-    "gzip_read_seconds": 0.6118,
-    "gzip_read_time_delta_pct": 71.8,
+    "raw_read_seconds": 0.3435,
+    "gzip_read_seconds": 0.6083,
+    "gzip_read_time_delta_pct": 77.09,
     "raw_dataframe_memory_bytes": 163259527,
     "gzip_dataframe_memory_bytes": 163259527,
     "dataframe_memory_equal": true,

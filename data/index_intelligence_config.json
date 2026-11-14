@@ -2,50 +2,58 @@
   "version": "index_intelligence_v3",
   "market_regime": "BULL",
   "risk_multiplier": 1.0,
-  "news_sentiment": "BEARISH",
-  "news_score": -0.4800000000000001,
-  "market_reason": "General market: Sensex falls 450 points, Nifty drops 182 as weak global cues weigh on markets - Telangana Today",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQTlZZeU1WTUc0M2UyVUVINWQtUHVIVkUwUndoOTVZejc2M1hHTDVQQV9NQURmd2pYWHN2ODRQRC1UTkNkM3BiYXFDeWV6b3BQUGU0bzJybkp0c2psZDA4c0xKRkRBNzIzc1hWSFNDSmVzcTUzcGtzX3F4TXlIaEM3WkcxQnNiUkdXVnNjcnBNOHlDczB3TGFkNXEyOHBnUExraHNYNFhR?oc=5",
-  "news_headline": "General market: Sensex falls 450 points, Nifty drops 182 as weak global cues weigh on markets - Telangana Today",
+  "news_sentiment": "BULLISH",
+  "news_score": -0.25999999999999995,
+  "market_reason": "General market: Indian stock markets gain in early trade over positive Asian cues - DD News",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPd21vYlZhMy1tdHVnSmFtUVhvUm5QbDZxUXJSWjVxcFIyZ1NHNHc5QTdsNHZtR1gtLUw3YmtvTUxCaG5RZXpiVWNLVmFiUWFhY3EwQWRTcmhvQk5wLVdhbl8wdUU4X1ZlMDFQeko4STJnVjUtWWpwWlFFSExyWnp1WWMtMmZua3ptc19OZXFiNmhUbENVQlE?oc=5",
+  "news_headline": "General market: Indian stock markets gain in early trade over positive Asian cues - DD News",
   "news_reasons": [
     {
       "event": "General market",
-      "impact": -1.0,
-      "headline": "Sensex falls 450 points, Nifty drops 182 as weak global cues weigh on markets - Telangana Today",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQTlZZeU1WTUc0M2UyVUVINWQtUHVIVkUwUndoOTVZejc2M1hHTDVQQV9NQURmd2pYWHN2ODRQRC1UTkNkM3BiYXFDeWV6b3BQUGU0bzJybkp0c2psZDA4c0xKRkRBNzIzc1hWSFNDSmVzcTUzcGtzX3F4TXlIaEM3WkcxQnNiUkdXVnNjcnBNOHlDczB3TGFkNXEyOHBnUExraHNYNFhR?oc=5"
+      "impact": 1.0,
+      "headline": "Indian stock markets gain in early trade over positive Asian cues - DD News",
+      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPd21vYlZhMy1tdHVnSmFtUVhvUm5QbDZxUXJSWjVxcFIyZ1NHNHc5QTdsNHZtR1gtLUw3YmtvTUxCaG5RZXpiVWNLVmFiUWFhY3EwQWRTcmhvQk5wLVdhbl8wdUU4X1ZlMDFQeko4STJnVjUtWWpwWlFFSExyWnp1WWMtMmZua3ptc19OZXFiNmhUbENVQlE?oc=5"
+    },
+    {
+      "event": "RBI / rates",
+      "impact": -0.9,
+      "headline": "Rate Hike Fears Set to Test India\u2019s Stock Rally as Inflation Rises - Bloomberg.com",
+      "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxNdGRoYnhoNmZMUTVFODRONTJZQmhGTEphQ3NpaVVpMXlGeXR3N05MblVRZU4tRUtsM3Z6czJUbDJfNktJamFJOExMS2V2VVl2ZDN0N2lLdDdzMllzT1NBOXhrc0JsUGg1LS04OTI4Y3I1bE5YM1JSRE9oWVkwTnFuRmZtaXI5VnU5VEVzTXQybndSd0lBTlRPWjNWZVo5ZWFlak9tQ0lTUVFfWS1SUzJCVDl4S01RSXpYNllEWTFscVhfcjZt?oc=5"
+    },
+    {
+      "event": "US / global markets",
+      "impact": -0.7,
+      "headline": "Sensex Today Ends 318 Points Lower | Nifty Below 25,150 | Manappuram Finance Down 4% - Equitymaster",
+      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxOOEdlSnRORmgtLVBCeDZ4QlJOSU1JSURHckM4UmZRMFd3QXVTYWdSVmhLb1E3MURFWVppaGhPV0VGYWdUVjJDS2FUcjBtY2ZLQVZMWUhzdHpaZzlBZmg2aTlZSDNOdUFCc3kwUE5nSlhvQVBsSHo0MUJJZnREUHVNSVlGUkJ0eXBjaXhPUzNEUWU4R3NDMGNtakd1aTgwWnEweUp1RVQ0YzVFN2Y5WTFmYjVRRlloN1FnUE1MS0liSy01SDdlbFJOaUxoWXBnTzBOUVY4eElvak4?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": -0.35,
+      "headline": "BSE SENSEX Today: Sensex Falls to 81,592.45 as Nifty Ends at 25,144, Snapping a Winning Streak - BBN Times",
+      "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPcWhfcXNmcy03Y2JVZVlqS2wzTVFUU2NnTWJmbVJLQkZBbHhoTlkxb0x4X1R4MGNZNk5OM25YYW1NN0JWQ25FclJCX1pUaEVadE9XaFdiVmM1eFZvSTM0N0lCNzFDRkNSQnF3MmJDc3I2OXNOTFB0N19wbXdMeUdNYzZZZGlMQV9NUk9QRG41MjZ5ZkMzY1hLWkt5ODJjTDlMQW5RbEF4MXRtUmtxUzBTVGNjRDVFVWxZX0VwRENNT0FqQXo1Z2c?oc=5"
     },
     {
       "event": "General market",
       "impact": -0.35,
       "headline": "Sensex Falls 319 Points, Nifty Slips Below 25,200: What Dragged Dalal Street? - Equitypandit",
       "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxNNGx4TmJscno3WFN0SzhUcHk0Qy1Bd19VbmxubWM4ZTlSUUFiYWhsLVpYWXptcG9nMmNKcmFhUE4wT1diXy1FeXNvMkNXaW9reUJPM3RLME1SX0ltU0d6RUtsTlJkZDV4ZWY1N2ROcmhQRnVzTWVmUlpLQlFRRWVPZHBQVFd1Z2RVZWVFdGZhR2JCbjlRdzU2Ymp5X2ZBTUU3cVFMN2F3?oc=5"
-    },
-    {
-      "event": "General market",
-      "impact": -0.35,
-      "headline": "Key Factors Behind Today\u2019s Market Decline - Equitypandit",
-      "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTFB3eThDclNzYWZyOEhaSjZpSV8tZVNjbXdTTHRlQldVY2ljUVlsU3R0VnpwSngwZkRfc01oQ0xiOWxsZ1lRV2ZuU0dsT1pNNGpDQTd6TTQyR3lLQWNISkZVcFl4OFhESVBwVWtMWHJwRjl1WWpPdUdMQ1BPcUlTUQ?oc=5"
-    },
-    {
-      "event": "Inflation",
-      "impact": -0.35,
-      "headline": "Stock Market Today: Sensex, Nifty Decline After 3-Day Rally Amid Profit Booking, High Inflation Figures - ETV Bharat",
-      "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPY3ZYMTdiR192LUZLcUhvOWxGY3ZybGtsWUM3Sm5jSTBLZXRpOEVOMHNyMzBxV3AxOWZYN084N3FwRU0zTTRONDdCbEFpWVlWQkFCT2djSXZSWlNHYm9nNUdLZmJwNE9yUUxzMm1NWnNXMWgySTJIeXNsR2Y4UGZvd3hVcXZvaWlLWUJLbEI4N0lVZlkxNVF3TG5rRW1nU1BYWWkyMVJqN2xxTHRySkhtdUdJYmdmQlNJQXV4c3JVd0k0ZGF00gHKAUFVX3lxTFBMdy1DUUtBZGpSS0hiRGhNdmZLT2tIdWNGODJVNlNrbk50RlY5ejNSNk0zallueXZkTUdCZV9ZSExUMi04TXcwanFzNkZXVURRYzJOS3dpUUFYV3A0YVF6amJlZkNKY1hPbFQ0SGJRdVp6U1pNM18xWTJ0ZmdEVEpIMV9PdnZTalVTcW14NDNfa3MyTmR4VnZmOUJZMlZ5MzhQSTg5eFVROXdZRDVaSlIyeGMyNVl0dXoweVRIVE9pRUxueEl2VV9lQnc?oc=5"
-    },
-    {
-      "event": "Geopolitics",
-      "impact": -0.35,
-      "headline": "GIFT NIFTY futures hint towards weak opening on November 13; what investors need to watch before market opens - Dailyhunt",
-      "url": "https://news.google.com/rss/articles/CBMimAJBVV95cUxQRWdaSWJhdlJQa1BKWTZHM19jQnpMU3ZyNk9STzV1Q0xvRXFCTmw1YWlaZ1hfUDVWUkQtaUkyak5wQS1IWW04M3UxYVQxN25oNy0tREVRdFY1TS1WeElYdEZIbEJ6bHRnOE54STg4ekc5dy16SjMtUHFNUkhmcVlsRXNwRG5ENmJ2QTBFaTV2NE4wOVdLMEI2cmlKeWducTZrM1VpSzFTakd2ZDdKNmxIYUxhS3YxaXJkazNfam04MDBCSFhlN0xTam5xcDJKT1JRSHRBY2dTLVpyMWRlVDlZT05BYVo5cVhmaVJNUHhDWUVxNmVUNTR3RzE5OWtoWDNGOTRCekFkc0lKNm5xTlFNal9ubzFOeTZM?oc=5"
     }
   ],
-  "market_intelligence_score": 76.14292030360532,
+  "market_intelligence_score": 76.49492030360533,
   "risk_level": "RISK_ON",
-  "market_confidence": 0.7852862827324479,
+  "market_confidence": 0.788454282732448,
   "data_quality": "HIGH",
   "index_data_available": true,
   "breadth_pct_above_sma20": 77.22960151802657,
   "sector_news_impacts": {
-    "defence": 0.7
+    "bank": 0.8,
+    "financial": 0.8,
+    "real estate": 0.7,
+    "auto": 0.4,
+    "airlines": 1.0,
+    "paints": 0.8,
+    "chemicals": 0.6,
+    "tyres": 0.6,
+    "oil & gas": -0.8
   }
 }

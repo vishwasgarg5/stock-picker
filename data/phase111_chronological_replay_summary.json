@@ -39,6 +39,7 @@
     "chronological_order": true,
     "costs_source": "recorded net profit_loss; costs are not subtracted again"
   },
-  "minimum_sessions_for_evidence": 60,
+  "minimum_v1_sessions_for_evidence": 60,
+  "minimum_v2_sessions_for_evidence": 17,
   "caveat": "Chronological aggregation of recorded simulated outcomes, not a claim of executable live returns."
 }

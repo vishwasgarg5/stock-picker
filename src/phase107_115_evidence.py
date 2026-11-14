@@ -571,6 +571,8 @@ def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str
     if not np.isfinite(pnl_values).all():
         return {**empty, "invalid_metric_rows": int((~np.isfinite(pnl_values)).sum()), "valid": False}
     daily = x.groupby(date_col)[pnl_col].sum().sort_index()
+    if not np.isfinite(daily.to_numpy(dtype=float)).all():
+        return {**empty, "rows": int(len(x)), "sessions": int(daily.size), "invalid_metric_rows": int(len(x)), "invalid_date_rows": 0, "invalid_pnl_rows": 0, "valid": False, "invalid_derived_metric": "daily_session_pnl_overflow"}
     starting_capital = 100000.0
     # Include starting equity in the peak series so a first-session loss is
     # measured as drawdown from the initial capital rather than a zero drawdown.
@@ -583,6 +585,9 @@ def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str
     trade_pnl = pd.to_numeric(x[pnl_col], errors="coerce").dropna()
     gains = float(trade_pnl[trade_pnl > 0].sum())
     losses = float(-trade_pnl[trade_pnl < 0].sum())
+    derived = [equity.to_numpy(dtype=float), drawdown.to_numpy(dtype=float), np.asarray([daily.sum(), daily.mean(), daily.max(), daily.min(), gains, losses], dtype=float)]
+    if not all(np.isfinite(values).all() for values in derived):
+        return {**empty, "rows": int(len(x)), "sessions": int(daily.size), "invalid_metric_rows": int(len(x)), "invalid_date_rows": 0, "invalid_pnl_rows": 0, "valid": False, "invalid_derived_metric": "equity_or_aggregate_overflow"}
     return {
         "rows": int(len(x)),
         "sessions": int(daily.size),

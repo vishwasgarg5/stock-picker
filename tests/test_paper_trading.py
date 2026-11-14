@@ -273,3 +273,20 @@ def test_current_schema_missing_exit_reason_still_blocks_persistence():
     assert audit["status"] == "BLOCK"
     assert audit["current_schema_missing_exit_reason_rows"] == 1
     assert audit["write_allowed"] is False
+
+
+def test_unversioned_missing_exit_reason_blocks_persistence():
+    trades = pd.DataFrame([{
+        "signal": "BUY",
+        "entry_price": 100.0, "exit_price": 110.0,
+        "shares": 100.0, "allocated_capital": 10000.0,
+        "gross_profit_loss": 1000.0, "costs": 10.0,
+        "profit_loss": 990.0, "return_pct": 9.9,
+        "exit_reason": None,
+    }])
+    audit = pt._accounting_ledger_audit(trades)
+    assert audit["status"] == "BLOCK"
+    assert audit["legacy_missing_exit_reason_rows"] == 0
+    assert audit["current_schema_missing_exit_reason_rows"] == 0
+    assert audit["unversioned_missing_exit_reason_rows"] == 1
+    assert audit["write_allowed"] is False

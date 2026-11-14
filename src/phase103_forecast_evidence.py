@@ -44,6 +44,23 @@ def evaluate_forecast_evidence(scores: pd.DataFrame, bootstrap_repeats: int = 20
         }
     for col in ("close_ape", "baseline_close_ape", "close_direction_correct"):
         x[col] = pd.to_numeric(x[col], errors="coerce")
+    ape_values = x[["close_ape", "baseline_close_ape"]].to_numpy(dtype=float)
+    finite_ape = pd.Series(np.isfinite(ape_values).all(axis=1), index=x.index)
+    nonnegative_ape = x["close_ape"].ge(0) & x["baseline_close_ape"].ge(0)
+    direction_valid = x["close_direction_correct"].isna() | x["close_direction_correct"].isin([0, 1])
+    invalid_metric = ~(finite_ape & nonnegative_ape & direction_valid)
+    invalid_metric_rows = int(invalid_metric.sum())
+    if invalid_metric_rows:
+        return pd.DataFrame(), {
+            "status": "BLOCKED_INVALID_METRICS",
+            "scored_rows": 0,
+            "invalid_metric_rows": invalid_metric_rows,
+            "promotion_allowed": False,
+            "production_champion": "V1",
+            "v2_mode": "SHADOW_ONLY",
+            "production_model_changed": False,
+            "interpretation": "Non-finite or negative APE values and non-binary direction labels are invalid evidence and are not silently scored.",
+        }
     x = x.dropna(subset=["target_date", "close_ape", "baseline_close_ape"])
     if x.empty:
         return pd.DataFrame(), {"status": "INSUFFICIENT_DATA", "scored_rows": 0, "promotion_allowed": False}

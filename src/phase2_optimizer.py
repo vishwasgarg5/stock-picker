@@ -271,7 +271,29 @@ def run_phase2() -> pd.DataFrame:
     )
     c["phase2_selected"] = (c["phase2_rank"] <= 10).astype(int)
     c["phase2_top5"] = (c["phase2_rank"] <= 5).astype(int)
-    c.to_csv(OUT, index=False)
+    # Persist atomically, then verify the artifact before downstream consumers use it.
+    required_keys = ["prediction_date", "target_date", "symbol"]
+    missing_keys = [key for key in required_keys if key not in c.columns]
+    if missing_keys:
+        raise ValueError(f"Phase 2 candidate history is missing key columns: {missing_keys}")
+    output_tmp = OUT.with_name(f".{OUT.name}.tmp")
+    c.to_csv(output_tmp, index=False)
+    output_tmp.replace(OUT)
+    persisted = _read(OUT)
+    if persisted.empty or len(persisted) != len(c):
+        raise RuntimeError(
+            f"Phase 2 output refresh incomplete: input_rows={len(c)}, "
+            f"persisted_rows={len(persisted)}"
+        )
+    for key in required_keys:
+        if key == "symbol":
+            expected = set(c[key].astype(str).str.upper().str.strip())
+            actual = set(persisted[key].astype(str).str.upper().str.strip())
+        else:
+            expected = set(_norm_dates(c[key]).dropna())
+            actual = set(_norm_dates(persisted[key]).dropna())
+        if not expected.issubset(actual):
+            raise RuntimeError(f"Phase 2 persisted output is missing values for key column: {key}")
 
     feedback = _portfolio_feedback(_read(DATA / "paper_trades.csv"))
     direction_lift, return_lift, matched_eval_sessions = _shadow_selection_metrics(c, e)

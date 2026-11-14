@@ -290,3 +290,23 @@ def test_unversioned_missing_exit_reason_blocks_persistence():
     assert audit["current_schema_missing_exit_reason_rows"] == 0
     assert audit["unversioned_missing_exit_reason_rows"] == 1
     assert audit["write_allowed"] is False
+
+
+@pytest.mark.parametrize("field", [
+    "entry_price", "exit_price", "shares", "allocated_capital",
+    "gross_profit_loss", "costs", "profit_loss", "return_pct",
+])
+def test_accounting_ledger_audit_blocks_non_finite_values(field):
+    trade = {
+        "signal": "BUY", "entry_price": 100.0, "exit_price": 110.0,
+        "shares": 100.0, "allocated_capital": 10000.0,
+        "gross_profit_loss": 1000.0, "costs": 10.0,
+        "profit_loss": 990.0, "return_pct": 9.9,
+        "exit_reason": "target",
+    }
+    trade[field] = float("inf")
+    audit = pt._accounting_ledger_audit(pd.DataFrame([trade]))
+    assert audit["status"] == "BLOCK"
+    assert audit["write_allowed"] is False
+    assert audit["invalid_non_finite_rows"] == 1
+    assert audit["incomplete_ledger_rows"] == 1

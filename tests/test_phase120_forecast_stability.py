@@ -80,3 +80,31 @@ def test_stability_audit_missing_schema_is_safe():
     assert summary["status"] == "INSUFFICIENT_DATA"
     assert summary["production_model_changed"] is False
     assert summary["promotion_allowed"] is False
+
+
+
+def test_stability_audit_rejects_non_finite_price_inputs():
+    scores = _scores()
+    scores.loc[scores.index[0], "predicted_close"] = float("inf")
+    scores.loc[scores.index[1], "actual_close"] = float("-inf")
+    scores.loc[scores.index[2], "base_close"] = float("inf")
+
+    sessions, symbols, regimes, summary = audit_forecast_stability(scores)
+
+    assert summary["invalid_non_finite_rows"] == 3
+    assert summary["scored_rows"] == len(scores) - 3
+    assert sessions["rows"].sum() == summary["scored_rows"]
+    assert summary["production_model_changed"] is False
+    assert summary["promotion_allowed"] is False
+
+
+def test_stability_audit_rejects_overflowed_derived_returns():
+    scores = _scores()
+    scores.loc[scores.index[0], "base_close"] = 1e-320
+    scores.loc[scores.index[0], "predicted_close"] = 1e308
+
+    sessions, _, _, summary = audit_forecast_stability(scores)
+
+    assert summary["invalid_non_finite_rows"] == 1
+    assert summary["scored_rows"] == len(scores) - 1
+    assert sessions["rows"].sum() == summary["scored_rows"]

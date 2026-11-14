@@ -81,7 +81,9 @@ def test_candidate_history_preserves_repeated_target_date_across_prediction_sess
     result = _merge_candidate_history(existing, current)
 
     assert len(result) == 2
-    assert set(result["prediction_date"]) == {"2026-11-12", "2026-11-13"}
+    assert set(pd.to_datetime(result["prediction_date"]).dt.strftime("%Y-%m-%d")) == {
+        "2026-11-12", "2026-11-13",
+    }
     assert result["symbol"].tolist() == ["MCX", "MCX"]
 
 

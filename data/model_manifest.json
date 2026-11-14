@@ -61,7 +61,7 @@
     "src/universe.py": "a140b899a2908458a0a0c7b122a7c7eeda0c752b621990ac76aa3b76533bafd2",
     "src/walk_forward.py": "56ac6df5e67d20b1b339ca5bf73778ca885051006850ef5c662e15c89df5c23d",
     "src/weekly_status.py": "c8d0542e8751f872b00ce44bd4a02541fda6553b74a1efdf45d02d47f8ecff65",
-    ".github/workflows/daily.yml": "33e312ff41494286a3c8da3fb9d7d1a419b214b2e3ace507bbac2eeb6f4f03ec",
+    ".github/workflows/daily.yml": "a268767eaec61cd169a9c52b3568be3406c3e55c4f7e1743694b56959242ec3b",
     ".github/workflows/forecast-calibration-ci.yml": "ee67298e71994b179f42071f5b198d491e9f4f7fcc20f3a640a054134e5d4715",
     ".github/workflows/pipeline-integrity-ci.yml": "21a93e25cb7e4cc074df0d70ab9edb2687fd35dbc63b19f4dcbe18f8875462bd"
   },

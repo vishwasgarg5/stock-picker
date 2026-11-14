@@ -679,3 +679,41 @@ def test_phase111_blocks_equity_overflow_across_valid_sessions(tmp_path, monkeyp
     assert result["v1"]["valid"] is False
     assert result["v1"]["invalid_derived_metric"] == "equity_or_aggregate_overflow"
     assert result["v1"]["max_drawdown_pct_from_100k_start"] is None
+
+
+
+def test_fixed_share_source_evidence_localizes_invalid_rows_by_reason_and_session():
+    from src.phase107_115_evidence import _fixed_share_source_evidence
+
+    buys = pd.DataFrame([
+        {"target_date": "2026-09-30", "quantity": 2, "position_value": 200,
+         "planned_capital": 200, "reference_price": 100, "entry_price": 100,
+         "exit_price": 110, "profit_loss": 20, "return_pct": 10},
+        {"target_date": "2026-09-30", "quantity": None, "position_value": 200,
+         "planned_capital": 200, "reference_price": 100, "entry_price": 100,
+         "exit_price": 110, "profit_loss": 20, "return_pct": 10},
+        {"target_date": "2026-10-01", "quantity": 2, "position_value": 0,
+         "planned_capital": 200, "reference_price": 100, "entry_price": 100,
+         "exit_price": 110, "profit_loss": 20, "return_pct": 10},
+    ])
+    original = buys.copy(deep=True)
+    result = _fixed_share_source_evidence(buys)
+
+    assert result["candidate_rows"] == 1
+    assert result["validated_rows"] == 1
+    assert result["invalid_or_incomplete_source_rows"] == 2
+    assert result["invalid_or_incomplete_source_rows_by_reason"] == {
+        "MISSING_OR_NON_FINITE_REQUIRED_VALUE": 1,
+        "NON_POSITIVE_REQUIRED_VALUE": 1,
+    }
+    assert result["source_evidence_by_session"] == [
+        {"target_date": "2026-09-30", "buy_rows": 2, "candidate_rows": 1,
+         "validated_rows": 1, "mismatch_rows": 0,
+         "invalid_or_incomplete_source_rows": 1},
+        {"target_date": "2026-10-01", "buy_rows": 1, "candidate_rows": 0,
+         "validated_rows": 0, "mismatch_rows": 0,
+         "invalid_or_incomplete_source_rows": 1},
+    ]
+    assert result["costs_modeled"] is False
+    assert result["net_profit_loss_verified"] is False
+    pd.testing.assert_frame_equal(buys, original)

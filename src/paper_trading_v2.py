@@ -34,6 +34,17 @@ def _net_return_pct(profit_loss: pd.Series, entry_price: pd.Series, quantity: pd
     return net.div(invested.where(invested.gt(0))) * 100.0
 
 
+def _phase2_selection_flags(predictions: pd.DataFrame) -> pd.Series:
+    """Return Phase-2 selection flags, failing closed when metadata is absent."""
+    raw = predictions.get(
+        "phase2_selected",
+        pd.Series(np.nan, index=predictions.index, dtype="float64"),
+    )
+    flags = pd.to_numeric(raw, errors="coerce").fillna(0)
+    # Only the explicit selected value 1 is eligible; malformed values cannot pass.
+    return flags.eq(1)
+
+
 def _confidence_gate() -> bool:
     if not CONF_SUMMARY.exists():
         return False
@@ -107,8 +118,10 @@ def run_paper_trading_v2() -> pd.DataFrame:
     p["confidence_v3"] = pd.to_numeric(p["confidence_v3"], errors="coerce").fillna(
         pd.to_numeric(p["confidence_score"], errors="coerce")
     )
-    p["phase2_score"] = pd.to_numeric(p.get("phase2_score"), errors="coerce")
-    p["phase2_selected"] = pd.to_numeric(p.get("phase2_selected"), errors="coerce").fillna(0)
+    p["phase2_score"] = pd.to_numeric(
+        p.get("phase2_score", pd.Series(np.nan, index=p.index)), errors="coerce"
+    )
+    p["phase2_selected"] = _phase2_selection_flags(p).astype("int8")
     # This is a feature/metadata join, not an eligibility gate. Keep all
     # prediction rows in the flow; the actual Phase-2 filter is recorded below.
     record("phase2_join", len(p), len(p),
@@ -191,9 +204,6 @@ def run_paper_trading_v2() -> pd.DataFrame:
         for _, row in eligible.iterrows()
     }
     for reason, count in eligible.loc[~eligible["phase4_eligible"].fillna(False), "phase4_reject_reason"].value_counts().items():
-        # Reason rows are reason-attribution diagnostics, not sequential funnel
-        # stages; report each reason's own rejected count to avoid overlapping
-        # "output" counts that look like separate passing populations.
         count = int(count)
         record(f"phase4_reject:{reason or 'unclassified'}", count, 0,
                f"{count} candidates rejected for {reason or 'unclassified'}; diagnostic only")
@@ -224,8 +234,6 @@ def run_paper_trading_v2() -> pd.DataFrame:
     x["strategy"] = "V2_SHADOW_BENCHMARK" if not confidence_promoted else "V2_CONFIDENCE_BENCHMARK"
     x["signal"] = "SKIP"
     x["no_trade_reason"] = "daily_trade_cap"
-    # Attribute the first observed failed stage to each candidate. This is
-    # reporting-only: the original eligibility masks and selected rows are unchanged.
     x.loc[~confidence_pass, "no_trade_reason"] = "confidence_percentile"
     x.loc[confidence_pass & ~phase2_pass, "no_trade_reason"] = "phase2_not_selected"
     for row_idx, row in x.iterrows():
@@ -264,8 +272,6 @@ def run_paper_trading_v2() -> pd.DataFrame:
 
     x["reference_price"] = x["base_close"]
     x["no_trade_reason"] = x["no_trade_reason"].fillna("").astype(str)
-    # Phase-4 weight can only reduce the equal-allocation budget; it cannot
-    # increase it. This keeps the portfolio-capital invariant intact.
     if "phase4_weight" in x.columns:
         weight = pd.to_numeric(x["phase4_weight"], errors="coerce").fillna(1.0).clip(0.0, 1.0)
     else:
@@ -287,8 +293,6 @@ def run_paper_trading_v2() -> pd.DataFrame:
         0.0,
     )
     x["profit_loss"] = x["gross_profit_loss"] - x["trading_cost"]
-    # Return is net of both-side trading costs and uses the actual entry
-    # notional, not the gross price move.
     x["return_pct"] = np.where(
         x["signal"].eq("BUY"),
         _net_return_pct(x["profit_loss"], x["entry_price"], x["quantity"]),
@@ -301,7 +305,7 @@ def run_paper_trading_v2() -> pd.DataFrame:
         "quantity", "planned_capital", "expected_return_pct", "risk_reward",
         "stop_distance_pct", "trade_quality_probability", "phase4_score",
         "phase4_weight", "phase4_stop_atr_multiplier", "phase4_target_stop_multiple",
-                    "index_market_regime", "index_risk_multiplier", "index_adjusted_score",
+        "index_market_regime", "index_risk_multiplier", "index_adjusted_score",
         "no_trade_reason", "phase4_reject_reason", "phase4_confidence_floor",
         "phase4_min_expected_return_pct", "cooldown", "confidence_pct",
         "entry_price", "exit_price", "return_pct", "gross_profit_loss",

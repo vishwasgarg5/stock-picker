@@ -521,6 +521,8 @@ def test_phase109_accepts_unclassified_phase2_metadata_rows(tmp_path, monkeypatc
     assert result["existing_funnel_valid"] is True
     assert result["funnel_validation_errors"] == []
     assert result["funnel_stages"][0]["rejected_rows"] == 0
+    assert result["funnel_stages"][0]["unclassified_rows"] == 2
+    assert result["funnel_stages"][1]["unclassified_rows"] == 0
     assert result["required_gate_stages_present"] is True
 
 
@@ -627,3 +629,22 @@ def test_phase112_scores_aligned_index_session_metadata(tmp_path, monkeypatch):
     assert result["status"] == "SCORED"
     assert result["stale_index_rows"] == 0
     assert result["future_index_rows"] == 0
+
+
+def test_phase109_reports_missing_rejection_metadata_without_inventing_rejections(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    pd.DataFrame([
+        {"stage": "phase2_join", "input_rows": 12, "output_rows": 9, "rejected_rows": None},
+        {"stage": "confidence_percentile_gate", "input_rows": 9, "output_rows": 5, "rejected_rows": 4},
+        {"stage": "phase2_selected_gate", "input_rows": 5, "output_rows": 3, "rejected_rows": 2},
+        {"stage": "phase4_eligibility_gate", "input_rows": 3, "output_rows": 2, "rejected_rows": 1},
+    ]).to_csv(tmp_path / "phase32_v2_selection_funnel.csv", index=False)
+    result = module.phase109_selection_funnel(pd.DataFrame([
+        {"signal": "SKIP", "no_trade_reason": "phase2_not_selected"}
+    ]))
+    phase2_join = result["funnel_stages"][0]
+    assert result["existing_funnel_valid"] is True
+    assert phase2_join["rejected_rows"] == 0
+    assert phase2_join["unclassified_rows"] == 3
+    assert result["funnel_stages"][1]["unclassified_rows"] == 0

@@ -648,3 +648,34 @@ def test_phase109_reports_missing_rejection_metadata_without_inventing_rejection
     assert phase2_join["rejected_rows"] == 0
     assert phase2_join["unclassified_rows"] == 3
     assert result["funnel_stages"][1]["unclassified_rows"] == 0
+
+
+
+def test_phase111_blocks_finite_trade_values_that_overflow_daily_aggregation(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    v1 = pd.DataFrame([
+        {"signal": "BUY", "target_date": "2026-01-02", "profit_loss": 1e308},
+        {"signal": "BUY", "target_date": "2026-01-02", "profit_loss": 1e308},
+    ])
+    v2 = pd.DataFrame(columns=["signal", "target_date", "profit_loss"])
+    result = module.phase111_chronological_replay(v1, v2)
+    assert result["status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["v1"]["valid"] is False
+    assert result["v1"]["invalid_derived_metric"] == "daily_session_pnl_overflow"
+    assert result["v1"]["net_pnl"] is None
+
+
+def test_phase111_blocks_equity_overflow_across_valid_sessions(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    v1 = pd.DataFrame([
+        {"signal": "BUY", "target_date": "2026-01-02", "profit_loss": 1e308},
+        {"signal": "BUY", "target_date": "2026-01-05", "profit_loss": 1e308},
+    ])
+    v2 = pd.DataFrame(columns=["signal", "target_date", "profit_loss"])
+    result = module.phase111_chronological_replay(v1, v2)
+    assert result["status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["v1"]["valid"] is False
+    assert result["v1"]["invalid_derived_metric"] == "equity_or_aggregate_overflow"
+    assert result["v1"]["max_drawdown_pct_from_100k_start"] is None

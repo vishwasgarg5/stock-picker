@@ -109,3 +109,57 @@ def test_phase2_gate_still_holds_below_17_matched_sessions():
     })
     assert not ok
     assert reason == "insufficient_evidence"
+
+
+def test_phase2_clears_stale_output_when_candidate_input_is_empty(tmp_path, monkeypatch):
+    from src import phase2_optimizer as phase2
+
+    candidates = tmp_path / "candidates.csv"
+    pd.DataFrame(columns=["prediction_date", "target_date", "symbol"]).to_csv(candidates, index=False)
+    output = tmp_path / "phase2.csv"
+    pd.DataFrame([{"prediction_date": "2026-01-01", "target_date": "2026-01-02",
+                   "symbol": "STALE", "phase2_selected": 1, "phase2_rank": 1}]).to_csv(output, index=False)
+
+    monkeypatch.setattr(phase2, "CANDIDATES", candidates)
+    monkeypatch.setattr(phase2, "EVALS", tmp_path / "missing-evaluations.csv")
+    monkeypatch.setattr(phase2, "HISTORY", tmp_path / "missing-ohlcv.csv")
+    monkeypatch.setattr(phase2, "OUT", output)
+    monkeypatch.setattr(phase2, "SUMMARY", tmp_path / "summary.csv")
+    monkeypatch.setattr(phase2, "STATE", tmp_path / "state.json")
+
+    phase2.run_phase2()
+
+    refreshed = pd.read_csv(output)
+    assert refreshed.empty
+    assert {"prediction_date", "target_date", "symbol", "phase2_selected", "phase2_rank"}.issubset(
+        refreshed.columns
+    )
+
+
+def test_phase2_clears_stale_output_when_all_candidate_dates_are_invalid(tmp_path, monkeypatch):
+    from src import phase2_optimizer as phase2
+
+    candidates = tmp_path / "candidates.csv"
+    pd.DataFrame({
+        "prediction_date": ["not-a-date"],
+        "target_date": ["2026-01-02"],
+        "symbol": ["ABC"],
+    }).to_csv(candidates, index=False)
+    output = tmp_path / "phase2.csv"
+    pd.DataFrame([{"prediction_date": "2026-01-01", "target_date": "2026-01-02",
+                   "symbol": "STALE", "phase2_selected": 1, "phase2_rank": 1}]).to_csv(output, index=False)
+
+    monkeypatch.setattr(phase2, "CANDIDATES", candidates)
+    monkeypatch.setattr(phase2, "EVALS", tmp_path / "missing-evaluations.csv")
+    monkeypatch.setattr(phase2, "HISTORY", tmp_path / "missing-ohlcv.csv")
+    monkeypatch.setattr(phase2, "OUT", output)
+    monkeypatch.setattr(phase2, "SUMMARY", tmp_path / "summary.csv")
+    monkeypatch.setattr(phase2, "STATE", tmp_path / "state.json")
+
+    phase2.run_phase2()
+
+    refreshed = pd.read_csv(output)
+    assert refreshed.empty
+    assert {"prediction_date", "target_date", "symbol", "phase2_selected", "phase2_rank"}.issubset(
+        refreshed.columns
+    )

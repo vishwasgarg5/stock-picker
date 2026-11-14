@@ -12,7 +12,7 @@
     "src/new_listing_model.py": "dd51412fa28c2a393811a4839e23764df5079c40ccf4cf93c6896f2fd931142c",
     "src/news_context.py": "59a6970d4a9eecdb7b9885fb031fe473f9be4b9ae621a52a427eb89895b3f803",
     "src/outcomes.py": "15da3c0da4c855b7318f62dfa34aefb8f523c7db1aeef8dec5b66f604356795e",
-    "src/paper_trading.py": "1b58e3c2592e37353f4b363a8e77bbe0f117d1af270f4dc410ef41469d4bfc1a",
+    "src/paper_trading.py": "b16aa6502c7aab32d0dad2383e4d56a0d83869bd72e18435e3004f6517d8288e",
     "src/paper_trading_v2.py": "3f2c4bef5237f05216e7726260c6afe1cd77a05b190dcedf0cd6369aef88ee8a",
     "src/performance_audit.py": "6aa6d26cf448e0fed7c45db578fc4ea9804ef971a762f29b9c351d02335ba288",
     "src/performance_history.py": "d3206b0360f533fb333725fc842a4e769191d0ea8ba8b6815827fb200142b074",

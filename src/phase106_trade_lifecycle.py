@@ -49,6 +49,8 @@ def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
             **safe, "status": "INSUFFICIENT_DATA", "source_record_type": "simulated_outcome_ledger",
             "rows": 0, "field_presence": {}, "field_non_null_counts": {},
             "invalid_price_rows": 0, "invalid_quantity_rows": 0,
+            "missing_quantity_on_executed_rows": 0,
+            "quantity_validation_scope": "Executed trade rows only; SKIP candidates are excluded.",
             "entry_after_exit_rows": 0, "duplicate_symbol_entry_date_rows": 0,
             "closed_trade_rows_detected": 0, "exit_date_recorded": False,
         }

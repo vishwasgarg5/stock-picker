@@ -106,6 +106,9 @@ jobs:
 
       - name: Verify Phase 2 metadata covers current predictions
         run: |
+          # Rebuild Phase 2 after all upstream optimizers so validation never
+          # consumes a stale artifact left by an earlier step or cached file.
+          python -m src.phase2_optimizer
           python - <<'PY'
           from pathlib import Path
           import pandas as pd
@@ -125,7 +128,7 @@ jobs:
               usecols=["prediction_date", "target_date", "symbol", "phase2_selected", "phase2_rank"],
           )
           keys = ["prediction_date", "target_date", "symbol"]
-          for frame in (predictions, phase2):
+          for frame in (predictions, candidate_history, phase2):
               frame["prediction_date"] = pd.to_datetime(frame["prediction_date"], errors="coerce").dt.normalize()
               frame["target_date"] = pd.to_datetime(frame["target_date"], errors="coerce").dt.normalize()
               frame["symbol"] = frame["symbol"].astype(str).str.upper().str.strip()

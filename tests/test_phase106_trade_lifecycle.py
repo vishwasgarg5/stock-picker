@@ -14,15 +14,25 @@ def test_phase106_measures_lifecycle_gaps_without_mutating_or_inventing_facts():
         {"symbol": "BBB", "entry_price": None, "exit_price": None, "entry_date": "2026-01-03",
          "exit_date": None, "quantity": 1, "profit_loss": 0, "exit_reason": None,
          "trade_status": "OPEN"},
+        # A missing quantity on an executed BUY is a lifecycle gap.
+        {"symbol": "CCC", "entry_price": 50, "exit_price": 51, "entry_date": "2026-01-04",
+         "exit_date": "2026-01-04", "quantity": None, "profit_loss": 2, "exit_reason": "close",
+         "trade_status": "BUY"},
+        # Zero quantity on a SKIP candidate is expected, not a trade defect.
+        {"symbol": "DDD", "entry_price": None, "exit_price": None, "entry_date": "2026-01-05",
+         "exit_date": None, "quantity": 0, "profit_loss": 0, "exit_reason": None,
+         "trade_status": "SKIP"},
     ])
     original = trades.copy(deep=True)
     result = evaluate_trade_lifecycle(trades)
 
-    assert result["rows"] == 3
+    assert result["rows"] == 5
     assert result["field_presence"]["entry_price"] is True
     assert result["field_non_null_counts"]["exit_reason"] == 1
     assert result["invalid_price_rows"] == 1
     assert result["invalid_quantity_rows"] == 1
+    assert result["missing_quantity_on_executed_rows"] == 1
+    assert "SKIP candidates are excluded" in result["quantity_validation_scope"]
     assert result["entry_after_exit_rows"] == 1
     assert result["duplicate_symbol_entry_date_rows"] == 2
     assert result["closed_rows_missing_exit_price"] == 0

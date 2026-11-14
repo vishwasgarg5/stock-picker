@@ -3,7 +3,7 @@
   "market_regime": "BULL",
   "risk_multiplier": 1.0,
   "news_sentiment": "BULLISH",
-  "news_score": 0.5800000000000001,
+  "news_score": 0.18,
   "market_reason": "General market: Market weekly wrap: NIFTY50, SENSEX extend rally for 3rd week; PSU Banks top sectoral gainers - Upstox",
   "market_reason_url": "https://news.google.com/rss/articles/CBMiigJBVV95cUxOMWlBS0s0Y09Oa1J6eHpzYXcyZjgyQllHcnFVeFJCNTgtOWtMZ2RPdzhNNWxVSG5NYThGWDQ1cTZGQ0dBQXJPM1BPUG5pYVZPRHhmaDhlVmxHZDM2X1ZOaUd4QWtGZ2p4TFdtLXA3SzFrM1VtSHNqRlNTdkhlWjNXNy02eWs2eTFBc3Q3eFpXOFN3cmlRbnd0aUtvaHc4bmloWWc1eG9udDBNNnRCQTJiMXdkNk5LVDBpc01kTmJxNzlKREt1MFBMaElOMkx5UjUwTWVSMzJPMmk2Nlp3M1NkbTFkWXZGTUxmZk1ERUhTU19zSDg1MFM5QzQ2OGpGSVNpWENSOXhSdWFFZw?oc=5",
   "news_headline": "General market: Market weekly wrap: NIFTY50, SENSEX extend rally for 3rd week; PSU Banks top sectoral gainers - Upstox",
@@ -13,18 +13,6 @@
       "impact": 1.0,
       "headline": "Market weekly wrap: NIFTY50, SENSEX extend rally for 3rd week; PSU Banks top sectoral gainers - Upstox",
       "url": "https://news.google.com/rss/articles/CBMiigJBVV95cUxOMWlBS0s0Y09Oa1J6eHpzYXcyZjgyQllHcnFVeFJCNTgtOWtMZ2RPdzhNNWxVSG5NYThGWDQ1cTZGQ0dBQXJPM1BPUG5pYVZPRHhmaDhlVmxHZDM2X1ZOaUd4QWtGZ2p4TFdtLXA3SzFrM1VtSHNqRlNTdkhlWjNXNy02eWs2eTFBc3Q3eFpXOFN3cmlRbnd0aUtvaHc4bmloWWc1eG9udDBNNnRCQTJiMXdkNk5LVDBpc01kTmJxNzlKREt1MFBMaElOMkx5UjUwTWVSMzJPMmk2Nlp3M1NkbTFkWXZGTUxmZk1ERUhTU19zSDg1MFM5QzQ2OGpGSVNpWENSOXhSdWFFZw?oc=5"
-    },
-    {
-      "event": "General market",
-      "impact": 1.0,
-      "headline": "Indian Stock Market Ends Volatile Week on a Positive Note as Sensex and Nifty Extend Gains - Business News This Week",
-      "url": "https://news.google.com/rss/articles/CBMizgFBVV95cUxPVng4bXNtd3RkdFRwMHpVdUpjemwzbTIxcHlfajlWWS1hYjlsTmVva0RhZHdteVZCaTJBSVZVWUlfOFBlaVRiYWtWTU9RZng2b2s0T3NmTno1U3UtcFpvSExpU2VrWmEybmJlMlA3QmY0ZTAzR2lTcGpMZjhJd193WVRiNllRbXd5TzF0RVRkSzQzMi1YZVFNMUluQjJ2NEJZUFB0Uzk4Ni1PalRVTm9OajJvSUVTYlVydXlva1BBWWRrTlY4M3daM0JsWFFVUQ?oc=5"
-    },
-    {
-      "event": "General market",
-      "impact": 1.0,
-      "headline": "Indian stock markets gain in early trade over positive Asian cues - DD News",
-      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPd21vYlZhMy1tdHVnSmFtUVhvUm5QbDZxUXJSWjVxcFIyZ1NHNHc5QTdsNHZtR1gtLUw3YmtvTUxCaG5RZXpiVWNLVmFiUWFhY3EwQWRTcmhvQk5wLVdhbl8wdUU4X1ZlMDFQeko4STJnVjUtWWpwWlFFSExyWnp1WWMtMmZua3ptc19OZXFiNmhUbENVQlE?oc=5"
     },
     {
       "event": "RBI / rates",
@@ -37,11 +25,23 @@
       "impact": 0.8,
       "headline": "Sensex, Nifty extend gains for third straight week amid strong foreign inflows - The Hawk",
       "url": "https://news.google.com/rss/articles/CBMizgFBVV95cUxQbmNkQzJmUlJxYVVidlNKSnF3R2FzYXFWS1pZVmMzN255Y3dtRGVIc2xWMlpfcXNnUjZ3Nkg2bmdJOE1iRFczVjlDdXhTblQtOU9QSHBsS1lsa1VyQmVlbFFvLWNUYUt2V3VNQkF3TmVuNHkwOF9qZ284eWlQMGhScnZLcXNUWU5JUEN4ZlE3TFdBdlEycmF1a190dGxjbVZmRTNzdTJ1RE1UN0VnUTlOaVJoWkY4bTFIblJ2aXdFODFYZEJteXNGN1haR0ZUdw?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": -0.35,
+      "headline": "BSE SENSEX Today: Sensex Falls to 81,592.45 as Nifty Ends at 25,144, Snapping a Winning Streak - BBN Times",
+      "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPcWhfcXNmcy03Y2JVZVlqS2wzTVFUU2NnTWJmbVJLQkZBbHhoTlkxb0x4X1R4MGNZNk5OM25YYW1NN0JWQ25FclJCX1pUaEVadE9XaFdiVmM1eFZvSTM0N0lCNzFDRkNSQnF3MmJDc3I2OXNOTFB0N19wbXdMeUdNYzZZZGlMQV9NUk9QRG41MjZ5ZkMzY1hLWkt5ODJjTDlMQW5RbEF4MXRtUmtxUzBTVGNjRDVFVWxZX0VwRENNT0FqQXo1Z2c?oc=5"
+    },
+    {
+      "event": "FII / DII flows",
+      "impact": 0.35,
+      "headline": "Sensex, Nifty Gain for Third Straight Week as FIIs Buy - HDFC Sky",
+      "url": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxNOFA0ckZudHU4QmNFMWo2bFU4dEQtY3BDZ2tWNmVCaWxmVGplY3VocWZLMlNoRUJZeGIxaDg3QUZnNHBNTE9PdDl2bWVNc3FqRVFUeDdrdHFiX0k1d1laNjNNdFp5dVQ3S0cycFJtNHYtOWNCbnF6QXAzUHdUcDU5eEJQZDQ4cnpBNnRSZVJhX0xlSFhHUDhYWUt4QlZYemQ5aDR1VEMzSUdLTEprTDhUcVFUOHNKOEM5OHVNdktKQTBMdWJHRmRXVzBlS2JxSDYxSFhpdXpndVNVNi05X0RmVTNPQnhhZw?oc=5"
     }
   ],
-  "market_intelligence_score": 77.87687096774194,
+  "market_intelligence_score": 77.23687096774194,
   "risk_level": "RISK_ON",
-  "market_confidence": 0.8008918387096775,
+  "market_confidence": 0.7951318387096775,
   "data_quality": "HIGH",
   "index_data_available": true,
   "breadth_pct_above_sma20": 77.41935483870968,
@@ -50,6 +50,11 @@
     "financial": 0.8,
     "real estate": 0.7,
     "auto": 0.4,
-    "defence": 0.7
+    "defence": 0.7,
+    "airlines": 1.0,
+    "paints": 0.8,
+    "chemicals": 0.6,
+    "tyres": 0.6,
+    "oil & gas": -0.8
   }
 }

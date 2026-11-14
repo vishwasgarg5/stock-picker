@@ -118,6 +118,44 @@ def _fixed_share_source_evidence(buys: pd.DataFrame) -> dict[str, Any]:
     valid = candidates & ~mismatch
     candidate_count = int(candidates.sum())
     mismatch_count = int((candidates & mismatch).sum())
+
+    # Make the alternate-source gap actionable without treating gross evidence
+    # as canonical net accounting. Each invalid row receives one primary reason.
+    invalid_reason = pd.Series("UNCLASSIFIED", index=buys.index, dtype=str)
+    invalid_reason.loc[~finite] = "MISSING_OR_NON_FINITE_REQUIRED_VALUE"
+    invalid_reason.loc[finite & ~positive] = "NON_POSITIVE_REQUIRED_VALUE"
+    invalid_reason.loc[invalid_split_metadata] = "INVALID_SPLIT_METADATA"
+    invalid_reason_counts = {
+        str(reason): int(count)
+        for reason, count in invalid_reason.loc[~candidates].value_counts().items()
+    }
+    source_by_session = []
+    if "target_date" in buys.columns:
+        session = buys["target_date"].fillna("UNSPECIFIED").astype(str).str.strip().replace("", "UNSPECIFIED")
+        detail = pd.DataFrame({
+            "target_date": session,
+            "candidate": candidates.to_numpy(),
+            "validated": valid.to_numpy(),
+            "mismatch": (candidates & mismatch).to_numpy(),
+            "invalid": (~candidates).to_numpy(),
+        }).groupby("target_date", sort=True).agg(
+            buy_rows=("candidate", "size"),
+            candidate_rows=("candidate", "sum"),
+            validated_rows=("validated", "sum"),
+            mismatch_rows=("mismatch", "sum"),
+            invalid_or_incomplete_source_rows=("invalid", "sum"),
+        ).reset_index()
+        source_by_session = [
+            {
+                "target_date": str(row.target_date),
+                "buy_rows": int(row.buy_rows),
+                "candidate_rows": int(row.candidate_rows),
+                "validated_rows": int(row.validated_rows),
+                "mismatch_rows": int(row.mismatch_rows),
+                "invalid_or_incomplete_source_rows": int(row.invalid_or_incomplete_source_rows),
+            }
+            for row in detail.itertuples(index=False)
+        ]
     return {
         "status": "GROSS_SOURCE_EVIDENCE_VALIDATED" if candidate_count == len(buys) and candidate_count > 0 and mismatch_count == 0 else (
             "GROSS_SOURCE_EVIDENCE_PARTIAL" if valid.any() else "NO_VALID_SOURCE_EVIDENCE"
@@ -126,6 +164,8 @@ def _fixed_share_source_evidence(buys: pd.DataFrame) -> dict[str, Any]:
         "validated_rows": int(valid.sum()),
         "mismatch_rows": mismatch_count,
         "invalid_or_incomplete_source_rows": int((~candidates).sum()),
+        "invalid_or_incomplete_source_rows_by_reason": invalid_reason_counts,
+        "source_evidence_by_session": source_by_session,
         "invalid_split_metadata_rows": int(invalid_split_metadata.sum()),
         "max_abs_position_value_delta": float(position_delta[candidates].abs().max()) if candidates.any() else None,
         "max_abs_gross_pnl_delta": float(gross_delta[candidates].abs().max()) if candidates.any() else None,

@@ -154,7 +154,14 @@ def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
         })
 
     numeric = buys[required].apply(pd.to_numeric, errors="coerce")
-    incomplete = numeric.isna().any(axis=1)
+    finite_values = pd.DataFrame(
+        np.isfinite(numeric.to_numpy(dtype=float)),
+        index=numeric.index, columns=numeric.columns,
+    )
+    invalid_non_finite_by_field = {
+        c: int((numeric[c].notna() & ~finite_values[c]).sum()) for c in required
+    }
+    incomplete = numeric.isna().any(axis=1) | ~finite_values.all(axis=1)
     accounting_delta = numeric["gross_profit_loss"] - numeric["costs"] - numeric["profit_loss"]
     share_delta = numeric["shares"] * (numeric["exit_price"] - numeric["entry_price"]) - numeric["gross_profit_loss"]
     expected_return = numeric["profit_loss"] / numeric["allocated_capital"].replace(0, np.nan) * 100.0
@@ -218,6 +225,8 @@ def phase107_pnl_reconciliation(trades: pd.DataFrame) -> dict[str, Any]:
         "missing_columns": [], "complete_rows": int((~incomplete).sum()),
         "incomplete_rows": int(incomplete.sum()),
         "missing_values_by_field": missing_by_field,
+        "invalid_non_finite_values_by_field": invalid_non_finite_by_field,
+        "invalid_non_finite_rows": int((~finite_values.all(axis=1)).sum()),
         "incomplete_rows_by_signal": incomplete_by_signal,
         "incomplete_rows_by_session": session_detail,
         "first_complete_session": str(complete_dates.min().date()) if len(complete_dates) else None,
@@ -245,6 +254,15 @@ def phase108_loss_concentration(trades: pd.DataFrame) -> dict[str, Any]:
         return _write("phase108_loss_concentration_summary.json", {"status": "INSUFFICIENT_DATA", "trade_rows": len(buys), "loss_rows": 0})
     buys["profit_loss"] = pd.to_numeric(buys["profit_loss"], errors="coerce")
     buys = buys.dropna(subset=["profit_loss"])
+    finite_pnl = np.isfinite(buys["profit_loss"].to_numpy(dtype=float))
+    invalid_non_finite_rows = int((~finite_pnl).sum())
+    if invalid_non_finite_rows:
+        return _write("phase108_loss_concentration_summary.json", {
+            "status": "BLOCKED_INVALID_METRICS", "trade_rows": int(len(buys)),
+            "invalid_non_finite_rows": invalid_non_finite_rows,
+            "gross_loss": None, "net_pnl": None, "group_reports": [],
+            "note": "Non-finite P&L values detected; loss concentration was not scored.",
+        })
     total_gross_loss = float(-buys.loc[buys.profit_loss < 0, "profit_loss"].sum())
     outputs = []
     for key, filename in [("symbol", "phase108_loss_by_symbol.csv"), ("target_date", "phase108_loss_by_session.csv"), ("exit_reason", "phase108_loss_by_exit_reason.csv")]:

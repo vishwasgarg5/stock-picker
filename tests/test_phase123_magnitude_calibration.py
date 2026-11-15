@@ -8,7 +8,7 @@ from src.phase123_magnitude_calibration import evaluate_magnitude_calibration
 def _scores():
     dates = pd.bdate_range("2025-01-01", periods=17)
     rows = []
-    for i, date in enumerate(dates):
+    for i, date in enumerate(dates[:-1]):
         target = dates[i + 1]
         for j in range(4):
             base = 100.0 + j * 20

@@ -93,7 +93,7 @@ def run_volatility_target(frame:pd.DataFrame,n_folds:int=4)->tuple[dict,pd.DataF
 def write_reports(summary:dict,detail:pd.DataFrame,output_json=OUTPUT_JSON,output_csv=OUTPUT_CSV,decision_json=OUTPUT_DECISION_JSON)->dict:
     """Persist reproducible experiment, fold detail, and explicit research decision."""
     output_json.parent.mkdir(parents=True,exist_ok=True)
-    output_json.write_text(json.dumps(summary,indent=2,sort_keys=True)+"\\n",encoding="utf-8")
+    output_json.write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     detail.to_csv(output_csv,index=False)
     decision={
         "phase":127,
@@ -109,7 +109,7 @@ def write_reports(summary:dict,detail:pd.DataFrame,output_json=OUTPUT_JSON,outpu
         "production":summary["production"],
         "authority":"RESEARCH_ONLY_NO_PRODUCTION_PROMOTION",
     }
-    decision_json.write_text(json.dumps(decision,indent=2,sort_keys=True)+"\\n",encoding="utf-8")
+    decision_json.write_text(json.dumps(decision,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     return decision
 
 def run()->dict:

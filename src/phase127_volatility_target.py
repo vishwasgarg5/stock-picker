@@ -22,10 +22,12 @@ def run_volatility_target(frame:pd.DataFrame,n_folds:int=4)->tuple[dict,pd.DataF
     x["date"]=pd.to_datetime(x.date,errors="coerce").dt.normalize()
     x["target_date"]=pd.to_datetime(x.target_date,errors="coerce").dt.normalize()
     x["symbol"]=x.symbol.astype(str).str.upper().str.strip()
+    # Validate keys before filtering invalid targets/volatility so duplicate observations cannot be hidden.
+    keyed=x.dropna(subset=["date","symbol"])
+    if keyed.duplicated(["date","symbol"]).any(): raise ValueError("Phase 127 duplicate date/symbol keys")
     for c in FEATURE_COLUMNS+["target_close_return","volatility20"]: x[c]=pd.to_numeric(x[c],errors="coerce")
     x=x.dropna(subset=["date","target_date","symbol","target_close_return","volatility20"])
     x=x.loc[(x.target_date>x.date)&(x.target_close_return>-1.0)&(x.volatility20>0)].copy()
-    if x.duplicated(["date","symbol"]).any(): raise ValueError("Phase 127 duplicate date/symbol keys")
     dates=np.array(sorted(x.date.unique()))
     initial=max(2,int(len(dates)*.60))
     if len(dates)-initial<n_folds: raise ValueError("Insufficient dates for Phase 127 folds")

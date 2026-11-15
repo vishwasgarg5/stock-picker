@@ -28,8 +28,11 @@ def _history(sessions=150, symbols=("AAA", "BBB", "CCC", "DDD")):
 
 def test_price_level_indicators_are_scale_normalized():
     history = _history(sessions=80, symbols=("AAA", "BBB"))
-    # Make BBB an exact price-scale copy of AAA.
-    history.loc[history["symbol"] == "BBB", ["open", "high", "low", "close"]] *= 10.0
+    # Make BBB an exact price-scale copy of AAA (same path, different units).
+    aaa = history.loc[history["symbol"] == "AAA"].sort_values("date")
+    bbb_mask = history["symbol"] == "BBB"
+    for column in ["open", "high", "low", "close"]:
+        history.loc[bbb_mask, column] = aaa[column].to_numpy() * 10.0
     normalized = build_normalized_features(history)
     a = normalized.loc[normalized.symbol == "AAA"].sort_values("date").tail(1)
     b = normalized.loc[normalized.symbol == "BBB"].sort_values("date").tail(1)

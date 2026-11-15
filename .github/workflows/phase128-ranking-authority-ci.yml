@@ -32,3 +32,12 @@ jobs:
         run: python -m src.phase128_ranking_authority_audit
       - name: Run Phase 128 regression tests
         run: pytest -q tests/test_phase128_ranking_authority_audit.py
+
+      - name: Preserve Phase 128 authority decision
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase128-ranking-authority-${{ github.sha }}
+          path: data/phase128_ranking_authority_audit.json
+          if-no-files-found: warn
+          retention-days: 90

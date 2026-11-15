@@ -31,18 +31,34 @@ def test_locked_cohort_excludes_all_pre_lock_predictions():
     assert summary["promotion_allowed"] is False
 
 
-def test_prospective_review_waits_for_minimum_session_count():
+def test_prospective_review_is_ready_at_user_required_17_sessions():
     rows = []
-    dates = pd.bdate_range("2026-10-15", periods=21)
-    for i in range(20):
+    dates = pd.bdate_range("2026-10-15", periods=18)
+    for i in range(17):
         rows.append(_row(dates[i].strftime("%Y-%m-%d"), dates[i + 1].strftime("%Y-%m-%d")))
     daily, summary = evaluate_prospective(pd.DataFrame(rows), pd.Timestamp("2026-10-14"))
 
-    assert summary["prospective_sessions"] == 20
+    assert summary["prospective_sessions"] == 17
+    assert summary["minimum_sessions_before_review"] == 17
     assert summary["status"] == "READY_FOR_REVIEW"
     assert summary["promotion_allowed"] is False
+    assert summary["automatic_promotion"] is False
+    assert summary["production_model_changed"] is False
     assert "walk_forward_shrinkage_mape_pct" in summary
     assert "sessions_with_nonzero_shrinkage" in summary
+
+
+def test_prospective_review_still_waits_at_16_sessions():
+    rows = []
+    dates = pd.bdate_range("2026-10-15", periods=17)
+    for i in range(16):
+        rows.append(_row(dates[i].strftime("%Y-%m-%d"), dates[i + 1].strftime("%Y-%m-%d")))
+    _, summary = evaluate_prospective(pd.DataFrame(rows), pd.Timestamp("2026-10-14"))
+
+    assert summary["prospective_sessions"] == 16
+    assert summary["minimum_sessions_before_review"] == 17
+    assert summary["status"] == "WAITING_FOR_PROSPECTIVE_SESSIONS"
+    assert summary["promotion_allowed"] is False
 
 
 def test_prospective_shrinkage_uses_prior_labels_and_can_fall_back_to_baseline():

@@ -47,8 +47,8 @@ def test_duplicate_candidate_keys_fail_closed():
 def test_exact_target_date_required():
     c, h = _data()
     h = h.loc[~((h.date == c.iloc[0].target_date) & (h.symbol == c.iloc[0].symbol))]
-    with pytest.raises(ValueError, match="no candidates"):
-        evaluate_ranking_utility(c, h)
+    summary, _ = evaluate_ranking_utility(c, h)
+    assert summary["excluded_incomplete_sessions"] == 1
 
 
 def test_review_threshold_is_not_performance_gate():

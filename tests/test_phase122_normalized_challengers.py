@@ -129,10 +129,17 @@ def test_cash_dividend_is_point_in_time_adjusted_without_future_rewrite():
     ex_date = pd.Timestamp(dates[60])
     prior_close = float(history.loc[history["date"] == dates[59], "close"].iloc[0])
     dividend = 2.0
-    after = history["date"] >= ex_date
+    # Model an ex-dividend price adjustment followed by the same subsequent
+    # percentage-return path. A flat dollar subtraction on every later date
+    # would change later percentage returns and is not an equivalent path.
+    ex_close = float(history.loc[history["date"] == ex_date, "close"].iloc[0])
+    reinvestment_scale = (ex_close - dividend) / ex_close
+    ex_session = history["date"] == ex_date
+    later_sessions = history["date"] > ex_date
     for column in ["open", "high", "low", "close"]:
-        history.loc[after, column] -= dividend
-    history.loc[history["date"] == ex_date, "dividends"] = dividend
+        history.loc[ex_session, column] -= dividend
+        history.loc[later_sessions, column] *= reinvestment_scale
+    history.loc[ex_session, "dividends"] = dividend
 
     no_dividend = _history(sessions=90, symbols=("AAA",))
     baseline = build_normalized_features(no_dividend)

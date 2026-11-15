@@ -146,7 +146,7 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
             rows.append({
                 "date": pd.Timestamp(row.date), "symbol": symbol,
                 "open": float(row.open), "high": high, "low": low, "close": close,
-                "volume": volume, "dividends": dividend, "split_adjusted_close": adjusted_close, "adjusted_close": adjusted_close,
+                "volume": volume, "dividends": dividend, "adjusted_close": adjusted_close,
                 "return_1d": daily_return,
                 "return_5d": adjusted_close / price_buffer[-6] - 1.0 if len(price_buffer) >= 6 else np.nan,
                 "return_20d": adjusted_close / price_buffer[-21] - 1.0 if len(price_buffer) >= 21 else np.nan,
@@ -267,7 +267,7 @@ def run_challenger_experiment(
     for column in numeric:
         x[column] = pd.to_numeric(x[column], errors="coerce")
     x = x.replace([np.inf, -np.inf], np.nan)
-    x = x.dropna(subset=["date", "target_date", "split_adjusted_close", "target_close_return"])
+    x = x.dropna(subset=["date", "target_date", "adjusted_close", "target_close_return"])
     x = x[x["target_date"] > x["date"]].copy()
     dates = sorted(pd.Timestamp(value) for value in x["date"].unique())
     folds = _chronological_folds(dates, initial_train_fraction, n_splits)
@@ -330,7 +330,7 @@ def run_challenger_experiment(
             if not np.isfinite(np.asarray(predicted, dtype=float)).all():
                 raise RuntimeError(f"Non-finite predictions from {name} in fold {fold_number}")
             fold_detail["models"][name] = _metrics(y_test, pd.Series(predicted, index=y_test.index))
-            part = test[["date", "target_date", "symbol", "split_adjusted_close"]].copy()
+            part = test[["date", "target_date", "symbol", "adjusted_close"]].copy()
             part["actual_return"] = y_test.to_numpy()
             part["predicted_return"] = np.asarray(predicted, dtype=float)
             part["model"] = name

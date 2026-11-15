@@ -401,7 +401,7 @@ def run_challenger_experiment(
         "limitations": [
             "This historical replay is exploratory and does not replace fresh prospective validation.",
             "No hyperparameter search is performed on test folds; Ridge alpha is fixed before evaluation.",
-            All feature rows use a causal total-return adjusted-close index reconstructed from raw Close, Dividends and Stock Splits. Later corporate actions never restate earlier feature values; Yahoo retrospective Adj Close is intentionally not used.",
+            "All feature rows use a causal total-return adjusted-close index reconstructed from raw Close, Dividends and Stock Splits. Later corporate actions never restate earlier feature values; Yahoo retrospective Adj Close is intentionally not used.",
             "No volatility regime or symbol exclusions are used to select results.",
             "The incumbent ensemble is re-fit only on each fold's permitted training data as the chronological control.",
         ],

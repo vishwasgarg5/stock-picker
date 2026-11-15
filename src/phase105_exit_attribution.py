@@ -95,7 +95,7 @@ def evaluate_exit_attribution(trades: pd.DataFrame) -> tuple[pd.DataFrame, dict[
         lambda value: f"schema_v{value:g}" if pd.notna(value) else "unversioned"
     )
     schema_audit = {}
-    reason_present = x["exit_reason_group"].str.upper().ne("UNKNOWN")
+    reason_present = ~x["exit_reason_group"].str.upper().isin(["UNKNOWN", "NOT_RECORDED"])
     for label in sorted(schema_labels.unique()):
         mask = schema_labels.eq(label)
         count = int(mask.sum())

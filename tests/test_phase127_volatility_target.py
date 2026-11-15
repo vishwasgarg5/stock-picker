@@ -44,3 +44,25 @@ def test_nonpositive_volatility_rows_are_excluded():
 def test_missing_feature_fails_closed():
     with pytest.raises(ValueError,match="missing"):
         run_volatility_target(_frame().drop(columns=[FEATURE_COLUMNS[0]]),4)
+
+
+def test_write_reports_persists_explicit_decision_and_fold_detail(tmp_path):
+    import json
+    from src.phase127_volatility_target import write_reports
+
+    summary, detail = run_volatility_target(_frame(), 4)
+    summary_path = tmp_path / "summary.json"
+    detail_path = tmp_path / "by_fold.csv"
+    decision_path = tmp_path / "decision.json"
+
+    decision = write_reports(summary, detail, summary_path, detail_path, decision_path)
+
+    saved = json.loads(decision_path.read_text())
+    assert saved == decision
+    assert saved["phase"] == 127
+    assert saved["decision"] == summary["decision"]
+    assert saved["performance_gate_met"] is False
+    assert saved["authority"] == "RESEARCH_ONLY_NO_PRODUCTION_PROMOTION"
+    assert saved["production"] == {"champion": "V1", "changed": False, "automatic_promotion": False}
+    assert len(pd.read_csv(detail_path)) == len(detail)
+    assert json.loads(summary_path.read_text()) == summary

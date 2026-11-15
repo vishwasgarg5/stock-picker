@@ -280,7 +280,7 @@ def run_from_csv(
     history = pd.read_csv(input_path, low_memory=False)
     report = run_challenger_experiment(history, **kwargs)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(report, indent=2, default=str) + "\\n", encoding="utf-8")
+    output_path.write_text(json.dumps(report, indent=2, default=str) + "\n", encoding="utf-8")
     return report
 
 

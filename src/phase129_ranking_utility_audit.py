@@ -40,8 +40,14 @@ def _prepare(candidates: pd.DataFrame, history: pd.DataFrame) -> pd.DataFrame:
     if h.duplicated(["date", "symbol"]).any():
         h = h.sort_values(["date", "symbol"]).drop_duplicates(["date", "symbol"], keep="last")
     actual = h.rename(columns={"date": "target_date", "close": "actual_close"})
-    x = c.merge(actual[["target_date", "symbol", "actual_close"]], on=["target_date", "symbol"], how="inner", validate="many_to_one")
-    x = x.loc[np.isfinite(x.actual_close) & (x.actual_close > 0)].copy()
+    x = c.merge(actual[["target_date", "symbol", "actual_close"]], on=["target_date", "symbol"], how="left", validate="many_to_one")
+    x = x.loc[np.isfinite(x["actual_close"]) & (x["actual_close"] > 0)].copy()
+    expected = c.groupby("prediction_date").size()
+    matched = x.groupby("prediction_date").size()
+    complete_dates = expected.index[expected.eq(matched.reindex(expected.index, fill_value=0))]
+    x = x.loc[x.prediction_date.isin(complete_dates)].copy()
+    if x.empty:
+        raise ValueError("Phase 129 has no complete sessions with exact target-date actuals")
     x["actual_return_pct"] = (x.actual_close / x.base_close - 1.0) * 100.0
     return x
 
@@ -63,9 +69,9 @@ def evaluate_ranking_utility(candidates: pd.DataFrame, history: pd.DataFrame,
                              cost_bps_per_side: float = COST_BPS_PER_SIDE) -> tuple[dict, pd.DataFrame]:
     if n_folds < 2 or min_review_sessions < 1 or cost_bps_per_side < 0:
         raise ValueError("Invalid Phase 129 evaluation configuration")
+    original_sessions = pd.to_datetime(candidates["prediction_date"], errors="coerce").dt.normalize().nunique()
     x = _prepare(candidates, history)
-    if x.empty:
-        raise ValueError("Phase 129 has no candidates with exact target-date actuals")
+    excluded_incomplete_sessions = int(original_sessions - x.prediction_date.nunique())
     dates = np.array(sorted(x.prediction_date.unique()))
     initial = max(2, int(len(dates) * 0.60))
     if len(dates) - initial < n_folds:
@@ -136,7 +142,7 @@ def evaluate_ranking_utility(candidates: pd.DataFrame, history: pd.DataFrame,
         })
     summary = {
         "phase": 129, "status": "READY_FOR_REVIEW" if len(detail) >= min_review_sessions else "INSUFFICIENT_SESSIONS",
-        "candidate_rows_evaluated": int(len(x)), "symbols": int(x.symbol.nunique()),
+        "candidate_rows_evaluated": int(len(x)), "excluded_incomplete_sessions": excluded_incomplete_sessions, "symbols": int(x.symbol.nunique()),
         "prediction_sessions_evaluated": int(detail.prediction_date.nunique()),
         "folds_completed": int(detail.fold.nunique()), "minimum_review_sessions": int(min_review_sessions),
         "rank_ic_spearman_mean": float(detail.rank_ic_spearman.mean()),

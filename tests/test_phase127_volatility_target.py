@@ -32,8 +32,11 @@ def test_duplicate_keys_fail_closed():
 
 def test_nonpositive_volatility_rows_are_excluded():
     x=_frame(); x.loc[x.index[0],"volatility20"]=0
+    original_summary,_=run_volatility_target(_frame(),4)
     summary,detail=run_volatility_target(x,4)
-    assert summary["rows"]==len(x)-1
+    # Feature warm-up and fold eligibility can exclude many rows; assert only
+    # that the invalid-volatility observation removes exactly one eligible row.
+    assert summary["rows"]==original_summary["rows"]-1
 
 def test_missing_feature_fails_closed():
     with pytest.raises(ValueError,match="missing"):

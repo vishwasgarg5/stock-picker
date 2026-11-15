@@ -135,8 +135,10 @@ def test_cash_dividend_is_point_in_time_adjusted_without_future_rewrite():
     prior_date = pd.Timestamp(dates[59])
     prior = adjusted.loc[adjusted["date"] == prior_date].iloc[0]
     ex_row = adjusted.loc[adjusted["date"] == ex_date].iloc[0]
-    assert abs(prior["target_close_return"]) < 0.01
-    assert abs(ex_row["return_1d"]) < 0.01
+    baseline_prior = baseline.loc[baseline["date"] == prior_date].iloc[0]
+    baseline_ex = baseline.loc[baseline["date"] == ex_date].iloc[0]
+    assert np.isclose(prior["target_close_return"], baseline_prior["target_close_return"], atol=1e-10)
+    assert np.isclose(ex_row["return_1d"], baseline_ex["return_1d"], atol=1e-10)
 
     cutoff = ex_date - pd.offsets.BDay(1)
     left = baseline.loc[baseline["date"] <= cutoff].sort_values("date")

@@ -63,7 +63,7 @@ def _metrics(actual_return: pd.Series, predicted_return: pd.Series) -> dict[str,
     actual, predicted = actual[valid], predicted[valid]
     if not len(actual):
         return {
-            "rows": 0, "mape_pct": None, "directional_accuracy_pct": None,
+            "rows": 0, "invalid_nonpositive_price_forecasts": 0, "mape_pct": None, "directional_accuracy_pct": None,
             "signed_bias_pct_points": None, "mean_abs_predicted_move_pct": None,
             "mean_abs_realized_move_pct": None, "forecast_to_realized_magnitude_ratio": None,
         }
@@ -233,7 +233,7 @@ def run_challenger_experiment(
     return {
         "phase": 122,
         "title": "Scale-normalized and regularized return challengers",
-        "status": "SHADOW_EXPERIMENT_COMPLETE" if fold_rows else "INSUFFICIENT_CHRONOLOGICAL_DATA",
+        "status": ("SHADOW_EXPERIMENT_COMPLETE" if len(fold_rows) == n_splits else ("INCOMPLETE_CHRONOLOGICAL_FOLDS" if fold_rows else "INSUFFICIENT_CHRONOLOGICAL_DATA")),
         "production_model_changed": False,
         "production_champion": "V1",
         "challengers_shadow_only": True,

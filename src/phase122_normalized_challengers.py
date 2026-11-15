@@ -149,6 +149,8 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
                 "split_ratio": split_ratio,
             })
 
+    if not rows:
+        raise ValueError("No valid OHLCV rows available for point-in-time feature construction")
     result = pd.DataFrame(rows).sort_values(["symbol", "date"]).reset_index(drop=True)
     # The next close is converted into the current share units using only the
     # split ratio observed on that next session. This is the realized label,

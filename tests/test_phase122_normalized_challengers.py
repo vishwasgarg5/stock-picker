@@ -111,9 +111,15 @@ def test_next_session_split_is_accounted_for_in_realized_return():
         "stock_splits",
     ] = 2.0
     features = build_normalized_features(history)
+    baseline = build_normalized_features(_history(sessions=75, symbols=("AAA",)))
     prior_date = pd.Timestamp(history["date"].sort_values().unique()[59])
     prior = features.loc[features["date"] == prior_date].iloc[0]
     assert abs(prior["target_close_return"]) < 0.01
+    # A mechanically equivalent split must not create a discontinuity in
+    # the point-in-time adjusted-close index or its scale-normalized features.
+    for column in ["adjusted_close", "sma20", "ema20", "macd", "macd_signal",
+                   "return_1d", "return_5d", "return_20d"]:
+        assert np.allclose(features[column], baseline[column], equal_nan=True, atol=1e-10)
 
 
 

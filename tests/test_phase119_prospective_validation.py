@@ -134,3 +134,20 @@ def test_prospective_mape_ignores_non_finite_metric_values():
 
     assert _mape(actual, predicted) == 1.0
     assert _mape(pd.Series([100.0]), pd.Series([float("inf")])) is None
+
+
+def test_prospective_validation_blocks_duplicate_composite_forecast_keys():
+    row = _row("2026-10-15", "2026-10-16", actual=102.0, predicted=101.0)
+    duplicate = dict(row)
+    duplicate["predicted_close"] = 99.0
+    daily, summary = evaluate_prospective(
+        pd.DataFrame([row, duplicate]), pd.Timestamp("2026-10-14")
+    )
+
+    assert daily.empty
+    assert summary["status"] == "BLOCKED_AMBIGUOUS_KEYS"
+    assert summary["duplicate_forecast_key_rows"] == 2
+    assert summary["prospective_rows"] == 0
+    assert summary["promotion_allowed"] is False
+    assert summary["automatic_promotion"] is False
+    assert summary["production_model_changed"] is False

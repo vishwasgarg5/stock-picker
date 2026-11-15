@@ -52,7 +52,29 @@ def evaluate_prospective(scores: pd.DataFrame, lock_date: pd.Timestamp = LOCK_DA
     invalid_non_finite_rows = int((x[numeric_columns].notna().any(axis=1) & ~finite_inputs).sum())
     x = x.loc[finite_inputs].dropna(subset=list(REQUIRED))
     x = x[(x["target_date"] > x["prediction_date"]) & x["base_close"].gt(0) & x["predicted_close"].gt(0) & x["actual_close"].gt(0)]
-    x = x.drop_duplicates(["prediction_date", "target_date", "symbol"], keep="last")
+    valid_keys = (
+        x["prediction_date"].notna() & x["target_date"].notna()
+        & x["symbol"].notna() & x["symbol"].ne("")
+    )
+    duplicate_key_rows = int(
+        x.loc[valid_keys].duplicated(
+            ["prediction_date", "target_date", "symbol"], keep=False
+        ).sum()
+    )
+    if duplicate_key_rows:
+        return empty, {
+            "status": "BLOCKED_AMBIGUOUS_KEYS",
+            "lock_date": str(pd.Timestamp(lock_date).date()),
+            "prospective_rows": 0,
+            "duplicate_forecast_key_rows": duplicate_key_rows,
+            "promotion_allowed": False,
+            "automatic_promotion": False,
+            "production_model_changed": False,
+            "interpretation": (
+                "Duplicate prediction_date/target_date/symbol keys are ambiguous; "
+                "the prospective cohort is blocked rather than silently deduplicated."
+            ),
+        }
     # Only predictions made strictly after the frozen lock date can enter.
     prospective = x.loc[x["prediction_date"] > pd.Timestamp(lock_date).normalize()].copy()
     # Evaluate a pooled bias-corrected variant on the exact same locked cohort.

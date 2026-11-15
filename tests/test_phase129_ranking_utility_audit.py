@@ -5,7 +5,7 @@ import pytest
 from src.phase129_ranking_utility_audit import evaluate_ranking_utility
 
 
-def _data(n_dates=40):
+def _data(n_dates=50):
     dates = pd.bdate_range("2025-01-01", periods=n_dates + 1)
     candidates, history = [], []
     for j in range(20):

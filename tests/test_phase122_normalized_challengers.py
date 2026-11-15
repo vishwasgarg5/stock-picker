@@ -76,3 +76,38 @@ def test_duplicate_history_keys_fail_closed():
         assert "Duplicate date/symbol" in str(exc)
     else:
         raise AssertionError("duplicate history keys must be rejected")
+
+
+
+def test_future_split_does_not_rewrite_earlier_feature_rows():
+    history = _history(sessions=90, symbols=("AAA",))
+    with_future_split = history.copy()
+    split_date = pd.Timestamp(with_future_split["date"].sort_values().unique()[65])
+    with_future_split.loc[
+        (with_future_split["symbol"] == "AAA") & (with_future_split["date"] == split_date),
+        "stock_splits",
+    ] = 2.0
+    baseline = build_normalized_features(history)
+    adjusted = build_normalized_features(with_future_split)
+    cutoff = split_date - pd.offsets.BDay(1)
+    columns = ["sma20", "sma50", "ema20", "ema50", "macd", "macd_signal",
+               "return_1d", "return_5d", "return_20d", "atr14_pct"]
+    left = baseline.loc[baseline["date"] <= cutoff].sort_values("date")
+    right = adjusted.loc[adjusted["date"] <= cutoff].sort_values("date")
+    for column in columns:
+        assert np.allclose(left[column], right[column], equal_nan=True)
+
+
+def test_next_session_split_is_accounted_for_in_realized_return():
+    history = _history(sessions=75, symbols=("AAA",))
+    split_date = pd.Timestamp(history["date"].sort_values().unique()[60])
+    mask = (history["symbol"] == "AAA") & (history["date"] >= split_date)
+    history.loc[mask, ["open", "high", "low", "close"]] *= 0.5
+    history.loc[
+        (history["symbol"] == "AAA") & (history["date"] == split_date),
+        "stock_splits",
+    ] = 2.0
+    features = build_normalized_features(history)
+    prior_date = pd.Timestamp(history["date"].sort_values().unique()[59])
+    prior = features.loc[features["date"] == prior_date].iloc[0]
+    assert abs(prior["target_close_return"]) < 0.01

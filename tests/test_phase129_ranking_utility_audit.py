@@ -35,6 +35,8 @@ def test_phase129_measures_rank_ic_spread_turnover_and_costs():
     assert (detail.transaction_cost_pct >= 0).all()
     assert (detail.top5_net_return_pct <= detail.top5_mean_return_pct).all()
     assert summary["production"]["changed"] is False
+    assert "bottom five available ranks" in summary["method"]
+    assert "rank 16-20 spread" not in summary["method"]
 
 
 def test_duplicate_candidate_keys_fail_closed():

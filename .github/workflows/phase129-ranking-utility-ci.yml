@@ -34,3 +34,13 @@ jobs:
         run: python -m src.phase129_ranking_utility_audit
       - name: Run Phase 129 regression tests
         run: pytest -q tests/test_phase129_ranking_utility_audit.py
+      - name: Preserve Phase 129 evidence reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase129-ranking-utility-${{ github.sha }}
+          path: |
+            data/phase129_ranking_utility_summary.json
+            data/phase129_ranking_utility_by_session.csv
+          if-no-files-found: warn
+          retention-days: 90

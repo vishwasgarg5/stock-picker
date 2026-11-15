@@ -41,9 +41,9 @@ REQUIRED_HISTORY = {"date", "symbol", "open", "high", "low", "close", "volume"}
 def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
     """Build causal features without retrospectively applying future stock splits.
 
-    At each split date, only the already-observed rolling price/volume state is
-    restated into the new share units. A split occurring after date t cannot
-    alter any feature row at or before t.
+    A causal total-return price index is chained from observed closes, cash
+    dividends, and split ratios. It never uses a future action to rewrite an
+    earlier row. OHLC ranges are mapped into the same index units.
     """
     missing = sorted(REQUIRED_HISTORY.difference(history.columns))
     if missing:
@@ -69,6 +69,7 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
         volume_buffer: list[float] = []
         true_range_buffer: list[float] = []
         return_buffer: list[float] = []
+        previous_raw_close = np.nan
         ema12 = ema20 = ema26 = ema50 = macd_signal = None
         alpha12, alpha20 = 2.0 / 13.0, 2.0 / 21.0
         alpha26, alpha50, alpha9 = 2.0 / 27.0, 2.0 / 51.0, 2.0 / 10.0
@@ -85,38 +86,31 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
             if split_ratio < 0:
                 raise ValueError(f"Invalid split ratio for {symbol} on {row.date}")
             if split_ratio > 0:
-                price_buffer = [value / split_ratio for value in price_buffer]
-                true_range_buffer = [value / split_ratio for value in true_range_buffer]
+                # Historical share volume is restated into current share count;
+                # the total-return price index itself remains continuous.
                 volume_buffer = [value * split_ratio for value in volume_buffer]
-                ema12 = ema12 / split_ratio if ema12 is not None else None
-                ema20 = ema20 / split_ratio if ema20 is not None else None
-                ema26 = ema26 / split_ratio if ema26 is not None else None
-                ema50 = ema50 / split_ratio if ema50 is not None else None
-                macd_signal = macd_signal / split_ratio if macd_signal is not None else None
 
-            previous_close = price_buffer[-1] if price_buffer else np.nan
-            # Rebase only already-observed history on the ex-date. This creates
-            # a point-in-time total-return adjusted price history without using
-            # later corporate actions to rewrite earlier feature rows.
-            if dividend > 0 and np.isfinite(previous_close) and previous_close > dividend:
-                dividend_factor = (previous_close - dividend) / previous_close
-                price_buffer = [value * dividend_factor for value in price_buffer]
-                true_range_buffer = [value * dividend_factor for value in true_range_buffer]
-                ema12 = ema12 * dividend_factor if ema12 is not None else None
-                ema20 = ema20 * dividend_factor if ema20 is not None else None
-                ema26 = ema26 * dividend_factor if ema26 is not None else None
-                ema50 = ema50 * dividend_factor if ema50 is not None else None
-                macd_signal = macd_signal * dividend_factor if macd_signal is not None else None
-                previous_close = price_buffer[-1]
-            elif dividend > 0 and np.isfinite(previous_close):
-                raise ValueError(f"Dividend must be smaller than prior close for {symbol} on {row.date}")
-            daily_return = close / previous_close - 1.0 if np.isfinite(previous_close) and previous_close > 0 else np.nan
+            split_multiplier = split_ratio if split_ratio > 0 else 1.0
+            previous_adjusted_close = price_buffer[-1] if price_buffer else np.nan
+            if np.isfinite(previous_raw_close) and previous_raw_close > 0:
+                daily_return = ((close + dividend) * split_multiplier) / previous_raw_close - 1.0
+                adjusted_close = previous_adjusted_close * (1.0 + daily_return)
+            else:
+                daily_return = np.nan
+                adjusted_close = close
+
+            # Map this session's OHLC into the same point-in-time total-return
+            # index units, preserving comparability across corporate actions.
+            adjustment_factor = adjusted_close / close
+            adjusted_high = high * adjustment_factor
+            adjusted_low = low * adjustment_factor
             true_range = max(
-                high - low,
-                abs(high - previous_close) if np.isfinite(previous_close) else 0.0,
-                abs(low - previous_close) if np.isfinite(previous_close) else 0.0,
+                adjusted_high - adjusted_low,
+                abs(adjusted_high - previous_adjusted_close) if np.isfinite(previous_adjusted_close) else 0.0,
+                abs(adjusted_low - previous_adjusted_close) if np.isfinite(previous_adjusted_close) else 0.0,
             )
-            price_buffer.append(close)
+            price_buffer.append(adjusted_close)
+            previous_raw_close = close
             volume_buffer.append(volume)
             true_range_buffer.append(true_range)
             return_buffer.append(daily_return)
@@ -126,10 +120,10 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
             true_range_buffer = true_range_buffer[-14:]
             return_buffer = return_buffer[-20:]
 
-            ema12 = close if ema12 is None else alpha12 * close + (1.0 - alpha12) * ema12
-            ema20 = close if ema20 is None else alpha20 * close + (1.0 - alpha20) * ema20
-            ema26 = close if ema26 is None else alpha26 * close + (1.0 - alpha26) * ema26
-            ema50 = close if ema50 is None else alpha50 * close + (1.0 - alpha50) * ema50
+            ema12 = adjusted_close if ema12 is None else alpha12 * adjusted_close + (1.0 - alpha12) * ema12
+            ema20 = adjusted_close if ema20 is None else alpha20 * adjusted_close + (1.0 - alpha20) * ema20
+            ema26 = adjusted_close if ema26 is None else alpha26 * adjusted_close + (1.0 - alpha26) * ema26
+            ema50 = adjusted_close if ema50 is None else alpha50 * adjusted_close + (1.0 - alpha50) * ema50
             macd = ema12 - ema26
             macd_signal = macd if macd_signal is None else alpha9 * macd + (1.0 - alpha9) * macd_signal
 
@@ -152,19 +146,19 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
             rows.append({
                 "date": pd.Timestamp(row.date), "symbol": symbol,
                 "open": float(row.open), "high": high, "low": low, "close": close,
-                "volume": volume, "dividends": dividend, "split_adjusted_close": close, "adjusted_close": close,
+                "volume": volume, "dividends": dividend, "split_adjusted_close": adjusted_close, "adjusted_close": adjusted_close,
                 "return_1d": daily_return,
-                "return_5d": close / price_buffer[-6] - 1.0 if len(price_buffer) >= 6 else np.nan,
-                "return_20d": close / price_buffer[-21] - 1.0 if len(price_buffer) >= 21 else np.nan,
+                "return_5d": adjusted_close / price_buffer[-6] - 1.0 if len(price_buffer) >= 6 else np.nan,
+                "return_20d": adjusted_close / price_buffer[-21] - 1.0 if len(price_buffer) >= 21 else np.nan,
                 "sma20": sma20, "sma50": sma50, "ema20": ema20, "ema50": ema50,
                 "rsi14": rsi14,
                 "volume_ratio": volume / volume_ma20 if np.isfinite(volume_ma20) and volume_ma20 > 0 else np.nan,
-                "atr14_pct": float(np.mean(true_range_buffer[-14:]) / close) if len(true_range_buffer) >= 14 else np.nan,
+                "atr14_pct": float(np.mean(true_range_buffer[-14:]) / adjusted_close) if len(true_range_buffer) >= 14 else np.nan,
                 "macd": macd, "macd_signal": macd_signal,
-                "bb_position": (close - sma20) / (2.0 * std20) if np.isfinite(std20) and std20 > 0 else np.nan,
-                "range_pct": (high - low) / close,
-                "close_sma20_gap": close / sma20 - 1.0 if np.isfinite(sma20) and sma20 > 0 else np.nan,
-                "close_sma50_gap": close / sma50 - 1.0 if np.isfinite(sma50) and sma50 > 0 else np.nan,
+                "bb_position": (adjusted_close - sma20) / (2.0 * std20) if np.isfinite(std20) and std20 > 0 else np.nan,
+                "range_pct": (adjusted_high - adjusted_low) / adjusted_close,
+                "close_sma20_gap": adjusted_close / sma20 - 1.0 if np.isfinite(sma20) and sma20 > 0 else np.nan,
+                "close_sma50_gap": adjusted_close / sma50 - 1.0 if np.isfinite(sma50) and sma50 > 0 else np.nan,
                 "volatility20": volatility20,
                 "volume_trend5": volume_ma5 / volume_ma20 if np.isfinite(volume_ma5) and np.isfinite(volume_ma20) and volume_ma20 > 0 else np.nan,
                 "split_ratio": split_ratio,
@@ -391,7 +385,7 @@ def run_challenger_experiment(
             "requested_folds": int(n_splits),
             "min_train_rows": int(min_train_rows),
             "training_label_rule": "target_date strictly earlier than first prediction_date in each test fold",
-            "feature_point_in_time_rule": "Rolling price state is rebased for splits and cash dividends only when the action is observed on its ex-date; future corporate actions cannot rewrite prior feature rows. The current adjusted-close anchor equals the observed close, with prior history rebased into current share and total-return units.",
+            "feature_point_in_time_rule": "A total-return adjusted-close index is chained from each observed close, dividend and split ratio; each session is mapped into that index unit. Future corporate actions cannot rewrite prior feature rows.",
             "test_dates_are_disjoint": True,
         },
         "folds": fold_rows,
@@ -407,7 +401,7 @@ def run_challenger_experiment(
         "limitations": [
             "This historical replay is exploratory and does not replace fresh prospective validation.",
             "No hyperparameter search is performed on test folds; Ridge alpha is fixed before evaluation.",
-            "All feature rows use point-in-time split and cash-dividend handling; later corporate actions do not restate earlier feature values. Adjusted-close history is reconstructed causally from stored corporate actions because ingestion stores Yahoo raw Close plus Dividends and Stock Splits, not a retrospectively adjusted Adj Close column.",
+            All feature rows use a causal total-return adjusted-close index reconstructed from raw Close, Dividends and Stock Splits. Later corporate actions never restate earlier feature values; Yahoo retrospective Adj Close is intentionally not used.",
             "No volatility regime or symbol exclusions are used to select results.",
             "The incumbent ensemble is re-fit only on each fold's permitted training data as the chronological control.",
         ],

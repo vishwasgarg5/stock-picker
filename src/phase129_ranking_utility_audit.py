@@ -31,10 +31,10 @@ def _prepare(candidates: pd.DataFrame, history: pd.DataFrame) -> pd.DataFrame:
     h["symbol"] = h.symbol.astype(str).str.upper().str.strip()
     for col in ("rank", "score", "base_close"):
         c[col] = pd.to_numeric(c[col], errors="coerce")
-    h["close"] = pd.to_numeric(h.close, errors="coerce")
+    h["close"] = pd.to_numeric(h["close"], errors="coerce")
     c = c.dropna(subset=["prediction_date", "target_date", "symbol", "rank", "score", "base_close"])
     h = h.dropna(subset=["date", "symbol", "close"])
-    c = c.loc[(c.target_date > c.prediction_date) & c.rank.between(1, 20) & (c.base_close > 0)].copy()
+    c = c.loc[(c.target_date > c.prediction_date) & c["rank"].between(1, 20) & (c.base_close > 0)].copy()
     if c.duplicated(["prediction_date", "symbol"]).any():
         raise ValueError("Phase 129 duplicate prediction_date/symbol keys")
     if h.duplicated(["date", "symbol"]).any():
@@ -73,7 +73,7 @@ def evaluate_ranking_utility(candidates: pd.DataFrame, history: pd.DataFrame,
     blocks = [b for b in np.array_split(dates[initial:], n_folds) if len(b)]
     vol = _market_volatility(history)
     x = x.merge(vol, left_on="prediction_date", right_on="date", how="left").drop(columns=["date"])
-    x["market_vol20"] = pd.to_numeric(x.market_vol20, errors="coerce")
+    x["market_vol20"] = pd.to_numeric(x["market_vol20"], errors="coerce")
     rows = []
     previous_top5: set[str] | None = None
     for fold, block in enumerate(blocks, 1):

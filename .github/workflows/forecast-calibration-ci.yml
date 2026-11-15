@@ -59,5 +59,7 @@ jobs:
         run: python -m src.phase118_forecast_error_diagnosis
       - name: Track locked prospective forecast cohort (analysis-only)
         run: python -m src.phase119_prospective_validation
+      - name: Run Phase 122 chronological challenger replay (analysis-only)
+        run: python -m src.phase122_normalized_challengers
       - name: Run forecast calibration regression tests
         run: pytest -q tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase122_normalized_challengers.py

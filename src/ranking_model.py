@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import joblib
 import numpy as np
 import pandas as pd
@@ -144,10 +145,10 @@ def validate_challenger(ds: pd.DataFrame, bundle: dict) -> dict:
         and recent.get(f"recent_{n}_positive_lift_pct") >= 0
         for n in RECENT_WINDOWS
     )
-    production_ready = bool(full_evidence and recent_ready)
+    diagnostic_ready = bool(full_evidence and recent_ready)
 
-    status = "promote" if production_ready else (
-        "validated_hold" if full_evidence else (
+    status = "diagnostic_pass" if diagnostic_ready else (
+        "diagnostic_hold" if full_evidence else (
             "collecting" if sessions < MIN_SESSIONS or total_rows < MIN_ROWS_VALIDATION
             else "hold"
         )
@@ -159,7 +160,9 @@ def validate_challenger(ds: pd.DataFrame, bundle: dict) -> dict:
         "mean_top10_return_lift_pct": lift,
         "positive_rate_lift_pct": positive_lift,
         "promotion_evidence": full_evidence,
-        "production_ready": production_ready,
+        "diagnostic_only": True,
+        "diagnostic_ready": diagnostic_ready,
+        "production_ready": False,
         "status": status,
         **recent,
     }
@@ -174,14 +177,30 @@ def validate_challenger(ds: pd.DataFrame, bundle: dict) -> dict:
     return summary.iloc[0].to_dict()
 
 
+def ranking_challenger_production_authorized() -> bool:
+    """Require an explicit human-reviewed authorization before changing live ranks."""
+    readiness_file = DATA / "phase114_promotion_readiness_summary.json"
+    if not readiness_file.exists():
+        return False
+    try:
+        readiness = json.loads(readiness_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return readiness.get("production_changes_authorized") is True
+
+
 def latest_rank_scores(hist: pd.DataFrame) -> pd.DataFrame:
+    # Ranking validation is diagnostic evidence, not production authorization.
+    # Fail closed unless the consolidated readiness artifact explicitly authorizes it.
+    if not ranking_challenger_production_authorized():
+        return pd.DataFrame()
     if not MODEL_FILE.exists() or not VALIDATION_FILE.exists():
         return pd.DataFrame()
     summary_file = DATA / "ranking_model_validation_summary.csv"
     if not summary_file.exists():
         return pd.DataFrame()
     s = pd.read_csv(summary_file)
-    if s.empty or str(s.iloc[-1].get("status", "")) != "promote" or str(s.iloc[-1].get("production_ready", False)).strip().lower() != "true":
+    if s.empty or str(s.iloc[-1].get("status", "")) != "diagnostic_pass" or str(s.iloc[-1].get("diagnostic_ready", False)).strip().lower() != "true":
         return pd.DataFrame()
     bundle = joblib.load(MODEL_FILE)
     x = _build_dataset(hist)

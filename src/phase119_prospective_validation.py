@@ -19,7 +19,9 @@ SUMMARY_OUT = DATA / "phase119_prospective_validation.json"
 DAILY_OUT = DATA / "phase119_prospective_validation_by_session.csv"
 # Frozen after the last target session present when this protocol was introduced.
 LOCK_DATE = pd.Timestamp("2026-10-14")
-MIN_PROSPECTIVE_SESSIONS = 20
+# User-approved V2 review requirement. Meeting this count permits review only;
+# it does not relax forecast-performance, risk, data-quality, or promotion gates.
+MIN_PROSPECTIVE_SESSIONS = 17
 MIN_TRAIN_ROWS = 30
 MIN_TRAIN_SESSIONS = 5
 SHRINKAGE_ALPHAS = [i / 20 for i in range(21)]

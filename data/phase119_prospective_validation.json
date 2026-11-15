@@ -1,12 +1,12 @@
 {
-  "status": "WAITING_FOR_PROSPECTIVE_SESSIONS",
+  "status": "READY_FOR_REVIEW",
   "lock_date": "2026-10-14",
   "cohort_rule": "Include only rows whose prediction_date is strictly later than lock_date; cohort membership is not backfilled with pre-lock predictions.",
   "prospective_rows": 170,
   "invalid_non_finite_rows": 0,
   "prospective_symbols": 72,
   "prospective_sessions": 17,
-  "minimum_sessions_before_review": 20,
+  "minimum_sessions_before_review": 17,
   "model_mape_pct": 1.7309905941175252,
   "previous_close_baseline_mape_pct": 1.7258584068748521,
   "delta_mape_pct_points_model_minus_baseline": 0.005132,
@@ -15,7 +15,7 @@
   "delta_mape_pct_points_bias_corrected_minus_baseline": 0.034455,
   "sessions_bias_corrected_beats_baseline": 6,
   "walk_forward_shrinkage_mape_pct": 1.7258584068748521,
-  "delta_mape_pct_points_shrinkage_minus_baseline": 0.0,
+  "delta_mape_pct_points_shrinkage_minus_baseline": 0,
   "sessions_shrinkage_beats_baseline": 0,
   "sessions_with_nonzero_shrinkage": 0,
   "shrinkage_training_rule": "Select alpha from 0.00 to 1.00 in 0.05 steps by prior-session MAPE only; require at least 30 prior rows and 5 realized target sessions; alpha=0 falls back to previous close.",
@@ -27,5 +27,6 @@
   "ranking_or_risk_changed": false,
   "automatic_promotion": false,
   "promotion_allowed": false,
-  "interpretation": "No model change is authorized by this report. A review threshold is not a promotion gate; review must also check data quality, drawdown, and independent evidence."
+  "interpretation": "No model change is authorized by this report. A review threshold is not a promotion gate; review must also check data quality, drawdown, and independent evidence.",
+  "review_threshold_policy": "17 prospective target sessions is the user-approved minimum for review; this is not a model-promotion threshold."
 }

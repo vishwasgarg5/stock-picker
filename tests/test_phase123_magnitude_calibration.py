@@ -6,7 +6,7 @@ from src.phase123_magnitude_calibration import evaluate_magnitude_calibration
 
 
 def _scores():
-    dates = pd.bdate_range("2025-01-01", periods=16)
+    dates = pd.bdate_range("2025-01-01", periods=17)
     rows = []
     for i, date in enumerate(dates):
         target = dates[i + 1]

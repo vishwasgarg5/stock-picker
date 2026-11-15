@@ -145,4 +145,9 @@ def test_cash_dividend_is_point_in_time_adjusted_without_future_rewrite():
     right = adjusted.loc[adjusted["date"] <= cutoff].sort_values("date")
     for column in ["sma20", "ema20", "macd", "macd_signal", "adjusted_close"]:
         assert np.allclose(left[column], right[column], equal_nan=True)
+    # The dividend-adjusted total-return index and its technical indicators
+    # should match the economically equivalent no-dividend path.
+    for column in ["adjusted_close", "sma20", "ema20", "macd", "macd_signal",
+                   "return_1d", "return_5d", "return_20d"]:
+        assert np.allclose(baseline[column], adjusted[column], equal_nan=True, atol=1e-10)
     assert prior_close > dividend

@@ -175,3 +175,26 @@ def test_candidate_history_drops_rows_with_invalid_composite_keys():
 
     assert merged["symbol"].tolist() == ["GOOD", "NEXT"]
     assert merged[["prediction_date", "target_date", "symbol"]].notna().all().all()
+
+
+def test_ranking_challenger_requires_explicit_production_authorization(tmp_path, monkeypatch):
+    import json
+    import src.ranking_model as ranking_model
+
+    monkeypatch.setattr(ranking_model, "DATA", tmp_path)
+    readiness = tmp_path / "phase114_promotion_readiness_summary.json"
+
+    readiness.write_text(json.dumps({
+        "diagnostic_only": True,
+        "production_changes_authorized": False,
+    }))
+    assert ranking_model.ranking_challenger_production_authorized() is False
+
+    readiness.write_text(json.dumps({
+        "diagnostic_only": True,
+        "production_changes_authorized": True,
+    }))
+    assert ranking_model.ranking_challenger_production_authorized() is True
+
+    readiness.write_text("{invalid")
+    assert ranking_model.ranking_challenger_production_authorized() is False

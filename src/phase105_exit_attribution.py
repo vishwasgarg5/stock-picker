@@ -84,6 +84,28 @@ def evaluate_exit_attribution(trades: pd.DataFrame) -> tuple[pd.DataFrame, dict[
         col: int(x.loc[unknown_mask, col].notna().sum())
         for col in METADATA_CANDIDATES if col in x.columns
     }
+    # Separate historical unknowns from current-schema recording defects.
+    # Missing schema versions remain explicitly unversioned; never assume they
+    # are legacy or infer an exit reason from prices or OHLC data.
+    if "ledger_schema_version" in x.columns:
+        schema_versions = pd.to_numeric(x["ledger_schema_version"], errors="coerce")
+    else:
+        schema_versions = pd.Series(float("nan"), index=x.index)
+    schema_labels = schema_versions.map(
+        lambda value: f"schema_v{value:g}" if pd.notna(value) else "unversioned"
+    )
+    schema_audit = {}
+    reason_present = x["exit_reason_group"].str.upper().ne("UNKNOWN")
+    for label in sorted(schema_labels.unique()):
+        mask = schema_labels.eq(label)
+        count = int(mask.sum())
+        recorded = int((mask & reason_present).sum())
+        schema_audit[str(label)] = {
+            "trade_rows": count,
+            "recorded_exit_reason_rows": recorded,
+            "missing_exit_reason_rows": count - recorded,
+            "exit_reason_coverage_pct": round(recorded / count * 100.0, 4) if count else None,
+        }
     unknown_gross_loss = float(-unknown.loc[unknown["recorded_pnl"] < 0, "recorded_pnl"].sum())
     summary = {
         **safe,
@@ -101,6 +123,7 @@ def evaluate_exit_attribution(trades: pd.DataFrame) -> tuple[pd.DataFrame, dict[
         "unknown_reason_share_of_gross_loss_pct": float(unknown_gross_loss / total_gross_loss * 100) if total_gross_loss else None,
         "metadata_non_null_counts_all_trades": metadata_presence,
         "metadata_non_null_counts_unknown_reason_trades": blank_metadata,
+        "exit_reason_coverage_by_ledger_schema": schema_audit,
         "costs_subtracted_again": False,
         "missing_exit_reasons_inferred": False,
         "interpretation": "Prioritize fixing exit-reason recording and inspect available metadata. This report does not infer unknown exits, blacklist symbols, or alter trading rules.",

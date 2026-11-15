@@ -42,3 +42,31 @@ def test_health_falls_back_when_latest_completed_session_has_invalid_ohlc():
     hist = pd.DataFrame(_rows(prior, symbols) + _rows(newest, symbols, invalid=True))
     now = datetime(2026, 10, 14, 9, 0, tzinfo=ZoneInfo("Asia/Kolkata"))
     assert health._select_completed_market_date(hist, symbols, now) == prior
+
+
+def test_prediction_freshness_accepts_next_nse_session():
+    latest_data = pd.Timestamp("2026-10-13")
+    target = pd.Timestamp("2026-10-14")
+    assert health._validate_prediction_freshness(latest_data, target) == target
+
+
+def test_prediction_freshness_rejects_stale_target_date():
+    latest_data = pd.Timestamp("2026-10-13")
+    stale_target = pd.Timestamp("2026-10-13")
+    try:
+        health._validate_prediction_freshness(latest_data, stale_target)
+    except RuntimeError as exc:
+        assert "expected target 2026-10-14" in str(exc)
+    else:
+        raise AssertionError("stale prediction target must fail the health gate")
+
+
+def test_prediction_freshness_rejects_target_beyond_next_session():
+    latest_data = pd.Timestamp("2026-10-13")
+    later_target = pd.Timestamp("2026-10-15")
+    try:
+        health._validate_prediction_freshness(latest_data, later_target)
+    except RuntimeError as exc:
+        assert "expected target 2026-10-14" in str(exc)
+    else:
+        raise AssertionError("non-next-session prediction target must fail the health gate")

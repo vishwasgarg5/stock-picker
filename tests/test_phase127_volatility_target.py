@@ -15,6 +15,9 @@ def _frame():
             row={"date":date,"target_date":dates[i+1],"symbol":f"S{j:02d}",
                  "target_close_return":.002*z+vol*rng.normal(),"volatility20":vol}
             for col in FEATURE_COLUMNS: row[col]=z+rng.normal(scale=.7)
+            # volatility20 is a target-normalization input, not a random feature;
+            # assign it after feature generation in case it appears in FEATURE_COLUMNS.
+            row["volatility20"]=vol
             rows.append(row)
     return pd.DataFrame(rows)
 

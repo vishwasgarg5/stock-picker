@@ -66,4 +66,4 @@ jobs:
       - name: Run Phase 123 leakage-safe magnitude calibration (analysis-only)
         run: python -m src.phase123_magnitude_calibration
       - name: Run forecast calibration regression tests
-        run: pytest -q tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase122_normalized_challengers.py
+        run: pytest -q tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py

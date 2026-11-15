@@ -59,7 +59,7 @@ def build_normalized_features(history: pd.DataFrame) -> pd.DataFrame:
 def _metrics(actual_return: pd.Series, predicted_return: pd.Series) -> dict[str, float | int | None]:
     actual = pd.to_numeric(actual_return, errors="coerce").to_numpy(dtype=float)
     predicted = pd.to_numeric(predicted_return, errors="coerce").to_numpy(dtype=float)
-    valid = np.isfinite(actual) & np.isfinite(predicted) & (actual > -1.0) & (predicted > -1.0)
+    valid = np.isfinite(actual) & np.isfinite(predicted) & (actual > -1.0)
     actual, predicted = actual[valid], predicted[valid]
     if not len(actual):
         return {
@@ -68,7 +68,9 @@ def _metrics(actual_return: pd.Series, predicted_return: pd.Series) -> dict[str,
             "mean_abs_realized_move_pct": None, "forecast_to_realized_magnitude_ratio": None,
         }
     actual_close = 1.0 + actual
-    predicted_close = 1.0 + predicted
+    # A return forecast below -100% implies a non-positive price. Score it as
+    # a zero-price forecast rather than silently dropping that test observation.
+    predicted_close = np.maximum(1.0 + predicted, 0.0)
     mape = float(np.mean(np.abs(predicted_close - actual_close) / actual_close) * 100.0)
     direction = float(np.mean(np.sign(predicted) == np.sign(actual)) * 100.0)
     mean_abs_pred = float(np.mean(np.abs(predicted)) * 100.0)
@@ -191,6 +193,8 @@ def run_challenger_experiment(
             "models": {},
         }
         for name, predicted in fold_models.items():
+            if not np.isfinite(np.asarray(predicted, dtype=float)).all():
+                raise RuntimeError(f"Non-finite predictions from {name} in fold {fold_number}")
             fold_detail["models"][name] = _metrics(y_test, pd.Series(predicted, index=y_test.index))
             part = test[["date", "target_date", "symbol", "split_adjusted_close"]].copy()
             part["actual_return"] = y_test.to_numpy()

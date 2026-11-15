@@ -5,6 +5,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import os
 import pandas as pd
+import pandas_market_calendars as mcal
 import numpy as np
 import requests
 
@@ -26,6 +27,37 @@ def _session_is_complete(date: pd.Timestamp, now: datetime | None = None) -> boo
     if candidate > today:
         return False
     return (current.hour, current.minute, current.second) >= (15, 30, 0)
+
+
+def _expected_next_session_date(last_data_date: pd.Timestamp) -> pd.Timestamp:
+    """Return the next NSE session after the latest completed market-data date."""
+    last = pd.Timestamp(last_data_date).normalize()
+    schedule = mcal.get_calendar("XNSE").schedule(
+        start_date=last + pd.Timedelta(days=1),
+        end_date=last + pd.Timedelta(days=14),
+    )
+    if schedule.empty:
+        return pd.NaT
+    return pd.Timestamp(schedule.index[0]).normalize()
+
+
+def _validate_prediction_freshness(
+    latest_data_date: pd.Timestamp,
+    prediction_target_date: pd.Timestamp,
+) -> pd.Timestamp:
+    """Fail closed unless predictions target the next NSE trading session."""
+    expected = _expected_next_session_date(latest_data_date)
+    actual = pd.Timestamp(prediction_target_date).normalize()
+    if pd.isna(expected):
+        raise RuntimeError(
+            f"Prediction freshness gate failed: could not determine next NSE session after {pd.Timestamp(latest_data_date).date()}"
+        )
+    if actual != expected:
+        raise RuntimeError(
+            f"Prediction freshness gate failed: expected target {expected.date()} after "
+            f"latest data {pd.Timestamp(latest_data_date).date()}, found {actual.date()}"
+        )
+    return expected
 
 
 def _select_completed_market_date(hist: pd.DataFrame, symbols: list[str], now: datetime | None = None) -> pd.Timestamp:
@@ -129,6 +161,12 @@ def run_health_check() -> dict:
         predictions["target_date"] = pd.to_datetime(predictions["target_date"], errors="coerce").dt.normalize()
         latest_prediction_date = predictions["target_date"].max()
         predictions = predictions[predictions["target_date"].eq(latest_prediction_date)].copy()
+
+    if pd.notna(latest_date) and pd.notna(latest_prediction_date):
+        try:
+            _validate_prediction_freshness(latest_date, latest_prediction_date)
+        except RuntimeError as exc:
+            failures.append(str(exc))
 
     pred_ok = True
     if len(predictions) != MIN_PREDICTIONS:

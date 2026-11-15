@@ -195,6 +195,7 @@ def _metrics(actual_return: pd.Series, predicted_return: pd.Series) -> dict[str,
     mean_abs_actual = float(np.mean(np.abs(actual)) * 100.0)
     return {
         "rows": int(len(actual)),
+        "invalid_nonpositive_price_forecasts": int(np.sum(predicted <= -1.0)),
         "mape_pct": mape,
         "directional_accuracy_pct": direction,
         "signed_bias_pct_points": float(np.mean(predicted - actual) * 100.0),
@@ -354,8 +355,8 @@ def run_challenger_experiment(
         "challengers_shadow_only": True,
         "automatic_promotion": False,
         "feature_transforms": {
-            "sma20_sma50_ema20_ema50": "indicator / contemporaneous split-adjusted close - 1",
-            "macd_macd_signal": "indicator / contemporaneous split-adjusted close",
+            "sma20_sma50_ema20_ema50": "indicator / contemporaneous point-in-time close - 1",
+            "macd_macd_signal": "indicator / contemporaneous point-in-time close",
             "other_features": "causally recomputed from observations available through the feature date",
         },
         "regularized_model": {"estimator": "StandardScaler + Ridge", "alpha": float(ridge_alpha)},

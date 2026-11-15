@@ -8,18 +8,20 @@ from src.phase129_ranking_utility_audit import evaluate_ranking_utility
 def _data(n_dates=40):
     dates = pd.bdate_range("2025-01-01", periods=n_dates + 1)
     candidates, history = [], []
-    for i, date in enumerate(dates[:-1]):
-        for j in range(20):
-            symbol = f"S{j:02d}"
-            base = 100.0 + j
-            # Deliberately monotonic ranking utility: higher score/rank predicts better return.
+    for j in range(20):
+        symbol = f"S{j:02d}"
+        base = 100.0 + j
+        closes = [base]
+        for i in range(n_dates):
             ret = (10 - j) * 0.001 + (i % 4) * 0.0001
+            closes.append(closes[-1] * (1 + ret))
+        for i, date in enumerate(dates):
+            history.append({"date": date, "symbol": symbol, "close": closes[i]})
+        for i, date in enumerate(dates[:-1]):
             candidates.append({
                 "prediction_date": date, "target_date": dates[i+1], "symbol": symbol,
-                "rank": j + 1, "score": 20 - j, "base_close": base,
+                "rank": j + 1, "score": 20 - j, "base_close": closes[i],
             })
-            history.append({"date": dates[i+1], "symbol": symbol, "close": base * (1 + ret)})
-            history.append({"date": date, "symbol": symbol, "close": base})
     return pd.DataFrame(candidates), pd.DataFrame(history)
 
 

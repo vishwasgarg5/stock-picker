@@ -152,7 +152,7 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
             rows.append({
                 "date": pd.Timestamp(row.date), "symbol": symbol,
                 "open": float(row.open), "high": high, "low": low, "close": close,
-                "volume": volume, "split_adjusted_close": close, "adjusted_close": close,
+                "volume": volume, "dividends": dividend, "split_adjusted_close": close, "adjusted_close": close,
                 "return_1d": daily_return,
                 "return_5d": close / price_buffer[-6] - 1.0 if len(price_buffer) >= 6 else np.nan,
                 "return_20d": close / price_buffer[-21] - 1.0 if len(price_buffer) >= 21 else np.nan,

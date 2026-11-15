@@ -6,7 +6,7 @@ from src.pipeline import FEATURE_COLUMNS
 
 def _frame():
     rng=np.random.default_rng(127)
-    dates=pd.bdate_range("2024-01-01",periods=100)
+    dates=pd.bdate_range("2024-01-01",periods=110)
     rows=[]
     for i,date in enumerate(dates[:-1]):
         for j in range(24):

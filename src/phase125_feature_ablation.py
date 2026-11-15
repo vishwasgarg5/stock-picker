@@ -48,24 +48,25 @@ def run_ablation(frame: pd.DataFrame, n_folds: int = 4) -> tuple[dict, pd.DataFr
         test = x.loc[x["date"].isin(block)].copy()
         if train.empty or test.empty:
             raise ValueError(f"Phase 125 fold {fold} has empty train or test partition")
-        y_train = train["target_close_return"]
-        y_test = test["target_close_return"].to_numpy(dtype=float)
-        baseline_mape = _price_mape(np.zeros(len(test)), y_test)
+        # Lock one common complete-case cohort before comparing feature sets.
+        # Otherwise an ablation could win merely by dropping difficult rows.
+        common_train = train.dropna(subset=FEATURE_COLUMNS).copy()
+        common_test = test.dropna(subset=FEATURE_COLUMNS).copy()
+        if len(common_train) < 500 or len(common_test) < 10:
+            raise ValueError(f"Phase 125 insufficient common complete rows in fold {fold}")
+        y_test = common_test["target_close_return"].to_numpy(dtype=float)
+        baseline_mape = _price_mape(np.zeros(len(common_test)), y_test)
         for name, columns in ABLATIONS.items():
-            usable_train = train.dropna(subset=columns)
-            usable_test = test.dropna(subset=columns)
-            if len(usable_train) < 500 or len(usable_test) < 10:
-                raise ValueError(f"Phase 125 insufficient complete rows for {name}, fold {fold}")
-            bundle = _fit_ensemble(usable_train[columns], usable_train.loc[usable_train.index, "target_close_return"])
-            predicted, _ = _ensemble_predict(bundle, usable_test[columns])
-            actual = usable_test["target_close_return"].to_numpy(dtype=float)
+            bundle = _fit_ensemble(common_train[columns], common_train["target_close_return"])
+            predicted, _ = _ensemble_predict(bundle, common_test[columns])
+            actual = common_test["target_close_return"].to_numpy(dtype=float)
             pred_mape = _price_mape(predicted, actual)
             rows.append({
                 "fold": fold, "variant": name,
                 "train_end_target_date": train["target_date"].max().date().isoformat(),
                 "test_start_date": test["date"].min().date().isoformat(),
                 "test_end_date": test["date"].max().date().isoformat(),
-                "train_rows": int(len(usable_train)), "test_rows": int(len(usable_test)),
+                "train_rows": int(len(common_train)), "test_rows": int(len(common_test)),
                 "baseline_mape_pct": baseline_mape,
                 "model_mape_pct": pred_mape,
                 "delta_vs_baseline_pp": pred_mape - baseline_mape,

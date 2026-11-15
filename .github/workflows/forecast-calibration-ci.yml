@@ -13,6 +13,8 @@ on:
       - "src/phase123_magnitude_calibration.py"
       - "src/phase124_feature_signal.py"
       - "src/phase125_feature_ablation.py"
+      - "src/phase126_objective_target_audit.py"
+      - "tests/test_phase126_objective_target_audit.py"
       - "tests/test_phase125_feature_ablation.py"
       - "tests/test_phase124_feature_signal.py"
       - "tests/test_phase123_magnitude_calibration.py"
@@ -58,7 +60,7 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt pytest
       - name: Validate Python syntax
-        run: python -m py_compile src/phase97_forecast_quality.py src/phase116_shrinkage_calibration.py src/phase117_bias_correction.py src/phase118_forecast_error_diagnosis.py src/phase119_prospective_validation.py src/phase123_magnitude_calibration.py src/phase124_feature_signal.py src/phase125_feature_ablation.py tests/test_phase125_feature_ablation.py tests/test_phase124_feature_signal.py tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase123_magnitude_calibration.py tests/test_phase124_feature_signal.py
+        run: python -m py_compile src/phase97_forecast_quality.py src/phase116_shrinkage_calibration.py src/phase117_bias_correction.py src/phase118_forecast_error_diagnosis.py src/phase119_prospective_validation.py src/phase123_magnitude_calibration.py src/phase124_feature_signal.py src/phase125_feature_ablation.py src/phase126_objective_target_audit.py tests/test_phase126_objective_target_audit.py tests/test_phase124_feature_signal.py tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase123_magnitude_calibration.py tests/test_phase124_feature_signal.py
       - name: Evaluate saved forecasts with leakage-safe calibration (analysis-only)
         run: python -m src.phase116_shrinkage_calibration
       - name: Evaluate historical bias correction (analysis-only)
@@ -73,5 +75,7 @@ jobs:
         run: python -m src.phase124_feature_signal
       - name: Run chronological feature ablation (analysis-only)
         run: python -m src.phase125_feature_ablation
+      - name: Run objective and target audit (analysis-only)
+        run: python -m src.phase126_objective_target_audit
       - name: Run forecast calibration regression tests
         run: pytest -q tests/test_phase97_forecast_quality.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase123_magnitude_calibration.py tests/test_phase124_feature_signal.py tests/test_phase125_feature_ablation.py

@@ -7,6 +7,7 @@ from .pipeline import DATA, FEATURE_COLUMNS, HISTORY_FILE, add_targets, features
 
 OUTPUT_JSON=DATA/"phase127_volatility_target_summary.json"
 OUTPUT_CSV=DATA/"phase127_volatility_target_by_fold.csv"
+OUTPUT_DECISION_JSON=DATA/"phase127_volatility_target_decision.json"
 
 def _mape(pred:np.ndarray,actual:np.ndarray)->float:
     valid=np.isfinite(pred)&np.isfinite(actual)&(actual>-1.0)
@@ -89,13 +90,34 @@ def run_volatility_target(frame:pd.DataFrame,n_folds:int=4)->tuple[dict,pd.DataF
         "production":{"champion":"V1","changed":False,"automatic_promotion":False}}
     return summary,detail
 
+def write_reports(summary:dict,detail:pd.DataFrame,output_json=OUTPUT_JSON,output_csv=OUTPUT_CSV,decision_json=OUTPUT_DECISION_JSON)->dict:
+    """Persist reproducible experiment, fold detail, and explicit research decision."""
+    output_json.parent.mkdir(parents=True,exist_ok=True)
+    output_json.write_text(json.dumps(summary,indent=2,sort_keys=True)+"\\n",encoding="utf-8")
+    detail.to_csv(output_csv,index=False)
+    decision={
+        "phase":127,
+        "status":summary["status"],
+        "decision":summary["decision"],
+        "performance_gate_met":summary["performance_gate_met"],
+        "rows":summary["rows"],
+        "symbols":summary["symbols"],
+        "feature_dates":summary["feature_dates"],
+        "folds_completed":summary["folds_completed"],
+        "strict_no_lookahead":summary["strict_no_lookahead"],
+        "variants":summary["variants"],
+        "production":summary["production"],
+        "authority":"RESEARCH_ONLY_NO_PRODUCTION_PROMOTION",
+    }
+    decision_json.write_text(json.dumps(decision,indent=2,sort_keys=True)+"\\n",encoding="utf-8")
+    return decision
+
 def run()->dict:
     history=pd.read_csv(HISTORY_FILE,parse_dates=["date"])
     labelled=add_targets(features(history))
     labelled["target_date"]=labelled.groupby("symbol",sort=False).date.shift(-1)
     summary,detail=run_volatility_target(labelled,n_folds=4)
-    OUTPUT_JSON.write_text(json.dumps(summary,indent=2,sort_keys=True)+"\n",encoding="utf-8")
-    detail.to_csv(OUTPUT_CSV,index=False)
+    write_reports(summary,detail)
     print(json.dumps(summary,indent=2))
     return summary
 if __name__=="__main__": run()

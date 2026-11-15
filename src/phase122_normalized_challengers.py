@@ -17,7 +17,7 @@ from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from .pipeline import FEATURE_COLUMNS, _ensemble_predict, _fit_ensemble, add_targets, features
+from .pipeline import FEATURE_COLUMNS, _ensemble_predict, _fit_ensemble
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -38,17 +38,133 @@ NORMALIZED_FEATURE_COLUMNS = [
 REQUIRED_HISTORY = {"date", "symbol", "open", "high", "low", "close", "volume"}
 
 
-def build_normalized_features(history: pd.DataFrame) -> pd.DataFrame:
-    """Build existing causal features, replacing price-level indicators by ratios.
+def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
+    """Build causal features without retrospectively applying future stock splits.
 
-    The denominator is each row's contemporaneous split-adjusted close. No
-    cross-row/global statistic is used in this transformation.
+    At each split date, only the already-observed rolling price/volume state is
+    restated into the new share units. A split occurring after date t cannot
+    alter any feature row at or before t.
     """
     missing = sorted(REQUIRED_HISTORY.difference(history.columns))
     if missing:
         raise ValueError(f"History is missing required columns: {missing}")
-    x = features(history.copy())
-    close = pd.to_numeric(x["split_adjusted_close"], errors="coerce").replace(0, np.nan)
+    x = history.copy()
+    x["date"] = pd.to_datetime(x["date"], errors="coerce").dt.normalize()
+    x["symbol"] = x["symbol"].astype(str).str.strip().str.upper()
+    if "stock_splits" not in x:
+        x["stock_splits"] = 0.0
+    x["stock_splits"] = pd.to_numeric(x["stock_splits"], errors="coerce").fillna(0.0)
+    x = x.dropna(subset=["date", "symbol"]).sort_values(["symbol", "date"])
+    rows: list[dict[str, Any]] = []
+
+    for symbol, group in x.groupby("symbol", sort=False):
+        price_buffer: list[float] = []
+        volume_buffer: list[float] = []
+        true_range_buffer: list[float] = []
+        return_buffer: list[float] = []
+        ema12 = ema20 = ema26 = ema50 = macd_signal = None
+        alpha12, alpha20 = 2.0 / 13.0, 2.0 / 21.0
+        alpha26, alpha50, alpha9 = 2.0 / 27.0, 2.0 / 51.0, 2.0 / 10.0
+
+        for row in group.itertuples(index=False):
+            close = float(row.close)
+            high = float(row.high)
+            low = float(row.low)
+            volume = float(row.volume)
+            split_ratio = float(row.stock_splits) if np.isfinite(row.stock_splits) else 0.0
+            if not all(np.isfinite(v) and v > 0 for v in (close, high, low, volume)):
+                continue
+            if split_ratio < 0:
+                raise ValueError(f"Invalid split ratio for {symbol} on {row.date}")
+            if split_ratio > 0:
+                price_buffer = [value / split_ratio for value in price_buffer]
+                true_range_buffer = [value / split_ratio for value in true_range_buffer]
+                volume_buffer = [value * split_ratio for value in volume_buffer]
+                ema12 = ema12 / split_ratio if ema12 is not None else None
+                ema20 = ema20 / split_ratio if ema20 is not None else None
+                ema26 = ema26 / split_ratio if ema26 is not None else None
+                ema50 = ema50 / split_ratio if ema50 is not None else None
+                macd_signal = macd_signal / split_ratio if macd_signal is not None else None
+
+            previous_close = price_buffer[-1] if price_buffer else np.nan
+            daily_return = close / previous_close - 1.0 if np.isfinite(previous_close) and previous_close > 0 else np.nan
+            true_range = max(
+                high - low,
+                abs(high - previous_close) if np.isfinite(previous_close) else 0.0,
+                abs(low - previous_close) if np.isfinite(previous_close) else 0.0,
+            )
+            price_buffer.append(close)
+            volume_buffer.append(volume)
+            true_range_buffer.append(true_range)
+            return_buffer.append(daily_return)
+            # Retain enough history for the 50-session moving average and EMA warmup.
+            price_buffer = price_buffer[-250:]
+            volume_buffer = volume_buffer[-20:]
+            true_range_buffer = true_range_buffer[-14:]
+            return_buffer = return_buffer[-20:]
+
+            ema12 = close if ema12 is None else alpha12 * close + (1.0 - alpha12) * ema12
+            ema20 = close if ema20 is None else alpha20 * close + (1.0 - alpha20) * ema20
+            ema26 = close if ema26 is None else alpha26 * close + (1.0 - alpha26) * ema26
+            ema50 = close if ema50 is None else alpha50 * close + (1.0 - alpha50) * ema50
+            macd = ema12 - ema26
+            macd_signal = macd if macd_signal is None else alpha9 * macd + (1.0 - alpha9) * macd_signal
+
+            sma20 = float(np.mean(price_buffer[-20:])) if len(price_buffer) >= 20 else np.nan
+            sma50 = float(np.mean(price_buffer[-50:])) if len(price_buffer) >= 50 else np.nan
+            std20 = float(np.std(price_buffer[-20:], ddof=1)) if len(price_buffer) >= 20 else np.nan
+            recent_returns = np.asarray(return_buffer[-20:], dtype=float)
+            valid_returns = recent_returns[np.isfinite(recent_returns)]
+            volatility20 = float(np.std(valid_returns, ddof=1)) if len(valid_returns) >= 20 else np.nan
+            deltas = np.diff(np.asarray(price_buffer[-15:], dtype=float))
+            if len(deltas) >= 14:
+                gain = float(np.mean(np.maximum(deltas[-14:], 0.0)))
+                loss = float(np.mean(np.maximum(-deltas[-14:], 0.0)))
+                rsi14 = float(100.0 - 100.0 / (1.0 + gain / loss)) if loss > 0 else np.nan
+            else:
+                rsi14 = np.nan
+            volume_ma20 = float(np.mean(volume_buffer[-20:])) if len(volume_buffer) >= 20 else np.nan
+            volume_ma5 = float(np.mean(volume_buffer[-5:])) if len(volume_buffer) >= 5 else np.nan
+
+            rows.append({
+                "date": pd.Timestamp(row.date), "symbol": symbol,
+                "open": float(row.open), "high": high, "low": low, "close": close,
+                "volume": volume, "split_adjusted_close": close,
+                "return_1d": daily_return,
+                "return_5d": close / price_buffer[-6] - 1.0 if len(price_buffer) >= 6 else np.nan,
+                "return_20d": close / price_buffer[-21] - 1.0 if len(price_buffer) >= 21 else np.nan,
+                "sma20": sma20, "sma50": sma50, "ema20": ema20, "ema50": ema50,
+                "rsi14": rsi14,
+                "volume_ratio": volume / volume_ma20 if np.isfinite(volume_ma20) and volume_ma20 > 0 else np.nan,
+                "atr14_pct": float(np.mean(true_range_buffer[-14:]) / close) if len(true_range_buffer) >= 14 else np.nan,
+                "macd": macd, "macd_signal": macd_signal,
+                "bb_position": (close - sma20) / (2.0 * std20) if np.isfinite(std20) and std20 > 0 else np.nan,
+                "range_pct": (high - low) / close,
+                "close_sma20_gap": close / sma20 - 1.0 if np.isfinite(sma20) and sma20 > 0 else np.nan,
+                "close_sma50_gap": close / sma50 - 1.0 if np.isfinite(sma50) and sma50 > 0 else np.nan,
+                "volatility20": volatility20,
+                "volume_trend5": volume_ma5 / volume_ma20 if np.isfinite(volume_ma5) and np.isfinite(volume_ma20) and volume_ma20 > 0 else np.nan,
+                "split_ratio": split_ratio,
+            })
+
+    result = pd.DataFrame(rows).sort_values(["symbol", "date"]).reset_index(drop=True)
+    # The next close is converted into the current share units using only the
+    # split ratio observed on that next session. This is the realized label,
+    # never a feature available to the prediction.
+    grouped = result.groupby("symbol", sort=False)
+    next_close = grouped["close"].shift(-1)
+    next_split = grouped["split_ratio"].shift(-1).fillna(0.0)
+    next_date = grouped["date"].shift(-1)
+    split_multiplier = next_split.where(next_split.gt(0), 1.0)
+    result["target_date"] = next_date
+    result["target_close_return"] = (next_close * split_multiplier) / result["close"] - 1.0
+    return result
+
+
+def build_normalized_features(history: pd.DataFrame) -> pd.DataFrame:
+    """Build causal features, replacing price-level indicators with ratios."""
+    x = build_point_in_time_features(history)
+    close = pd.to_numeric(x["close"], errors="coerce").replace(0, np.nan)
     for source, destination in NORMALIZED_REPLACEMENTS.items():
         x[destination] = pd.to_numeric(x[source], errors="coerce") / close
         if source.startswith(("sma", "ema")):
@@ -125,8 +241,6 @@ def run_challenger_experiment(
     if raw.duplicated(["date", "symbol"]).any():
         raise ValueError("Duplicate date/symbol history keys; refusing ambiguous replay")
     x = build_normalized_features(raw)
-    x = add_targets(x)
-    x["target_date"] = x.groupby("symbol", sort=False)["date"].shift(-1)
     x["target_close_return"] = pd.to_numeric(x["target_close_return"], errors="coerce")
     numeric = list(FEATURE_COLUMNS) + NORMALIZED_FEATURE_COLUMNS + ["target_close_return"]
     for column in numeric:
@@ -241,7 +355,7 @@ def run_challenger_experiment(
         "feature_transforms": {
             "sma20_sma50_ema20_ema50": "indicator / contemporaneous split-adjusted close - 1",
             "macd_macd_signal": "indicator / contemporaneous split-adjusted close",
-            "other_features": "retained from incumbent feature builder",
+            "other_features": "causally recomputed from observations available through the feature date",
         },
         "regularized_model": {"estimator": "StandardScaler + Ridge", "alpha": float(ridge_alpha)},
         "baseline": "zero next-session return; predicted close equals contemporaneous split-adjusted close",
@@ -251,6 +365,7 @@ def run_challenger_experiment(
             "requested_folds": int(n_splits),
             "min_train_rows": int(min_train_rows),
             "training_label_rule": "target_date strictly earlier than first prediction_date in each test fold",
+            "feature_point_in_time_rule": "Rolling price/volume state is adjusted only when a split is observed on or before that feature date; future split events cannot rewrite prior features.",
             "test_dates_are_disjoint": True,
         },
         "folds": fold_rows,
@@ -266,6 +381,7 @@ def run_challenger_experiment(
         "limitations": [
             "This historical replay is exploratory and does not replace fresh prospective validation.",
             "No hyperparameter search is performed on test folds; Ridge alpha is fixed before evaluation.",
+            "All feature rows use point-in-time split handling; later corporate actions do not restate earlier feature values.",
             "No volatility regime or symbol exclusions are used to select results.",
             "The incumbent ensemble is re-fit only on each fold's permitted training data as the chronological control.",
         ],

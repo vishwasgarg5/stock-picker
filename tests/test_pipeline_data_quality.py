@@ -137,3 +137,15 @@ def test_existing_prediction_refreshes_candidate_history_without_replacing_predi
         ("validate", 10, target_date),
         ("refresh", target_date),
     ]
+
+
+def test_daily_workflow_serializes_manual_and_scheduled_runs():
+    from pathlib import Path
+
+    workflow_path = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "daily.yml"
+    workflow = workflow_path.read_text(encoding="utf-8")
+    concurrency = workflow.split("concurrency:", 1)[1].split("\nenv:", 1)[0]
+
+    assert "group: stock-picker-daily-${{ github.ref }}" in concurrency
+    assert "github.event_name" not in concurrency
+    assert "cancel-in-progress: false" in concurrency

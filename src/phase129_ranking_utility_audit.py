@@ -73,10 +73,12 @@ def evaluate_ranking_utility(candidates: pd.DataFrame, history: pd.DataFrame,
     x = _prepare(candidates, history)
     excluded_incomplete_sessions = int(original_sessions - x.prediction_date.nunique())
     dates = np.array(sorted(x.prediction_date.unique()))
-    initial = max(2, int(len(dates) * 0.60))
-    if len(dates) - initial < n_folds:
-        raise ValueError("Insufficient prediction sessions for chronological folds")
-    blocks = [b for b in np.array_split(dates[initial:], n_folds) if len(b)]
+    initial = min(len(dates) - 1, max(2, int(len(dates) * 0.60)))
+    available_test_sessions = len(dates) - initial
+    if available_test_sessions < 1:
+        raise ValueError("At least three complete prediction sessions are required for chronological evaluation")
+    effective_folds = min(n_folds, available_test_sessions)
+    blocks = [b for b in np.array_split(dates[initial:], effective_folds) if len(b)]
     vol = _market_volatility(history)
     x = x.merge(vol, left_on="prediction_date", right_on="date", how="left").drop(columns=["date"])
     x["market_vol20"] = pd.to_numeric(x["market_vol20"], errors="coerce")
@@ -96,8 +98,9 @@ def evaluate_ranking_utility(candidates: pd.DataFrame, history: pd.DataFrame,
                 continue
             score_ic = day[["score", "actual_return_pct"]].corr(method="spearman").iloc[0, 1]
             top = day.loc[day["rank"].between(1, 5)]
-            bottom = day.loc[day["rank"].between(16, 20)]
-            if len(top) < 5 or len(bottom) < 5:
+            max_rank = float(day["rank"].max())
+            bottom = day.loc[day["rank"].gt(max_rank - 5) & day["rank"].le(max_rank)]
+            if len(top) < 5 or len(bottom) < 5 or set(top.symbol).intersection(bottom.symbol):
                 continue
             top_symbols = set(top.symbol)
             if previous_top5 is None:
@@ -144,7 +147,7 @@ def evaluate_ranking_utility(candidates: pd.DataFrame, history: pd.DataFrame,
         "phase": 129, "status": "READY_FOR_REVIEW" if len(detail) >= min_review_sessions else "INSUFFICIENT_SESSIONS",
         "candidate_rows_evaluated": int(len(x)), "excluded_incomplete_sessions": excluded_incomplete_sessions, "symbols": int(x.symbol.nunique()),
         "prediction_sessions_evaluated": int(detail.prediction_date.nunique()),
-        "folds_completed": int(detail.fold.nunique()), "minimum_review_sessions": int(min_review_sessions),
+        "folds_completed": int(detail.fold.nunique()), "requested_folds": int(n_folds), "minimum_review_sessions": int(min_review_sessions),
         "rank_ic_spearman_mean": float(detail.rank_ic_spearman.mean()),
         "rank_ic_positive_session_fraction": float((detail.rank_ic_spearman > 0).mean()),
         "top_bottom_spread_mean_pct": float(detail.top_bottom_spread_pct.mean()),

@@ -114,3 +114,33 @@ def test_next_session_split_is_accounted_for_in_realized_return():
     prior_date = pd.Timestamp(history["date"].sort_values().unique()[59])
     prior = features.loc[features["date"] == prior_date].iloc[0]
     assert abs(prior["target_close_return"]) < 0.01
+
+
+
+def test_cash_dividend_is_point_in_time_adjusted_without_future_rewrite():
+    history = _history(sessions=90, symbols=("AAA",))
+    dates = sorted(pd.to_datetime(history["date"]).unique())
+    ex_date = pd.Timestamp(dates[60])
+    prior_close = float(history.loc[history["date"] == dates[59], "close"].iloc[0])
+    dividend = 2.0
+    after = history["date"] >= ex_date
+    for column in ["open", "high", "low", "close"]:
+        history.loc[after, column] -= dividend
+    history.loc[history["date"] == ex_date, "dividends"] = dividend
+
+    no_dividend = _history(sessions=90, symbols=("AAA",))
+    baseline = build_normalized_features(no_dividend)
+    adjusted = build_normalized_features(history)
+
+    prior_date = pd.Timestamp(dates[59])
+    prior = adjusted.loc[adjusted["date"] == prior_date].iloc[0]
+    ex_row = adjusted.loc[adjusted["date"] == ex_date].iloc[0]
+    assert abs(prior["target_close_return"]) < 0.01
+    assert abs(ex_row["return_1d"]) < 0.01
+
+    cutoff = ex_date - pd.offsets.BDay(1)
+    left = baseline.loc[baseline["date"] <= cutoff].sort_values("date")
+    right = adjusted.loc[adjusted["date"] <= cutoff].sort_values("date")
+    for column in ["sma20", "ema20", "macd", "macd_signal", "adjusted_close"]:
+        assert np.allclose(left[column], right[column], equal_nan=True)
+    assert prior_close > dividend

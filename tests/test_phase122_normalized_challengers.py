@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 
 from src.phase122_normalized_challengers import (
-    NORMALIZED_FEATURE_COLUMNS,
     build_normalized_features,
     run_challenger_experiment,
 )

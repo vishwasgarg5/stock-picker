@@ -54,6 +54,8 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
     if "stock_splits" not in x:
         x["stock_splits"] = 0.0
     x["stock_splits"] = pd.to_numeric(x["stock_splits"], errors="coerce").fillna(0.0)
+    if not np.isfinite(x["stock_splits"].to_numpy(dtype=float)).all():
+        raise ValueError("Non-finite stock split ratio in history")
     x = x.dropna(subset=["date", "symbol"]).sort_values(["symbol", "date"])
     rows: list[dict[str, Any]] = []
 
@@ -275,7 +277,6 @@ def run_challenger_experiment(
             raise RuntimeError("No-lookahead audit failed: training label reaches test prediction date")
         y_train = train["target_close_return"]
         y_test = test["target_close_return"]
-        base = pd.to_numeric(test["split_adjusted_close"], errors="coerce")
         fold_models: dict[str, np.ndarray] = {
             "previous_close_baseline": np.zeros(len(test), dtype=float)
         }

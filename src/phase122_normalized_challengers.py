@@ -53,6 +53,11 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
     x["symbol"] = x["symbol"].astype(str).str.strip().str.upper()
     if "stock_splits" not in x:
         x["stock_splits"] = 0.0
+    if "dividends" not in x:
+        x["dividends"] = 0.0
+    x["dividends"] = pd.to_numeric(x["dividends"], errors="coerce").fillna(0.0)
+    if not np.isfinite(x["dividends"].to_numpy(dtype=float)).all() or (x["dividends"] < 0).any():
+        raise ValueError("Invalid cash dividend in history")
     x["stock_splits"] = pd.to_numeric(x["stock_splits"], errors="coerce").fillna(0.0)
     if not np.isfinite(x["stock_splits"].to_numpy(dtype=float)).all():
         raise ValueError("Non-finite stock split ratio in history")
@@ -74,6 +79,7 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
             low = float(row.low)
             volume = float(row.volume)
             split_ratio = float(row.stock_splits) if np.isfinite(row.stock_splits) else 0.0
+            dividend = float(row.dividends) if np.isfinite(row.dividends) else 0.0
             if not all(np.isfinite(v) and v > 0 for v in (close, high, low, volume)):
                 continue
             if split_ratio < 0:
@@ -89,6 +95,21 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
                 macd_signal = macd_signal / split_ratio if macd_signal is not None else None
 
             previous_close = price_buffer[-1] if price_buffer else np.nan
+            # Rebase only already-observed history on the ex-date. This creates
+            # a point-in-time total-return adjusted price history without using
+            # later corporate actions to rewrite earlier feature rows.
+            if dividend > 0 and np.isfinite(previous_close) and previous_close > dividend:
+                dividend_factor = (previous_close - dividend) / previous_close
+                price_buffer = [value * dividend_factor for value in price_buffer]
+                true_range_buffer = [value * dividend_factor for value in true_range_buffer]
+                ema12 = ema12 * dividend_factor if ema12 is not None else None
+                ema20 = ema20 * dividend_factor if ema20 is not None else None
+                ema26 = ema26 * dividend_factor if ema26 is not None else None
+                ema50 = ema50 * dividend_factor if ema50 is not None else None
+                macd_signal = macd_signal * dividend_factor if macd_signal is not None else None
+                previous_close = price_buffer[-1]
+            elif dividend > 0 and np.isfinite(previous_close):
+                raise ValueError(f"Dividend must be smaller than prior close for {symbol} on {row.date}")
             daily_return = close / previous_close - 1.0 if np.isfinite(previous_close) and previous_close > 0 else np.nan
             true_range = max(
                 high - low,
@@ -131,7 +152,7 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
             rows.append({
                 "date": pd.Timestamp(row.date), "symbol": symbol,
                 "open": float(row.open), "high": high, "low": low, "close": close,
-                "volume": volume, "split_adjusted_close": close,
+                "volume": volume, "split_adjusted_close": close, "adjusted_close": close,
                 "return_1d": daily_return,
                 "return_5d": close / price_buffer[-6] - 1.0 if len(price_buffer) >= 6 else np.nan,
                 "return_20d": close / price_buffer[-21] - 1.0 if len(price_buffer) >= 21 else np.nan,
@@ -158,17 +179,18 @@ def build_point_in_time_features(history: pd.DataFrame) -> pd.DataFrame:
     grouped = result.groupby("symbol", sort=False)
     next_close = grouped["close"].shift(-1)
     next_split = grouped["split_ratio"].shift(-1).fillna(0.0)
+    next_dividend = grouped["dividends"].shift(-1).fillna(0.0) if "dividends" in result else pd.Series(0.0, index=result.index)
     next_date = grouped["date"].shift(-1)
     split_multiplier = next_split.where(next_split.gt(0), 1.0)
     result["target_date"] = next_date
-    result["target_close_return"] = (next_close * split_multiplier) / result["close"] - 1.0
+    result["target_close_return"] = ((next_close + next_dividend) * split_multiplier) / result["close"] - 1.0
     return result
 
 
 def build_normalized_features(history: pd.DataFrame) -> pd.DataFrame:
     """Build causal features, replacing price-level indicators with ratios."""
     x = build_point_in_time_features(history)
-    close = pd.to_numeric(x["close"], errors="coerce").replace(0, np.nan)
+    close = pd.to_numeric(x["adjusted_close"], errors="coerce").replace(0, np.nan)
     for source, destination in NORMALIZED_REPLACEMENTS.items():
         x[destination] = pd.to_numeric(x[source], errors="coerce") / close
         if source.startswith(("sma", "ema")):
@@ -357,8 +379,8 @@ def run_challenger_experiment(
         "challengers_shadow_only": True,
         "automatic_promotion": False,
         "feature_transforms": {
-            "sma20_sma50_ema20_ema50": "indicator / contemporaneous point-in-time close - 1",
-            "macd_macd_signal": "indicator / contemporaneous point-in-time close",
+            "sma20_sma50_ema20_ema50": "indicator / contemporaneous point-in-time total-return adjusted close - 1",
+            "macd_macd_signal": "indicator / contemporaneous point-in-time total-return adjusted close",
             "other_features": "causally recomputed from observations available through the feature date",
         },
         "regularized_model": {"estimator": "StandardScaler + Ridge", "alpha": float(ridge_alpha)},
@@ -369,7 +391,7 @@ def run_challenger_experiment(
             "requested_folds": int(n_splits),
             "min_train_rows": int(min_train_rows),
             "training_label_rule": "target_date strictly earlier than first prediction_date in each test fold",
-            "feature_point_in_time_rule": "Rolling price/volume state is adjusted only when a split is observed on or before that feature date; future split events cannot rewrite prior features.",
+            "feature_point_in_time_rule": "Rolling price state is rebased for splits and cash dividends only when the action is observed on its ex-date; future corporate actions cannot rewrite prior feature rows. The current adjusted-close anchor equals the observed close, with prior history rebased into current share and total-return units.",
             "test_dates_are_disjoint": True,
         },
         "folds": fold_rows,
@@ -385,7 +407,7 @@ def run_challenger_experiment(
         "limitations": [
             "This historical replay is exploratory and does not replace fresh prospective validation.",
             "No hyperparameter search is performed on test folds; Ridge alpha is fixed before evaluation.",
-            "All feature rows use point-in-time split handling; later corporate actions do not restate earlier feature values.",
+            "All feature rows use point-in-time split and cash-dividend handling; later corporate actions do not restate earlier feature values. Adjusted-close history is reconstructed causally from stored corporate actions because ingestion stores Yahoo raw Close plus Dividends and Stock Splits, not a retrospectively adjusted Adj Close column.",
             "No volatility regime or symbol exclusions are used to select results.",
             "The incumbent ensemble is re-fit only on each fold's permitted training data as the chronological control.",
         ],

@@ -16,8 +16,8 @@ permissions:
   contents: write
 
 concurrency:
-  # Keep production runs separate from CI runs so a long daily job cannot queue PR validation.
-  group: stock-picker-${{ github.event_name }}-${{ github.ref }}
+  # Serialize scheduled and manually dispatched production runs: both mutate the same generated data files.
+  group: stock-picker-daily-${{ github.ref }}
   cancel-in-progress: false
 
 env:

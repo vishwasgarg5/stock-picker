@@ -33,3 +33,29 @@ def test_phase105_fails_closed_for_empty_or_missing_columns():
     assert invalid["status"] == "INSUFFICIENT_DATA"
     assert invalid["production_champion"] == "V1"
     assert invalid["v2_mode"] == "SHADOW_ONLY"
+
+
+def test_phase105_reports_exit_reason_coverage_by_ledger_schema():
+    trades = pd.DataFrame([
+        {"symbol": "AAA", "signal": "BUY", "ledger_schema_version": 2,
+         "exit_reason": "target", "profit_loss": 30.0},
+        {"symbol": "BBB", "signal": "BUY", "ledger_schema_version": 2,
+         "exit_reason": "", "profit_loss": -20.0},
+        {"symbol": "CCC", "signal": "BUY", "ledger_schema_version": 1,
+         "exit_reason": None, "profit_loss": -10.0},
+        {"symbol": "DDD", "signal": "BUY", "exit_reason": None, "profit_loss": -5.0},
+    ])
+
+    _, summary = evaluate_exit_attribution(trades)
+
+    coverage = summary["exit_reason_coverage_by_ledger_schema"]
+    assert coverage["schema_v2"] == {
+        "trade_rows": 2,
+        "recorded_exit_reason_rows": 1,
+        "missing_exit_reason_rows": 1,
+        "exit_reason_coverage_pct": 50.0,
+    }
+    assert coverage["schema_v1"]["missing_exit_reason_rows"] == 1
+    assert coverage["unversioned"]["missing_exit_reason_rows"] == 1
+    assert summary["missing_exit_reasons_inferred"] is False
+    assert summary["production_model_changed"] is False

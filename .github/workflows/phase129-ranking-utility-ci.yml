@@ -7,6 +7,8 @@ on:
       - "src/phase129_ranking_utility_audit.py"
       - "tests/test_phase129_ranking_utility_audit.py"
       - ".github/workflows/phase129-ranking-utility-ci.yml"
+      - "data/prediction_candidates_history.csv"
+      - "data/ohlcv.csv"
 
 permissions:
   contents: read

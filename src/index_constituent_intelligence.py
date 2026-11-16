@@ -54,14 +54,17 @@ NSE_INDEX_NAMES = {
     "NIFTYFMCG": "NIFTY FMCG",
 }
 NSE_HOME = "https://www.nseindia.com/"
-NSE_API = "https://www.nseindia.com/api/equity-stockIndices?index={}"
+NSE_API = "https://www.nseindia.com/api/equity-stock-indices?index={}"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131.0 Safari/537.36",
     "Accept": "application/json,text/plain,*/*",
-    "Referer": NSE_HOME,
+    "Accept-Language": "en-US,en;q=0.9",
+    "X-Requested-With": "XMLHttpRequest",
+    "Referer": "https://www.nseindia.com/market-data/live-equity-market",
 }
 INDEX_COLUMNS = ["date", "index", "ticker", "open", "high", "low", "close", "volume", "source"]
 MEMBER_COLUMNS = ["index", "symbol", "as_of_date", "weight_pct", "weight_method", "ffmc", "source"]
+FEATURE_COLUMNS = ["date", "index", "symbol", "weight_pct", "weight_method", "index_return_1d_pct", "index_return_5d_pct", "stock_return_1d_pct", "rolling_corr_60d", "rolling_beta_60d", "weighted_stock_return_contribution_pct", "as_of_date"]
 
 
 def _normalise_date(series: pd.Series) -> pd.Series:
@@ -182,7 +185,7 @@ def refresh_constituent_snapshots(session=None, indexes: dict | None = None, as_
     all_rows, audit = [], {}
     for index, nse_name in (indexes or NSE_INDEX_NAMES).items():
         try:
-            response = client.get(NSE_API.format(nse_name.replace(" ", "%20")), timeout=25)
+            response = client.get(NSE_API.format(nse_name.replace(" ", "%20")), timeout=25, headers=HEADERS)
             response.raise_for_status()
             frame = normalise_constituent_payload(index, response.json(), as_of_date)
             if frame.empty:
@@ -280,6 +283,8 @@ def run_index_constituent_intelligence(stock_history: pd.DataFrame | None = None
         stock_history = pd.read_csv(ROOT / "data" / "ohlcv.csv") if (ROOT / "data" / "ohlcv.csv").exists() else pd.DataFrame()
     membership = pd.read_csv(CONSTITUENTS_FILE) if CONSTITUENTS_FILE.exists() else pd.DataFrame(columns=MEMBER_COLUMNS)
     features = build_constituent_features(stock_history, index_history, membership)
+    if features.empty:
+        features = pd.DataFrame(columns=FEATURE_COLUMNS)
     features.to_csv(FEATURES_FILE, index=False)
     report = {
         "updated_at_ist": datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(),

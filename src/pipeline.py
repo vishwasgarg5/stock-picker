@@ -64,6 +64,19 @@ MIN_OHLCV_COVERAGE = 0.95
 MAX_PREDICTED_MOVE = 0.40
 
 
+def _validate_market_risk_context(risk_level: str, risk_multiplier: float, market_score: float) -> None:
+    """Reject malformed market-risk metadata before it can influence selection."""
+    level = str(risk_level).strip().upper()
+    if level not in {"RISK_ON", "NEUTRAL", "RISK_OFF"}:
+        raise RuntimeError(f"Unknown market risk level: {risk_level!r}")
+    multiplier = pd.to_numeric(pd.Series([risk_multiplier]), errors="coerce").iloc[0]
+    score = pd.to_numeric(pd.Series([market_score]), errors="coerce").iloc[0]
+    if not np.isfinite(multiplier) or not 0.0 <= float(multiplier) <= 1.0:
+        raise RuntimeError(f"Invalid market risk multiplier: {risk_multiplier!r}")
+    if not np.isfinite(score) or not 0.0 <= float(score) <= 100.0:
+        raise RuntimeError(f"Invalid market intelligence score: {market_score!r}")
+
+
 def _production_selector_authorized() -> bool:
     """Require explicit human authorization before challenger selectors affect V1."""
     readiness_file = DATA / "phase114_promotion_readiness_summary.json"
@@ -1032,6 +1045,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     selected_symbols = set(candidates.head(10)["symbol"])
     candidates["news_context_status"] = "UNAVAILABLE"
     candidates["news_context_error"] = ""
+    risk_level = "NEUTRAL"
     try:
         from .index_intelligence import CONFIG
         config_available = CONFIG.exists()
@@ -1041,10 +1055,13 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             "CONFIG_MISSING" if not config_available
             else "AVAILABLE" if news_reasons else "NO_ITEMS"
         )
-        risk_level=str(cfg.get("risk_level","NEUTRAL")).upper()
+        risk_level=str(cfg.get("risk_level","NEUTRAL")).strip().upper()
+        risk_multiplier=float(cfg.get("risk_multiplier",0.80))
+        market_score=float(cfg.get("market_intelligence_score",50.0))
+        _validate_market_risk_context(risk_level, risk_multiplier, market_score)
         candidates["risk_level"]=risk_level
-        candidates["index_risk_multiplier"]=float(cfg.get("risk_multiplier",0.80))
-        candidates["market_intelligence_score"]=float(cfg.get("market_intelligence_score",50.0))
+        candidates["index_risk_multiplier"]=risk_multiplier
+        candidates["market_intelligence_score"]=market_score
         try:
             from .news_context import sector_news_score
             impacts=cfg.get("sector_news_impacts",{}) or {}
@@ -1076,6 +1093,8 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             candidates["risk_budget_value"]=candidates["risk_budget_weight"]*PAPER_CAPITAL
             candidates["selection_explanation"]=""
         candidates,risk_method=apply_risk_off_selection(candidates,risk_level,10)
+        if risk_level == "RISK_OFF" and risk_method == "ranking_top10":
+            raise RuntimeError("RISK_OFF market regime did not produce a defensive selector decision")
         if risk_level=="RISK_OFF" and "adaptive_selection_score" in candidates.columns:
             candidates["risk_off_selection_score"]=0.75*pd.to_numeric(candidates["risk_off_selection_score"],errors="coerce").fillna(0)+0.25*pd.to_numeric(candidates["adaptive_selection_score"],errors="coerce").fillna(0)
             candidates=candidates.sort_values(["risk_off_selection_score","rank"],ascending=[False,True],kind="mergesort")
@@ -1086,6 +1105,10 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     except Exception as exc:
         candidates["news_context_status"] = "CONFIG_OR_SELECTOR_UNAVAILABLE"
         candidates["news_context_error"] = str(exc)[:500]
+        if risk_level == "RISK_OFF":
+            raise RuntimeError(
+                f"Selection blocked: RISK_OFF safety controls could not be validated: {exc}"
+            ) from exc
         print(f"Risk-off selector unavailable; retaining ranking Top-10: {exc}")
 
     # Challenger selectors require both out-of-sample evidence and explicit

@@ -155,3 +155,38 @@ def test_daily_workflow_serializes_manual_and_scheduled_runs():
 def test_yahoo_ticker_uses_rr_series_alias_for_bagmane():
     assert pipeline._yahoo_ticker("BAGMANE") == "BAGMANE-RR.NS"
     assert pipeline._yahoo_ticker("RELIANCE") == "RELIANCE.NS"
+
+
+def test_paper_trade_source_records_net_accounting_and_explicit_session_close():
+    rows = pd.DataFrame([
+        {
+            "symbol": "AAA", "target_date": "2026-11-16", "signal": "BUY",
+            "quantity": 10.0, "entry_price": 100.0, "exit_price": 110.0,
+            "no_trade_reason": "",
+        },
+        {
+            "symbol": "BBB", "target_date": "2026-11-16", "signal": "BUY",
+            "quantity": 0.0, "entry_price": 100.0, "exit_price": 105.0,
+            "no_trade_reason": "",
+        },
+    ])
+
+    result = pipeline._apply_paper_trade_accounting(rows)
+    traded = result.set_index("symbol").loc["AAA"]
+    skipped = result.set_index("symbol").loc["BBB"]
+
+    assert traded["shares"] == 10
+    assert traded["allocated_capital"] == 1000.0
+    assert traded["gross_profit_loss"] == 100.0
+    assert traded["costs"] == 1.0
+    assert traded["profit_loss"] == 99.0
+    assert traded["return_pct"] == 9.9
+    assert traded["exit_reason"] == "session_close"
+    assert traded["exit_date"] == "2026-11-16"
+    assert traded["ledger_schema_version"] == 3
+    assert traded["cost_model"] == "fixed_round_trip_0.10pct_of_entry_notional"
+
+    assert skipped["signal"] == "SKIP"
+    assert skipped["no_trade_reason"] == "minimum_one_share_not_affordable"
+    assert pd.isna(skipped["shares"])
+    assert skipped["exit_reason"] == ""

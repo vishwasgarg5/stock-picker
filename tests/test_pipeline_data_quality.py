@@ -468,3 +468,21 @@ def test_candidate_session_integrity_rejects_duplicate_symbols_and_invalid_selec
     with pytest.raises(RuntimeError, match="exactly 10 explicit selections"):
         pipeline._validate_candidate_session(wrong_selection_count, pd.Timestamp("2026-11-17"))
 
+def test_candidate_history_rerun_replaces_entire_vintage_candidate_pool():
+    existing = pd.DataFrame([
+        {"prediction_date": "2026-11-13", "target_date": "2026-11-16", "symbol": "AAA", "rank": 1},
+        {"prediction_date": "2026-11-13", "target_date": "2026-11-16", "symbol": "BBB", "rank": 2},
+        {"prediction_date": "2026-11-12", "target_date": "2026-11-16", "symbol": "CCC", "rank": 1},
+    ])
+    rerun = pd.DataFrame([
+        {"prediction_date": "2026-11-13", "target_date": "2026-11-16", "symbol": "AAA", "rank": 1},
+        {"prediction_date": "2026-11-13", "target_date": "2026-11-16", "symbol": "DDD", "rank": 2},
+    ])
+
+    result = _merge_candidate_history(existing, rerun)
+
+    current = result[result["prediction_date"].astype(str).str.startswith("2026-11-13")]
+    assert set(current["symbol"]) == {"AAA", "DDD"}
+    assert "BBB" not in set(result["symbol"])
+    assert "CCC" in set(result["symbol"])
+

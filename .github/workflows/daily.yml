@@ -95,6 +95,9 @@ jobs:
           run_evening()
           PY
 
+      - name: Refresh long-horizon prediction outcomes
+        run: python -m src.outcomes
+
       - name: Run Phase 2 performance optimizer in shadow mode
         run: python -m src.phase2_optimizer
 

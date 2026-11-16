@@ -62,6 +62,15 @@ jobs:
           path: audit/model_progress/
           if-no-files-found: warn
           retention-days: 30
+      - name: Fail inventory job when required implementation checks fail
+        if: always()
+        env:
+          AUDIT_OUTCOME: ${{ steps.audit.outcome }}
+        run: |
+          if [ "${AUDIT_OUTCOME}" = "failure" ]; then
+            echo "Inventory found one or more FAIL checks; see the report above."
+            exit 1
+          fi
 
   regression-tests:
     name: Regression — ${{ matrix.suite }}
@@ -102,23 +111,18 @@ jobs:
         continue-on-error: true
         env:
           TEST_PATHS: ${{ matrix.paths }}
-        run: |
-          set +e
-          python -m pytest -q ${TEST_PATHS} --junitxml="junit-${{ matrix.suite }}.xml"
-          code=$?
-          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
-          exit 0
+        run: python -m pytest -q ${TEST_PATHS} --junitxml="junit-${{ matrix.suite }}.xml"
       - name: Publish suite result
         if: always()
         env:
           SUITE: ${{ matrix.suite }}
-          TEST_RESULT: ${{ steps.tests.outputs.exit_code }}
+          TEST_RESULT: ${{ steps.tests.outcome }}
         run: |
           echo "## ${SUITE}" >> "$GITHUB_STEP_SUMMARY"
-          if [ "${TEST_RESULT}" = "0" ]; then
+          if [ "${TEST_RESULT}" = "success" ]; then
             echo "PASS — this test group completed successfully." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "FAIL/NOT RUN — pytest exit code: ${TEST_RESULT:-unknown}. Other groups continue independently." >> "$GITHUB_STEP_SUMMARY"
+            echo "FAIL — pytest outcome: ${TEST_RESULT:-unknown}. Other groups continue independently." >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Upload JUnit result
         if: always()
@@ -128,6 +132,15 @@ jobs:
           path: junit-${{ matrix.suite }}.xml
           if-no-files-found: warn
           retention-days: 14
+      - name: Mark this suite failed after publishing its result
+        if: always()
+        env:
+          TEST_OUTCOME: ${{ steps.tests.outcome }}
+        run: |
+          if [ "${TEST_OUTCOME}" != "success" ]; then
+            echo "This suite failed. The matrix is fail-fast=false, so other suites continue."
+            exit 1
+          fi
 
   audit-summary:
     name: Consolidated audit result

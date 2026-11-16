@@ -84,7 +84,7 @@ def _audit_json(path: Path) -> dict[str, Any]:
 
 def refresh_market_history() -> dict[str, Any]:
     """Use the same Yahoo source and corporate-action-safe merger as daily pipeline."""
-    from .pipeline import UNIVERSE_FILE, update_history
+    from .pipeline import UNIVERSE_FILE, update_history, update_fundamentals, record_fundamentals_snapshot, HISTORY_FILE
 
     if not UNIVERSE_FILE.exists():
         raise RuntimeError("data/universe.csv is missing; cannot safely refresh market history")
@@ -95,15 +95,21 @@ def refresh_market_history() -> dict[str, Any]:
     symbols = [s for s in symbols.unique().tolist() if s and not s.startswith("DUMMY")]
     if not symbols:
         raise RuntimeError("Universe contains no valid symbols")
-    before = pd.read_csv(DATA / "ohlcv.csv") if (DATA / "ohlcv.csv").exists() else pd.DataFrame()
+    before = pd.read_csv(HISTORY_FILE) if HISTORY_FILE.exists() else pd.DataFrame()
     refreshed = update_history(symbols)
+    fundamentals = update_fundamentals(symbols)
+    latest_market_date = pd.to_datetime(refreshed["date"], errors="coerce").max() if not refreshed.empty else pd.NaT
+    if pd.notna(latest_market_date):
+        record_fundamentals_snapshot(fundamentals, latest_market_date)
     return {
         "symbols_requested": len(symbols),
         "rows_before": int(len(before)),
         "rows_after": int(len(refreshed)),
         "rows_added_or_refreshed": int(max(0, len(refreshed) - len(before))),
+        "fundamental_symbols_refreshed": int(len(fundamentals)),
+        "fundamentals_source": "Yahoo Finance via src.pipeline.update_fundamentals",
         "source": "Yahoo Finance via src.pipeline.update_history",
-        "status": "PASS" if not refreshed.empty else "FAILED",
+        "status": "PASS" if not refreshed.empty and len(fundamentals) == len(symbols) else "FAILED",
     }
 
 

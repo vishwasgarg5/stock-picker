@@ -347,7 +347,13 @@ def download_history(symbols: list[str], start: str) -> pd.DataFrame:
 
 def update_history(symbols: list[str]) -> pd.DataFrame:
     if HISTORY_FILE.exists():
-        existing = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
+        try:
+            existing = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
+        except pd.errors.EmptyDataError:
+            # A zero-byte/truncated history file must trigger a full source
+            # rebuild, not abort before Yahoo can be queried.
+            print("OHLCV history file is empty; rebuilding from Yahoo Finance")
+            existing = pd.DataFrame(columns=EMPTY_HISTORY)
     else:
         existing = pd.DataFrame(columns=EMPTY_HISTORY)
     # The previous CSV schema discarded corporate actions. Rebuild all history
@@ -365,6 +371,10 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
         starts[symbol] = "2018-01-01" if needs_action_backfill or rows.empty else (rows["date"].max() - timedelta(days=10)).strftime("%Y-%m-%d")
     fresh_parts = [download_history([s for s, value in starts.items() if value == start], start) for start in sorted(set(starts.values()))]
     fresh = pd.concat(fresh_parts, ignore_index=True) if fresh_parts else pd.DataFrame(columns=EMPTY_HISTORY)
+    if fresh.empty:
+        # Never overwrite a valid or recoverable history file with an empty
+        # provider response. Leave the on-disk file untouched for retry.
+        raise RuntimeError("Yahoo Finance returned no OHLCV rows; existing history was not modified")
     if needs_action_backfill:
         # Only symbols with persisted legacy bars need a historical action
         # backfill. A symbol newly added to the universe has no legacy prices

@@ -56,11 +56,16 @@ jobs:
         id: index_refresh
         continue-on-error: true
         run: python -m src.index_constituent_intelligence
+      - name: Refresh NSE listing-date master and historical coverage audit
+        id: listing_refresh
+        continue-on-error: true
+        run: python -m src.historical_coverage_audit
       - name: Record live source refresh outcomes
         if: always()
         env:
           CALENDAR_REFRESH: ${{ steps.calendar_refresh.outcome }}
           INDEX_REFRESH: ${{ steps.index_refresh.outcome }}
+          LISTING_REFRESH: ${{ steps.listing_refresh.outcome }}
         run: |
           {
             echo "## Live source refresh probes"
@@ -69,6 +74,7 @@ jobs:
             echo "|---|---|"
             echo "| NSE official calendar | ${CALENDAR_REFRESH} |"
             echo "| Index OHLCV / constituents / weights | ${INDEX_REFRESH} |"
+            echo "| NSE listing-date master / history audit | ${LISTING_REFRESH} |"
             echo ""
             echo "A failed source probe does not stop the data-quality audit or the independent regression suites."
           } >> "$GITHUB_STEP_SUMMARY"

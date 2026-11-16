@@ -6,9 +6,9 @@
   "symbols_with_history": 528,
   "symbols_without_history": 0,
   "symbols_missing_history": [],
-  "rows_before": 957339,
+  "rows_before": 957975,
   "rows_after": 957975,
-  "rows_added_or_refreshed": 636,
+  "rows_added_or_refreshed": 0,
   "history_start": "2018-01-01",
   "history_end": "2026-11-16",
   "coverage_audit": {
@@ -37,16 +37,16 @@
   },
   "gap_repair": {
     "status": "REVIEW_REQUIRED",
-    "symbols_with_gaps_before": 365,
-    "missing_sessions_before": 766,
-    "yahoo_rows_downloaded": 693579,
+    "symbols_with_gaps_before": 47,
+    "missing_sessions_before": 130,
+    "yahoo_rows_downloaded": 86164,
     "yahoo_sessions_recovered": 0,
     "nse_sessions_checked": 44,
-    "nse_sessions_recovered": 636,
+    "nse_sessions_recovered": 0,
     "nse_dates_unavailable": [],
     "nse_fetch_failures": [],
-    "source_rows_recovered": 636,
-    "missing_sessions_recovered": 636,
+    "source_rows_recovered": 0,
+    "missing_sessions_recovered": 0,
     "missing_sessions_remaining": 130,
     "symbols_still_with_gaps": [
       "ABREL",
@@ -97,6 +97,1143 @@
       "ZFCVINDIA",
       "ZYDUSLIFE"
     ],
+    "missing_sessions_remaining_details": [
+      {
+        "symbol": "ABREL",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "ABREL",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "ADANIENSOL",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "ADANIENSOL",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "AEGISLOG",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "AEGISLOG",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "ARE&M",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "ARE&M",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "ATGL",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "ATGL",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "BBOX",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "BBOX",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "BIRET",
+        "date": "2024-03-15"
+      },
+      {
+        "symbol": "BSOFT",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "CEMPRO",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "CEMPRO",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "CHOLAHLDNG",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "CHOLAHLDNG",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "CIEINDIA",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "CIEINDIA",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "COFORGE",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "COFORGE",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "EMBASSY",
+        "date": "2024-03-15"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-07"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-08"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-11"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-12"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-13"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-14"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-15"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-18"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-19"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-20"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-21"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-22"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-26"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-27"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-28"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2023-12-29"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-01"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-02"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-03"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-04"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-05"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-08"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-09"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-10"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-11"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-12"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-15"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-16"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-17"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-18"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-19"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-23"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-24"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-25"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-29"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-30"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-01-31"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-02-01"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-02-02"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-02-05"
+      },
+      {
+        "symbol": "FORCEMOT",
+        "date": "2024-02-06"
+      },
+      {
+        "symbol": "GMRAIRPORT",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "GMRAIRPORT",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "GVT&D",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "GVT&D",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "HBLENGINE",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "HBLENGINE",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "HEGAM",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "HEGAM",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "ICICILIFE",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "ICICILIFE",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "INDUSTOWER",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "INDUSTOWER",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "JWL",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "JWL",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "KPIL",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "KPIL",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "LTF",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "LTF",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "LTFOODS",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "LTFOODS",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "LTM",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "LTM",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "MOTHERSON",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "MOTHERSON",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "NAM-INDIA",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "NAM-INDIA",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "NAVA",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "NAVA",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "PATANJALI",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "PATANJALI",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "PCBL",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "PCBL",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "POONAWALLA",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "POONAWALLA",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "PRIVISCL",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "PRIVISCL",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "PVRINOX",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "PVRINOX",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "RHIM",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "RHIM",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "SAMMAANCAP",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "SAMMAANCAP",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "SHRIRAMFIN",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "SHRIRAMFIN",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "STLTECH",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "STLTECH",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "SWANCORP",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "SWANCORP",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "TARIL",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "TARIL",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "TATACONSUM",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "TATACONSUM",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "TITAGARH",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "TITAGARH",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "TMPV",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "TMPV",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "UNITDSPR",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "UNITDSPR",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "UNOMINDA",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "UNOMINDA",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "WELSPUNLIV",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "WELSPUNLIV",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "ZFCVINDIA",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "ZFCVINDIA",
+        "date": "2019-03-29"
+      },
+      {
+        "symbol": "ZYDUSLIFE",
+        "date": "2019-02-13"
+      },
+      {
+        "symbol": "ZYDUSLIFE",
+        "date": "2019-03-29"
+      }
+    ],
+    "nse_date_symbol_coverage": [
+      {
+        "date": "2019-02-13",
+        "requested_symbols": [
+          "ABREL",
+          "ADANIENSOL",
+          "AEGISLOG",
+          "ARE&M",
+          "ATGL",
+          "BBOX",
+          "BSOFT",
+          "CEMPRO",
+          "CHOLAHLDNG",
+          "CIEINDIA",
+          "COFORGE",
+          "GMRAIRPORT",
+          "GVT&D",
+          "HBLENGINE",
+          "HEGAM",
+          "ICICILIFE",
+          "INDUSTOWER",
+          "JWL",
+          "KPIL",
+          "LTF",
+          "LTFOODS",
+          "LTM",
+          "MOTHERSON",
+          "NAM-INDIA",
+          "NAVA",
+          "PATANJALI",
+          "PCBL",
+          "POONAWALLA",
+          "PRIVISCL",
+          "PVRINOX",
+          "RHIM",
+          "SAMMAANCAP",
+          "SHRIRAMFIN",
+          "STLTECH",
+          "SWANCORP",
+          "TARIL",
+          "TATACONSUM",
+          "TITAGARH",
+          "TMPV",
+          "UNITDSPR",
+          "UNOMINDA",
+          "WELSPUNLIV",
+          "ZFCVINDIA",
+          "ZYDUSLIFE"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "ABREL",
+          "ADANIENSOL",
+          "AEGISLOG",
+          "ARE&M",
+          "ATGL",
+          "BBOX",
+          "BSOFT",
+          "CEMPRO",
+          "CHOLAHLDNG",
+          "CIEINDIA",
+          "COFORGE",
+          "GMRAIRPORT",
+          "GVT&D",
+          "HBLENGINE",
+          "HEGAM",
+          "ICICILIFE",
+          "INDUSTOWER",
+          "JWL",
+          "KPIL",
+          "LTF",
+          "LTFOODS",
+          "LTM",
+          "MOTHERSON",
+          "NAM-INDIA",
+          "NAVA",
+          "PATANJALI",
+          "PCBL",
+          "POONAWALLA",
+          "PRIVISCL",
+          "PVRINOX",
+          "RHIM",
+          "SAMMAANCAP",
+          "SHRIRAMFIN",
+          "STLTECH",
+          "SWANCORP",
+          "TARIL",
+          "TATACONSUM",
+          "TITAGARH",
+          "TMPV",
+          "UNITDSPR",
+          "UNOMINDA",
+          "WELSPUNLIV",
+          "ZFCVINDIA",
+          "ZYDUSLIFE"
+        ]
+      },
+      {
+        "date": "2019-03-29",
+        "requested_symbols": [
+          "ABREL",
+          "ADANIENSOL",
+          "AEGISLOG",
+          "ARE&M",
+          "ATGL",
+          "BBOX",
+          "CEMPRO",
+          "CHOLAHLDNG",
+          "CIEINDIA",
+          "COFORGE",
+          "GMRAIRPORT",
+          "GVT&D",
+          "HBLENGINE",
+          "HEGAM",
+          "ICICILIFE",
+          "INDUSTOWER",
+          "JWL",
+          "KPIL",
+          "LTF",
+          "LTFOODS",
+          "LTM",
+          "MOTHERSON",
+          "NAM-INDIA",
+          "NAVA",
+          "PATANJALI",
+          "PCBL",
+          "POONAWALLA",
+          "PRIVISCL",
+          "PVRINOX",
+          "RHIM",
+          "SAMMAANCAP",
+          "SHRIRAMFIN",
+          "STLTECH",
+          "SWANCORP",
+          "TARIL",
+          "TATACONSUM",
+          "TITAGARH",
+          "TMPV",
+          "UNITDSPR",
+          "UNOMINDA",
+          "WELSPUNLIV",
+          "ZFCVINDIA",
+          "ZYDUSLIFE"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "ABREL",
+          "ADANIENSOL",
+          "AEGISLOG",
+          "ARE&M",
+          "ATGL",
+          "BBOX",
+          "CEMPRO",
+          "CHOLAHLDNG",
+          "CIEINDIA",
+          "COFORGE",
+          "GMRAIRPORT",
+          "GVT&D",
+          "HBLENGINE",
+          "HEGAM",
+          "ICICILIFE",
+          "INDUSTOWER",
+          "JWL",
+          "KPIL",
+          "LTF",
+          "LTFOODS",
+          "LTM",
+          "MOTHERSON",
+          "NAM-INDIA",
+          "NAVA",
+          "PATANJALI",
+          "PCBL",
+          "POONAWALLA",
+          "PRIVISCL",
+          "PVRINOX",
+          "RHIM",
+          "SAMMAANCAP",
+          "SHRIRAMFIN",
+          "STLTECH",
+          "SWANCORP",
+          "TARIL",
+          "TATACONSUM",
+          "TITAGARH",
+          "TMPV",
+          "UNITDSPR",
+          "UNOMINDA",
+          "WELSPUNLIV",
+          "ZFCVINDIA",
+          "ZYDUSLIFE"
+        ]
+      },
+      {
+        "date": "2023-12-07",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-08",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-11",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-12",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-13",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-14",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-15",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-18",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-19",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-20",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-21",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-22",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-26",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-27",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-28",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2023-12-29",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-01",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-02",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-03",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-04",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-05",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-08",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-09",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-10",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-11",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-12",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-15",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-16",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-17",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-18",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-19",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-23",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-24",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-25",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-29",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-30",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-01-31",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-02-01",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-02-02",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-02-05",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-02-06",
+        "requested_symbols": [
+          "FORCEMOT"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "FORCEMOT"
+        ]
+      },
+      {
+        "date": "2024-03-15",
+        "requested_symbols": [
+          "BIRET",
+          "EMBASSY"
+        ],
+        "matched_valid_equity_symbols": [],
+        "unmatched_symbols": [
+          "BIRET",
+          "EMBASSY"
+        ]
+      }
+    ],
+    "detail_file": "data/historical_gap_repair_details.csv",
     "policy": "Only validated source-returned Yahoo Finance or official NSE bhavcopy bars are inserted; no interpolation or synthetic OHLCV.",
     "coverage_audit": {
       "status": "REVIEW_REQUIRED",

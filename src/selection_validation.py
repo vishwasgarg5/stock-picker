@@ -40,19 +40,25 @@ def run_selection_validation() -> pd.DataFrame:
     c = candidates.copy()
     h = hist.copy()
     c["target_date"] = pd.to_datetime(c["target_date"], errors="coerce").dt.normalize()
+    if "prediction_date" not in c.columns:
+        raise ValueError("Candidate history is missing prediction_date; forecast vintages cannot be evaluated safely")
+    c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
+    candidate_keys = ["prediction_date", "target_date", "symbol"]
+    if c.duplicated(candidate_keys).any():
+        raise ValueError("Candidate history contains duplicate prediction_date/target_date/symbol keys")
     h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
     h["symbol"] = h["symbol"].astype(str).str.upper().str.strip()
     h["close"] = pd.to_numeric(h["close"], errors="coerce")
     h = h[["date", "symbol", "close"]].dropna().drop_duplicates(["date", "symbol"], keep="last")
 
     actual = h.rename(columns={"date": "target_date", "close": "actual_close"})
-    x = c.merge(actual, on=["target_date", "symbol"], how="inner")
+    x = c.merge(actual, on=["target_date", "symbol"], how="left", validate="many_to_one")
     for col in ["base_close", "predicted_close"]:
         x[col] = pd.to_numeric(x[col], errors="coerce")
     x["selected"] = pd.to_numeric(x.get("selected"), errors="coerce").fillna(0).astype(int)
     x["rank"] = pd.to_numeric(x.get("rank"), errors="coerce")
-    x = x.dropna(subset=["target_date", "base_close", "predicted_close", "actual_close", "rank"])
+    x = x.dropna(subset=["prediction_date", "target_date", "base_close", "predicted_close", "actual_close", "rank"])
     x = x[x["base_close"] > 0]
     if x.empty:
         return pd.DataFrame()
@@ -65,12 +71,16 @@ def run_selection_validation() -> pd.DataFrame:
     x["baseline"] = x["rank"] <= 10
 
     rows = []
-    for target_date, g in x.groupby("target_date", sort=True):
+    # Score each forecast vintage independently. A symbol can have multiple
+    # forecasts for the same target session; collapsing by target_date alone
+    # would double-weight or overwrite one prediction session with another.
+    for (prediction_date, target_date), g in x.groupby(["prediction_date", "target_date"], sort=True):
         baseline = g[g["baseline"]]
         adjusted = g[g["selected"] == 1]
         if len(baseline) < 10 or len(adjusted) < 10:
             continue
         rows.append({
+            "prediction_date": prediction_date,
             "target_date": target_date,
             "baseline_rows": len(baseline),
             "adjusted_rows": len(adjusted),

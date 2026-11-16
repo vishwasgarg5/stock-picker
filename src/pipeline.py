@@ -37,6 +37,8 @@ PAPER_TRADES_FILE = DATA / "paper_trades.csv"
 PORTFOLIO_FILE = DATA / "portfolio_daily.csv"
 PAPER_TRADE_TOP_N = 5
 PAPER_CAPITAL = 100000.0
+# Conservative simulated round-trip cost assumption; not a broker fee quote.
+PAPER_ROUND_TRIP_COST_PCT = 0.001
 
 FEATURE_COLUMNS = [
     "return_1d", "return_5d", "return_20d",
@@ -1127,6 +1129,56 @@ def run_morning() -> None:
 
 
 
+def _apply_paper_trade_accounting(rows: pd.DataFrame) -> pd.DataFrame:
+    """Record complete source accounting for newly simulated fixed-share trades.
+
+    Exit is the same-session close by construction; no stop/target ordering is
+    inferred from daily OHLC. Costs use the documented 0.10% round-trip
+    simulation assumption on actual entry notional, not an asserted broker fee.
+    """
+    x = rows.copy()
+    signal = x["signal"].astype(str).str.upper().str.strip()
+    quantity = pd.to_numeric(x["quantity"], errors="coerce")
+    unfillable = signal.eq("BUY") & (
+        quantity.isna() | ~np.isfinite(quantity) | quantity.le(0)
+    )
+    x.loc[unfillable, "signal"] = "SKIP"
+    if "no_trade_reason" not in x.columns:
+        x["no_trade_reason"] = ""
+    x.loc[unfillable, "no_trade_reason"] = "minimum_one_share_not_affordable"
+
+    buy = x["signal"].astype(str).str.upper().str.strip().eq("BUY")
+    entry = pd.to_numeric(x["entry_price"], errors="coerce")
+    exit_price = pd.to_numeric(x["exit_price"], errors="coerce")
+    shares = pd.to_numeric(x["quantity"], errors="coerce")
+    invalid = buy & (
+        entry.isna() | exit_price.isna() | shares.isna()
+        | ~np.isfinite(entry) | ~np.isfinite(exit_price) | ~np.isfinite(shares)
+        | entry.le(0) | exit_price.le(0) | shares.le(0)
+    )
+    if invalid.any():
+        bad = x.loc[invalid, ["symbol", "target_date"]].to_dict(orient="records")
+        raise ValueError(f"Paper-trade accounting blocked by invalid BUY source values: {bad[:10]}")
+
+    x["shares"] = np.where(buy, shares, np.nan)
+    x["allocated_capital"] = np.where(buy, entry * shares, np.nan)
+    x["position_value"] = np.where(buy, entry * shares, 0.0)
+    x["gross_profit_loss"] = np.where(buy, shares * (exit_price - entry), 0.0)
+    x["costs"] = np.where(buy, (entry * shares) * PAPER_ROUND_TRIP_COST_PCT, 0.0)
+    x["profit_loss"] = x["gross_profit_loss"] - x["costs"]
+    x["return_pct"] = np.where(
+        buy & x["allocated_capital"].gt(0),
+        x["profit_loss"] / x["allocated_capital"] * 100.0,
+        np.nan,
+    )
+    x["exit_reason"] = np.where(buy, "session_close", "")
+    x["exit_date"] = np.where(buy, x["target_date"], "")
+    x["ledger_schema_version"] = 3
+    x["record_created_at_utc"] = pd.Timestamp.now(tz="UTC").isoformat()
+    x["cost_model"] = "fixed_round_trip_0.10pct_of_entry_notional"
+    return x
+
+
 def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataFrame) -> pd.DataFrame:
     """Evaluate the Top-5 paper portfolio for every newly completed prediction session.
 
@@ -1195,25 +1247,16 @@ def _paper_trade_completed_predictions(predictions: pd.DataFrame, hist: pd.DataF
         rows["pre_split_quantity"] * rows["reference_price"],
         0.0,
     )
-    rows["position_value"] = np.where(
-        rows["signal"].eq("BUY"),
-        rows["quantity"] * pd.to_numeric(rows["entry_price"], errors="coerce"),
-        0.0,
-    )
-    rows["profit_loss"] = np.where(
-        rows["signal"].eq("BUY"),
-        rows["quantity"] * (
-            pd.to_numeric(rows["exit_price"], errors="coerce")
-            - pd.to_numeric(rows["entry_price"], errors="coerce")
-        ),
-        0.0,
-    )
+    rows = _apply_paper_trade_accounting(rows)
 
     keep = [
         "prediction_date", "target_date", "symbol", "rank", "score",
         "signal", "reference_price", "pre_split_quantity", "split_ratio",
-        "quantity", "planned_capital", "entry_price", "exit_price", "return_pct",
-        "position_value", "profit_loss",
+        "quantity", "shares", "planned_capital", "allocated_capital",
+        "entry_price", "exit_price", "exit_date", "exit_reason",
+        "ledger_schema_version", "record_created_at_utc", "cost_model",
+        "return_pct", "position_value", "gross_profit_loss", "costs",
+        "profit_loss", "no_trade_reason",
     ]
     rows = rows[keep]
 

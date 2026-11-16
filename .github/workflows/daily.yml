@@ -9,7 +9,7 @@ on:
         default: false
         type: boolean
   schedule:
-    # 16:00 IST = 10:30 UTC, Monday-Friday; allow the 15:30 IST NSE close and end-of-day data publication to complete.
+    # 16:00 IST = 10:30 UTC, every day; the official NSE calendar gate decides whether a session is open.
     - cron: '30 10 * * *'
 
 permissions:

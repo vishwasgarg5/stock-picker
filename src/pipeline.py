@@ -844,8 +844,27 @@ def _merge_candidate_history(existing: pd.DataFrame, candidates: pd.DataFrame) -
     prediction session. Keep each prediction_date/target_date/symbol key,
     and let a rerun refresh that exact session's candidate row.
     """
-    combined = pd.concat([existing, candidates], ignore_index=True)
     keys = ["prediction_date", "target_date", "symbol"]
+    for frame_name, frame in [("existing", existing), ("current", candidates)]:
+        missing = [key for key in keys if key not in frame.columns]
+        if missing:
+            raise ValueError(f"{frame_name.title()} candidate history is missing required key columns: {missing}")
+    current = candidates.copy()
+    current["prediction_date"] = pd.to_datetime(current["prediction_date"], errors="coerce").dt.normalize()
+    current["target_date"] = pd.to_datetime(current["target_date"], errors="coerce").dt.normalize()
+    current["symbol"] = current["symbol"].astype(str).str.upper().str.strip()
+    current = current.dropna(subset=keys)
+    current = current.loc[current["symbol"].ne("")]
+    # A rerun replaces the complete candidate pool for that vintage, not just
+    # overlapping symbols; otherwise stale rows from an earlier partial run survive.
+    if not existing.empty:
+        prior = existing.copy()
+        prior["prediction_date"] = pd.to_datetime(prior["prediction_date"], errors="coerce").dt.normalize()
+        prior["target_date"] = pd.to_datetime(prior["target_date"], errors="coerce").dt.normalize()
+        current_vintages = current[["prediction_date", "target_date"]].drop_duplicates()
+        prior = prior.merge(current_vintages.assign(_replace_vintage=True), on=["prediction_date", "target_date"], how="left")
+        existing = prior.loc[prior["_replace_vintage"].isna()].drop(columns=["_replace_vintage"])
+    combined = pd.concat([existing, current], ignore_index=True)
     missing = [key for key in keys if key not in combined.columns]
     if missing:
         raise ValueError(f"Candidate history is missing required key columns: {missing}")

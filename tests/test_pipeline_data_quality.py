@@ -331,3 +331,17 @@ def test_selection_validation_clears_stale_promotion_on_duplicate_vintage_keys(t
     assert result["validation_status"] == "blocked_duplicate_candidate_keys"
     assert result["recent_error_promotion_evidence"] == False
     assert result["confidence_promotion_evidence"] == False
+
+
+
+def test_v1_challenger_selectors_require_explicit_human_authorization(tmp_path, monkeypatch):
+    monkeypatch.setattr(pipeline, "DATA", tmp_path)
+    readiness = tmp_path / "phase114_promotion_readiness_summary.json"
+
+    assert pipeline._production_selector_authorized() is False
+
+    readiness.write_text('{"production_changes_authorized": "true"}', encoding="utf-8")
+    assert pipeline._production_selector_authorized() is False
+
+    readiness.write_text('{"production_changes_authorized": true}', encoding="utf-8")
+    assert pipeline._production_selector_authorized() is True

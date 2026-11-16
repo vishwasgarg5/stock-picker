@@ -6,7 +6,7 @@
   "symbols_training_ready_50_sessions": 499,
   "history_start": "2018-01-01",
   "history_end": "2026-11-16",
-  "total_valid_rows": 914342,
+  "total_valid_rows": 914978,
   "minimum_training_sessions": 50,
   "depth_bands": {
     "1y": 486,
@@ -14,8 +14,8 @@
     "5y": 404,
     "8y": 356
   },
-  "median_observed_sessions": 2196,
-  "median_history_years": 8.71,
+  "median_observed_sessions": 2197,
+  "median_history_years": 8.72,
   "missing_universe_symbols": [],
   "invalid_or_excluded_rows": 0,
   "calendar": "NSE exchange sessions",

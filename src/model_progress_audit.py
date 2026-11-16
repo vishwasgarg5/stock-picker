@@ -193,7 +193,7 @@ def audit_live_data(rows):
         result = "PASS" if duplicates == 0 and blanks == 0 else "FAIL"
         add(rows, "Live data quality and freshness", "Universe symbols populated and unique",
             result, f"symbols={len(symbols)}; blank={blanks}; duplicate={duplicates}", "data/universe.csv")
-        universe_symbols = set(symbols[symbols.ne("")])
+        universe_symbols = set(symbols[symbols.ne("") & ~symbols.str.startswith("DUMMY")])
     else:
         universe_symbols = set()
 

@@ -85,9 +85,9 @@ def v2_rejection_diagnosis() -> tuple[dict[str, Any], pd.DataFrame]:
     if trades.empty or "signal" not in trades:
         return {"status": "INSUFFICIENT_DATA", "rows": int(len(trades)),
                 "production_filters_changed": False, "thresholds_deployed": False}, pd.DataFrame()
-    signal = trades["signal"].fillna("").astype(str).str.upper().str.strip()
+    signal = trades["signal"].astype("string").fillna("").str.upper().str.strip()
     skips = trades.loc[signal.eq("SKIP")].copy()
-    reason = skips.get("no_trade_reason", pd.Series("", index=skips.index)).fillna("").astype(str).str.strip()
+    reason = skips.get("no_trade_reason", pd.Series("", index=skips.index)).astype("string").fillna("").str.strip()
     reason = reason.replace("", "MISSING_REASON")
     reasons = reason.value_counts().rename_axis("skip_reason").reset_index(name="rows")
     reasons["share_of_skips_pct"] = (reasons["rows"] / max(1, len(skips)) * 100).round(2)

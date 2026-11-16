@@ -125,6 +125,8 @@ def refresh_market_history() -> dict[str, Any]:
 def run() -> dict[str, Any]:
     DATA.mkdir(exist_ok=True)
     market_refresh = refresh_market_history()
+    from .historical_coverage_audit import run as run_historical_coverage_audit
+    historical_coverage = run_historical_coverage_audit()
     records: list[dict[str, Any]] = []
     audit_roots = [DATA, ROOT / "models"]
     for audit_root in audit_roots:
@@ -143,6 +145,7 @@ def run() -> dict[str, Any]:
     report = {
         "status": "PASS" if not issues and market_refresh["status"] == "PASS" else "REVIEW_REQUIRED",
         "market_data_refresh": market_refresh,
+        "historical_coverage": historical_coverage,
         "files_audited": len(records),
         "audit_roots": ["data/", "models/"],
         "model_artifacts_audited": len(model_records),

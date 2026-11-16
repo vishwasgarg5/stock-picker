@@ -392,3 +392,36 @@ def test_selection_validation_reports_missing_candidate_vintages_and_empty_marke
     assert coverage["matched_candidate_rows"] == 0
     assert coverage["candidate_history_reconstructed_from_top10_predictions"] is False
     assert coverage["missing_facts_inferred"] is False
+
+def test_update_history_recovers_zero_byte_csv_from_source(monkeypatch, tmp_path):
+    history_file = tmp_path / "ohlcv.csv"
+    history_file.write_text("", encoding="utf-8")
+    monkeypatch.setattr(pipeline, "HISTORY_FILE", history_file)
+
+    def fake_download(symbols, start):
+        assert start == "2018-01-01"
+        return pd.DataFrame(_rows("2026-11-13", symbols))
+
+    monkeypatch.setattr(pipeline, "download_history", fake_download)
+    result = pipeline.update_history(["AAA", "BBB"])
+
+    assert len(result) == 2
+    assert set(result["symbol"]) == {"AAA", "BBB"}
+    assert len(pd.read_csv(history_file)) == 2
+
+
+def test_update_history_does_not_replace_empty_history_when_source_is_empty(monkeypatch, tmp_path):
+    history_file = tmp_path / "ohlcv.csv"
+    history_file.write_text("", encoding="utf-8")
+    monkeypatch.setattr(pipeline, "HISTORY_FILE", history_file)
+    monkeypatch.setattr(
+        pipeline, "download_history",
+        lambda symbols, start: pd.DataFrame(columns=pipeline.EMPTY_HISTORY),
+    )
+
+    import pytest
+    with pytest.raises(RuntimeError, match="returned no OHLCV rows"):
+        pipeline.update_history(["AAA"])
+
+    assert history_file.read_text(encoding="utf-8") == ""
+

@@ -185,11 +185,15 @@ def test_paper_trade_source_records_net_accounting_and_explicit_session_close():
     assert traded["exit_date"] == "2026-11-16"
     assert traded["ledger_schema_version"] == 3
     assert traded["cost_model"] == "fixed_round_trip_0.10pct_of_entry_notional"
+    assert traded["accounting_reconciliation_status"] == "RECONCILED_SCHEMA_V3"
+    assert traded["exit_reason_record_status"] == "RECORDED"
 
     assert skipped["signal"] == "SKIP"
     assert skipped["no_trade_reason"] == "minimum_one_share_not_affordable"
     assert pd.isna(skipped["shares"])
     assert skipped["exit_reason"] == ""
+    assert skipped["accounting_reconciliation_status"] == "NOT_APPLICABLE"
+    assert skipped["exit_reason_record_status"] == "NOT_APPLICABLE"
 
 
 

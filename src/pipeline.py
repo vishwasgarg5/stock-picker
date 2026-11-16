@@ -850,6 +850,14 @@ def apply_risk_off_selection(candidates: pd.DataFrame, risk_level: str = "NEUTRA
     x=x.sort_values(["risk_off_selection_score","rank","symbol"],ascending=[False,True,True],kind="mergesort")
     return x,"risk_off_defensive_v1"
 
+def _apply_market_risk_selection(candidates: pd.DataFrame, risk_level: str, top_n: int = 10) -> tuple[pd.DataFrame, str]:
+    """Apply the market-regime selector and fail closed when RISK_OFF is not enforced."""
+    selected, method = apply_risk_off_selection(candidates, risk_level, top_n)
+    if str(risk_level).strip().upper() == "RISK_OFF" and method == "ranking_top10":
+        raise RuntimeError("RISK_OFF market regime did not produce a defensive selector decision")
+    return selected, method
+
+
 def _merge_candidate_history(existing: pd.DataFrame, candidates: pd.DataFrame) -> pd.DataFrame:
     """Append candidate sessions without collapsing repeated target dates.
 
@@ -1092,9 +1100,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             candidates["risk_budget_weight"]=1.0/max(len(candidates),1)
             candidates["risk_budget_value"]=candidates["risk_budget_weight"]*PAPER_CAPITAL
             candidates["selection_explanation"]=""
-        candidates,risk_method=apply_risk_off_selection(candidates,risk_level,10)
-        if risk_level == "RISK_OFF" and risk_method == "ranking_top10":
-            raise RuntimeError("RISK_OFF market regime did not produce a defensive selector decision")
+        candidates,risk_method=_apply_market_risk_selection(candidates,risk_level,10)
         if risk_level=="RISK_OFF" and "adaptive_selection_score" in candidates.columns:
             candidates["risk_off_selection_score"]=0.75*pd.to_numeric(candidates["risk_off_selection_score"],errors="coerce").fillna(0)+0.25*pd.to_numeric(candidates["adaptive_selection_score"],errors="coerce").fillna(0)
             candidates=candidates.sort_values(["risk_off_selection_score","rank"],ascending=[False,True],kind="mergesort")

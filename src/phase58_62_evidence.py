@@ -175,7 +175,7 @@ def telegram_diagnostics() -> dict[str, Any]:
         if frame.empty:
             per_file[name] = {"rows": 0, "confirmed": 0, "legacy_unverified": 0, "missing_status": 0}
             continue
-        status = frame.get("delivery_status", pd.Series("", index=frame.index)).fillna("").astype(str).str.strip()
+        status = frame.get("delivery_status", pd.Series("", index=frame.index)).astype("string").fillna("").str.strip()
         counts = {
             "rows": int(len(frame)),
             "confirmed": int(status.eq("TELEGRAM_API_CONFIRMED").sum()),

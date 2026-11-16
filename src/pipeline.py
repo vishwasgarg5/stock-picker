@@ -64,6 +64,16 @@ MIN_OHLCV_COVERAGE = 0.95
 MAX_PREDICTED_MOVE = 0.40
 
 
+def _production_selector_authorized() -> bool:
+    """Require explicit human authorization before challenger selectors affect V1."""
+    readiness_file = DATA / "phase114_promotion_readiness_summary.json"
+    try:
+        readiness = json.loads(readiness_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError):
+        return False
+    return readiness.get("production_changes_authorized") is True
+
+
 def _nse_session_is_complete(date: pd.Timestamp) -> bool:
     """Return whether an NSE date is safely completed for daily-bar use."""
     candidate = pd.Timestamp(date).normalize()
@@ -1004,6 +1014,10 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         candidates["news_context_error"] = str(exc)[:500]
         print(f"Risk-off selector unavailable; retaining ranking Top-10: {exc}")
 
+    # Challenger selectors require both out-of-sample evidence and explicit
+    # human authorization from the Phase 114 readiness artifact.
+    production_selector_authorized = _production_selector_authorized()
+
     # Apply the recent-error selector only after its own out-of-sample
     # A/B validation gate has demonstrated improvement over pure rank selection.
     # Until then, production stays on the safer rank-based Top-10.
@@ -1014,7 +1028,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             and "recent_error_promotion_evidence" in validation.columns
             and validation["recent_error_promotion_evidence"].astype(str).str.strip().str.lower().eq("true").any()
         )
-        if selector_validated and EVALUATIONS_FILE.exists():
+        if selector_validated and production_selector_authorized and EVALUATIONS_FILE.exists():
             ev = pd.read_csv(EVALUATIONS_FILE)
             ev["target_date"] = pd.to_datetime(ev["target_date"], errors="coerce").dt.normalize()
             ev["close_abs_pct_error"] = pd.to_numeric(ev["close_abs_pct_error"], errors="coerce")
@@ -1045,7 +1059,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             and "confidence_promotion_evidence" in analysis.columns
             and analysis["confidence_promotion_evidence"].astype(str).str.strip().str.lower().eq("true").any()
         )
-        if validated:
+        if validated and production_selector_authorized:
             candidates["selection_priority"] = candidates["rank"] + ((100.0 - candidates["confidence_score"]) / 100.0)
             selected_symbols = set(candidates.sort_values(["selection_priority", "rank"]).head(10)["symbol"])
             selection_method = "validated_confidence_tiebreak"
@@ -1056,7 +1070,10 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     # repeat-loss protection without leaking future outcomes.
     try:
         from .trade_quality_model import latest_trade_quality_scores
-        quality = latest_trade_quality_scores(candidates)
+        quality = (
+            latest_trade_quality_scores(candidates)
+            if production_selector_authorized else pd.DataFrame()
+        )
         if not quality.empty:
             quality["target_date"] = pd.to_datetime(quality["target_date"], errors="coerce").dt.normalize()
             candidates = candidates.merge(

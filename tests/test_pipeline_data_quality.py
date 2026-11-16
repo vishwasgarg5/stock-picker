@@ -149,3 +149,9 @@ def test_daily_workflow_serializes_manual_and_scheduled_runs():
     assert "group: stock-picker-daily-${{ github.ref }}" in concurrency
     assert "github.event_name" not in concurrency
     assert "cancel-in-progress: false" in concurrency
+
+
+
+def test_yahoo_ticker_uses_rr_series_alias_for_bagmane():
+    assert pipeline._yahoo_ticker("BAGMANE") == "BAGMANE-RR.NS"
+    assert pipeline._yahoo_ticker("RELIANCE") == "RELIANCE.NS"

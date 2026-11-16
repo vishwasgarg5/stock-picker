@@ -49,6 +49,14 @@ FEATURE_COLUMNS = [
 TARGETS = {"open": "target_open_return", "high": "target_high_return", "low": "target_low_return", "close": "target_close_return"}
 EMPTY_HISTORY = ["date", "symbol", "open", "high", "low", "close", "volume", "dividends", "stock_splits"]
 
+# Yahoo Finance encodes the NSE RR trading series in the provider ticker.
+YAHOO_TICKER_OVERRIDES = {"BAGMANE": "BAGMANE-RR.NS"}
+
+
+def _yahoo_ticker(symbol: str) -> str:
+    normalized = str(symbol).strip().upper()
+    return YAHOO_TICKER_OVERRIDES.get(normalized, f"{normalized}.NS")
+
 # Reliability gates for production data and predictions.
 MIN_OHLCV_COVERAGE = 0.95
 MAX_PREDICTED_MOVE = 0.40
@@ -238,7 +246,7 @@ def _download_yahoo_batch(batch: list[str], start: str) -> pd.DataFrame:
     for attempt in range(3):
         try:
             return yf.download(
-                [f"{s}.NS" for s in batch],
+                [_yahoo_ticker(s) for s in batch],
                 start=start,
                 interval="1d",
                 auto_adjust=False,
@@ -281,7 +289,7 @@ def download_history(symbols: list[str], start: str) -> pd.DataFrame:
         if raw.empty:
             continue
         for symbol in batch:
-            ticker = f"{symbol}.NS"
+            ticker = _yahoo_ticker(symbol)
             try:
                 if isinstance(raw.columns, pd.MultiIndex):
                     levels = raw.columns.get_level_values(0)

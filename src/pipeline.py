@@ -371,10 +371,6 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
         starts[symbol] = "2018-01-01" if needs_action_backfill or rows.empty else (rows["date"].max() - timedelta(days=10)).strftime("%Y-%m-%d")
     fresh_parts = [download_history([s for s, value in starts.items() if value == start], start) for start in sorted(set(starts.values()))]
     fresh = pd.concat(fresh_parts, ignore_index=True) if fresh_parts else pd.DataFrame(columns=EMPTY_HISTORY)
-    if fresh.empty:
-        # Never overwrite a valid or recoverable history file with an empty
-        # provider response. Leave the on-disk file untouched for retry.
-        raise RuntimeError("Yahoo Finance returned no OHLCV rows; existing history was not modified")
     if needs_action_backfill:
         # Only symbols with persisted legacy bars need a historical action
         # backfill. A symbol newly added to the universe has no legacy prices
@@ -389,6 +385,10 @@ def update_history(symbols: list[str]) -> pd.DataFrame:
                 f"unadjusted legacy history for {len(missing_symbols)} symbols: "
                 f"{missing_symbols[:20]}"
             )
+    if fresh.empty:
+        # Never overwrite a valid or recoverable history file with an empty
+        # provider response. Leave the on-disk file untouched for retry.
+        raise RuntimeError("Yahoo Finance returned no OHLCV rows; existing history was not modified")
     combined = pd.concat([existing, fresh], ignore_index=True)
     combined["date"] = pd.to_datetime(combined["date"], errors="coerce").dt.normalize()
     combined["symbol"] = combined["symbol"].astype(str).str.upper().str.strip()

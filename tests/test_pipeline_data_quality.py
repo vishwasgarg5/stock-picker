@@ -501,3 +501,28 @@ def test_market_risk_context_rejects_unknown_or_malformed_values():
     with pytest.raises(RuntimeError, match="Invalid market intelligence score"):
         pipeline._validate_market_risk_context("NEUTRAL", 0.80, float("nan"))
 
+
+
+def test_risk_off_market_selection_fails_closed_when_defensive_selector_falls_back(monkeypatch):
+    import pytest
+
+    candidates = pd.DataFrame({"symbol": ["A", "B"], "rank": [1, 2]})
+    monkeypatch.setattr(
+        pipeline,
+        "apply_risk_off_selection",
+        lambda frame, risk_level, top_n: (frame, "ranking_top10"),
+    )
+    with pytest.raises(RuntimeError, match="RISK_OFF market regime"):
+        pipeline._apply_market_risk_selection(candidates, "RISK_OFF", 2)
+
+
+def test_risk_off_market_selection_accepts_defensive_selector(monkeypatch):
+    candidates = pd.DataFrame({"symbol": ["A", "B"], "rank": [1, 2]})
+    monkeypatch.setattr(
+        pipeline,
+        "apply_risk_off_selection",
+        lambda frame, risk_level, top_n: (frame.iloc[::-1].copy(), "risk_off_defensive_v1"),
+    )
+    selected, method = pipeline._apply_market_risk_selection(candidates, "RISK_OFF", 2)
+    assert method == "risk_off_defensive_v1"
+    assert selected["symbol"].tolist() == ["B", "A"]

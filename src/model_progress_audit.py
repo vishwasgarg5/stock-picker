@@ -86,8 +86,318 @@ def inspect_json(path: Path):
         raise ValueError("top-level JSON must be an object or array")
     return value
 
+
+def _read_csv(path: Path):
+    import pandas as pd
+    return pd.read_csv(path, low_memory=False)
+
+def _calendar_context():
+    """Return the persisted NSE CM calendar and latest completed expected session."""
+    from datetime import date, datetime, time, timedelta
+    from zoneinfo import ZoneInfo
+    calendar_path = ROOT / "data/nse_market_calendar.json"
+    if not calendar_path.exists():
+        return None, None, "calendar file missing"
+    payload = inspect_json(calendar_path)
+    if not isinstance(payload, dict) or payload.get("exchange") != "NSE" or payload.get("segment") != "CM":
+        return payload, None, "calendar exchange/segment metadata invalid"
+    updated = payload.get("updated_at_utc")
+    if not updated:
+        return payload, None, "calendar updated_at_utc is missing"
+    try:
+        refreshed = datetime.fromisoformat(str(updated).replace("Z", "+00:00"))
+        if refreshed.tzinfo is None:
+            refreshed = refreshed.replace(tzinfo=timezone.utc)
+        age_days = (datetime.now(timezone.utc) - refreshed.astimezone(timezone.utc)).total_seconds() / 86400
+        if age_days > 10:
+            return payload, None, f"calendar refresh is {age_days:.1f} days old (>10)"
+    except Exception as exc:
+        return payload, None, f"calendar updated_at_utc is invalid: {exc}"
+    try:
+        from src.market_calendar import session_for, IST
+        now = datetime.now(IST)
+        candidate = now.date()
+        if now.time() < time(15, 45):
+            candidate -= timedelta(days=1)
+        for _ in range(370):
+            state = session_for(candidate, payload)
+            if state.get("is_open"):
+                return payload, candidate.isoformat(), f"calendar refreshed; latest completed expected session {candidate.isoformat()}"
+            candidate -= timedelta(days=1)
+    except Exception as exc:
+        return payload, None, f"could not calculate expected session: {exc}"
+    return payload, None, "no expected session found in calendar horizon"
+
+def _check_csv_nonempty(rows, label, rel, required, min_rows=1):
+    path = ROOT / rel
+    if not path.exists():
+        add(rows, "Live data quality and freshness", label, "BLOCKED", "File missing; data-quality validation cannot run", rel)
+        return None
+    try:
+        frame = _read_csv(path)
+        missing = sorted(set(required) - set(frame.columns))
+        if missing:
+            add(rows, "Live data quality and freshness", label, "FAIL", f"Missing required columns: {missing}", rel)
+            return None
+        if len(frame) < min_rows:
+            add(rows, "Live data quality and freshness", label, "FAIL", f"Only {len(frame)} rows; minimum is {min_rows}", rel)
+            return None
+        add(rows, "Live data quality and freshness", label, "PASS", f"{len(frame):,} rows; required columns present", rel)
+        return frame
+    except Exception as exc:
+        add(rows, "Live data quality and freshness", label, "FAIL", f"CSV could not be read: {type(exc).__name__}: {exc}", rel)
+        return None
+
+def audit_live_data(rows):
+    """Validate populated fields, key uniqueness, temporal freshness and update coverage."""
+    import numpy as np
+    import pandas as pd
+
+    calendar, expected_session, calendar_detail = _calendar_context()
+    cal_status = "PASS" if expected_session else ("FAIL" if "missing" in calendar_detail or "invalid" in calendar_detail or "old" in calendar_detail else "REVIEW")
+    add(rows, "Live data quality and freshness", "Official NSE calendar refresh",
+        cal_status, calendar_detail, "data/nse_market_calendar.json")
+    if calendar is not None:
+        holidays = calendar.get("holidays", [])
+        specials = calendar.get("special_sessions", [])
+        valid_holidays = isinstance(holidays, list) and all(isinstance(x, dict) and x.get("date") for x in holidays)
+        valid_specials = isinstance(specials, list) and all(
+            isinstance(x, dict) and x.get("date") and x.get("status", "CONFIRMED") in {"CONFIRMED", "PROPOSED"}
+            for x in specials
+        )
+        dates = [x.get("date") for x in holidays if isinstance(x, dict)]
+        duplicate_dates = len(dates) != len(set(dates))
+        result = "PASS" if valid_holidays and valid_specials and not duplicate_dates else "FAIL"
+        add(rows, "Live data quality and freshness", "Calendar holiday and special-session records",
+            result, f"holidays={len(holidays) if isinstance(holidays, list) else 'invalid'}; special_sessions={len(specials) if isinstance(specials, list) else 'invalid'}; duplicate_holiday_dates={duplicate_dates}",
+            "data/nse_market_calendar.json")
+        audit_path = ROOT / "data/nse_market_calendar_audit.json"
+        if audit_path.exists():
+            try:
+                ca = inspect_json(audit_path)
+                st = str(ca.get("status", "")).upper()
+                add(rows, "Live data quality and freshness", "Calendar refresh receipt",
+                    "PASS" if st in {"REFRESHED", "PASS", "OK"} else "FAIL",
+                    f"refresh receipt status={st or 'missing'}; refreshed_at={ca.get('refreshed_at_utc')}",
+                    "data/nse_market_calendar_audit.json")
+            except Exception as exc:
+                add(rows, "Live data quality and freshness", "Calendar refresh receipt", "FAIL", str(exc), "data/nse_market_calendar_audit.json")
+        else:
+            add(rows, "Live data quality and freshness", "Calendar refresh receipt", "BLOCKED", "No source-refresh receipt exists", "data/nse_market_calendar_audit.json")
+
+    universe = _check_csv_nonempty(rows, "Universe population and keys", "data/universe.csv", {"symbol"}, 100)
+    if universe is not None:
+        symbols = universe["symbol"].fillna("").astype(str).str.strip().str.upper()
+        duplicates = int(symbols.duplicated().sum())
+        blanks = int(symbols.eq("").sum())
+        result = "PASS" if duplicates == 0 and blanks == 0 else "FAIL"
+        add(rows, "Live data quality and freshness", "Universe symbols populated and unique",
+            result, f"symbols={len(symbols)}; blank={blanks}; duplicate={duplicates}", "data/universe.csv")
+        universe_symbols = set(symbols[symbols.ne("")])
+    else:
+        universe_symbols = set()
+
+    history = _check_csv_nonempty(rows, "OHLCV populated values and schema", "data/ohlcv.csv",
+        {"date", "symbol", "open", "high", "low", "close", "volume"}, 100)
+    if history is not None:
+        h = history.copy()
+        h["date"] = pd.to_datetime(h["date"], errors="coerce")
+        for col in ["open", "high", "low", "close", "volume"]:
+            h[col] = pd.to_numeric(h[col], errors="coerce")
+        h["symbol"] = h["symbol"].fillna("").astype(str).str.strip().str.upper()
+        missing_cells = int(h[["date", "symbol", "open", "high", "low", "close", "volume"]].isna().sum().sum())
+        duplicate_keys = int(h.duplicated(["date", "symbol"]).sum())
+        valid = h[["open", "high", "low", "close"]].gt(0).all(axis=1) & h["volume"].ge(0)
+        valid &= h["high"].ge(h[["open", "close"]].max(axis=1)) & h["low"].le(h[["open", "close"]].min(axis=1))
+        invalid_rows = int((~valid & h[["open", "high", "low", "close", "volume"]].notna().all(axis=1)).sum())
+        future_rows = int((h["date"].dt.date > datetime.now(timezone.utc).date()).sum())
+        result = "PASS" if missing_cells == 0 and duplicate_keys == 0 and invalid_rows == 0 and future_rows == 0 else "FAIL"
+        add(rows, "Live data quality and freshness", "OHLCV completeness and price integrity", result,
+            f"rows={len(h):,}; missing_required_cells={missing_cells}; duplicate_date_symbol={duplicate_keys}; invalid_ohlcv={invalid_rows}; future_dated_rows={future_rows}",
+            "data/ohlcv.csv")
+        latest = h["date"].max()
+        latest_day = latest.date().isoformat() if pd.notna(latest) else "unavailable"
+        age_status = "REVIEW" if not expected_session else ("PASS" if latest_day >= expected_session else "FAIL")
+        add(rows, "Live data quality and freshness", "OHLCV latest expected session coverage", age_status,
+            f"latest_ohlcv_date={latest_day}; latest_expected_completed_session={expected_session or 'unknown'}; {calendar_detail}",
+            "data/ohlcv.csv")
+        if universe_symbols:
+            observed_symbols = set(h.loc[h["date"].eq(latest), "symbol"].dropna())
+            missing_symbols = sorted(universe_symbols - observed_symbols)
+            add(rows, "Live data quality and freshness", "Latest OHLCV universe coverage",
+                "PASS" if not missing_symbols else "REVIEW",
+                f"latest_date_symbols={len(observed_symbols)}/{len(universe_symbols)}; missing={len(missing_symbols)}; examples={missing_symbols[:15]}",
+                "data/ohlcv.csv")
+    else:
+        add(rows, "Live data quality and freshness", "OHLCV latest expected session coverage", "BLOCKED", "OHLCV validation unavailable", "data/ohlcv.csv")
+
+    fundamentals = _check_csv_nonempty(rows, "Fundamentals population and freshness", "data/fundamentals.csv",
+        {"symbol", "updated_at"}, 50)
+    if fundamentals is not None:
+        f = fundamentals.copy()
+        f["updated_at"] = pd.to_datetime(f["updated_at"], errors="coerce", utc=True)
+        latest = f["updated_at"].max()
+        latest_text = latest.isoformat() if pd.notna(latest) else "unavailable"
+        stale = int(f["updated_at"].isna().sum())
+        age = (datetime.now(timezone.utc) - latest.to_pydatetime()).total_seconds() / 86400 if pd.notna(latest) else 9999
+        add(rows, "Live data quality and freshness", "Fundamentals update timestamps",
+            "PASS" if stale == 0 and age <= 10 else "REVIEW",
+            f"rows={len(f)}; missing_timestamps={stale}; newest={latest_text}; newest_age_days={age:.1f}",
+            "data/fundamentals.csv")
+        if universe_symbols:
+            fsyms = set(f["symbol"].dropna().astype(str).str.upper().str.strip())
+            missing = sorted(universe_symbols - fsyms)
+            add(rows, "Live data quality and freshness", "Fundamentals universe coverage",
+                "PASS" if not missing else "REVIEW",
+                f"covered={len(universe_symbols)-len(missing)}/{len(universe_symbols)}; missing={len(missing)}; examples={missing[:15]}",
+                "data/fundamentals.csv")
+        numeric_fields = [c for c in f.columns if c not in {"symbol", "updated_at", "sector"}]
+        if numeric_fields:
+            missing_pct = f[numeric_fields].apply(pd.to_numeric, errors="coerce").isna().mean().sort_values(ascending=False)
+            top = ", ".join(f"{k}={v:.0%}" for k, v in missing_pct.head(8).items())
+            add(rows, "Live data quality and freshness", "Fundamental field population",
+                "REVIEW" if (missing_pct > 0.5).any() else "PASS",
+                f"missing percentages by field (top): {top}; nulls can be legitimate when source does not publish a metric",
+                "data/fundamentals.csv")
+
+    listing = _check_csv_nonempty(rows, "NSE listing-date master", "data/nse_listing_master.csv",
+        {"symbol", "listing_date", "source", "verified_at_utc"}, 1)
+    if listing is not None:
+        required = ["symbol", "listing_date", "source", "verified_at_utc"]
+        nulls = int(listing[required].isna().sum().sum())
+        unique = int(listing["symbol"].astype(str).str.upper().str.strip().duplicated().sum())
+        add(rows, "Live data quality and freshness", "Listing master field completeness",
+            "PASS" if nulls == 0 and unique == 0 else "FAIL",
+            f"rows={len(listing)}; missing_required_cells={nulls}; duplicate_symbols={unique}",
+            "data/nse_listing_master.csv")
+        if universe_symbols:
+            lsyms = set(listing["symbol"].dropna().astype(str).str.upper().str.strip())
+            missing = sorted(universe_symbols - lsyms)
+            add(rows, "Live data quality and freshness", "Listing-date master universe coverage",
+                "PASS" if not missing else "REVIEW",
+                f"covered={len(universe_symbols)-len(missing)}/{len(universe_symbols)}; unresolved={len(missing)}; examples={missing[:15]}",
+                "data/nse_listing_master.csv")
+
+    index_bars = _check_csv_nonempty(rows, "Index OHLCV populated values", "data/index_ohlcv.csv",
+        {"date", "index", "open", "high", "low", "close"}, 1)
+    expected_indexes = {"NIFTY50", "NIFTYNEXT50", "NIFTY100", "NIFTY200", "NIFTY500",
+                        "BANKNIFTY", "NIFTYIT", "NIFTYAUTO", "NIFTYFIN", "NIFTYPHARMA", "NIFTYFMCG"}
+    if index_bars is not None:
+        ib = index_bars.copy()
+        ib["date"] = pd.to_datetime(ib["date"], errors="coerce")
+        for c in ["open", "high", "low", "close"]:
+            ib[c] = pd.to_numeric(ib[c], errors="coerce")
+        ib["index"] = ib["index"].fillna("").astype(str).str.upper().str.strip()
+        invalid = int((ib[["date", "open", "high", "low", "close"]].isna().any(axis=1) |
+                       ~ib[["open", "high", "low", "close"]].gt(0).all(axis=1) |
+                       ~ib["high"].ge(ib[["open", "close"]].max(axis=1)) |
+                       ~ib["low"].le(ib[["open", "close"]].min(axis=1))).sum())
+        dup = int(ib.duplicated(["date", "index"]).sum())
+        missing_idx = sorted(expected_indexes - set(ib["index"]))
+        result = "PASS" if invalid == 0 and dup == 0 else "FAIL"
+        add(rows, "Live data quality and freshness", "Index OHLCV row integrity", result,
+            f"rows={len(ib)}; invalid_rows={invalid}; duplicate_index_dates={dup}; indexes_without_history={missing_idx}",
+            "data/index_ohlcv.csv")
+        latest = ib.groupby("index")["date"].max()
+        stale = {k: str(v.date()) for k, v in latest.items()
+                 if expected_session and v.date().isoformat() < expected_session}
+        absent = sorted(expected_indexes - set(latest.index))
+        add(rows, "Live data quality and freshness", "Index OHLCV update coverage",
+            "PASS" if not absent and not stale else "REVIEW",
+            f"expected_indexes={len(expected_indexes)}; present={len(latest)}; absent={absent}; stale_by_index={stale}; expected_session={expected_session}",
+            "data/index_ohlcv.csv")
+    else:
+        add(rows, "Live data quality and freshness", "Index OHLCV update coverage", "BLOCKED", "No index bars to verify; data collection workflow may not have run", "data/index_ohlcv.csv")
+
+    constituents = _check_csv_nonempty(rows, "Index constituent snapshot population", "data/index_constituents_history.csv",
+        {"index", "symbol", "as_of_date", "weight_pct", "weight_method"}, 1)
+    if constituents is not None:
+        c = constituents.copy()
+        c["as_of_date"] = pd.to_datetime(c["as_of_date"], errors="coerce")
+        c["weight_pct"] = pd.to_numeric(c["weight_pct"], errors="coerce")
+        c["index"] = c["index"].fillna("").astype(str).str.upper().str.strip()
+        c["symbol"] = c["symbol"].fillna("").astype(str).str.upper().str.strip()
+        dup = int(c.duplicated(["index", "symbol", "as_of_date"]).sum())
+        bad_weight = int((c["weight_pct"].notna() & ~c["weight_pct"].between(0, 100)).sum())
+        latest_by_index = c.groupby("index")["as_of_date"].max()
+        absent = sorted(expected_indexes - set(latest_by_index.index))
+        sums = c.dropna(subset=["weight_pct"]).groupby(["index", "as_of_date"])["weight_pct"].sum()
+        off_total = {f"{idx}@{day.date()}": round(float(v), 2) for (idx, day), v in sums.items() if abs(v - 100) > 2.0}
+        result = "PASS" if dup == 0 and bad_weight == 0 else "FAIL"
+        add(rows, "Live data quality and freshness", "Index membership and weight integrity", result,
+            f"rows={len(c)}; duplicate_memberships={dup}; out_of_range_weights={bad_weight}; groups_not_approximately_100pct={len(off_total)}; examples={dict(list(off_total.items())[:8])}",
+            "data/index_constituents_history.csv")
+        stale = {k: str(v.date()) for k, v in latest_by_index.items()
+                 if expected_session and v.date().isoformat() < expected_session}
+        add(rows, "Live data quality and freshness", "Constituent snapshot update coverage",
+            "PASS" if not absent and not stale else "REVIEW",
+            f"indexes_present={len(latest_by_index)}/{len(expected_indexes)}; absent={absent}; stale={stale}; expected_session={expected_session}",
+            "data/index_constituents_history.csv")
+        methods = sorted(c["weight_method"].dropna().astype(str).unique().tolist())
+        missing_weight = int(c["weight_pct"].isna().sum())
+        add(rows, "Live data quality and freshness", "Official versus estimated constituent weights",
+            "REVIEW" if missing_weight else "PASS",
+            f"missing_weights={missing_weight}; methods={methods}; estimated values must remain explicitly labelled",
+            "data/index_constituents_history.csv")
+
+    features = _check_csv_nonempty(rows, "Stock-index feature output", "data/index_constituent_features.csv",
+        {"date", "symbol", "index"}, 1)
+    if features is not None:
+        x = features.copy()
+        x["date"] = pd.to_datetime(x["date"], errors="coerce")
+        dup = int(x.duplicated(["date", "symbol", "index"]).sum())
+        latest = x["date"].max()
+        numeric = [col for col in x.columns if col not in {"date", "symbol", "index"}]
+        null_pct = x[numeric].apply(pd.to_numeric, errors="coerce").isna().mean() if numeric else pd.Series(dtype=float)
+        add(rows, "Live data quality and freshness", "Stock-index feature population and uniqueness",
+            "PASS" if dup == 0 else "FAIL",
+            f"rows={len(x)}; duplicate_keys={dup}; latest={latest.date() if pd.notna(latest) else 'unknown'}; feature_null_rates={null_pct.round(3).to_dict()}",
+            "data/index_constituent_features.csv")
+        if expected_session:
+            latest_text = latest.date().isoformat() if pd.notna(latest) else ""
+            add(rows, "Live data quality and freshness", "Stock-index feature freshness",
+                "PASS" if latest_text >= expected_session else "REVIEW",
+                f"latest_feature_date={latest_text}; expected_session={expected_session}",
+                "data/index_constituent_features.csv")
+
+    predictions = _check_csv_nonempty(rows, "Prediction output populated fields", "data/predictions.csv",
+        {"prediction_date", "target_date", "symbol", "base_close", "predicted_close", "rank", "score"}, 1)
+    if predictions is not None:
+        p = predictions.copy()
+        required = ["prediction_date", "target_date", "symbol", "base_close", "predicted_close", "rank", "score"]
+        nulls = int(p[required].isna().sum().sum())
+        p["prediction_date"] = pd.to_datetime(p["prediction_date"], errors="coerce")
+        p["target_date"] = pd.to_datetime(p["target_date"], errors="coerce")
+        p["base_close"] = pd.to_numeric(p["base_close"], errors="coerce")
+        p["predicted_close"] = pd.to_numeric(p["predicted_close"], errors="coerce")
+        p["rank"] = pd.to_numeric(p["rank"], errors="coerce")
+        p["score"] = pd.to_numeric(p["score"], errors="coerce")
+        dup = int(p.duplicated(["prediction_date", "target_date", "symbol"]).sum())
+        invalid = int((p["base_close"].le(0) | p["predicted_close"].le(0) | p["rank"].le(0) |
+                       p["prediction_date"].isna() | p["target_date"].isna()).sum())
+        add(rows, "Live data quality and freshness", "Prediction required-field and key integrity",
+            "PASS" if nulls == 0 and dup == 0 and invalid == 0 else "FAIL",
+            f"rows={len(p)}; missing_required_cells={nulls}; duplicate_keys={dup}; invalid_rows={invalid}",
+            "data/predictions.csv")
+        # Prediction history is intentionally retained; validate its latest session separately.
+        latest = p["prediction_date"].max()
+        latest_rows = p.loc[p["prediction_date"].eq(latest)]
+        add(rows, "Live data quality and freshness", "Latest prediction session coverage",
+            "PASS" if not latest_rows.empty and latest_rows["target_date"].gt(latest).all() else "FAIL",
+            f"latest_prediction_date={latest.date() if pd.notna(latest) else 'unknown'}; rows={len(latest_rows)}; all_target_dates_after_prediction={bool(latest_rows['target_date'].gt(latest).all()) if not latest_rows.empty else False}",
+            "data/predictions.csv")
+
+    # Explicitly surface whether the index features are actually consumed by the production model.
+    pipeline_text = (ROOT / "src/pipeline.py").read_text(encoding="utf-8") if (ROOT / "src/pipeline.py").exists() else ""
+    consumed = "index_constituent_features" in pipeline_text
+    add(rows, "Live data quality and freshness", "Index features connected to production prediction pipeline",
+        "PASS" if consumed else "BLOCKED",
+        "Production pipeline " + ("references index constituent feature data" if consumed else "does not yet load index_constituent_features.csv; collection alone does not mean model learns from it"),
+        "src/pipeline.py")
+
 def run_audit(output_dir: Path):
     rows = []
+    audit_live_data(rows)
     for name, rel in MODULES.items():
         exists = (ROOT / rel).is_file()
         add(rows, "Implementation structure", name, "PASS" if exists else "FAIL",

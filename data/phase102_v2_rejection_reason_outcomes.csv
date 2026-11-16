@@ -1,0 +1,3 @@
+rejection_reason,rows,mean_close_return_pct,median_close_return_pct,positive_close_rate_pct,mean_confidence
+phase4_ineligible,196,-0.028795996795608295,0.0,49.48979591836735,58.754188866283705
+confidence_percentile,132,-0.4954975708258834,-0.5776435363452792,36.36363636363637,35.188787326487855

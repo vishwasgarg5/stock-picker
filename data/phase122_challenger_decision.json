@@ -1,0 +1,54 @@
+{
+  "phase": 122,
+  "title": "Normalized and regularized return challenger decision",
+  "decision": "CLOSED_WITHOUT_MERGE",
+  "pull_request": 31,
+  "pull_request_url": "https://github.com/vishwasgarg5/stock-picker/pull/31",
+  "evaluated_commit": "d341f3df1787eab59310bf444633126534572a17",
+  "ci": {
+    "run_id": 43667208746,
+    "url": "https://github.com/vishwasgarg5/stock-picker/actions/runs/43667208746",
+    "conclusion": "success",
+    "regression_tests": "29 passed",
+    "chronological_folds": 4
+  },
+  "replay": {
+    "historical_forecast_rows": 422920,
+    "metrics": {
+      "previous_close_baseline": {
+        "mape_pct": 1.62459
+      },
+      "incumbent_control": {
+        "mape_pct": 1.62273,
+        "directional_accuracy_pct": 50.61
+      },
+      "normalized_ensemble": {
+        "mape_pct": 1.62274,
+        "directional_accuracy_pct": 50.58
+      },
+      "regularized_ridge": {
+        "mape_pct": 1.63548,
+        "directional_accuracy_pct": 49.35
+      }
+    },
+    "forecast_compression": {
+      "incumbent_mean_abs_predicted_move_pct": 0.0731,
+      "incumbent_mean_abs_realized_move_pct": 1.6616,
+      "normalized_mean_abs_predicted_move_pct": 0.0782
+    }
+  },
+  "rationale": [
+    "The normalized ensemble did not improve on the incumbent control.",
+    "The regularized Ridge challenger underperformed both incumbent and previous-close baseline.",
+    "All tested models retained severe forecast-magnitude compression.",
+    "Passing CI validates implementation and regression coverage, not forecast-quality superiority."
+  ],
+  "production": {
+    "champion": "V1",
+    "production_model_changed": false,
+    "challengers_promoted": false,
+    "automatic_promotion": false
+  },
+  "next_step": "Investigate training-fold-only forecast calibration and magnitude compression directly on main. Preserve chronological walk-forward folds, strict label cutoffs, baseline comparison, and all existing production safety gates.",
+  "note": "The 17-session threshold remains a prospective evidence review threshold only; it does not relax model performance or production promotion criteria."
+}

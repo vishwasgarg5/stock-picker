@@ -1,0 +1,4 @@
+regime,rows,model_mape_pct,baseline_mape_pct,delta_mape_pct_points,signed_return_bias_pct,model_beats_baseline
+QUIET_LT_1PCT,144,0.492372,0.464388,0.027984,0.072477,False
+NORMAL_1_TO_2_5PCT,130,1.646447,1.651649,-0.005202,0.332201,True
+VOLATILE_GE_2_5PCT,96,4.166196,4.172471,-0.006275,0.05552,True

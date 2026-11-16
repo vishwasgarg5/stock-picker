@@ -1,0 +1,67 @@
+{
+  "phase": 125,
+  "title": "Chronological feature ablation decision",
+  "status": "NO_FEATURE_ABLATION_QUALIFIED",
+  "evidence": {
+    "commit": "1fbc223560d236c0d6cf71b4f0d06d1923cae37a",
+    "workflow_run": 43677861524,
+    "workflow_url": "https://github.com/vishwasgarg5/stock-picker/actions/runs/43677861524",
+    "workflow_conclusion": "success",
+    "regression_tests": "35 passed",
+    "rows": 956314,
+    "symbols": 527,
+    "folds_completed": 4,
+    "strict_no_lookahead": true,
+    "common_complete_case_cohort": true
+  },
+  "results": [
+    {
+      "variant": "incumbent_all_features",
+      "features": 18,
+      "mean_fold_mape_pct": 1.6177858490873982,
+      "mean_baseline_mape_pct": 1.6147478751875848,
+      "mean_delta_vs_baseline_pp": 0.003037973899813584,
+      "folds_beating_baseline": 3,
+      "folds_tested": 4,
+      "mean_directional_accuracy_pct": 50.09695056714311,
+      "mean_signed_bias_pp": -0.1187769393999209,
+      "mean_abs_predicted_move_pct": 0.07877408439454969,
+      "mean_abs_realized_move_pct": 1.6513678126522793
+    },
+    {
+      "variant": "without_price_level_indicators",
+      "features": 12,
+      "mean_fold_mape_pct": 1.6178003633361107,
+      "mean_baseline_mape_pct": 1.6147478751875848,
+      "mean_delta_vs_baseline_pp": 0.003052488148525989,
+      "folds_beating_baseline": 3,
+      "folds_tested": 4,
+      "mean_directional_accuracy_pct": 50.12394535632838,
+      "mean_signed_bias_pp": -0.1197482974253912,
+      "mean_abs_predicted_move_pct": 0.08238112528267752,
+      "mean_abs_realized_move_pct": 1.6513678126522793
+    },
+    {
+      "variant": "compact_returns_risk_volume",
+      "features": 10,
+      "mean_fold_mape_pct": 1.6190547733087408,
+      "mean_baseline_mape_pct": 1.6147478751875848,
+      "mean_delta_vs_baseline_pp": 0.004306898121155922,
+      "folds_beating_baseline": 3,
+      "folds_tested": 4,
+      "mean_directional_accuracy_pct": 50.13388256134456,
+      "mean_signed_bias_pp": -0.11769426028001038,
+      "mean_abs_predicted_move_pct": 0.08565233484399931,
+      "mean_abs_realized_move_pct": 1.6513678126522793
+    }
+  ],
+  "performance_gate_met": false,
+  "conclusion": "The incumbent feature set is marginally the best of the three, but all three have worse mean fold MAPE than the previous-close baseline. The reduced sets do not improve aggregate error. Directional accuracy is near 50%, and predicted moves remain severely compressed versus realised moves. No feature set is qualified for production.",
+  "production": {
+    "champion": "V1",
+    "changed": false,
+    "challengers": "shadow_only",
+    "automatic_promotion": false
+  },
+  "next_step": "Investigate target construction, training objective and cross-sectional/temporal signal using a new hypothesis; retain chronological holdouts and baseline comparison. Do not hard-code feature sign flips or deploy the ablation variants."
+}

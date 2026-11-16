@@ -1,0 +1,121 @@
+{
+  "phase98_forecast_root_cause": {
+    "status": "SCORED",
+    "scored_rows": 370,
+    "symbols": 125,
+    "ohlc_mape_pct": {
+      "open_mape_pct": 0.7926845167282968,
+      "high_mape_pct": 1.445338221593428,
+      "low_mape_pct": 1.3998573681626758,
+      "close_mape_pct": 1.8510661304626082
+    },
+    "close_mape_pct": 1.8510661304626082,
+    "mean_signed_error_pct": 0.2212046827829844,
+    "overprediction_rows": 200,
+    "underprediction_rows": 170,
+    "diagnostic_only": true
+  },
+  "phase99_feature_integrity": {
+    "status": "SCORED",
+    "feature_rows": 957338,
+    "features": [
+      "ret_1",
+      "ret_5",
+      "ret_20",
+      "volatility_20",
+      "volume_ratio_20"
+    ],
+    "feature_date_after_target_rows": 0,
+    "target_rows": 956811,
+    "point_in_time_rule": "Features use OHLCV available on feature_date; supervised label is the next observed close return.",
+    "row_level_feature_export_written": false,
+    "compact_symbol_summary_written": true,
+    "model_or_production_changed": false
+  },
+  "phase100_walk_forward_challenger": {
+    "status": "SCORED",
+    "candidate_rows": 370,
+    "candidate_symbols": 125,
+    "target_dates": 37,
+    "candidate_close_mape_pct": 1.8783288287240212,
+    "previous_close_baseline_mape_pct": 1.8436309149758652,
+    "candidate_beats_previous_close": false,
+    "walk_forward": true,
+    "expanding_window": true,
+    "minimum_training_rows": 250,
+    "training_labels_strictly_before_prediction_date": true,
+    "model_refit_production": false,
+    "ranking_or_risk_changed": false,
+    "production_champion": "V1",
+    "v2_mode": "SHADOW_ONLY",
+    "warning": "Candidate is exploratory and must beat baselines across repeated holdouts before promotion consideration."
+  },
+  "phase101_v2_selection_outcomes": {
+    "status": "SCORED",
+    "rows": 330,
+    "rows_with_actuals": 330,
+    "buy_rows": 2,
+    "skipped_rows": 328,
+    "confidence_field_used": "confidence_score",
+    "confidence_buckets_are_rank_quantiles_not_calibrated_probabilities": true,
+    "interpretation": "Skipped-name returns are diagnostic counterfactuals, not executable portfolio returns. Confidence buckets are descriptive, not calibrated probabilities.",
+    "selection_gates_changed": false
+  },
+  "phase101_v1_paper_performance": {
+    "status": "SCORED",
+    "source": "V1 paper_trades.csv",
+    "executed_trade_rows": 219,
+    "sessions": 37,
+    "net_pnl_sum": -5896.826146741922,
+    "win_rate_pct": 41.55251141552511,
+    "average_win": 322.4845005703079,
+    "average_loss": -286.5277699076418,
+    "profit_factor": 0.8326805251538968,
+    "reported_costs_sum_not_subtracted_again": 698.4754030268396,
+    "max_drawdown_pct_on_100k_reference_equity": -12.053310722083088,
+    "performance_is_paper_only": true
+  },
+  "phase101_v2_paper_performance": {
+    "status": "SMALL_SAMPLE",
+    "source": "V2 paper_trades_v2.csv",
+    "executed_trade_rows": 2,
+    "sessions": 2,
+    "net_pnl_sum": 936.7033915710449,
+    "win_rate_pct": 50.0,
+    "average_win": 957.4630114746094,
+    "average_loss": -20.759619903564452,
+    "profit_factor": 46.121413394000136,
+    "reported_costs_sum_not_subtracted_again": 40.29612014770508,
+    "max_drawdown_pct_on_100k_reference_equity": -0.020562739280804987,
+    "performance_is_paper_only": true
+  },
+  "phase102_v1_loss_attribution": {
+    "status": "SCORED",
+    "executed_trade_rows": 219,
+    "symbols": 86,
+    "net_pnl_sum": -5896.826146741922,
+    "loss_making_symbols": 56,
+    "worst_symbol": "IDBI",
+    "worst_symbol_net_pnl": -1416.610809326172,
+    "exit_reason_field_used": "exit_reason",
+    "diagnostic_only": true
+  },
+  "phase102_v2_rejection_diagnostics": {
+    "status": "SCORED",
+    "skipped_rows_with_actuals": 328,
+    "rejection_reasons": 2,
+    "confidence_field_used": "confidence_v3",
+    "high_confidence_skips": 66,
+    "high_confidence_mean_close_return_pct": -0.21090203590322834,
+    "high_confidence_positive_rate_pct": 48.484848484848484,
+    "counterfactuals_are_not_executable_pnl": true,
+    "selection_gates_changed": false,
+    "production_model_changed": false
+  },
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "thresholds_changed": false,
+  "automatic_promotion": false
+}

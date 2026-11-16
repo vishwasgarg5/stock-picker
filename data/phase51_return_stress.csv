@@ -1,0 +1,7 @@
+model,additional_cost_multiple,recorded_net_pnl,recorded_costs,stressed_net_pnl,note
+V1,0.0,,,,additional cost stress only; no recorded cost deducted twice
+V1,0.5,,,,additional cost stress only; no recorded cost deducted twice
+V1,1.0,,,,additional cost stress only; no recorded cost deducted twice
+V2,0.0,936.7033915710449,40.29612014770508,936.7033915710449,additional cost stress only; no recorded cost deducted twice
+V2,0.5,936.7033915710449,40.29612014770508,916.5553314971924,additional cost stress only; no recorded cost deducted twice
+V2,1.0,936.7033915710449,40.29612014770508,896.4072714233398,additional cost stress only; no recorded cost deducted twice

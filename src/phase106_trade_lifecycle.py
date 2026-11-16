@@ -1,0 +1,173 @@
+from __future__ import annotations
+
+"""Phase 106: paper-trade lifecycle data-quality audit.
+
+Descriptive only. This module measures available and invalid lifecycle fields;
+it never fills missing trade facts or changes trading behaviour.
+"""
+import json
+from pathlib import Path
+from typing import Any
+
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = ROOT / "data"
+
+FIELD_ALIASES = {
+    "symbol": ("symbol", "ticker"),
+    "entry_price": ("entry_price", "buy_price", "actual_entry_price"),
+    "exit_price": ("exit_price", "sell_price", "actual_exit_price"),
+    "entry_date": ("entry_date", "buy_date", "trade_date", "target_date"),
+    "exit_date": ("exit_date", "sell_date", "closed_date"),
+    "quantity": ("quantity", "qty", "shares"),
+    "pnl": ("profit_loss", "net_pnl", "daily_profit_loss"),
+    "exit_reason": ("exit_reason", "exit_type", "reason"),
+    "status": ("trade_status", "status", "signal"),
+}
+
+
+def _field(frame: pd.DataFrame, logical_name: str) -> str | None:
+    candidates = [name for name in FIELD_ALIASES[logical_name] if name in frame.columns]
+    # Prefer a populated canonical field when a placeholder alias is blank.
+    return next((name for name in candidates if frame[name].notna().any()), candidates[0] if candidates else None)
+
+
+def evaluate_trade_lifecycle(trades: pd.DataFrame) -> dict[str, Any]:
+    safe = {
+        "diagnostic_only": True,
+        "production_champion": "V1",
+        "v2_mode": "SHADOW_ONLY",
+        "production_model_changed": False,
+        "ranking_or_risk_changed": False,
+        "risk_or_sizing_changed": False,
+        "missing_values_filled": False,
+        "automatic_promotion": False,
+    }
+    if trades.empty:
+        return {
+            **safe, "status": "INSUFFICIENT_DATA", "source_record_type": "simulated_outcome_ledger",
+            "rows": 0, "field_presence": {}, "field_non_null_counts": {},
+            "invalid_price_rows": 0, "invalid_quantity_rows": 0,
+            "missing_quantity_on_executed_rows": 0,
+            "quantity_validation_scope": "Executed trade rows only; SKIP candidates are excluded.",
+            "entry_after_exit_rows": 0, "duplicate_symbol_entry_date_rows": 0,
+            "closed_trade_rows_detected": 0, "exit_date_recorded": False,
+        }
+
+    x = trades.copy()
+    fields = {logical: _field(x, logical) for logical in FIELD_ALIASES}
+    presence = {logical: (column is not None) for logical, column in fields.items()}
+    non_null = {
+        logical: int(x[column].notna().sum()) if column else 0
+        for logical, column in fields.items()
+    }
+    price_bad = pd.Series(False, index=x.index)
+    for logical in ("entry_price", "exit_price"):
+        column = fields[logical]
+        if column:
+            values = pd.to_numeric(x[column], errors="coerce")
+            price_bad |= values.notna() & (values <= 0)
+    # SKIP rows are candidate decisions, not executed trades. Their
+    # absent/zero quantity is expected and must not inflate lifecycle defects.
+    status_col = fields["status"]
+    status_values = x[status_col].astype(str).str.upper().str.strip() if status_col else pd.Series("", index=x.index)
+    executed_mask = status_values.isin([
+        "BUY", "LONG", "EXECUTED", "CLOSED", "COMPLETED", "EXITED", "SELL", "SOLD",
+    ])
+
+    quantity_bad = pd.Series(False, index=x.index)
+    missing_quantity_on_executed = pd.Series(False, index=x.index)
+    quantity_col = fields["quantity"]
+    if quantity_col:
+        quantities = pd.to_numeric(x[quantity_col], errors="coerce")
+        quantity_bad = executed_mask & quantities.notna() & (quantities <= 0)
+        missing_quantity_on_executed = executed_mask & quantities.isna()
+    else:
+        missing_quantity_on_executed = executed_mask.copy()
+
+    entry_after_exit = pd.Series(False, index=x.index)
+    entry_col, exit_col = fields["entry_date"], fields["exit_date"]
+    if entry_col and exit_col:
+        entry_dates = pd.to_datetime(x[entry_col], errors="coerce", utc=True)
+        exit_dates = pd.to_datetime(x[exit_col], errors="coerce", utc=True)
+        entry_after_exit = entry_dates.notna() & exit_dates.notna() & (entry_dates > exit_dates)
+
+    duplicate_rows = 0
+    symbol_col = fields["symbol"]
+    if symbol_col and entry_col:
+        keys = pd.DataFrame({
+            "symbol": x[symbol_col].astype("string").str.strip().str.upper(),
+            "entry_date": pd.to_datetime(x[entry_col], errors="coerce", utc=True),
+        })
+        valid_keys = keys["symbol"].notna() & keys["symbol"].ne("") & keys["entry_date"].notna()
+        duplicate_rows = int(keys.loc[valid_keys].duplicated(["symbol", "entry_date"], keep=False).sum())
+
+    status_counts = {}
+    if status_col:
+        status_counts = (
+            x[status_col].fillna("MISSING").astype(str).str.strip()
+            .replace("", "MISSING").value_counts(dropna=False).to_dict()
+        )
+    exit_price_col = fields["exit_price"]
+    has_exit_price = x[exit_price_col].notna() if exit_price_col else pd.Series(False, index=x.index)
+    completed_mask = status_values.isin(["CLOSED", "COMPLETED", "EXITED", "SELL", "SOLD"]) | (
+        status_values.isin(["BUY", "LONG", "EXECUTED"]) & has_exit_price
+    )
+    closed_rows = int(completed_mask.sum())
+    missing_exit_price_on_closed = int((completed_mask & ~has_exit_price).sum())
+
+    required_core = ("symbol", "entry_price", "entry_date", "pnl")
+    missing_core_fields = [name for name in required_core if not presence[name]]
+    rows = int(len(x))
+    summary = {
+        **safe,
+        "status": "SCORED" if rows >= 20 else "SMALL_SAMPLE",
+        "source_record_type": "simulated_outcome_ledger",
+        "source_path": "data/paper_trades.csv",
+        "rows": rows,
+        "field_presence": presence,
+        "field_non_null_counts": non_null,
+        "field_completeness_pct": {
+            logical: round(count / rows * 100, 4) for logical, count in non_null.items()
+        },
+        "missing_core_fields": missing_core_fields,
+        "invalid_price_rows": int(price_bad.sum()),
+        "invalid_quantity_rows": int(quantity_bad.sum()),
+        "missing_quantity_on_executed_rows": int(missing_quantity_on_executed.sum()),
+        "quantity_validation_scope": "Executed BUY/LONG/EXECUTED/CLOSED/COMPLETED/EXITED/SELL/SOLD rows only; SKIP candidates are excluded.",
+        "entry_after_exit_rows": int(entry_after_exit.sum()),
+        "duplicate_symbol_entry_date_rows": duplicate_rows,
+        "status_counts": {str(key): int(value) for key, value in status_counts.items()},
+        "closed_trade_rows_detected": closed_rows,
+        "closed_rows_missing_exit_price": missing_exit_price_on_closed,
+        "exit_date_recorded": bool(presence["exit_date"]),
+        "exit_date_semantics": "Not stored in this simulated same-session outcome ledger; target_date is the outcome session, not an inferred broker exit timestamp.",
+        "costs_subtracted_again": False,
+        "missing_facts_inferred": False,
+        "interpretation": (
+            "BUY rows are simulated completed outcomes; SKIP rows are candidate decisions, not trades. "
+            "A separate broker lifecycle ledger is needed for actual execution/exit timestamps. Missing facts "
+            "are not reconstructed; duplicate keys are flagged for review and are not automatically deleted."
+        ),
+    }
+    return summary
+
+
+def run() -> dict[str, Any]:
+    DATA.mkdir(parents=True, exist_ok=True)
+    path = DATA / "paper_trades.csv"
+    try:
+        trades = pd.read_csv(path, low_memory=False) if path.exists() else pd.DataFrame()
+    except (OSError, ValueError, UnicodeDecodeError, pd.errors.ParserError):
+        trades = pd.DataFrame()
+    summary = evaluate_trade_lifecycle(trades)
+    (DATA / "phase106_trade_lifecycle_summary.json").write_text(
+        json.dumps(summary, indent=2, default=str) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(summary, indent=2, default=str))
+    return summary
+
+
+if __name__ == "__main__":
+    run()

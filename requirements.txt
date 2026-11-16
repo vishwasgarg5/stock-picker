@@ -1,0 +1,7 @@
+numpy
+pandas
+scikit-learn
+yfinance
+joblib
+requests
+pandas_market_calendars

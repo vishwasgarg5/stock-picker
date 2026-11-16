@@ -1,0 +1,34 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "risk_or_sizing_changed": false,
+  "automatic_promotion": false,
+  "missing_facts_inferred": false,
+  "status": "INSUFFICIENT_EVIDENCE",
+  "v1": {
+    "executed_rows": 219,
+    "invalid_session_date_rows": 0,
+    "valid": true,
+    "distinct_sessions": 37,
+    "first_session": "2026-09-18",
+    "last_session": "2026-11-16",
+    "minimum_trade_count_met": true,
+    "minimum_session_count_met": true
+  },
+  "v2": {
+    "executed_rows": 2,
+    "invalid_session_date_rows": 0,
+    "valid": true,
+    "distinct_sessions": 2,
+    "first_session": "2026-10-05",
+    "last_session": "2026-10-06",
+    "minimum_trade_count_met": false,
+    "minimum_session_count_met": false
+  },
+  "minimum_v2_trades": 100,
+  "minimum_distinct_sessions": 17,
+  "note": "Minimum counts are necessary but not sufficient; invalid execution dates block sustained-evidence scoring; market-regime coverage and uncertainty still require review."
+}

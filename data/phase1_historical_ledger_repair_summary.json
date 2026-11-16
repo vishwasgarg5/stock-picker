@@ -1,0 +1,27 @@
+{
+  "status": "PARTIALLY_RECONCILED",
+  "source": "data/paper_trades.csv",
+  "total_rows": 370,
+  "buy_rows": 219,
+  "skip_rows": 151,
+  "buy_rows_with_recorded_accounting_identities_reconciled": 70,
+  "buy_rows_unreconciled_missing_accounting_fields": 149,
+  "buy_rows_with_recorded_exit_reason": 70,
+  "buy_rows_with_unrecorded_legacy_exit_reason": 149,
+  "buy_rows_missing_quantity_field": 75,
+  "buy_rows_missing_position_value_field": 70,
+  "entry_and_exit_prices_recorded_for_all_buy_rows": true,
+  "repair_applied": "Added accounting_reconciliation_status and exit_reason_record_status labels; retained all original financial values and blank fields unchanged.",
+  "no_inference_policy": {
+    "missing_shares_or_capital_filled": false,
+    "missing_costs_filled": false,
+    "missing_gross_or_net_pnl_filled": false,
+    "missing_exit_reasons_inferred": false,
+    "exit_dates_inferred": false
+  },
+  "interpretation": {
+    "reconciled_70": "The recorded shares, entry/exit prices, gross P&L, costs, net P&L and return identities agree within the existing Phase 107 tolerances. This validates arithmetic consistency only, not the real-world broker fee schedule.",
+    "unreconciled_149": "Historical accounting fields and exit reasons were not recorded. The available fields do not uniquely establish the missing quantities, cost basis, or exit mechanism."
+  },
+  "promotion_impact": "Phase 107 P&L reconciliation and Phase 114 promotion readiness must remain blocked until missing evidence is recovered from authoritative records. V1 remains production champion; V2 remains shadow-only; automatic promotion remains disabled."
+}

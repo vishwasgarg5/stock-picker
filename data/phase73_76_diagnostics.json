@@ -1,0 +1,58 @@
+{
+  "as_of_utc": "2026-11-16T13:24:58.676636+00:00",
+  "phases": [
+    73,
+    74,
+    75,
+    76
+  ],
+  "phase73_v2_zero_buy": {
+    "status": "BUY_ACTIVITY_PRESENT",
+    "rows": 330,
+    "buy_rows": 2,
+    "skip_rows": 328,
+    "skip_reason_counts": {
+      "phase4_ineligible": 196,
+      "confidence_percentile": 132
+    },
+    "missing_skip_reasons": 0,
+    "production_filters_changed": false,
+    "thresholds_deployed": false
+  },
+  "phase74_directional_quality": {
+    "status": "DESCRIPTIVE_ONLY",
+    "scored_rows": 370,
+    "target_dates": 37,
+    "directional_accuracy_pct": 49.18918918918919,
+    "recent_5_directional_accuracy_pct": 60.0,
+    "production_model_changed": false,
+    "method": "saved chronological scores; no refit or threshold search"
+  },
+  "phase75_evidence": {
+    "status": "RECORDED",
+    "chronological_scoring": true,
+    "new_model_fit": false
+  },
+  "phase76_storage_audit": {
+    "status": "ABOVE_GITHUB_RECOMMENDED_SIZE",
+    "path": "data/ohlcv.csv",
+    "bytes": 89427700,
+    "size_mb": 85.28,
+    "rows": 957338,
+    "duplicate_symbol_date_keys": 0,
+    "date_span": {
+      "first": "2018-01-01",
+      "last": "2026-11-16"
+    },
+    "recommended_action": "Plan and test a staged compressed/partitioned storage migration with rollback; do not replace the source file in this diagnostic.",
+    "storage_changed": false,
+    "source_file_modified": false
+  },
+  "safety": {
+    "production_champion": "V1",
+    "v2_mode": "SHADOW_ONLY",
+    "automatic_promotion": false,
+    "ranking_or_risk_changed": false,
+    "storage_migrated": false
+  }
+}

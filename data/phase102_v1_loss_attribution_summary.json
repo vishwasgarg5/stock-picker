@@ -1,0 +1,11 @@
+{
+  "status": "SCORED",
+  "executed_trade_rows": 219,
+  "symbols": 86,
+  "net_pnl_sum": -5896.826146741922,
+  "loss_making_symbols": 56,
+  "worst_symbol": "IDBI",
+  "worst_symbol_net_pnl": -1416.610809326172,
+  "exit_reason_field_used": "exit_reason",
+  "diagnostic_only": true
+}

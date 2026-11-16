@@ -1,0 +1,12 @@
+{
+  "status": "SCORED",
+  "skipped_rows_with_actuals": 328,
+  "rejection_reasons": 2,
+  "confidence_field_used": "confidence_v3",
+  "high_confidence_skips": 66,
+  "high_confidence_mean_close_return_pct": -0.21090203590322834,
+  "high_confidence_positive_rate_pct": 48.484848484848484,
+  "counterfactuals_are_not_executable_pnl": true,
+  "selection_gates_changed": false,
+  "production_model_changed": false
+}

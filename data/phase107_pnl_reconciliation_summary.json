@@ -1,0 +1,529 @@
+{
+  "diagnostic_only": true,
+  "production_champion": "V1",
+  "v2_mode": "SHADOW_ONLY",
+  "production_model_changed": false,
+  "ranking_or_risk_changed": false,
+  "risk_or_sizing_changed": false,
+  "automatic_promotion": false,
+  "missing_facts_inferred": false,
+  "status": "BLOCKED",
+  "source": "data/paper_trades.csv",
+  "buy_rows": 219,
+  "missing_columns": [],
+  "complete_rows": 70,
+  "incomplete_rows": 149,
+  "missing_values_by_field": {
+    "entry_price": 0,
+    "exit_price": 0,
+    "shares": 149,
+    "allocated_capital": 149,
+    "gross_profit_loss": 149,
+    "costs": 149,
+    "profit_loss": 0,
+    "return_pct": 0
+  },
+  "invalid_non_finite_values_by_field": {
+    "entry_price": 0,
+    "exit_price": 0,
+    "shares": 0,
+    "allocated_capital": 0,
+    "gross_profit_loss": 0,
+    "costs": 0,
+    "profit_loss": 0,
+    "return_pct": 0
+  },
+  "invalid_non_finite_rows": 149,
+  "incomplete_rows_by_signal": {
+    "BUY": 149
+  },
+  "incomplete_rows_by_session": [
+    {
+      "target_date": "2026-09-29",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-09-30",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-01",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-05",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-06",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-07",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-08",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-09",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-12",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-13",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-14",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-15",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-16",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-19",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-21",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-22",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-23",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-26",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-27",
+      "buy_rows": 4,
+      "incomplete_rows": 4
+    },
+    {
+      "target_date": "2026-10-28",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-29",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-10-30",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-02",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-04",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-05",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-06",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-09",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-11",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-12",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-16",
+      "buy_rows": 5,
+      "incomplete_rows": 5
+    }
+  ],
+  "first_complete_session": "2026-09-18",
+  "last_complete_session": "2026-09-28",
+  "first_incomplete_session": "2026-09-29",
+  "last_incomplete_session": "2026-11-16",
+  "record_vintage_classification": "EXPLICIT_METADATA_WHEN_AVAILABLE; OTHERWISE_UNCLASSIFIED",
+  "record_vintage_counts": {
+    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 219
+  },
+  "incomplete_rows_by_record_vintage": {
+    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 149
+  },
+  "reconciliation_mismatch_rows": 0,
+  "accounting_identity": "gross_profit_loss - costs = profit_loss",
+  "gross_pnl_identity": "shares * (exit_price - entry_price) = gross_profit_loss",
+  "return_identity": "profit_loss / allocated_capital * 100 = return_pct",
+  "max_abs_accounting_delta": 8.526512829121202e-14,
+  "max_abs_gross_delta": 5.684341886080802e-14,
+  "max_abs_return_delta_pct_points": 4.440892098500626e-16,
+  "costs_subtracted_again": false,
+  "fixed_share_source_evidence": {
+    "status": "GROSS_SOURCE_EVIDENCE_PARTIAL",
+    "candidate_rows": 5,
+    "validated_rows": 5,
+    "mismatch_rows": 0,
+    "invalid_or_incomplete_source_rows": 214,
+    "invalid_or_incomplete_source_rows_by_reason": {
+      "INVALID_SPLIT_METADATA": 214
+    },
+    "source_evidence_by_session": [
+      {
+        "target_date": "2026-09-18",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-21",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-22",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-23",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-24",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-25",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-28",
+        "buy_rows": 10,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 10
+      },
+      {
+        "target_date": "2026-09-29",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-09-30",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-01",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-05",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-06",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-07",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-08",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-09",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-12",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-13",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-14",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-15",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-16",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-19",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-21",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-22",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-23",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-26",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-27",
+        "buy_rows": 4,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 4
+      },
+      {
+        "target_date": "2026-10-28",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-29",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-10-30",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-02",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-04",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-05",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-06",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-09",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-11",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-12",
+        "buy_rows": 5,
+        "candidate_rows": 0,
+        "validated_rows": 0,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-16",
+        "buy_rows": 5,
+        "candidate_rows": 5,
+        "validated_rows": 5,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 0
+      }
+    ],
+    "invalid_split_metadata_rows": 214,
+    "max_abs_position_value_delta": 0.0,
+    "max_abs_gross_pnl_delta": 0.0,
+    "max_abs_return_delta_pct_points": 4.9404924595819466e-15,
+    "source_semantics": "quantity and position_value are recorded source fields; profit_loss is gross P&L from quantity * (exit_price - entry_price)",
+    "costs_modeled": false,
+    "net_profit_loss_verified": false,
+    "source_ledger_mutated": false,
+    "policy": "Validate alternate source fields only; do not copy them into canonical accounting columns or assume transaction costs are zero."
+  },
+  "policy": "Uses recorded canonical values for the net ledger and separately validates alternate fixed-share source fields. No historical values are backfilled or inferred; alternate gross source evidence is not treated as proof of net accounting because costs are not modeled and it does not satisfy the net-accounting gate."
+}

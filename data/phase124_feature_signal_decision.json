@@ -1,0 +1,67 @@
+{
+  "phase": 124,
+  "title": "Chronological next-session feature signal audit",
+  "status": "WEAK_AND_NOT_PROMOTION_QUALIFIED",
+  "source_commit": "2a3fd212f83eb62409c57df7acfc7aba1586e27d",
+  "workflow_run": "https://github.com/vishwasgarg5/stock-picker/actions/runs/43677336478",
+  "cohort": {
+    "rows": 956314,
+    "symbols": 527,
+    "feature_dates": 2194,
+    "folds_completed": 4,
+    "strict_no_lookahead": true
+  },
+  "method": "Expanding chronological folds; each training target date strictly precedes the test block's first feature date; per-session cross-sectional Spearman rank IC.",
+  "strongest_features_by_absolute_oos_rank_ic": [
+    {
+      "feature": "atr14_pct",
+      "mean_oos_rank_ic": -0.02326509099982546,
+      "sign_consistent_folds": 4
+    },
+    {
+      "feature": "return_1d",
+      "mean_oos_rank_ic": -0.02302968178973473,
+      "sign_consistent_folds": 4
+    },
+    {
+      "feature": "return_5d",
+      "mean_oos_rank_ic": -0.022756277978350163,
+      "sign_consistent_folds": 4
+    },
+    {
+      "feature": "volatility20",
+      "mean_oos_rank_ic": -0.022127164979366922,
+      "sign_consistent_folds": 4
+    },
+    {
+      "feature": "range_pct",
+      "mean_oos_rank_ic": -0.019910454373965745,
+      "sign_consistent_folds": 4
+    },
+    {
+      "feature": "close_sma20_gap",
+      "mean_oos_rank_ic": -0.019252286929706798,
+      "sign_consistent_folds": 4
+    },
+    {
+      "feature": "bb_position",
+      "mean_oos_rank_ic": -0.017894012443550794,
+      "sign_consistent_folds": 4
+    },
+    {
+      "feature": "rsi14",
+      "mean_oos_rank_ic": -0.012181315956312503,
+      "sign_consistent_folds": 4
+    }
+  ],
+  "interpretation": "The strongest observed feature associations are consistently negative but very small in magnitude (absolute rank IC approximately 0.012-0.023). This is weak cross-sectional signal, not evidence of a useful forecast edge. Directional consistency alone does not establish economic significance or stable improvement over the previous-close baseline.",
+  "decision": {
+    "production_model_changed": false,
+    "production_champion": "V1",
+    "challengers_shadow_only": true,
+    "automatic_promotion": false,
+    "next": "Test a narrowly scoped, training-fold-only monotonic feature transformation or feature ablation against the existing baseline; preserve untouched chronological folds and compare MAPE, rank IC, directional accuracy, bias and turnover/cost sensitivity. Do not hard-code negative coefficients based only on this aggregate audit."
+  },
+  "ci_followup": "The initial Phase 124 workflow completed successfully, but the pytest invocation omitted the new Phase 124 test file. The workflow was corrected in commit a378d71724acac0dffeced2e1d6ba9709344a31c; require the new run to pass before treating Phase 124 regression coverage as verified.",
+  "tests_previous_suite": "27 passed; Phase 124 tests not included in that invocation."
+}

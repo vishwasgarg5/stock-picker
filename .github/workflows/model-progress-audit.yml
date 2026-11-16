@@ -1,0 +1,145 @@
+name: Model Progress Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_regression_tests:
+        description: Run independent regression-test groups
+        required: true
+        type: boolean
+        default: true
+  schedule:
+    # Weekly, Sunday 04:00 UTC. Manual runs are available at any time.
+    - cron: "0 4 * * 0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: model-progress-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  evidence-inventory:
+    name: Repository and evidence inventory
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      audit_result: ${{ steps.audit.outcome }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Audit implementation, data artifacts, roadmap evidence and readiness gates
+        id: audit
+        continue-on-error: true
+        run: python -m src.model_progress_audit --output-dir audit/model_progress
+      - name: Publish inventory to job summary
+        if: always()
+        run: |
+          if [ -f audit/model_progress/model_progress_audit.md ]; then
+            cat audit/model_progress/model_progress_audit.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "The inventory audit did not produce a report." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload inventory report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: model-progress-inventory
+          path: audit/model_progress/
+          if-no-files-found: warn
+          retention-days: 30
+
+  regression-tests:
+    name: Regression — ${{ matrix.suite }}
+    if: github.event_name != 'workflow_dispatch' || inputs.run_regression_tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include:
+          - suite: foundations-and-data
+            paths: "tests/test_pipeline_data_quality.py tests/test_prediction_validation.py tests/test_corporate_action_adjustments.py tests/test_historical_coverage_audit.py tests/test_repair_historical_gaps.py tests/test_market_calendar.py tests/test_index_constituent_intelligence.py tests/test_index_intelligence_data_quality.py tests/test_weekend_data_quality_audit.py"
+          - suite: forecasting-and-ranking
+            paths: "tests/test_directional_model.py tests/test_confidence.py tests/test_pipeline_ranking.py tests/test_phase128_ranking_authority.py tests/test_phase129_ranking_utility.py tests/test_news_context.py"
+          - suite: risk-and-paper-trading
+            paths: "tests/test_paper_trading.py tests/test_paper_trading_v2_accounting.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_trade_quality_model.py tests/test_advanced_governance.py tests/test_system_health.py tests/test_telegram_delivery_receipts.py"
+          - suite: phases-2-to-43
+            paths: "tests/test_phase2_optimizer.py tests/test_phase4_optimizer.py tests/test_phase20_accuracy.py tests/test_phase21_26.py tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py tests/test_phase32_40_diagnostics.py tests/test_phase41_43_diagnostics.py"
+          - suite: phases-48-to-106
+            paths: "tests/test_phase48_52_evidence.py tests/test_phase58_62_evidence.py tests/test_phase63_72_readiness.py tests/test_phase73_76_diagnostics.py tests/test_phase77_80_diagnostics.py tests/test_phase81_84_diagnostics.py tests/test_phase85_88_diagnostics.py tests/test_phase89_92_diagnostics.py tests/test_phase93_96_diagnostics.py tests/test_phase97_forecast_quality.py tests/test_phase98_101_quality.py tests/test_phase102_diagnostics.py tests/test_phase103_forecast_evidence.py tests/test_phase104_loss_concentration.py tests/test_phase105_exit_attribution.py tests/test_phase106_trade_lifecycle.py"
+          - suite: phases-107-to-129
+            paths: "tests/test_phase107_115_evidence.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase120_forecast_stability.py tests/test_phase123_feature_signal.py tests/test_phase124_feature_signal.py tests/test_phase125_feature_ablation.py tests/test_phase126_objective_target_audit.py tests/test_phase127_volatility_target.py"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pytest
+      - name: Run this independent test group
+        id: tests
+        continue-on-error: true
+        env:
+          TEST_PATHS: ${{ matrix.paths }}
+        run: |
+          set +e
+          python -m pytest -q ${TEST_PATHS} --junitxml="junit-${{ matrix.suite }}.xml"
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Publish suite result
+        if: always()
+        env:
+          SUITE: ${{ matrix.suite }}
+          TEST_RESULT: ${{ steps.tests.outputs.exit_code }}
+        run: |
+          echo "## ${SUITE}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${TEST_RESULT}" = "0" ]; then
+            echo "PASS — this test group completed successfully." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "FAIL/NOT RUN — pytest exit code: ${TEST_RESULT:-unknown}. Other groups continue independently." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload JUnit result
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: junit-${{ matrix.suite }}
+          path: junit-${{ matrix.suite }}.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+  audit-summary:
+    name: Consolidated audit result
+    if: always()
+    needs: [evidence-inventory, regression-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish independent job outcomes
+        env:
+          INVENTORY: ${{ needs.evidence-inventory.result }}
+          TESTS: ${{ needs.regression-tests.result }}
+        run: |
+          {
+            echo "# Model Progress Audit — run summary"
+            echo ""
+            echo "| Independent area | Result |"
+            echo "|---|---|"
+            echo "| Repository and evidence inventory | ${INVENTORY} |"
+            echo "| Regression test matrix | ${TESTS} |"
+            echo ""
+            echo "A failure in one test group does not cancel other groups. Open the individual job summaries and downloaded artifacts to identify the exact failing tests."
+            echo ""
+            echo "This workflow does not certify profitability or authorize model promotion."
+          } >> "$GITHUB_STEP_SUMMARY"

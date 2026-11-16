@@ -526,3 +526,46 @@ def test_risk_off_market_selection_accepts_defensive_selector(monkeypatch):
     selected, method = pipeline._apply_market_risk_selection(candidates, "RISK_OFF", 2)
     assert method == "risk_off_defensive_v1"
     assert selected["symbol"].tolist() == ["B", "A"]
+
+def test_empty_yahoo_batch_retries_each_symbol_individually(monkeypatch):
+    calls = []
+
+    def fake_download(batch, start):
+        calls.append(tuple(batch))
+        if len(batch) > 1:
+            return pd.DataFrame()
+        index = pd.DatetimeIndex(["2024-01-02"], name="Date")
+        return pd.DataFrame(
+            {
+                "Open": [10.0], "High": [11.0], "Low": [9.0],
+                "Close": [10.5], "Volume": [1000],
+                "Dividends": [0.0], "Stock Splits": [0.0],
+            },
+            index=index,
+        )
+
+    monkeypatch.setattr(pipeline, "_download_yahoo_batch", fake_download)
+    monkeypatch.setattr(pipeline.time, "sleep", lambda _seconds: None)
+
+    result = pipeline.download_history(["AAA", "BBB"], "2018-01-01")
+
+    assert calls == [("AAA", "BBB"), ("AAA",), ("BBB",)]
+    assert set(result["symbol"]) == {"AAA", "BBB"}
+    assert len(result) == 2
+    assert result["date"].notna().all()
+
+
+def test_empty_isolated_yahoo_response_is_retried_three_times(monkeypatch):
+    calls = []
+
+    def fake_download(batch, start):
+        calls.append(tuple(batch))
+        return pd.DataFrame()
+
+    monkeypatch.setattr(pipeline, "_download_yahoo_batch", fake_download)
+    monkeypatch.setattr(pipeline.time, "sleep", lambda _seconds: None)
+
+    result = pipeline.download_history(["AAA"], "2018-01-01")
+
+    assert calls == [("AAA",), ("AAA",), ("AAA",), ("AAA",)]
+    assert result.empty

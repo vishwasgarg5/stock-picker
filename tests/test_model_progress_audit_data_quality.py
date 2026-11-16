@@ -124,3 +124,18 @@ def test_blocked_gate_alone_keeps_overall_audit_red(tmp_path, monkeypatch):
     assert report["counts"]["FAIL"] == 0
     assert report["counts"]["BLOCKED"] > 0
     assert result == 1
+
+
+def test_listing_master_uses_verified_source_column_name(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    pd.DataFrame([{
+        "symbol": "ABC", "listing_date": "2020-01-01",
+        "listing_date_source": "https://www.nseindia.com/api/quote-equity?symbol=ABC",
+        "verified_at_utc": "2026-11-17T00:00:00+00:00",
+    }]).to_csv(data / "nse_listing_master.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "NSE listing-date master")
+    assert result["status"] == "PASS"

@@ -222,8 +222,10 @@ def refresh_constituent_snapshots(session=None, indexes: dict | None = None, as_
         fresh["symbol"] = fresh["symbol"].astype(str).str.upper().str.strip()
         fresh = fresh.dropna(subset=["as_of_date"]).drop_duplicates(["index", "symbol", "as_of_date"], keep="last")
         fresh = fresh.sort_values(["index", "as_of_date", "symbol"])
-        CONSTITUENTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        fresh.to_csv(CONSTITUENTS_FILE, index=False)
+    # Always persist the schema, even when the source is unavailable. An empty
+    # but valid artifact is distinguishable from a missing/malformed file.
+    CONSTITUENTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    fresh.reindex(columns=MEMBER_COLUMNS).to_csv(CONSTITUENTS_FILE, index=False)
     return fresh, audit
 
 

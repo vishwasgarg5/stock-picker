@@ -1,1 +1,3 @@
 One-time request to run the isolated 2018-present Yahoo Finance OHLCV recovery workflow on main.
+
+Run targeted historical session gap repair.

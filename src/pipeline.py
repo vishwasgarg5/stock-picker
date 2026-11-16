@@ -706,15 +706,19 @@ def rank_stocks(df: pd.DataFrame, fundamentals: pd.DataFrame | None = None, use_
     # Dedicated ranking challenger is strictly gated by its out-of-sample
     # promotion evidence; until then it cannot influence production ranking.
     latest["ranking_model_score"] = 0.0
+    latest["ranking_model_status"] = "SHADOW_DISABLED"
     try:
         from .ranking_model import latest_rank_scores
         challenger = latest_rank_scores(df)
         if not challenger.empty:
             latest = latest.merge(challenger, on="symbol", how="left", suffixes=("", "_challenger"))
             raw = pd.to_numeric(latest["ranking_model_score_challenger"], errors="coerce")
-            latest["ranking_model_score"] = raw.rank(pct=True).fillna(0.0) * 15.0
+            available = raw.notna() & np.isfinite(raw)
+            latest["ranking_model_score"] = raw.where(available).rank(pct=True).fillna(0.0) * 15.0
+            latest["ranking_model_status"] = np.where(available, "SHADOW_AVAILABLE", "SHADOW_PARTIAL")
             latest = latest.drop(columns=["ranking_model_score_challenger"])
     except Exception as exc:
+        latest["ranking_model_status"] = "UNAVAILABLE"
         print(f"Ranking challenger unavailable; retaining current ranking: {exc}")
     total_weight = float(sum(weight for weight, _ in FUNDAMENTAL_FIELDS.values()))
     latest["fundamental_coverage_pct"] = (
@@ -885,17 +889,27 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     spread_rank = out["prediction_spread"].rank(method="average", pct=True)
     out["confidence_score"] = ((1.0 - spread_rank).clip(0.0, 1.0) * 100.0).fillna(0.0)
     # Directional challenger is metadata/shadow-only until its own OOS gate passes.
+    out["direction_model_status"] = "SHADOW_UNAVAILABLE"
     try:
         from .directional_model import latest_direction_scores
         d = latest_direction_scores(df)
         if not d.empty:
             out = out.merge(d, on="symbol", how="left")
+            probability = pd.to_numeric(out["direction_probability"], errors="coerce")
+            valid_probability = probability.notna() & np.isfinite(probability) & probability.between(0.0, 1.0)
+            out["direction_probability"] = probability.where(valid_probability)
+            out["direction_model_status"] = np.where(valid_probability, "SHADOW_AVAILABLE", "SHADOW_PARTIAL")
+        else:
+            out["direction_probability"] = np.nan
     except Exception as exc:
-        print(f"Directional challenger unavailable; retaining base predictions: {exc}")
-    direction_series = out["direction_probability"] if "direction_probability" in out.columns else pd.Series(0.5, index=out.index)
-    out["direction_probability"] = pd.to_numeric(direction_series, errors="coerce").fillna(0.5).clip(0.0, 1.0)
-    out["direction_score_model"] = out["direction_probability"] * 100.0
+        out["direction_probability"] = np.nan
+        out["direction_model_status"] = "UNAVAILABLE"
+        print(f"Directional challenger unavailable; no neutral probability substituted: {exc}")
+    if "direction_probability" not in out.columns:
+        out["direction_probability"] = np.nan
+    out["direction_score_model"] = pd.to_numeric(out["direction_probability"], errors="coerce") * 100.0
     out["confidence_calibration_version"] = "uncertainty_rank_v2"
+    out["confidence_score_semantics"] = "relative_ensemble_uncertainty_rank_not_calibrated_probability"
 
     # New listings get a separate maturity-aware confidence score. This does not
     # change the core ML prediction; it prevents short post-IPO histories from
@@ -930,9 +944,13 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     candidates = out.sort_values("rank").copy()
     selection_method = "ranking_top10"
     selected_symbols = set(candidates.head(10)["symbol"])
+    candidates["news_context_status"] = "UNAVAILABLE"
+    candidates["news_context_error"] = ""
     try:
         from .index_intelligence import CONFIG
         cfg=json.loads(CONFIG.read_text()) if CONFIG.exists() else {}
+        news_reasons = cfg.get("news_reasons", []) or []
+        candidates["news_context_status"] = "AVAILABLE" if news_reasons else "NO_ITEMS"
         risk_level=str(cfg.get("risk_level","NEUTRAL")).upper()
         candidates["risk_level"]=risk_level
         candidates["index_risk_multiplier"]=float(cfg.get("risk_multiplier",0.80))
@@ -947,7 +965,7 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         try:
             from .advanced_governance import stock_news_impact, adaptive_selection_score, risk_budget, explain_selection
             universe_meta=pd.read_csv(UNIVERSE_FILE) if UNIVERSE_FILE.exists() else pd.DataFrame()
-            news_items=[{"headline":x.get("headline",""),"url":x.get("url","")} for x in (cfg.get("news_reasons",[]) or [])]
+            news_items=[{"headline":x.get("headline",""),"url":x.get("url","")} for x in news_reasons]
             stock_news=stock_news_impact(news_items, universe_meta)
             candidates=candidates.merge(stock_news,on="symbol",how="left")
             candidates["stock_news_score"]=pd.to_numeric(candidates["stock_news_score"],errors="coerce").fillna(0.0)
@@ -957,6 +975,8 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             candidates=risk_budget(candidates,PAPER_CAPITAL,0.20)
             candidates["selection_explanation"]=candidates.apply(lambda r: json.dumps(explain_selection(r),sort_keys=True),axis=1)
         except Exception as exc:
+            candidates["news_context_status"] = "SCORING_FAILED"
+            candidates["news_context_error"] = str(exc)[:500]
             print(f"Advanced selection context unavailable; retaining existing selection: {exc}")
             candidates["stock_news_score"]=0.0; candidates["stock_news_count"]=0; candidates["stock_news_reason"]=""
             candidates["adaptive_selection_score"]=candidates.get("total_score",0.0)
@@ -972,6 +992,8 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
         if risk_method!="ranking_top10":
             selected_symbols=set(candidates.head(10)["symbol"]); selection_method=risk_method
     except Exception as exc:
+        candidates["news_context_status"] = "CONFIG_OR_SELECTOR_UNAVAILABLE"
+        candidates["news_context_error"] = str(exc)[:500]
         print(f"Risk-off selector unavailable; retaining ranking Top-10: {exc}")
 
     # Apply the recent-error selector only after its own out-of-sample
@@ -1065,7 +1087,10 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     history_candidates.to_csv(CANDIDATE_HISTORY_FILE, index=False)
     selected = candidates[candidates["selected"] == 1].copy()
     if len(selected) != 10:
-        raise RuntimeError(f"Confidence selector produced {len(selected)} stocks; expected 10")
+        raise RuntimeError(
+            f"Prediction integrity gate blocked publication: selector produced {len(selected)} "
+            "valid candidates; exactly 10 are required by the current prediction contract"
+        )
     selected = selected.sort_values("rank").reset_index(drop=True)
     _validate_prediction_session(selected, target_date)
     return selected

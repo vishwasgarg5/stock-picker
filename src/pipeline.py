@@ -288,6 +288,39 @@ def _download_yahoo_batch(batch: list[str], start: str) -> pd.DataFrame:
     raise RuntimeError(f"Yahoo batch failed after 3 attempts: {last_error}")
 
 
+def _download_single_symbol_history(symbol: str, start: str) -> pd.DataFrame:
+    """Retry empty Yahoo responses per ticker, not just raised exceptions."""
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            raw = _download_yahoo_batch([symbol], start)
+            if raw.empty:
+                print(f"Yahoo returned no rows for {symbol} on isolated attempt {attempt + 1}/3")
+                if attempt < 2:
+                    time.sleep(2 ** attempt)
+                continue
+            if isinstance(raw.columns, pd.MultiIndex):
+                levels = raw.columns.get_level_values(0)
+                ticker = _yahoo_ticker(symbol)
+                if ticker in levels:
+                    raw = raw[ticker].copy()
+                elif symbol in levels:
+                    raw = raw[symbol].copy()
+                else:
+                    continue
+            result = _normalise_history(raw, symbol)
+            if not result.empty:
+                return result
+        except Exception as exc:
+            last_error = exc
+            print(f"Isolated Yahoo download for {symbol} failed on attempt {attempt + 1}/3: {exc}")
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+    if last_error:
+        print(f"No history recovered for {symbol} after isolated retries: {last_error}")
+    return pd.DataFrame(columns=EMPTY_HISTORY)
+
+
 def download_history(symbols: list[str], start: str) -> pd.DataFrame:
     rows = []
     # Smaller batches reduce the amount of work lost when Yahoo has a transient
@@ -299,20 +332,17 @@ def download_history(symbols: list[str], start: str) -> pd.DataFrame:
             raw = _download_yahoo_batch(batch, start)
         except Exception as exc:
             print(f"Download batch failed after retries; isolating symbols: {exc}")
-            # A failed batch must not discard good data for the other symbols.
-            for symbol in batch:
-                try:
-                    raw = _download_yahoo_batch([symbol], start)
-                    if raw.empty:
-                        continue
-                    x = _normalise_history(raw, symbol)
-                    if not x.empty:
-                        rows.append(x)
-                except Exception as symbol_exc:
-                    print(f"Skipping {symbol} after isolated retries: {symbol_exc}")
-            continue
+            raw = pd.DataFrame()
         if raw.empty:
+            # Empty provider responses are often transient too. Retry every
+            # ticker separately so one empty batch cannot silently erase an
+            # entire block of history.
+            for symbol in batch:
+                isolated = _download_single_symbol_history(symbol, start)
+                if not isolated.empty:
+                    rows.append(isolated)
             continue
+
         for symbol in batch:
             ticker = _yahoo_ticker(symbol)
             try:
@@ -323,39 +353,40 @@ def download_history(symbols: list[str], start: str) -> pd.DataFrame:
                     elif symbol in levels:
                         part = raw[symbol].copy()
                     else:
-                        # Yahoo can omit one ticker from an otherwise successful
-                        # batch response. Retry that symbol alone before treating
-                        # it as unavailable; this is especially important during
-                        # a one-time corporate-action backfill.
-                        isolated = _download_yahoo_batch([symbol], start)
-                        if isolated.empty:
-                            continue
-                        if isinstance(isolated.columns, pd.MultiIndex):
-                            isolated_levels = isolated.columns.get_level_values(0)
-                            if ticker in isolated_levels:
-                                part = isolated[ticker].copy()
-                            elif symbol in isolated_levels:
-                                part = isolated[symbol].copy()
-                            else:
-                                continue
-                        else:
-                            part = isolated.copy()
+                        isolated = _download_single_symbol_history(symbol, start)
+                        if not isolated.empty:
+                            rows.append(isolated)
+                        continue
+                elif len(batch) == 1:
+                    part = raw.copy()
                 else:
-                    if len(batch) != 1:
-                        # A single-symbol retry avoids silently losing a ticker
-                        # omitted from a multi-symbol Yahoo response.
-                        isolated = _download_yahoo_batch([symbol], start)
-                        if isolated.empty:
-                            continue
-                        part = isolated.copy()
-                    else:
-                        part = raw.copy()
-                x = _normalise_history(part, symbol)
-                if not x.empty:
-                    rows.append(x)
+                    # A flat response for a multi-ticker request cannot safely
+                    # be attributed to one symbol; isolate rather than guess.
+                    isolated = _download_single_symbol_history(symbol, start)
+                    if not isolated.empty:
+                        rows.append(isolated)
+                    continue
+                normalized = _normalise_history(part, symbol)
+                if normalized.empty:
+                    isolated = _download_single_symbol_history(symbol, start)
+                    if not isolated.empty:
+                        rows.append(isolated)
+                else:
+                    rows.append(normalized)
             except Exception as exc:
-                print(f"Skipping {symbol}: {exc}")
-    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=EMPTY_HISTORY)
+                print(f"Batch extraction failed for {symbol}; retrying individually: {exc}")
+                isolated = _download_single_symbol_history(symbol, start)
+                if not isolated.empty:
+                    rows.append(isolated)
+
+    result = pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=EMPTY_HISTORY)
+    if not result.empty:
+        result = result.drop_duplicates(["date", "symbol"], keep="last")
+    recovered = set(result["symbol"].astype(str).str.upper()) if not result.empty else set()
+    missing = sorted(set(str(s).upper() for s in symbols) - recovered)
+    if missing:
+        print(f"Yahoo history still unavailable for {len(missing)}/{len(symbols)} requested symbols: {missing[:30]}")
+    return result
 
 
 def update_history(symbols: list[str]) -> pd.DataFrame:

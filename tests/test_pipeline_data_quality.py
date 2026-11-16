@@ -425,3 +425,46 @@ def test_update_history_does_not_replace_empty_history_when_source_is_empty(monk
 
     assert history_file.read_text(encoding="utf-8") == ""
 
+def _candidate_session_rows(count=12):
+    return pd.DataFrame([
+        {
+            "prediction_date": "2026-11-16",
+            "target_date": "2026-11-17",
+            "symbol": f"STOCK{i:02d}",
+            "rank": i + 1,
+            "selected": int(i < 10),
+            "base_close": 100.0 + i,
+            "predicted_close": 101.0 + i,
+            "selection_method": "ranking_top10",
+        }
+        for i in range(count)
+    ])
+
+
+def test_candidate_session_integrity_accepts_complete_candidate_pool():
+    candidates = _candidate_session_rows(12)
+
+    pipeline._validate_candidate_session(candidates, pd.Timestamp("2026-11-17"))
+
+
+def test_candidate_session_integrity_rejects_incomplete_pool():
+    import pytest
+
+    candidates = _candidate_session_rows(9)
+    with pytest.raises(RuntimeError, match="at least 10 candidate rows"):
+        pipeline._validate_candidate_session(candidates, pd.Timestamp("2026-11-17"))
+
+
+def test_candidate_session_integrity_rejects_duplicate_symbols_and_invalid_selection_count():
+    import pytest
+
+    duplicate = _candidate_session_rows(12)
+    duplicate.loc[1, "symbol"] = duplicate.loc[0, "symbol"]
+    with pytest.raises(RuntimeError, match="duplicate symbols"):
+        pipeline._validate_candidate_session(duplicate, pd.Timestamp("2026-11-17"))
+
+    wrong_selection_count = _candidate_session_rows(12)
+    wrong_selection_count.loc[9, "selected"] = 0
+    with pytest.raises(RuntimeError, match="exactly 10 explicit selections"):
+        pipeline._validate_candidate_session(wrong_selection_count, pd.Timestamp("2026-11-17"))
+

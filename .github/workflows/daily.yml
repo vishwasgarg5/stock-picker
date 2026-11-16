@@ -80,10 +80,6 @@ jobs:
         if: inputs.reuse_stored_data != true
         run: python -m src.confidence_validation
 
-      - name: Validate selector A/B before production selection
-        if: inputs.reuse_stored_data != true
-        run: python -m src.selection_validation
-
       - name: Update universe, evaluate yesterday's prediction, retrain and predict tomorrow
         if: inputs.reuse_stored_data != true
         run: |
@@ -94,6 +90,10 @@ jobs:
           update_universe()
           run_evening()
           PY
+
+      - name: Refresh selector validation after market history update (shadow-only)
+        if: inputs.reuse_stored_data != true
+        run: python -m src.selection_validation
 
       - name: Refresh long-horizon prediction outcomes
         run: python -m src.outcomes

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
+import json
 import numpy as np
 import pandas as pd
 
@@ -8,6 +9,8 @@ DATA = ROOT / "data"
 CANDIDATES_FILE = DATA / "prediction_candidates_history.csv"
 HISTORY_FILE = DATA / "ohlcv.csv"
 OUTPUT_FILE = DATA / "selection_validation.csv"
+PREDICTIONS_FILE = DATA / "predictions.csv"
+COVERAGE_FILE = DATA / "selection_validation_coverage.json"
 
 MIN_ROWS = 100
 MIN_SESSIONS = 12
@@ -15,7 +18,70 @@ MIN_IMPROVEMENT = 0.01  # 1% relative MAPE improvement
 
 
 def _read(path: Path) -> pd.DataFrame:
-    return pd.read_csv(path) if path.exists() else pd.DataFrame()
+    if not path.exists():
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(path, low_memory=False)
+    except (OSError, ValueError, UnicodeDecodeError, pd.errors.EmptyDataError, pd.errors.ParserError):
+        return pd.DataFrame()
+
+
+def _write_coverage_audit(predictions: pd.DataFrame, candidates: pd.DataFrame, history: pd.DataFrame) -> dict:
+    def session_dates(frame: pd.DataFrame) -> set[str]:
+        if frame.empty or "prediction_date" not in frame.columns:
+            return set()
+        dates = pd.to_datetime(frame["prediction_date"], errors="coerce").dt.normalize()
+        return set(dates.dropna().dt.strftime("%Y-%m-%d"))
+
+    prediction_sessions = session_dates(predictions)
+    candidate_sessions = session_dates(candidates)
+    missing_sessions = sorted(prediction_sessions - candidate_sessions)
+    duplicate_keys = 0
+    matched_rows = 0
+    unmatched_rows = len(candidates)
+    if not candidates.empty and {"prediction_date", "target_date", "symbol"}.issubset(candidates.columns):
+        keys = ["prediction_date", "target_date", "symbol"]
+        normalized = candidates.copy()
+        normalized["prediction_date"] = pd.to_datetime(normalized["prediction_date"], errors="coerce").dt.normalize()
+        normalized["target_date"] = pd.to_datetime(normalized["target_date"], errors="coerce").dt.normalize()
+        normalized["symbol"] = normalized["symbol"].astype(str).str.upper().str.strip()
+        duplicate_keys = int(normalized.duplicated(keys, keep=False).sum())
+        if not history.empty and {"date", "symbol", "close"}.issubset(history.columns):
+            actual = history[["date", "symbol", "close"]].copy()
+            actual["target_date"] = pd.to_datetime(actual.pop("date"), errors="coerce").dt.normalize()
+            actual["symbol"] = actual["symbol"].astype(str).str.upper().str.strip()
+            actual["close"] = pd.to_numeric(actual["close"], errors="coerce")
+            actual = actual.dropna(subset=["target_date", "symbol", "close"]).drop_duplicates(
+                ["target_date", "symbol"], keep="last"
+            )
+            merged = normalized.merge(
+                actual[["target_date", "symbol", "close"]],
+                on=["target_date", "symbol"], how="left", validate="many_to_one"
+            )
+            matched_rows = int(merged["close"].notna().sum())
+            unmatched_rows = int(merged["close"].isna().sum())
+    result = {
+        "status": "MATCHED_DATA_AVAILABLE" if matched_rows else "BLOCKED_NO_MATCHED_OUTCOMES",
+        "prediction_rows": int(len(predictions)),
+        "prediction_sessions": len(prediction_sessions),
+        "prediction_session_dates": sorted(prediction_sessions),
+        "candidate_rows": int(len(candidates)),
+        "candidate_sessions": len(candidate_sessions),
+        "candidate_session_dates": sorted(candidate_sessions),
+        "prediction_sessions_missing_candidate_history": missing_sessions,
+        "missing_candidate_session_count": len(missing_sessions),
+        "duplicate_candidate_vintage_keys": duplicate_keys,
+        "history_rows": int(len(history)),
+        "matched_candidate_rows": matched_rows,
+        "candidate_rows_without_actual_close": unmatched_rows,
+        "minimum_sessions_required": MIN_SESSIONS,
+        "minimum_rows_required": MIN_ROWS,
+        "candidate_history_reconstructed_from_top10_predictions": False,
+        "missing_facts_inferred": False,
+    }
+    COVERAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    COVERAGE_FILE.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    return result
 
 
 def _blocked_summary(candidate_rows: int, status: str, reason: str) -> pd.DataFrame:
@@ -48,21 +114,16 @@ def _blocked_summary(candidate_rows: int, status: str, reason: str) -> pd.DataFr
 def run_selection_validation() -> pd.DataFrame:
     candidates = _read(CANDIDATES_FILE)
     hist = _read(HISTORY_FILE)
+    predictions = _read(PREDICTIONS_FILE)
+    _write_coverage_audit(predictions, candidates, hist)
     if candidates.empty or hist.empty:
-        out = pd.DataFrame([{
-            "as_of": pd.Timestamp.now().normalize(), "candidate_rows": 0, "sessions": 0,
-            "baseline_close_mape_pct": np.nan, "adjusted_close_mape_pct": np.nan,
-            "relative_mape_improvement_pct": np.nan, "baseline_direction_accuracy_pct": np.nan,
-            "adjusted_direction_accuracy_pct": np.nan, "baseline_profitable_close_pct": np.nan,
-            "adjusted_profitable_close_pct": np.nan, "baseline_mean_return_pct": np.nan,
-            "adjusted_mean_return_pct": np.nan, "minimum_rows_required": MIN_ROWS,
-            "minimum_sessions_required": MIN_SESSIONS,
-            "minimum_relative_mape_improvement_pct": MIN_IMPROVEMENT * 100,
-            "recent_error_promotion_evidence": False, "promotion_evidence": False,
-            "validation_status": "collecting",
-        }])
-        out.to_csv(OUTPUT_FILE, index=False)
-        return out
+        if candidates.empty:
+            reason = "Candidate history is empty; top-10 prediction rows are not a substitute for the full candidate pool"
+            status = "blocked_missing_candidate_history"
+        else:
+            reason = "Realized OHLC history is missing or empty; candidate outcomes cannot be matched"
+            status = "blocked_missing_actual_history"
+        return _blocked_summary(len(candidates), status, reason)
 
     c = candidates.copy()
     h = hist.copy()

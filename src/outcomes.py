@@ -82,10 +82,18 @@ def run_outcomes() -> pd.DataFrame:
         old = pd.read_csv(OUTPUT_FILE)
         output = pd.concat([old, output], ignore_index=True)
 
+    if "prediction_date" not in output.columns:
+        output["prediction_date"] = pd.NaT
     output["prediction_date"] = pd.to_datetime(output["prediction_date"], errors="coerce").dt.normalize()
     output["target_date"] = pd.to_datetime(output["target_date"], errors="coerce").dt.normalize()
     for label in HORIZONS:
         output[f"{label}_target_date"] = pd.to_datetime(output[f"{label}_target_date"], errors="coerce").dt.normalize()
+        derived_status = np.where(output[f"{label}_actual_close"].notna(), "AVAILABLE", "PENDING")
+        status_col = f"{label}_status"
+        if status_col not in output.columns:
+            output[status_col] = derived_status
+        else:
+            output[status_col] = output[status_col].fillna(pd.Series(derived_status, index=output.index))
 
     output = (
         output.dropna(subset=["target_date", "symbol"])

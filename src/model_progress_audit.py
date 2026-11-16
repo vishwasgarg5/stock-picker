@@ -387,6 +387,114 @@ def audit_live_data(rows):
             f"latest_prediction_date={latest.date() if pd.notna(latest) else 'unknown'}; rows={len(latest_rows)}; all_target_dates_after_prediction={bool(latest_rows['target_date'].gt(latest).all()) if not latest_rows.empty else False}",
             "data/predictions.csv")
 
+
+    candidates = _check_csv_nonempty(rows, "Prediction candidate history", "data/prediction_candidates_history.csv",
+        {"prediction_date", "target_date", "symbol", "base_close", "predicted_close", "rank", "score"}, 1)
+    if candidates is not None:
+        ch = candidates.copy()
+        keys = ["prediction_date", "target_date", "symbol"]
+        nulls = int(ch[keys + ["base_close", "predicted_close", "rank", "score"]].isna().sum().sum())
+        dup = int(ch.duplicated(keys).sum())
+        add(rows, "Live data quality and freshness", "Candidate-history completeness and uniqueness",
+            "PASS" if nulls == 0 and dup == 0 else "FAIL",
+            f"rows={len(ch)}; required_null_cells={nulls}; duplicate_candidate_keys={dup}",
+            "data/prediction_candidates_history.csv")
+        if (ROOT / "data/predictions.csv").exists():
+            pred = _read_csv(ROOT / "data/predictions.csv")
+            if set(keys).issubset(pred.columns) and set(keys).issubset(ch.columns) and not pred.empty:
+                pred["prediction_date"] = pd.to_datetime(pred["prediction_date"], errors="coerce")
+                ch["prediction_date"] = pd.to_datetime(ch["prediction_date"], errors="coerce")
+                latest_pred = pred["prediction_date"].max()
+                expected = pred.loc[pred["prediction_date"].eq(latest_pred), keys].drop_duplicates()
+                actual = ch[keys].drop_duplicates()
+                for frame in (expected, actual):
+                    frame["target_date"] = pd.to_datetime(frame["target_date"], errors="coerce")
+                    frame["symbol"] = frame["symbol"].astype(str).str.upper().str.strip()
+                missing = expected.merge(actual, on=keys, how="left", indicator=True)
+                missing_count = int(missing["_merge"].eq("left_only").sum())
+                add(rows, "Live data quality and freshness", "Latest predictions covered by candidate history",
+                    "PASS" if missing_count == 0 else "FAIL",
+                    f"latest_prediction_date={latest_pred.date() if pd.notna(latest_pred) else 'unknown'}; current_predictions={len(expected)}; missing_candidate_history={missing_count}",
+                    "data/predictions.csv + data/prediction_candidates_history.csv")
+
+    evaluations = _check_csv_nonempty(rows, "Prediction evaluation outcomes", "data/evaluations.csv",
+        {"prediction_date", "target_date", "symbol", "predicted_close", "actual_close", "close_error"}, 1)
+    if evaluations is not None:
+        ev = evaluations.copy()
+        for c in ["prediction_date", "target_date"]:
+            ev[c] = pd.to_datetime(ev[c], errors="coerce")
+        numeric = ["predicted_close", "actual_close", "close_error"]
+        for c in numeric:
+            ev[c] = pd.to_numeric(ev[c], errors="coerce")
+        nulls = int(ev[["prediction_date", "target_date", "symbol"] + numeric].isna().sum().sum())
+        dup = int(ev.duplicated(["prediction_date", "target_date", "symbol"]).sum())
+        future_targets = int((ev["target_date"] > pd.Timestamp.now().normalize()).sum())
+        add(rows, "Live data quality and freshness", "Evaluation outcome completeness",
+            "PASS" if nulls == 0 and dup == 0 and future_targets == 0 else "FAIL",
+            f"rows={len(ev)}; missing_required_cells={nulls}; duplicate_keys={dup}; future_unrealized_targets={future_targets}",
+            "data/evaluations.csv")
+
+    for rel, label, version in [
+        ("data/paper_trades.csv", "V1 paper-trading ledger", 1),
+        ("data/paper_trades_v2.csv", "V2 shadow-trading ledger", 2),
+    ]:
+        required = {"symbol", "target_date", "signal", "quantity", "planned_capital"} if version == 2 else {"symbol", "target_date", "signal"}
+        ledger = _check_csv_nonempty(rows, label, rel, required, 1)
+        if ledger is None:
+            continue
+        signal = ledger["signal"].fillna("").astype(str).str.upper().str.strip()
+        buys = ledger.loc[signal.eq("BUY")].copy()
+        skips = ledger.loc[signal.eq("SKIP")].copy()
+        missing_buy = 0
+        if version == 2:
+            for col in ["quantity", "planned_capital"]:
+                buys[col] = pd.to_numeric(buys[col], errors="coerce")
+                missing_buy += int((~np.isfinite(buys[col])).sum())
+                if col in buys:
+                    missing_buy += int((buys[col] <= 0).sum())
+            reason_missing = int(skips.get("no_trade_reason", pd.Series("", index=skips.index)).fillna("").astype(str).str.strip().eq("").sum())
+        else:
+            for col in ["entry_price", "exit_price", "profit_loss", "return_pct"]:
+                if col in buys:
+                    buys[col] = pd.to_numeric(buys[col], errors="coerce")
+                    missing_buy += int((~np.isfinite(buys[col])).sum())
+            reason_missing = 0
+        add(rows, "Live data quality and freshness", f"{label} BUY/skip field integrity",
+            "PASS" if missing_buy == 0 and reason_missing == 0 else "REVIEW",
+            f"rows={len(ledger)}; BUY_rows={len(buys)}; BUY_missing_or_invalid_fields={missing_buy}; SKIP_rows_without_reason={reason_missing}",
+            rel)
+
+    # The broad market intelligence output is a persisted, date-stamped input to daily selection.
+    intel = _check_csv_nonempty(rows, "Market/index intelligence output", "data/index_intelligence_summary.csv",
+        {"index", "as_of", "regime", "direction", "data_quality", "index_data_available"}, 1)
+    if intel is not None:
+        ix = intel.copy()
+        ix["as_of"] = pd.to_datetime(ix["as_of"], errors="coerce")
+        latest = ix["as_of"].max()
+        unavailable = int(ix["index_data_available"].astype(str).str.lower().isin({"false", "0", "no"}).sum())
+        bad_quality = int(~ix["data_quality"].astype(str).str.upper().isin({"HIGH", "PASS", "OK"}).sum())
+        add(rows, "Live data quality and freshness", "Market intelligence freshness and source status",
+            "PASS" if pd.notna(latest) and unavailable == 0 and bad_quality == 0 else "REVIEW",
+            f"rows={len(ix)}; latest_as_of={latest.date() if pd.notna(latest) else 'unknown'}; unavailable_index_rows={unavailable}; non_high_quality_rows={bad_quality}",
+            "data/index_intelligence_summary.csv")
+
+    # Confirm the production and weekend workflows actually schedule the refreshers
+    # and persist the outputs. This catches a data module that exists but is never run.
+    daily_path = ROOT / ".github/workflows/daily.yml"
+    weekend_path = ROOT / ".github/workflows/weekend-data-audit.yml"
+    wiring = [
+        (daily_path, "Daily official calendar refresh", "src.market_calendar --check-today"),
+        (daily_path, "Daily index OHLCV and constituent refresh", "src.index_constituent_intelligence"),
+        (weekend_path, "Weekend official calendar refresh", "src.market_calendar"),
+        (weekend_path, "Weekend stock-history quality refresh", "src.weekend_data_quality_audit"),
+        (weekend_path, "Weekend index data refresh", "src.index_constituent_intelligence"),
+    ]
+    for path, label, needle in wiring:
+        present = path.exists() and needle in path.read_text(encoding="utf-8")
+        add(rows, "Refresh automation wiring", label, "PASS" if present else "FAIL",
+            "Refresh command is wired into workflow" if present else f"Refresh command missing from {path.relative_to(ROOT)}",
+            str(path.relative_to(ROOT)))
+
     # Explicitly surface whether the index features are actually consumed by the production model.
     pipeline_text = (ROOT / "src/pipeline.py").read_text(encoding="utf-8") if (ROOT / "src/pipeline.py").exists() else ""
     consumed = "index_constituent_features" in pipeline_text

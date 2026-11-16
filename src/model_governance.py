@@ -99,6 +99,7 @@ def _stock_stability(evaluations: pd.DataFrame) -> pd.DataFrame:
     x["direction_correct"] = pd.to_numeric(x["close_direction_correct"], errors="coerce")
     x["target_date"] = pd.to_datetime(x.get("target_date"), errors="coerce").dt.normalize()
     x = x.dropna(subset=["symbol","direction_correct","target_date"])
+    x = x.sort_values(["symbol", "target_date"], kind="mergesort")
     if x.empty:
         return pd.DataFrame()
     latest = x["target_date"].max()
@@ -171,7 +172,10 @@ def _tail_risk() -> dict:
     if trades.empty or "profit_loss" not in trades.columns:
         return {"v2_trades": 0, "worst_trade_pnl": np.nan, "consecutive_losses": 0, "profit_factor": np.nan}
     if "signal" in trades.columns:
-        trades = trades[trades["signal"].astype(str).str.upper().eq("BUY")]
+        trades = trades[trades["signal"].astype(str).str.upper().eq("BUY")].copy()
+    if "target_date" in trades.columns:
+        trades["target_date"] = pd.to_datetime(trades["target_date"], errors="coerce")
+        trades = trades.sort_values(["target_date", "symbol"] if "symbol" in trades.columns else ["target_date"], kind="mergesort")
     pnl = pd.to_numeric(trades["profit_loss"], errors="coerce").dropna()
     if pnl.empty:
         return {"v2_trades": 0, "worst_trade_pnl": np.nan, "consecutive_losses": 0, "profit_factor": np.nan}
@@ -222,6 +226,12 @@ def _model_drift() -> dict:
     h = _read("performance_history.csv")
     if h.empty or "direction_accuracy_pct" not in h.columns:
         return {"status": "collecting", "recent_direction_accuracy_pct": np.nan, "prior_direction_accuracy_pct": np.nan}
+    if "target_date" in h.columns:
+        h = h.assign(_target_date=pd.to_datetime(h["target_date"], errors="coerce"))
+        h = h.sort_values("_target_date", kind="mergesort")
+    elif "date" in h.columns:
+        h = h.assign(_target_date=pd.to_datetime(h["date"], errors="coerce"))
+        h = h.sort_values("_target_date", kind="mergesort")
     x = pd.to_numeric(h["direction_accuracy_pct"], errors="coerce").dropna()
     if len(x) < 10:
         return {"status": "collecting", "recent_direction_accuracy_pct": float(x.mean()) if len(x) else np.nan, "prior_direction_accuracy_pct": np.nan}

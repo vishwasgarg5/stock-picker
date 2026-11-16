@@ -846,6 +846,8 @@ def _merge_candidate_history(existing: pd.DataFrame, candidates: pd.DataFrame) -
     """
     keys = ["prediction_date", "target_date", "symbol"]
     for frame_name, frame in [("existing", existing), ("current", candidates)]:
+        if frame.empty and frame_name == "existing":
+            continue
         missing = [key for key in keys if key not in frame.columns]
         if missing:
             raise ValueError(f"{frame_name.title()} candidate history is missing required key columns: {missing}")

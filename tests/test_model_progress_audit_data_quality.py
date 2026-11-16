@@ -38,10 +38,16 @@ def test_calendar_missing_refresh_timestamp_is_not_a_pass(tmp_path, monkeypatch)
 def test_ohlcv_audit_detects_duplicate_keys_and_invalid_bars(tmp_path, monkeypatch):
     _calendar(tmp_path)
     data = tmp_path / "data"
-    pd.DataFrame([
-        {"date": "2026-11-16", "symbol": "ABC", "open": 10, "high": 9, "low": 8, "close": 11, "volume": 100},
-        {"date": "2026-11-16", "symbol": "ABC", "open": 10, "high": 12, "low": 8, "close": 11, "volume": 100},
-    ]).to_csv(data / "ohlcv.csv", index=False)
+    records = [
+        {"date": f"2019-01-{(i % 28) + 1:02d}", "symbol": f"S{i:03d}",
+         "open": 10, "high": 12, "low": 8, "close": 11, "volume": 100}
+        for i in range(100)
+    ]
+    records[0] = {"date": "2019-01-01", "symbol": "S000", "open": 10, "high": 9,
+                  "low": 8, "close": 11, "volume": 100}
+    records[1] = {"date": "2019-01-01", "symbol": "S000", "open": 10, "high": 12,
+                  "low": 8, "close": 11, "volume": 100}
+    pd.DataFrame(records).to_csv(data / "ohlcv.csv", index=False)
     monkeypatch.setattr(audit, "ROOT", tmp_path)
     rows = []
     audit.audit_live_data(rows)

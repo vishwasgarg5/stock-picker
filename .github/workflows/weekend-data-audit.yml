@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: stock-picker-weekend-data-audit
+  group: stock-picker-daily-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/ohlcv.csv data/weekend_data_quality_audit.json data/weekend_data_quality_audit.csv
+          git add data/ohlcv.csv data/fundamentals.csv data/fundamentals_history.csv data/weekend_data_quality_audit.json data/weekend_data_quality_audit.csv
           if git diff --cached --quiet; then
             echo "No data or audit report changes to commit."
           else

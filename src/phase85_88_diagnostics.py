@@ -45,9 +45,9 @@ def receipt_anomaly_classification() -> tuple[dict[str, Any], pd.DataFrame]:
             per_file[name] = {"rows": 0, "hash_coverage_pct": None, "status_coverage_pct": None,
                               "message_id_coverage_pct": None}
             continue
-        hashes = df.get("message_hash", pd.Series("", index=df.index)).fillna("").astype(str).str.strip()
-        status = df.get("delivery_status", pd.Series("", index=df.index)).fillna("").astype(str).str.strip()
-        msgid = df.get("telegram_message_id", pd.Series("", index=df.index)).fillna("").astype(str).str.strip()
+        hashes = df.get("message_hash", pd.Series("", index=df.index)).astype("string").fillna("").str.strip()
+        status = df.get("delivery_status", pd.Series("", index=df.index)).astype("string").fillna("").str.strip()
+        msgid = df.get("telegram_message_id", pd.Series("", index=df.index)).astype("string").fillna("").str.strip()
         valid_hash = hashes.ne("")
         repeated = valid_hash & hashes.duplicated(keep=False)
         per_file[name] = {
@@ -97,7 +97,7 @@ def receipt_schema_readiness() -> tuple[dict[str, Any], pd.DataFrame]:
         row = {"file": name, "rows": int(len(df)), "file_present": (DATA / name).exists()}
         for col in required:
             row[f"has_{col}"] = col in present
-            row[f"{col}_nonempty_pct"] = round(100 * df[col].fillna("").astype(str).str.strip().ne("").mean(), 2) if col in present and len(df) else (0.0 if col in present else None)
+            row[f"{col}_nonempty_pct"] = round(100 * df[col].astype("string").fillna("").str.strip().ne("").mean(), 2) if col in present and len(df) else (0.0 if col in present else None)
         row["schema_ready_for_future_receipts"] = all(col in present for col in required)
         rows.append(row)
     detail = pd.DataFrame(rows)

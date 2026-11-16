@@ -148,8 +148,8 @@ def v2_diagnostics() -> tuple[dict[str, Any], pd.DataFrame]:
                 "skip_rows": 0, "missing_skip_reason_rows": None}, pd.DataFrame()
     signal = frame["signal"].astype(str).str.upper().str.strip()
     skips = frame.loc[signal.eq("SKIP")].copy()
-    reason = skips.get("no_trade_reason", pd.Series("", index=skips.index)).fillna("").astype(str).str.strip()
-    phase4 = skips.get("phase4_reject_reason", pd.Series("", index=skips.index)).fillna("").astype(str).str.strip()
+    reason = skips.get("no_trade_reason", pd.Series("", index=skips.index)).astype("string").fillna("").str.strip()
+    phase4 = skips.get("phase4_reject_reason", pd.Series("", index=skips.index)).astype("string").fillna("").str.strip()
     skips["primary_reason"] = reason.where(reason.ne(""), "MISSING_REASON")
     skips["phase4_reason"] = phase4.where(phase4.ne(""), "NOT_RECORDED")
     by_reason = skips.groupby(["primary_reason", "phase4_reason"], dropna=False).size().reset_index(name="rows")
@@ -175,7 +175,7 @@ def telegram_diagnostics() -> dict[str, Any]:
         if frame.empty:
             per_file[name] = {"rows": 0, "confirmed": 0, "legacy_unverified": 0, "missing_status": 0}
             continue
-        status = frame.get("delivery_status", pd.Series("", index=frame.index)).fillna("").astype(str).str.strip()
+        status = frame.get("delivery_status", pd.Series("", index=frame.index)).astype("string").fillna("").str.strip()
         counts = {
             "rows": int(len(frame)),
             "confirmed": int(status.eq("TELEGRAM_API_CONFIRMED").sum()),

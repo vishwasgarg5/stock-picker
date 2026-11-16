@@ -977,7 +977,9 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
             from .news_context import sector_news_score
             impacts=cfg.get("sector_news_impacts",{}) or {}
             candidates["sector_news_score"]=candidates.get("sector",pd.Series("",index=candidates.index)).map(lambda s: sector_news_score(s,impacts))
-        except Exception:
+        except Exception as exc:
+            candidates["news_context_status"] = "SECTOR_SCORING_FAILED"
+            candidates["news_context_error"] = str(exc)[:500]
             candidates["sector_news_score"]=0.0
         # Company-specific news is a second, narrower layer above sector context.
         try:

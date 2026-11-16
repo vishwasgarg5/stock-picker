@@ -36,8 +36,15 @@ def main(preflight: bool = False) -> int:
         )
         if has_ci_triggers and not safe_event_split:
             failures.append("workflow_has_unwanted_push_or_pull_request_trigger")
-        if "schedule:" not in workflow or "30 10 * * 1-5" not in workflow:
-            failures.append("workflow_schedule_is_not_16_00_IST_weekdays")
+        calendar_gated_daily_schedule = (
+            "schedule:" in workflow
+            and "30 10 * * *" in workflow
+            and "market_calendar_gate:" in workflow
+            and "needs.market_calendar_gate.outputs.should_run == 'true'" in workflow
+        )
+        legacy_weekday_schedule = "schedule:" in workflow and "30 10 * * 1-5" in workflow
+        if not (calendar_gated_daily_schedule or legacy_weekday_schedule):
+            failures.append("workflow_schedule_is_not_calendar_gated_16_00_IST")
         if "workflow_dispatch:" not in workflow or "reuse_stored_data" not in workflow:
             failures.append("workflow_dispatch_reuse_input_missing")
         if "concurrency:" not in workflow or not any(

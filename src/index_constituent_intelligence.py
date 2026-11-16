@@ -134,7 +134,8 @@ def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | N
     for item in data:
         if not isinstance(item, dict):
             continue
-        symbol = str(item.get("symbol") or item.get("meta", {}).get("symbol") or "").strip().upper()
+        meta = item.get("meta") if isinstance(item.get("meta"), dict) else {}
+        symbol = str(item.get("symbol") or meta.get("symbol") or "").strip().upper()
         if not symbol or symbol in {index, NSE_INDEX_NAMES.get(index, "").upper(), "NIFTY 50"}:
             continue
         ffmc_raw = item.get("ffmc") or item.get("marketCap") or item.get("market_cap")
@@ -159,9 +160,12 @@ def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | N
     # an official weight, and is not substituted for capped/equal-weight rules.
     cap_weighted = index in {"NIFTY50", "NIFTYNEXT50", "NIFTY100", "NIFTY200", "NIFTY500", "BANKNIFTY", "NIFTYIT", "NIFTYAUTO", "NIFTYFIN", "NIFTYPHARMA", "NIFTYFMCG"}
     pending = out["weight_pct"].isna()
-    total_ffmc = pd.to_numeric(out.loc[pending, "ffmc"], errors="coerce").sum(min_count=1)
-    if cap_weighted and pd.notna(total_ffmc) and total_ffmc > 0:
-        out.loc[pending, "weight_pct"] = pd.to_numeric(out.loc[pending, "ffmc"], errors="coerce") / total_ffmc * 100.0
+    total_ffmc = pd.to_numeric(out["ffmc"], errors="coerce").sum(min_count=1)
+    official_total = pd.to_numeric(out.loc[~pending, "weight_pct"], errors="coerce").sum(min_count=1)
+    residual_weight = max(0.0, 100.0 - float(official_total or 0.0)) if pd.notna(official_total) else 100.0
+    if cap_weighted and pd.notna(total_ffmc) and total_ffmc > 0 and residual_weight > 0:
+        pending_ffmc = pd.to_numeric(out.loc[pending, "ffmc"], errors="coerce")
+        out.loc[pending, "weight_pct"] = pending_ffmc / total_ffmc * 100.0 * residual_weight
         out.loc[pending & out["weight_pct"].notna(), "weight_method"] = "ESTIMATED_FFMC_PROXY"
     return out
 

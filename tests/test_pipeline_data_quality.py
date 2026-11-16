@@ -349,3 +349,46 @@ def test_v1_challenger_selectors_require_explicit_human_authorization(tmp_path, 
 
     readiness.write_text('{"production_changes_authorized": true}', encoding="utf-8")
     assert pipeline._production_selector_authorized() is True
+
+
+def test_selection_validation_reports_missing_candidate_vintages_and_empty_market_history(tmp_path, monkeypatch):
+    import json
+    import src.selection_validation as validation
+
+    prediction_dates = pd.date_range("2026-01-01", periods=13, freq="B")
+    predictions = pd.DataFrame({
+        "prediction_date": prediction_dates,
+        "target_date": prediction_dates + pd.offsets.BDay(1),
+        "symbol": ["AAA"] * len(prediction_dates),
+    })
+    candidates = pd.DataFrame([{
+        "prediction_date": prediction_dates[0],
+        "target_date": prediction_dates[0] + pd.offsets.BDay(1),
+        "symbol": "AAA",
+        "base_close": 100.0,
+        "predicted_close": 101.0,
+        "rank": 1,
+        "selected": 1,
+    }])
+    predictions.to_csv(tmp_path / "predictions.csv", index=False)
+    candidates.to_csv(tmp_path / "candidates.csv", index=False)
+    (tmp_path / "history.csv").write_text("", encoding="utf-8")
+
+    monkeypatch.setattr(validation, "PREDICTIONS_FILE", tmp_path / "predictions.csv")
+    monkeypatch.setattr(validation, "CANDIDATES_FILE", tmp_path / "candidates.csv")
+    monkeypatch.setattr(validation, "HISTORY_FILE", tmp_path / "history.csv")
+    monkeypatch.setattr(validation, "OUTPUT_FILE", tmp_path / "validation.csv")
+    monkeypatch.setattr(validation, "COVERAGE_FILE", tmp_path / "coverage.json")
+
+    result = validation.run_selection_validation().iloc[0]
+    coverage = json.loads((tmp_path / "coverage.json").read_text(encoding="utf-8"))
+
+    assert result["validation_status"] == "blocked_missing_actual_history"
+    assert result["promotion_evidence"] == False
+    assert coverage["prediction_sessions"] == 13
+    assert coverage["candidate_sessions"] == 1
+    assert coverage["missing_candidate_session_count"] == 12
+    assert coverage["history_rows"] == 0
+    assert coverage["matched_candidate_rows"] == 0
+    assert coverage["candidate_history_reconstructed_from_top10_predictions"] is False
+    assert coverage["missing_facts_inferred"] is False

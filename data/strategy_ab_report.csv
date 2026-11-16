@@ -1,2 +1,2 @@
 as_of,production_strategy,status,common_sessions,v2_trades,v1_net_pnl,v2_net_pnl,pnl_lift,v1_return_pct,v2_return_pct,return_lift_pct,v1_max_drawdown_pct,v2_max_drawdown_pct,session_win_rate_pct,drawdown_gate
-2026-11-14,V1,collecting,32,2,-4951.324728744898,936.7033915710449,0.0,-4.951324728744896,0.9367033915710449,0.0,,-0.020562739280804987,0.0,False
+2026-11-16,V1,collecting,33,2,-5602.826010483179,936.7033915710449,0.0,-5.602826010483177,0.9367033915710449,0.0,,-0.020562739280804987,0.0,False

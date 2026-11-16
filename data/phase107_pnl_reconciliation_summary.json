@@ -9,17 +9,17 @@
   "missing_facts_inferred": false,
   "status": "BLOCKED",
   "source": "data/paper_trades.csv",
-  "buy_rows": 214,
+  "buy_rows": 219,
   "missing_columns": [],
   "complete_rows": 70,
-  "incomplete_rows": 144,
+  "incomplete_rows": 149,
   "missing_values_by_field": {
     "entry_price": 0,
     "exit_price": 0,
-    "shares": 144,
-    "allocated_capital": 144,
-    "gross_profit_loss": 144,
-    "costs": 144,
+    "shares": 149,
+    "allocated_capital": 149,
+    "gross_profit_loss": 149,
+    "costs": 149,
     "profit_loss": 0,
     "return_pct": 0
   },
@@ -33,9 +33,9 @@
     "profit_loss": 0,
     "return_pct": 0
   },
-  "invalid_non_finite_rows": 144,
+  "invalid_non_finite_rows": 149,
   "incomplete_rows_by_signal": {
-    "BUY": 144
+    "BUY": 149
   },
   "incomplete_rows_by_session": [
     {
@@ -182,18 +182,23 @@
       "target_date": "2026-11-12",
       "buy_rows": 5,
       "incomplete_rows": 5
+    },
+    {
+      "target_date": "2026-11-16",
+      "buy_rows": 5,
+      "incomplete_rows": 5
     }
   ],
   "first_complete_session": "2026-09-18",
   "last_complete_session": "2026-09-28",
   "first_incomplete_session": "2026-09-29",
-  "last_incomplete_session": "2026-11-12",
+  "last_incomplete_session": "2026-11-16",
   "record_vintage_classification": "EXPLICIT_METADATA_WHEN_AVAILABLE; OTHERWISE_UNCLASSIFIED",
   "record_vintage_counts": {
-    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 214
+    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 219
   },
   "incomplete_rows_by_record_vintage": {
-    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 144
+    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 149
   },
   "reconciliation_mismatch_rows": 0,
   "accounting_identity": "gross_profit_loss - costs = profit_loss",
@@ -204,9 +209,9 @@
   "max_abs_return_delta_pct_points": 4.440892098500626e-16,
   "costs_subtracted_again": false,
   "fixed_share_source_evidence": {
-    "status": "NO_VALID_SOURCE_EVIDENCE",
-    "candidate_rows": 0,
-    "validated_rows": 0,
+    "status": "GROSS_SOURCE_EVIDENCE_PARTIAL",
+    "candidate_rows": 5,
+    "validated_rows": 5,
     "mismatch_rows": 0,
     "invalid_or_incomplete_source_rows": 214,
     "invalid_or_incomplete_source_rows_by_reason": {
@@ -500,12 +505,20 @@
         "validated_rows": 0,
         "mismatch_rows": 0,
         "invalid_or_incomplete_source_rows": 5
+      },
+      {
+        "target_date": "2026-11-16",
+        "buy_rows": 5,
+        "candidate_rows": 5,
+        "validated_rows": 5,
+        "mismatch_rows": 0,
+        "invalid_or_incomplete_source_rows": 0
       }
     ],
     "invalid_split_metadata_rows": 214,
-    "max_abs_position_value_delta": null,
-    "max_abs_gross_pnl_delta": null,
-    "max_abs_return_delta_pct_points": null,
+    "max_abs_position_value_delta": 0.0,
+    "max_abs_gross_pnl_delta": 0.0,
+    "max_abs_return_delta_pct_points": 4.9404924595819466e-15,
     "source_semantics": "quantity and position_value are recorded source fields; profit_loss is gross P&L from quantity * (exit_price - entry_price)",
     "costs_modeled": false,
     "net_profit_loss_verified": false,

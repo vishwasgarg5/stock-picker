@@ -1,23 +1,23 @@
 {
   "phase": 27,
-  "as_of": "2026-11-14",
-  "evaluation_rows": 360,
-  "candidate_rows": 40,
+  "as_of": "2026-11-16",
+  "evaluation_rows": 370,
+  "candidate_rows": 60,
   "inputs": {
     "data/evaluations.csv": {
       "exists": true,
-      "sha256": "252e0a5fe16f0262337cd6f7d8bd748e6ed31b204907253d127e953066a5acd4",
-      "bytes": 175018
+      "sha256": "e950858bc920ac0c8a4723d6aa9b35f2187d709875673e911c68a09d76a0f57c",
+      "bytes": 179998
     },
     "data/prediction_candidates_history.csv": {
       "exists": true,
-      "sha256": "e3d952c1563f3a058c2410696da3ec0ffa131cbe45767d5a71cdcab4e0629b06",
-      "bytes": 21746
+      "sha256": "8389602a9e37d3ccf4c15462cca3e7e1e045027e5eeb6e3768e3899171b9d8c2",
+      "bytes": 36864
     }
   },
   "integrity_checks": 9,
   "warnings_or_blocks": 0,
-  "regime_buckets": 1,
+  "regime_buckets": 2,
   "regime_buckets_with_sufficient_evidence": 0,
   "production_model_changed": false,
   "ranking_or_risk_changed": false,

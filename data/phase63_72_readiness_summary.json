@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-14T20:45:17.001081+00:00",
+  "as_of_utc": "2026-11-16T13:24:57.548406+00:00",
   "status": "REVIEW_REQUIRED",
   "blocking_or_review_sections": [
     "forecast_baseline"
@@ -7,7 +7,7 @@
   "sections": {
     "prediction_report": {
       "status": "PASS",
-      "target_date": "2026-11-16",
+      "target_date": "2026-11-17",
       "rows_for_target_date": 10,
       "top10_rows": 10,
       "top10_complete": true,
@@ -15,35 +15,35 @@
       "invalid_ohlc_rows": 0,
       "duplicate_symbol_rows": 0,
       "top10_symbols": [
-        "MCX",
         "PNB",
-        "NAVINFLUOR",
-        "MOTILALOFS",
-        "CDSL",
-        "DIVISLAB",
-        "ANGELONE",
+        "ASAHIINDIA",
         "BANKINDIA",
-        "CHOLAFIN",
-        "BANKBARODA"
+        "LICHSGFIN",
+        "NAVINFLUOR",
+        "DIVISLAB",
+        "KALYANKJIL",
+        "BANKBARODA",
+        "UNIONBANK",
+        "MCX"
       ],
       "ranked_candidates_are_not_buy_approval": true
     },
     "forecast_baseline": {
       "status": "BASELINE_NOT_BEATEN",
-      "scored_rows": 360,
-      "unique_dates": 36,
-      "model_close_mape_pct": 1.8774769087285914,
-      "baseline_close_mape_pct": 1.8687623686595538,
-      "error_delta_pct_points": 0.008714540069037602,
+      "scored_rows": 370,
+      "unique_dates": 37,
+      "model_close_mape_pct": 1.8510661304626082,
+      "baseline_close_mape_pct": 1.8436309149758652,
+      "error_delta_pct_points": 0.007435215486742974,
       "beats_baseline": false,
-      "directional_accuracy_pct": 48.05555555555556,
+      "directional_accuracy_pct": 49.18918918918919,
       "recent_5_sessions": 5,
       "recent_5_sessions_scored_rows": 50,
-      "recent_5_sessions_model_close_mape_pct": 1.5768444591874393,
-      "recent_5_sessions_baseline_close_mape_pct": 1.58316977310223,
-      "recent_5_sessions_error_delta_pct_points": -0.006325313914790742,
+      "recent_5_sessions_model_close_mape_pct": 1.3460654589552865,
+      "recent_5_sessions_baseline_close_mape_pct": 1.3554040839684327,
+      "recent_5_sessions_error_delta_pct_points": -0.009338625013146196,
       "recent_5_sessions_beats_baseline": true,
-      "recent_5_sessions_directional_accuracy_pct": 54.0,
+      "recent_5_sessions_directional_accuracy_pct": 60.0,
       "per_date_comparison": [
         {
           "target_date": "2026-09-18",
@@ -296,6 +296,13 @@
           "model_close_mape_pct": 1.3151404341984851,
           "baseline_close_mape_pct": 1.3245619915345725,
           "error_delta_pct_points": -0.009421557336087405
+        },
+        {
+          "target_date": "2026-11-16",
+          "scored_rows": 10,
+          "model_close_mape_pct": 0.9002781128872204,
+          "baseline_close_mape_pct": 0.9388985823630746,
+          "error_delta_pct_points": -0.03862046947585418
         }
       ],
       "same_scored_rows_for_comparison": true,
@@ -303,7 +310,7 @@
     },
     "paper_ledger": {
       "status": "PASS",
-      "rows": 360,
+      "rows": 370,
       "executed_rows": 70,
       "incomplete_executed_rows": 0,
       "net_pnl_reconciliation_mismatch_rows": 0,
@@ -312,14 +319,14 @@
     },
     "telegram_receipts": {
       "status": "REVIEW",
-      "rows": 175,
-      "rows_with_usable_message_keys": 175,
-      "api_confirmed_rows": 102,
+      "rows": 177,
+      "rows_with_usable_message_keys": 177,
+      "api_confirmed_rows": 104,
       "duplicate_message_keys": 6,
       "by_file": {
         "telegram_sent.csv": {
-          "rows": 69,
-          "confirmed": 42,
+          "rows": 70,
+          "confirmed": 43,
           "legacy_unverified": 27,
           "duplicate_message_keys": 6,
           "rows_missing_message_key": 0,
@@ -342,8 +349,8 @@
           "rows_in_duplicate_key_groups": 0
         },
         "telegram_paper_v2_sent.csv": {
-          "rows": 29,
-          "confirmed": 20,
+          "rows": 30,
+          "confirmed": 21,
           "legacy_unverified": 9,
           "duplicate_message_keys": 0,
           "rows_missing_message_key": 0,
@@ -355,10 +362,10 @@
     },
     "v2_evidence": {
       "status": "PASS",
-      "rows": 320,
-      "unique_sessions": 32,
+      "rows": 330,
+      "unique_sessions": 33,
       "buy_rows": 2,
-      "skip_rows": 318,
+      "skip_rows": 328,
       "skip_rows_without_reason": 0,
       "existing_promotion_safe": false,
       "promotion_ready": false,

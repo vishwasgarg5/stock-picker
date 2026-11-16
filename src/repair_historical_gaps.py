@@ -1,15 +1,26 @@
-"""Repair missing NSE-session OHLCV bars using Yahoo Finance source data only."""
+"""Repair missing NSE-session OHLCV bars from Yahoo and official NSE bhavcopies."""
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import date
+from io import BytesIO
 from pathlib import Path
 from typing import Any
+from zipfile import BadZipFile, ZipFile
 
 import numpy as np
 import pandas as pd
+import requests
 
 from .historical_coverage_audit import UNIVERSE_FILE, _expected_sessions, run as run_coverage_audit
 from .pipeline import HISTORY_FILE, download_history
+
+NSE_UDIFF_CUTOVER = date(2024, 7, 8)
+NSE_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; StockPickerHistoricalAudit/1.0)",
+    "Accept": "text/csv,application/zip,*/*",
+    "Referer": "https://www.nseindia.com/",
+}
 
 
 def find_missing_sessions(universe: pd.DataFrame, history: pd.DataFrame) -> dict[str, list[pd.Timestamp]]:
@@ -51,6 +62,73 @@ def _valid_source_rows(rows: pd.DataFrame) -> pd.DataFrame:
     return out.loc[valid].copy()
 
 
+def nse_bhavcopy_url(session: date | pd.Timestamp) -> str:
+    """Return the official NSE daily cash-market bhavcopy archive URL."""
+    day = pd.Timestamp(session).date()
+    if day < NSE_UDIFF_CUTOVER:
+        month = day.strftime("%b").upper()
+        return (
+            "https://archives.nseindia.com/content/historical/EQUITIES/"
+            f"{day:%Y}/{month}/cm{day:%d}{month}{day:%Y}bhav.csv.zip"
+        )
+    return (
+        "https://nsearchives.nseindia.com/content/cm/"
+        f"BhavCopy_NSE_CM_0_0_0_{day:%Y%m%d}_F_0000.csv.zip"
+    )
+
+
+def normalise_nse_bhavcopy(frame: pd.DataFrame, session: date | pd.Timestamp) -> pd.DataFrame:
+    """Map legacy and UDiFF NSE bhavcopy schemas to the project's OHLCV schema."""
+    columns = {str(column).strip().lower(): column for column in frame.columns}
+    aliases = {
+        "symbol": ("symbol", "tckrsymb"),
+        "series": ("series", "sctysrs"),
+        "open": ("open", "opnpric"),
+        "high": ("high", "hghpric"),
+        "low": ("low", "lwpric"),
+        "close": ("close", "clspric"),
+        "volume": ("tottrdqty", "ttltradgvol"),
+    }
+    selected: dict[str, Any] = {}
+    for target, candidates in aliases.items():
+        source = next((columns[name] for name in candidates if name in columns), None)
+        if source is None and target != "series":
+            return pd.DataFrame(columns=["date", "symbol", "open", "high", "low", "close", "volume"])
+        if source is not None:
+            selected[target] = source
+
+    result = pd.DataFrame()
+    for target, source in selected.items():
+        result[target] = frame[source]
+    if "series" in result.columns:
+        result["series"] = result["series"].astype(str).str.upper().str.strip()
+        result = result.loc[result["series"].isin({"EQ", "BE", "BZ"})].copy()
+        result["_series_priority"] = result["series"].map({"EQ": 0, "BE": 1, "BZ": 2}).fillna(9)
+        result = result.sort_values(["symbol", "_series_priority"]).drop_duplicates("symbol", keep="first")
+        result = result.drop(columns=["series", "_series_priority"])
+    result["date"] = pd.Timestamp(session).normalize()
+    result["symbol"] = result["symbol"].astype(str).str.upper().str.strip()
+    for column in ["dividends", "stock_splits"]:
+        result[column] = 0.0
+    return _valid_source_rows(result)
+
+
+def fetch_nse_bhavcopy(session: date | pd.Timestamp) -> pd.DataFrame:
+    """Fetch and parse one source-backed NSE cash-market session."""
+    response = requests.get(nse_bhavcopy_url(session), headers=NSE_HEADERS, timeout=45)
+    response.raise_for_status()
+    try:
+        with ZipFile(BytesIO(response.content)) as archive:
+            csv_names = [name for name in archive.namelist() if name.lower().endswith(".csv")]
+            if not csv_names:
+                raise ValueError(f"NSE bhavcopy archive for {session} contains no CSV")
+            with archive.open(csv_names[0]) as source:
+                raw = pd.read_csv(source)
+    except BadZipFile as exc:
+        raise ValueError(f"NSE bhavcopy archive for {session} was not a valid ZIP") from exc
+    return normalise_nse_bhavcopy(raw, session)
+
+
 def repair_historical_gaps() -> dict[str, Any]:
     universe = pd.read_csv(UNIVERSE_FILE)
     try:
@@ -67,9 +145,11 @@ def repair_historical_gaps() -> dict[str, Any]:
         if days:
             groups[min(days).strftime("%Y-%m-%d")].append(symbol)
 
-    recovered_parts = []
+    yahoo_parts = []
+    yahoo_rows_downloaded = 0
     for start, symbols in sorted(groups.items()):
         fresh = download_history(sorted(symbols), start)
+        yahoo_rows_downloaded += len(fresh)
         if fresh.empty:
             continue
         fresh["date"] = pd.to_datetime(fresh["date"], errors="coerce").dt.tz_localize(None).dt.normalize()
@@ -79,14 +159,59 @@ def repair_historical_gaps() -> dict[str, Any]:
             [(str(row.symbol), pd.Timestamp(row.date).normalize()) in requested for row in fresh.itertuples()]
         ]
         if not fresh.empty:
-            recovered_parts.append(fresh)
+            yahoo_parts.append(fresh)
 
-    recovered = pd.concat(recovered_parts, ignore_index=True) if recovered_parts else pd.DataFrame(columns=history.columns)
+    yahoo_recovered = pd.concat(yahoo_parts, ignore_index=True) if yahoo_parts else pd.DataFrame()
+    yahoo_keys = {
+        (str(row.symbol), pd.Timestamp(row.date).normalize())
+        for row in yahoo_recovered.itertuples()
+    } if not yahoo_recovered.empty else set()
+    still_requested = requested - yahoo_keys
+
+    # NSE publishes one full-market bhavcopy per trading day. Fetch each
+    # missing date once and extract only the requested symbols for that date.
+    nse_parts = []
+    nse_dates_checked = 0
+    nse_dates_unavailable: list[str] = []
+    nse_fetch_failures: list[dict[str, str]] = []
+    for day in sorted({day for _, day in still_requested}):
+        nse_dates_checked += 1
+        try:
+            market = fetch_nse_bhavcopy(day)
+        except requests.HTTPError as exc:
+            status = getattr(exc.response, "status_code", None)
+            if status == 404:
+                nse_dates_unavailable.append(day.date().isoformat())
+            else:
+                nse_fetch_failures.append({"date": day.date().isoformat(), "error": str(exc)[:300]})
+            continue
+        except Exception as exc:
+            nse_fetch_failures.append({"date": day.date().isoformat(), "error": str(exc)[:300]})
+            continue
+        if market.empty:
+            nse_dates_unavailable.append(day.date().isoformat())
+            continue
+        keys = [
+            (str(row.symbol), pd.Timestamp(row.date).normalize()) in still_requested
+            for row in market.itertuples()
+        ]
+        selected = market.loc[keys].copy()
+        if not selected.empty:
+            nse_parts.append(selected)
+
+    nse_recovered = pd.concat(nse_parts, ignore_index=True) if nse_parts else pd.DataFrame()
+    parts = [part for part in [yahoo_recovered, nse_recovered] if not part.empty]
+    recovered = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame(columns=history.columns)
     if not recovered.empty:
+        for column in history.columns:
+            if column not in recovered.columns:
+                recovered[column] = 0.0 if column in {"dividends", "stock_splits"} else np.nan
+        recovered = recovered[history.columns]
         combined = pd.concat([history, recovered], ignore_index=True)
         combined["date"] = pd.to_datetime(combined["date"], errors="coerce").dt.tz_localize(None).dt.normalize()
         combined["symbol"] = combined["symbol"].astype(str).str.upper().str.strip()
-        combined = combined.drop_duplicates(["date", "symbol"], keep="last").sort_values(["symbol", "date"])
+        # Existing observations always win; repairs only fill absent keys.
+        combined = combined.drop_duplicates(["date", "symbol"], keep="first").sort_values(["symbol", "date"])
         temporary = Path(HISTORY_FILE).with_suffix(".csv.tmp")
         combined.to_csv(temporary, index=False)
         temporary.replace(HISTORY_FILE)
@@ -97,15 +222,27 @@ def repair_historical_gaps() -> dict[str, Any]:
     recovered_keys = {
         (str(row.symbol), pd.Timestamp(row.date).normalize())
         for row in recovered.itertuples()
-    }
+    } if not recovered.empty else set()
     return {
         "status": "PASS" if not remaining_keys else "REVIEW_REQUIRED",
         "symbols_with_gaps_before": sum(bool(days) for days in missing.values()),
         "missing_sessions_before": len(requested),
+        "yahoo_rows_downloaded": int(yahoo_rows_downloaded),
+        "yahoo_sessions_recovered": len(yahoo_keys & requested),
+        "nse_sessions_checked": nse_dates_checked,
+        "nse_sessions_recovered": int(len(nse_recovered)),
+        "nse_dates_unavailable": nse_dates_unavailable,
+        "nse_fetch_failures": nse_fetch_failures,
         "source_rows_recovered": len(recovered),
         "missing_sessions_recovered": len(recovered_keys & requested),
         "missing_sessions_remaining": len(remaining_keys),
         "symbols_still_with_gaps": sorted({symbol for symbol, _ in remaining_keys}),
-        "policy": "Only validated Yahoo Finance bars for missing NSE sessions are inserted; no interpolation or synthetic OHLCV.",
+        "policy": "Only validated source-returned Yahoo Finance or official NSE bhavcopy bars are inserted; no interpolation or synthetic OHLCV.",
         "coverage_audit": run_coverage_audit(),
     }
+
+
+if __name__ == "__main__":
+    import json
+
+    print(json.dumps(repair_historical_gaps(), indent=2, default=str))

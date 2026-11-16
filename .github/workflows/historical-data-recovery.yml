@@ -35,17 +35,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Recover OHLCV and produce per-stock coverage reports
+      - name: Recover OHLCV and repair missing NSE sessions
         run: python -m src.recover_historical_data
 
-      - name: Commit only market history and recovery reports
+      - name: Commit market history and recovery reports safely to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/ohlcv.csv data/historical_coverage_audit.json data/historical_coverage_audit.csv data/historical_recovery_run.json
           if git diff --cached --quiet; then
             echo "No historical data or report changes."
-          else
-            git commit -m "data: recover historical OHLCV coverage"
-            git push
+            exit 0
           fi
+          git commit -m "data: repair historical OHLCV session gaps"
+          # Rebase generated data onto the latest main before pushing. Never force-push.
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push raced with another main commit; retrying after rebase (attempt $attempt/3)."
+            sleep 2
+          done
+          echo "Unable to publish historical recovery output after three safe attempts."
+          exit 1

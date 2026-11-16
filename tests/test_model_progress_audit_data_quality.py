@@ -77,7 +77,11 @@ def test_index_constituent_audit_detects_bad_weights_and_duplicate_memberships(t
 def test_empty_feature_artifact_with_schema_is_review_not_malformed(tmp_path, monkeypatch):
     _calendar(tmp_path)
     data = tmp_path / "data"
-    pd.DataFrame(columns=["date", "symbol", "index"]).to_csv(data / "index_constituent_features.csv", index=False)
+    pd.DataFrame(columns=[
+        "date", "symbol", "index", "as_of_date", "weight_pct", "weight_method",
+        "index_return_1d_pct", "index_return_5d_pct", "stock_return_1d_pct",
+        "rolling_corr_60d", "rolling_beta_60d", "weighted_stock_return_contribution_pct",
+    ]).to_csv(data / "index_constituent_features.csv", index=False)
     monkeypatch.setattr(audit, "ROOT", tmp_path)
     rows = []
     audit.audit_live_data(rows)

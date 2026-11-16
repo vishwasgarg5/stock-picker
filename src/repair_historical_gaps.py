@@ -214,6 +214,10 @@ def repair_historical_gaps() -> dict[str, Any]:
     nse_dates_checked = 0
     nse_dates_unavailable: list[str] = []
     nse_fetch_failures: list[dict[str, str]] = []
+    nse_date_symbol_coverage: list[dict[str, Any]] = []
+    requested_by_day: dict[pd.Timestamp, set[str]] = defaultdict(set)
+    for symbol, day in still_requested:
+        requested_by_day[day].add(symbol)
     for day in sorted({day for _, day in still_requested}):
         nse_dates_checked += 1
         try:
@@ -230,14 +234,23 @@ def repair_historical_gaps() -> dict[str, Any]:
             continue
         if market.empty:
             nse_dates_unavailable.append(day.date().isoformat())
-            continue
-        keys = [
-            (str(row.symbol), pd.Timestamp(row.date).normalize()) in still_requested
-            for row in market.itertuples()
-        ]
-        selected = market.loc[keys].copy()
-        if not selected.empty:
-            nse_parts.append(selected)
+            matched_symbols: set[str] = set()
+        else:
+            market_symbols = set(market["symbol"].astype(str).str.upper().str.strip())
+            matched_symbols = market_symbols & requested_by_day[day]
+            keys = [
+                (str(row.symbol), pd.Timestamp(row.date).normalize()) in still_requested
+                for row in market.itertuples()
+            ]
+            selected = market.loc[keys].copy()
+            if not selected.empty:
+                nse_parts.append(selected)
+        nse_date_symbol_coverage.append({
+            "date": day.date().isoformat(),
+            "requested_symbols": sorted(requested_by_day[day]),
+            "matched_valid_equity_symbols": sorted(matched_symbols),
+            "unmatched_symbols": sorted(requested_by_day[day] - matched_symbols),
+        })
 
     nse_recovered = pd.concat(nse_parts, ignore_index=True) if nse_parts else pd.DataFrame()
     parts = [part for part in [yahoo_recovered, nse_recovered] if not part.empty]
@@ -263,6 +276,14 @@ def repair_historical_gaps() -> dict[str, Any]:
         (str(row.symbol), pd.Timestamp(row.date).normalize())
         for row in recovered.itertuples()
     } if not recovered.empty else set()
+    remaining_details = [
+        {"symbol": symbol, "date": day.date().isoformat()}
+        for symbol, day in sorted(remaining_keys, key=lambda item: (item[0], item[1]))
+    ]
+    detail_file = Path(HISTORY_FILE).with_name("historical_gap_repair_details.csv")
+    pd.DataFrame(remaining_details, columns=["symbol", "date"]).assign(
+        status="UNRESOLVED_SOURCE_GAP"
+    ).to_csv(detail_file, index=False)
     return {
         "status": "PASS" if not remaining_keys else "REVIEW_REQUIRED",
         "symbols_with_gaps_before": sum(bool(days) for days in missing.values()),
@@ -277,6 +298,9 @@ def repair_historical_gaps() -> dict[str, Any]:
         "missing_sessions_recovered": len(recovered_keys & requested),
         "missing_sessions_remaining": len(remaining_keys),
         "symbols_still_with_gaps": sorted({symbol for symbol, _ in remaining_keys}),
+        "missing_sessions_remaining_details": remaining_details,
+        "nse_date_symbol_coverage": nse_date_symbol_coverage,
+        "detail_file": str(detail_file.relative_to(Path(HISTORY_FILE).parent.parent)),
         "policy": "Only validated source-returned Yahoo Finance or official NSE bhavcopy bars are inserted; no interpolation or synthetic OHLCV.",
         "coverage_audit": run_coverage_audit(),
     }

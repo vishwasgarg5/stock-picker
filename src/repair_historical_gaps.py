@@ -84,9 +84,9 @@ def _parse_nse_trade_dates(values: pd.Series) -> pd.Series:
     parsed = []
     for value in values:
         raw = str(value).strip()
-        if re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", raw):
+        if re.fullmatch(r"\d{4}-\\d{2}-\\d{2}", raw):
             parsed.append(pd.to_datetime(raw, format="%Y-%m-%d", errors="coerce"))
-        elif re.fullmatch(r"\\d{4}/\\d{2}/\\d{2}", raw):
+        elif re.fullmatch(r"\d{4}/\\d{2}/\\d{2}", raw):
             parsed.append(pd.to_datetime(raw, format="%Y/%m/%d", errors="coerce"))
         else:
             parsed.append(pd.to_datetime(raw, errors="coerce", dayfirst=True))

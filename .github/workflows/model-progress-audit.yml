@@ -1,6 +1,15 @@
 name: Model Progress Audit
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/model-progress-audit.yml"
+      - "src/model_progress_audit.py"
+      - "tests/**"
+      - "src/**"
+      - "data/*.json"
+      - "data/*.csv"
   workflow_dispatch:
     inputs:
       run_regression_tests:

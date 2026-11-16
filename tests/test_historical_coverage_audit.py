@@ -77,3 +77,38 @@ def test_official_nse_quote_listing_date_parser():
         "isin": "INE123A01016", "companyName": "ABC Limited"}})
     assert row["listing_date"] == "2024-01-15"
     assert row["isin"] == "INE123A01016"
+
+
+
+def test_listing_master_stops_repeated_systemic_nse_failures(tmp_path, monkeypatch):
+    from requests import HTTPError
+    from src import listing_master
+
+    class Response:
+        def raise_for_status(self):
+            raise HTTPError("403 Client Error: Forbidden")
+
+    class Session:
+        def __init__(self):
+            self.headers = {}
+            self.quote_calls = 0
+
+        def get(self, url, timeout):
+            if url == listing_master.HOME:
+                class Home:
+                    pass
+                return Home()
+            self.quote_calls += 1
+            return Response()
+
+    session = Session()
+    monkeypatch.setattr(listing_master, "DATA", tmp_path)
+    monkeypatch.setattr(listing_master, "FILE", tmp_path / "nse_listing_master.csv")
+    result = listing_master.refresh_listing_master(
+        [f"SYM{i}" for i in range(30)], session=session,
+        delay_seconds=0, max_attempts=1,
+    )
+    assert session.quote_calls == 10
+    assert result["symbols_fetched"] == 0
+    assert len(result["symbols_unresolved"]) == 30
+    assert "Skipped after 10 consecutive systemic NSE errors" in result["lookup_failures"]["SYM10"]

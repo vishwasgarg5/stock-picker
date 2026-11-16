@@ -16,6 +16,7 @@ The workflow combines several layers:
 - **Forecasting:** Trains and refreshes the core forecasting models and produces next-session OHLC forecasts for eligible stocks.
 - **Stock ranking:** Scores and ranks the universe using forecast and market features, with dedicated challenger models evaluated separately.
 - **Market context:** Adds index/regime intelligence, sector context and available news information to the decision process.
+- **Index and constituent intelligence:** Maintains daily index OHLCV, captures point-in-time constituent membership and weights, and measures each stock's rolling correlation, beta and weighted contribution to its indices. Official weights are distinguished from explicitly labelled free-float-market-cap estimates; current constituents are never backfilled into the past.
 - **Risk and trade quality:** Applies expected-return, volatility, risk/reward, position-size and portfolio-risk checks. The system can return **NO_TRADE** when conditions do not meet its controls.
 - **Paper trading:** Records simulated trade decisions, quantities, capital allocation, costs, exits and portfolio results. Paper-trading results are measurement evidence, not live broker executions.
 - **Evaluation and governance:** Compares forecasts with realized prices, tracks longer-horizon outcomes, audits performance and keeps challenger models behind evidence and authorization gates.
@@ -54,7 +55,7 @@ The main GitHub Actions workflow is scheduled daily at 16:00 India time and firs
 4. Evaluate the previous prediction against realized OHLC data.
 5. Retrain the core models on available realized history and generate the next trading-session forecast.
 6. Refresh candidate-selection validation and longer-horizon prediction outcomes.
-7. Build index intelligence and market-regime context.
+7. Build index intelligence and market-regime context, refresh index OHLCV and point-in-time constituent/weight snapshots, and calculate stock/index relationship features.
 8. Run paper-trading benchmarks, portfolio comparisons and strategy governance checks.
 9. Run the performance, forecast, accounting, risk, data-quality and promotion-evidence audits.
 10. Run final integration and promotion gates, send configured Telegram reports, and commit generated records.
@@ -103,6 +104,10 @@ The repository keeps the model's working history and evidence in versioned data 
 | `data/nse_market_calendar.json` | NSE Capital Market holidays and explicitly confirmed special trading sessions |
 | `data/nse_market_calendar_audit.json` | Last successful official calendar refresh and source coverage |
 | `data/nse_listing_master.csv` | Verified NSE listing dates and security identifiers for listing-aware historical coverage |
+| `data/index_ohlcv.csv` | Daily OHLCV history for supported NSE indices |
+| `data/index_constituents_history.csv` | Date-stamped index membership and official/estimated constituent weights |
+| `data/index_constituent_features.csv` | Point-in-time stock/index returns, rolling beta/correlation and weighted contribution features |
+| `data/index_constituent_intelligence_audit.json` | Index source coverage, constituent coverage and weight-quality audit |
 | `data/fundamentals.csv` and history | Current and historical fundamental snapshots |
 | `data/predictions.csv` | Persisted next-session forecasts |
 | `data/prediction_candidates_history.csv` | Candidate universe and selection metadata by prediction vintage |

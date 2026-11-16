@@ -84,7 +84,10 @@ def _audit_json(path: Path) -> dict[str, Any]:
 
 def refresh_market_history() -> dict[str, Any]:
     """Use the same Yahoo source and corporate-action-safe merger as daily pipeline."""
-    from .pipeline import UNIVERSE_FILE, update_history, update_fundamentals, record_fundamentals_snapshot, HISTORY_FILE
+    from .pipeline import (
+        UNIVERSE_FILE, update_history, update_fundamentals,
+        record_fundamentals_snapshot, HISTORY_FILE, validate_data_quality,
+    )
 
     if not UNIVERSE_FILE.exists():
         raise RuntimeError("data/universe.csv is missing; cannot safely refresh market history")
@@ -97,6 +100,9 @@ def refresh_market_history() -> dict[str, Any]:
         raise RuntimeError("Universe contains no valid symbols")
     before = pd.read_csv(HISTORY_FILE) if HISTORY_FILE.exists() else pd.DataFrame()
     refreshed = update_history(symbols)
+    # A non-empty partial download is not sufficient: require the same clean,
+    # completed-session coverage gate used by the production prediction path.
+    quality = validate_data_quality(refreshed, symbols, context="weekend audit")
     fundamentals = update_fundamentals(symbols)
     latest_market_date = pd.to_datetime(refreshed["date"], errors="coerce").max() if not refreshed.empty else pd.NaT
     if pd.notna(latest_market_date):
@@ -106,6 +112,9 @@ def refresh_market_history() -> dict[str, Any]:
         "rows_before": int(len(before)),
         "rows_after": int(len(refreshed)),
         "rows_added_or_refreshed": int(max(0, len(refreshed) - len(before))),
+        "latest_completed_session": str(pd.Timestamp(quality["latest_date"]).date()),
+        "latest_session_fresh_symbols": int(quality["fresh_symbols"]),
+        "latest_session_coverage_pct": round(float(quality["coverage"]) * 100.0, 2),
         "fundamental_symbols_refreshed": int(len(fundamentals)),
         "fundamentals_source": "Yahoo Finance via src.pipeline.update_fundamentals",
         "source": "Yahoo Finance via src.pipeline.update_history",

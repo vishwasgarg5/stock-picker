@@ -860,6 +860,47 @@ def _merge_candidate_history(existing: pd.DataFrame, candidates: pd.DataFrame) -
     return combined.drop_duplicates(keys, keep="last").reset_index(drop=True)
 
 
+def _validate_candidate_session(candidates: pd.DataFrame, target_date: pd.Timestamp) -> None:
+    """Fail closed unless the complete candidate pool and Top-10 decisions are auditable."""
+    required = {
+        "prediction_date", "target_date", "symbol", "rank", "selected",
+        "base_close", "predicted_close", "selection_method",
+    }
+    missing = sorted(required.difference(candidates.columns))
+    if missing:
+        raise RuntimeError(f"Candidate-history session missing required fields: {missing}")
+    if candidates.empty or len(candidates) < 10:
+        raise RuntimeError("Candidate-history session must contain at least 10 candidate rows")
+
+    frame = candidates.copy()
+    frame["prediction_date"] = pd.to_datetime(frame["prediction_date"], errors="coerce").dt.normalize()
+    frame["target_date"] = pd.to_datetime(frame["target_date"], errors="coerce").dt.normalize()
+    frame["symbol"] = frame["symbol"].astype(str).str.upper().str.strip()
+    if frame["prediction_date"].isna().any() or frame["target_date"].isna().any():
+        raise RuntimeError("Candidate-history session contains invalid prediction/target dates")
+    if frame["prediction_date"].nunique() != 1:
+        raise RuntimeError("Candidate-history session must contain exactly one prediction vintage")
+    if not frame["target_date"].eq(pd.Timestamp(target_date).normalize()).all():
+        raise RuntimeError("Candidate-history session contains an unexpected target date")
+    if frame["symbol"].eq("").any() or frame["symbol"].duplicated().any():
+        raise RuntimeError("Candidate-history session contains blank or duplicate symbols")
+
+    rank = pd.to_numeric(frame["rank"], errors="coerce")
+    selected = pd.to_numeric(frame["selected"], errors="coerce")
+    for column in ["base_close", "predicted_close"]:
+        values = pd.to_numeric(frame[column], errors="coerce")
+        if values.isna().any() or not np.isfinite(values.to_numpy(dtype=float)).all() or not values.gt(0).all():
+            raise RuntimeError(f"Candidate-history session contains invalid {column} values")
+    if rank.isna().any() or not np.isfinite(rank.to_numpy(dtype=float)).all() or not rank.gt(0).all():
+        raise RuntimeError("Candidate-history session contains invalid candidate ranks")
+    if rank.duplicated().any():
+        raise RuntimeError("Candidate-history session contains duplicate candidate ranks")
+    if selected.isna().any() or not selected.isin([0, 1]).all() or int(selected.sum()) != 10:
+        raise RuntimeError("Candidate-history session must contain exactly 10 explicit selections")
+    if frame["selection_method"].fillna("").astype(str).str.strip().eq("").any():
+        raise RuntimeError("Candidate-history session contains missing selection methods")
+
+
 def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Timestamp) -> pd.DataFrame:
     ranked = ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score", "market_regime", "sector"]].copy() if "sector" in ranking.columns else ranking.head(20)[["symbol", "date", "close", "rank", "total_score", "technical_score", "fundamental_score", "market_regime"]].copy()
     if len(ranked) < 10:
@@ -1118,17 +1159,26 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
 
     candidates["selection_method"] = selection_method
     candidates["selected"] = candidates["symbol"].isin(selected_symbols).astype(int)
-    candidates.to_csv(CANDIDATES_FILE, index=False)
-    existing_candidates = pd.read_csv(CANDIDATE_HISTORY_FILE) if CANDIDATE_HISTORY_FILE.exists() else pd.DataFrame()
-    history_candidates = _merge_candidate_history(existing_candidates, candidates)
-    history_candidates.to_csv(CANDIDATE_HISTORY_FILE, index=False)
+    _validate_candidate_session(candidates, target_date)
     selected = candidates[candidates["selected"] == 1].copy()
-    if len(selected) != 10:
-        raise RuntimeError(
-            f"Prediction integrity gate blocked publication: selector produced {len(selected)} "
-            "valid candidates; exactly 10 are required by the current prediction contract"
-        )
     selected = selected.sort_values("rank").reset_index(drop=True)
+    existing_candidates = pd.DataFrame()
+    if CANDIDATE_HISTORY_FILE.exists():
+        try:
+            existing_candidates = pd.read_csv(CANDIDATE_HISTORY_FILE)
+        except pd.errors.EmptyDataError:
+            print("Candidate history file is empty; rebuilding it from the validated current session")
+    history_candidates = _merge_candidate_history(existing_candidates, candidates)
+    current_session = history_candidates[
+        pd.to_datetime(history_candidates["prediction_date"], errors="coerce").dt.normalize()
+        == pd.to_datetime(candidates["prediction_date"], errors="coerce").dt.normalize().iloc[0]
+    ]
+    if len(current_session) != len(candidates):
+        raise RuntimeError("Candidate-history persistence lost rows from the current validated session")
+    _validate_candidate_session(current_session, target_date)
+    # Persist only after the complete candidate pool and exactly 10 selections pass validation.
+    candidates.to_csv(CANDIDATES_FILE, index=False)
+    history_candidates.to_csv(CANDIDATE_HISTORY_FILE, index=False)
     _validate_prediction_session(selected, target_date)
     return selected
 

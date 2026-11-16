@@ -25,7 +25,8 @@ def _load() -> tuple[pd.DataFrame, pd.DataFrame]:
     predictions["prediction_date"] = pd.to_datetime(predictions["prediction_date"], errors="coerce").dt.normalize()
     predictions["target_date"] = pd.to_datetime(predictions["target_date"], errors="coerce").dt.normalize()
     history["date"] = pd.to_datetime(history["date"], errors="coerce").dt.normalize()
-    history["symbol"] = history["symbol"].astype(str).str.strip()
+    predictions["symbol"] = predictions["symbol"].astype(str).str.upper().str.strip()
+    history["symbol"] = history["symbol"].astype(str).str.upper().str.strip()
     return predictions, history
 
 
@@ -57,7 +58,7 @@ def run_outcomes() -> pd.DataFrame:
         row = {
             "prediction_date": p["prediction_date"],
             "target_date": target_date,
-            "symbol": str(p["symbol"]).strip(),
+            "symbol": str(p["symbol"]).strip().upper(),
             "rank": p.get("rank"),
             "score": p.get("score"),
             "base_close": float(base_close),
@@ -68,6 +69,7 @@ def run_outcomes() -> pd.DataFrame:
             actual_date, actual_close = _future_close(history, row["symbol"], requested)
             row[f"{label}_target_date"] = actual_date
             row[f"{label}_actual_close"] = actual_close
+            row[f"{label}_status"] = "AVAILABLE" if pd.notna(actual_date) and np.isfinite(actual_close) else "PENDING"
             row[f"{label}_return_pct"] = (
                 (actual_close / base_close - 1.0) * 100.0
                 if np.isfinite(actual_close)
@@ -87,8 +89,10 @@ def run_outcomes() -> pd.DataFrame:
 
     output = (
         output.dropna(subset=["target_date", "symbol"])
-        .drop_duplicates(["target_date", "symbol"], keep="last")
-        .sort_values(["target_date", "rank", "symbol"])
+        # Distinct forecast vintages for the same target session are separate
+        # observations and must not overwrite one another.
+        .drop_duplicates(["prediction_date", "target_date", "symbol"], keep="last")
+        .sort_values(["target_date", "prediction_date", "rank", "symbol"])
         .reset_index(drop=True)
     )
     output.to_csv(OUTPUT_FILE, index=False)

@@ -10,6 +10,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import pandas_market_calendars as mcal
+from . import market_calendar
 import yfinance as yf
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor
 
@@ -854,11 +855,13 @@ def models_ready() -> bool:
 
 
 def _next_trading_date(last_date: pd.Timestamp, history_dates: pd.Series) -> pd.Timestamp:
+    """Use the official NSE CM calendar, including confirmed special sessions."""
     last = pd.Timestamp(last_date).normalize()
-    schedule = mcal.get_calendar("XNSE").schedule(start_date=last + pd.Timedelta(days=1), end_date=last + pd.Timedelta(days=14))
-    if schedule.empty:
-        raise RuntimeError(f"Could not determine next NSE trading session after {last.date()}")
-    return pd.Timestamp(schedule.index[0]).normalize()
+    try:
+        target = market_calendar.next_trading_session(last.date())
+    except Exception as exc:
+        raise RuntimeError(f"Could not determine next NSE trading session after {last.date()}: {exc}") from exc
+    return pd.Timestamp(target).normalize()
 
 
 def apply_risk_off_selection(candidates: pd.DataFrame, risk_level: str = "NEUTRAL", top_n: int = 10) -> tuple[pd.DataFrame,str]:

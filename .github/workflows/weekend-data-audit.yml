@@ -34,6 +34,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Refresh official NSE market calendar
+        run: python -m src.market_calendar
       - name: Refresh source-backed market history and audit all collected/model artifacts
         run: python -m src.weekend_data_quality_audit
 
@@ -41,7 +43,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/ohlcv.csv data/fundamentals.csv data/fundamentals_history.csv data/weekend_data_quality_audit.json data/weekend_data_quality_audit.csv data/historical_coverage_audit.json data/historical_coverage_audit.csv
+          git add data/nse_market_calendar.json data/nse_market_calendar_audit.json data/ohlcv.csv data/fundamentals.csv data/fundamentals_history.csv data/weekend_data_quality_audit.json data/weekend_data_quality_audit.csv data/historical_coverage_audit.json data/historical_coverage_audit.csv
           if git diff --cached --quiet; then
             echo "No data or audit report changes to commit."
           else

@@ -1,5 +1,0 @@
-# Runtime-generated artifacts
-models/*.joblib
-models/*.pkl
-__pycache__/
-*.pyc

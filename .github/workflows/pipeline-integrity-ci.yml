@@ -11,7 +11,7 @@ on:
       - "src/historical_coverage_audit.py"
       - "src/recover_historical_data.py"
       - "src/repair_historical_gaps.py"
-      - "tests/test_repair_historical_gaps.py"
+      - "tests/test_repair_historical_gaps.py tests/test_market_calendar.py"
       - "tests/test_historical_coverage_audit.py"
       - "src/weekend_data_quality_audit.py"
       - "src/historical_coverage_audit.py"

@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "exchange": "NSE",
+  "segment": "CM",
+  "timezone": "Asia/Kolkata",
+  "source": "https://www.nseindia.com/api/holiday-master?type=trading",
+  "source_page": "https://www.nseindia.com/resources/exchange-communication-holidays",
+  "updated_at_utc": null,
+  "holidays": [
+    {
+      "date": "2026-01-15",
+      "name": "Municipal Corporation Election - Maharashtra",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-01-26",
+      "name": "Republic Day",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-03-03",
+      "name": "Holi",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-03-26",
+      "name": "Shri Ram Navami",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-03-31",
+      "name": "Shri Mahavir Jayanti",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-04-03",
+      "name": "Good Friday",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-04-14",
+      "name": "Dr. Baba Saheb Ambedkar Jayanti",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-05-01",
+      "name": "Maharashtra Day",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-05-28",
+      "name": "Bakri Id",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-06-26",
+      "name": "Muharram",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-09-14",
+      "name": "Ganesh Chaturthi",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-10-02",
+      "name": "Mahatma Gandhi Jayanti",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-10-20",
+      "name": "Dussehra",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-11-10",
+      "name": "Diwali-Balipratipada",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-11-24",
+      "name": "Prakash Gurpurb Sri Guru Nanak Dev",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    },
+    {
+      "date": "2026-12-25",
+      "name": "Christmas",
+      "type": "FULL_DAY_HOLIDAY",
+      "source": "NSE/CMTR/71775 + NSE official 2026 holiday page"
+    }
+  ],
+  "special_sessions": [
+    {
+      "date": "2026-11-08",
+      "name": "Diwali Muhurat Trading",
+      "type": "SPECIAL_SESSION",
+      "status": "CONFIRMED",
+      "open_time": "14:20",
+      "close_time": "15:30",
+      "preopen_start": "14:05",
+      "preopen_end": "14:20",
+      "source": "NSE Circular NSE/CMTR/76941 dated 2026-10-19",
+      "source_url": "https://www.nseindia.com/resources/exchange-communication-holidays"
+    }
+  ]
+}

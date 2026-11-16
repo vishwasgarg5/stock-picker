@@ -628,7 +628,7 @@ def run_audit(output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
     report = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "audit_type": "repository structure and persisted evidence; not a profitability certification",
+        "audit_type": "live data quality, source refreshes, repository structure and readiness evidence; not a profitability certification",
         "counts": counts, "total_checks": total, "checks": rows,
     }
     (output_dir / "model_progress_audit.json").write_text(

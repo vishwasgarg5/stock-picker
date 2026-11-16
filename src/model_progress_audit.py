@@ -472,7 +472,7 @@ def audit_live_data(rows):
         ix["as_of"] = pd.to_datetime(ix["as_of"], errors="coerce")
         latest = ix["as_of"].max()
         unavailable = int(ix["index_data_available"].astype(str).str.lower().isin({"false", "0", "no"}).sum())
-        bad_quality = int(~ix["data_quality"].astype(str).str.upper().isin({"HIGH", "PASS", "OK"}).sum())
+        bad_quality = int((~ix["data_quality"].astype(str).str.upper().isin({"HIGH", "PASS", "OK"})).sum())
         add(rows, "Live data quality and freshness", "Market intelligence freshness and source status",
             "PASS" if pd.notna(latest) and unavailable == 0 and bad_quality == 0 else "REVIEW",
             f"rows={len(ix)}; latest_as_of={latest.date() if pd.notna(latest) else 'unknown'}; unavailable_index_rows={unavailable}; non_high_quality_rows={bad_quality}",

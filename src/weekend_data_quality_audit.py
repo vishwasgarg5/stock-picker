@@ -117,15 +117,17 @@ def run() -> dict[str, Any]:
     DATA.mkdir(exist_ok=True)
     market_refresh = refresh_market_history()
     records: list[dict[str, Any]] = []
-    for path in sorted(DATA.rglob("*")):
-        if not path.is_file():
+    audit_roots = [DATA, ROOT / "models"]
+    for audit_root in audit_roots:
+        if not audit_root.exists():
             continue
-        if path in {REPORT_JSON, REPORT_CSV}:
-            continue
-        if path.suffix.lower() == ".csv":
-            records.append(_audit_csv(path))
-        elif path.suffix.lower() == ".json":
-            records.append(_audit_json(path))
+        for path in sorted(audit_root.rglob("*")):
+            if not path.is_file() or path in {REPORT_JSON, REPORT_CSV}:
+                continue
+            if path.suffix.lower() == ".csv":
+                records.append(_audit_csv(path))
+            elif path.suffix.lower() == ".json":
+                records.append(_audit_json(path))
 
     model_records = [r for r in records if r.get("scope") == "MODEL"]
     issues = [r for r in records if r.get("status") not in {"PASS"}]
@@ -133,6 +135,7 @@ def run() -> dict[str, Any]:
         "status": "PASS" if not issues and market_refresh["status"] == "PASS" else "REVIEW_REQUIRED",
         "market_data_refresh": market_refresh,
         "files_audited": len(records),
+        "audit_roots": ["data/", "models/"],
         "model_artifacts_audited": len(model_records),
         "files_with_issues": len(issues),
         "model_artifacts_with_issues": sum(r.get("status") != "PASS" for r in model_records),

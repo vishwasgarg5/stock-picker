@@ -18,6 +18,33 @@ def _read(path: Path) -> pd.DataFrame:
     return pd.read_csv(path) if path.exists() else pd.DataFrame()
 
 
+def _blocked_summary(candidate_rows: int, status: str, reason: str) -> pd.DataFrame:
+    summary = pd.DataFrame([{
+        "as_of": pd.Timestamp.now().normalize(),
+        "candidate_rows": int(candidate_rows),
+        "sessions": 0,
+        "baseline_close_mape_pct": np.nan,
+        "adjusted_close_mape_pct": np.nan,
+        "relative_mape_improvement_pct": np.nan,
+        "baseline_direction_accuracy_pct": np.nan,
+        "adjusted_direction_accuracy_pct": np.nan,
+        "baseline_profitable_close_pct": np.nan,
+        "adjusted_profitable_close_pct": np.nan,
+        "baseline_mean_return_pct": np.nan,
+        "adjusted_mean_return_pct": np.nan,
+        "minimum_rows_required": MIN_ROWS,
+        "minimum_sessions_required": MIN_SESSIONS,
+        "minimum_relative_mape_improvement_pct": MIN_IMPROVEMENT * 100,
+        "recent_error_promotion_evidence": False,
+        "confidence_promotion_evidence": False,
+        "promotion_evidence": False,
+        "validation_status": status,
+        "validation_block_reason": reason,
+    }])
+    summary.to_csv(OUTPUT_FILE, index=False)
+    return summary
+
+
 def run_selection_validation() -> pd.DataFrame:
     candidates = _read(CANDIDATES_FILE)
     hist = _read(HISTORY_FILE)
@@ -41,12 +68,15 @@ def run_selection_validation() -> pd.DataFrame:
     h = hist.copy()
     c["target_date"] = pd.to_datetime(c["target_date"], errors="coerce").dt.normalize()
     if "prediction_date" not in c.columns:
-        raise ValueError("Candidate history is missing prediction_date; forecast vintages cannot be evaluated safely")
+        return _blocked_summary(len(c), "blocked_missing_prediction_date",
+                                "Forecast vintage key is missing; no selection evidence was scored")
     c["prediction_date"] = pd.to_datetime(c["prediction_date"], errors="coerce").dt.normalize()
     c["symbol"] = c["symbol"].astype(str).str.upper().str.strip()
     candidate_keys = ["prediction_date", "target_date", "symbol"]
     if c.duplicated(candidate_keys).any():
-        raise ValueError("Candidate history contains duplicate prediction_date/target_date/symbol keys")
+        duplicate_rows = int(c.duplicated(candidate_keys, keep=False).sum())
+        return _blocked_summary(len(c), "blocked_duplicate_candidate_keys",
+                                f"{duplicate_rows} rows have duplicate forecast-vintage keys")
     h["date"] = pd.to_datetime(h["date"], errors="coerce").dt.normalize()
     h["symbol"] = h["symbol"].astype(str).str.upper().str.strip()
     h["close"] = pd.to_numeric(h["close"], errors="coerce")
@@ -61,7 +91,8 @@ def run_selection_validation() -> pd.DataFrame:
     x = x.dropna(subset=["prediction_date", "target_date", "base_close", "predicted_close", "actual_close", "rank"])
     x = x[x["base_close"] > 0]
     if x.empty:
-        return pd.DataFrame()
+        return _blocked_summary(len(c), "blocked_no_matched_outcomes",
+                                "No candidate rows matched realized OHLC outcomes; prior promotion evidence was cleared")
 
     x["abs_error_pct"] = (x["predicted_close"] - x["actual_close"]).abs() / x["actual_close"] * 100.0
     x["direction_correct"] = (

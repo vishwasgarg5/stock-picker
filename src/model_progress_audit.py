@@ -309,9 +309,45 @@ def audit_live_data(rows):
     else:
         add(rows, "Live data quality and freshness", "Index OHLCV update coverage", "BLOCKED", "No index bars to verify; data collection workflow may not have run", "data/index_ohlcv.csv")
 
+    # The refresh receipt is authoritative for source health. A successful Python
+    # process can still contain SOURCE_UNAVAILABLE results for individual indices.
+    index_audit_path = ROOT / "data/index_constituent_intelligence_audit.json"
+    index_audit = None
+    if index_audit_path.exists():
+        try:
+            index_audit = inspect_json(index_audit_path)
+            index_source = index_audit.get("index_ohlcv", {})
+            member_source = index_audit.get("constituents", {})
+            expected_source_names = set(expected_indexes)
+            failed_bars = {k: v for k, v in index_source.items() if v.get("status") != "PASS"}
+            failed_members = {k: v for k, v in member_source.items() if v.get("status") != "PASS"}
+            add(rows, "Live source refresh receipts", "Per-index OHLCV source results",
+                "PASS" if not failed_bars and expected_source_names.issubset(index_source) else "REVIEW",
+                f"configured={len(expected_source_names)}; reported={len(index_source)}; failed_or_missing={list(failed_bars) + sorted(expected_source_names-set(index_source))}; results={ {k:v.get('status') for k,v in index_source.items()} }",
+                "data/index_constituent_intelligence_audit.json")
+            add(rows, "Live source refresh receipts", "Per-index constituent source results",
+                "PASS" if not failed_members and expected_source_names.issubset(member_source) else "REVIEW",
+                f"configured={len(expected_source_names)}; reported={len(member_source)}; failed_or_missing={list(failed_members) + sorted(expected_source_names-set(member_source))}; results={ {k:v.get('status') for k,v in member_source.items()} }",
+                "data/index_constituent_intelligence_audit.json")
+            add(rows, "Live source refresh receipts", "Index refresh report timestamp and feature count",
+                "PASS" if index_audit.get("updated_at_ist") and int(index_audit.get("feature_rows", 0)) > 0 else "REVIEW",
+                f"updated_at_ist={index_audit.get('updated_at_ist')}; feature_rows={index_audit.get('feature_rows', 0)}",
+                "data/index_constituent_intelligence_audit.json")
+        except Exception as exc:
+            add(rows, "Live source refresh receipts", "Index source refresh receipt parsing", "FAIL", str(exc),
+                "data/index_constituent_intelligence_audit.json")
+    else:
+        add(rows, "Live source refresh receipts", "Index source refresh receipt parsing", "BLOCKED",
+            "The index refresher did not produce its per-source audit receipt",
+            "data/index_constituent_intelligence_audit.json")
+
     constituents = _check_csv_nonempty(rows, "Index constituent snapshot population", "data/index_constituents_history.csv",
-        {"index", "symbol", "as_of_date", "weight_pct", "weight_method"}, 1)
-    if constituents is not None:
+        {"index", "symbol", "as_of_date", "weight_pct", "weight_method"}, 0)
+    if constituents is not None and constituents.empty:
+        add(rows, "Live data quality and freshness", "Index constituent snapshot population",
+            "REVIEW", "Refresh ran but produced zero constituent rows; inspect per-index NSE source statuses before trusting any membership features",
+            "data/index_constituents_history.csv")
+    if constituents is not None and not constituents.empty:
         c = constituents.copy()
         c["as_of_date"] = pd.to_datetime(c["as_of_date"], errors="coerce")
         c["weight_pct"] = pd.to_numeric(c["weight_pct"], errors="coerce")
@@ -341,8 +377,12 @@ def audit_live_data(rows):
             "data/index_constituents_history.csv")
 
     features = _check_csv_nonempty(rows, "Stock-index feature output", "data/index_constituent_features.csv",
-        {"date", "symbol", "index"}, 1)
-    if features is not None:
+        {"date", "symbol", "index"}, 0)
+    if features is not None and features.empty:
+        add(rows, "Live data quality and freshness", "Stock-index feature population and uniqueness",
+            "REVIEW", "Feature artifact has a valid schema but zero rows; point-in-time membership or index history is not yet available",
+            "data/index_constituent_features.csv")
+    if features is not None and not features.empty:
         x = features.copy()
         x["date"] = pd.to_datetime(x["date"], errors="coerce")
         dup = int(x.duplicated(["date", "symbol", "index"]).sum())

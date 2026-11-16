@@ -760,9 +760,11 @@ def phase114_promotion_gate(
     sustained: dict[str, Any],
     exit_attribution: dict[str, Any] | None = None,
     loss_concentration: dict[str, Any] | None = None,
+    market_intelligence: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     exit_attribution = exit_attribution or {}
     loss_concentration = loss_concentration or {}
+    market_intelligence = market_intelligence or {}
     gates = {
         "pnl_reconciliation_pass": recon.get("status") == "PASS",
         "loss_concentration_evidence_available": loss_concentration.get("status") == "SCORED",
@@ -773,6 +775,7 @@ def phase114_promotion_gate(
             and exit_attribution.get("unknown_or_unrecorded_reason_rows", 1) == 0
         ),
         "forecast_metrics_available": forecast.get("status") == "SCORED",
+        "market_intelligence_current": market_intelligence.get("status") == "SCORED",
         "chronological_evidence_sufficient": replay.get("status") == "SCORED",
         "sustained_v2_sample_sufficient": sustained.get("status") == "SCORED",
     }
@@ -797,7 +800,7 @@ def run() -> dict[str, Any]:
     except (OSError, ValueError, UnicodeDecodeError):
         exit_attribution = {}
     gate = phase114_promotion_gate(
-        recon, funnel, forecast, replay, sustained, exit_attribution, loss
+        recon, funnel, forecast, replay, sustained, exit_attribution, loss, market
     )
     required_reports = [
         "phase107_pnl_reconciliation_summary.json",

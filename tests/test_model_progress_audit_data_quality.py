@@ -105,9 +105,22 @@ def test_index_refresh_receipt_surfaces_per_index_source_failure(tmp_path, monke
     assert "NIFTY50" in source["detail"]
 
 
-def test_any_blocked_gate_keeps_overall_audit_red(tmp_path, monkeypatch):
+def test_blocked_gate_alone_keeps_overall_audit_red(tmp_path, monkeypatch):
     monkeypatch.setattr(audit, "ROOT", tmp_path)
+    monkeypatch.setattr(audit, "MODULES", {})
+    monkeypatch.setattr(audit, "ARTIFACTS", {})
+    monkeypatch.setattr(audit, "PHASE_EVIDENCE", [])
+    for rel in ["README.md", ".github/workflows/daily.yml",
+                ".github/workflows/weekend-data-audit.yml",
+                ".github/workflows/pipeline-integrity-ci.yml"]:
+        path = tmp_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("present", encoding="utf-8")
+    def add_blocked(rows):
+        audit.add(rows, "test", "blocked only", "BLOCKED", "required evidence absent")
+    monkeypatch.setattr(audit, "audit_live_data", add_blocked)
     result = audit.run_audit(tmp_path / "audit-output")
-    assert result == 1
     report = json.loads((tmp_path / "audit-output/model_progress_audit.json").read_text())
+    assert report["counts"]["FAIL"] == 0
     assert report["counts"]["BLOCKED"] > 0
+    assert result == 1

@@ -263,8 +263,10 @@ def test_governance_steps_are_not_hardcoded_complete_without_evidence(tmp_path, 
     result = governance.run_governance()
 
     assert result["governance_steps_total"] == 20
-    assert result["governance_steps_passed"] < 20
+    assert result["governance_steps_with_evidence"] < 20
     assert result["governance_status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["production_changes_authorized"] is False
+    assert result["v2_remains_shadow_only"] is True
     assert result["feature_stability_status"] == "INSUFFICIENT_DATA"
     assert result["stable_features"] is None
 

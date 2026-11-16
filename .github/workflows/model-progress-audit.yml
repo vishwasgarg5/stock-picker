@@ -26,7 +26,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: model-progress-audit-${{ github.ref }}
+  group: model-progress-audit-v2-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:

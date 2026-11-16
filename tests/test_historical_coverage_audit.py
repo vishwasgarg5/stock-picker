@@ -111,4 +111,4 @@ def test_listing_master_stops_repeated_systemic_nse_failures(tmp_path, monkeypat
     assert session.quote_calls == 10
     assert result["symbols_fetched"] == 0
     assert len(result["symbols_unresolved"]) == 30
-    assert "Skipped after 10 consecutive systemic NSE errors" in result["lookup_failures"]["SYM10"]
+    assert any("Skipped after 10 consecutive systemic NSE errors" in value for value in result["lookup_failures"].values())

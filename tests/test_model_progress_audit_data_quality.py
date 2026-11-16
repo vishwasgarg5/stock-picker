@@ -139,3 +139,39 @@ def test_listing_master_uses_verified_source_column_name(tmp_path, monkeypatch):
     audit.audit_live_data(rows)
     result = _check(rows, "NSE listing-date master")
     assert result["status"] == "PASS"
+
+
+def test_index_ohlcv_missing_configured_index_is_not_a_pass(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    indexes = sorted({
+        "NIFTY50", "NIFTYNEXT50", "NIFTY100", "NIFTY200", "NIFTY500",
+        "BANKNIFTY", "NIFTYIT", "NIFTYAUTO", "NIFTYFIN", "NIFTYPHARMA", "NIFTYFMCG",
+    })
+    pd.DataFrame([{
+        "date": "2026-11-16", "index": name, "open": 100, "high": 102,
+        "low": 99, "close": 101,
+    } for name in indexes[:-1]]).to_csv(data / "index_ohlcv.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "Index OHLCV row integrity")
+    assert result["status"] == "REVIEW"
+    assert indexes[-1] in result["detail"]
+
+
+def test_constituent_weight_total_shortfall_is_visible(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    pd.DataFrame([
+        {"index": "NIFTY50", "symbol": "AAA", "as_of_date": "2026-11-16",
+         "weight_pct": 60, "weight_method": "OFFICIAL_NSE_WEIGHT"},
+        {"index": "NIFTY50", "symbol": "BBB", "as_of_date": "2026-11-16",
+         "weight_pct": 30, "weight_method": "OFFICIAL_NSE_WEIGHT"},
+    ]).to_csv(data / "index_constituents_history.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "Constituent weight totals and coverage")
+    assert result["status"] == "REVIEW"
+    assert "90.0" in result["detail"]

@@ -77,3 +77,11 @@ def test_estimated_weights_only_fill_residual_after_official_weights():
     assert weights["BBB"] == 60
     assert weights["CCC"] == 20
     assert weights.sum() == 100
+
+
+def test_constituent_snapshot_preserves_exact_source_endpoint():
+    source = "https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%2050"
+    frame = ici.normalise_constituent_payload("NIFTY50", {
+        "data": [{"symbol": "AAA", "weightage": "10"}],
+    }, "2024-01-02", source_url=source)
+    assert frame.loc[0, "source"] == source

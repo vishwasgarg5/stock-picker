@@ -639,7 +639,7 @@ def run_audit(output_dir: Path):
         f"Generated (UTC): {report['generated_at_utc']}",
         "",
         "> This audit separates code structure, data artifacts and readiness evidence. "
-        "A present file is not proof of model skill, and BLOCKED/REVIEW are real findings, not workflow failures.",
+        "A present file is not proof of model skill. FAIL or BLOCKED checks make the audit fail; REVIEW remains a visible warning.",
         "",
         "## Summary",
         "",
@@ -660,7 +660,7 @@ def run_audit(output_dir: Path):
     (output_dir / "model_progress_audit.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("\n".join(lines[:14]))
     print(f"Full report: {output_dir / 'model_progress_audit.md'}")
-    return 0 if counts["FAIL"] == 0 else 1
+    return 0 if counts["FAIL"] == 0 and counts["BLOCKED"] == 0 else 1
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

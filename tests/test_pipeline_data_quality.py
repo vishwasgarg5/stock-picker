@@ -299,3 +299,33 @@ def test_governance_loss_streak_uses_chronological_trade_order(monkeypatch):
     result = governance._tail_risk()
 
     assert result["consecutive_losses"] == 1
+
+
+
+def test_selection_validation_clears_stale_promotion_on_duplicate_vintage_keys(tmp_path, monkeypatch):
+    import src.selection_validation as validation
+
+    candidates = pd.DataFrame([
+        {"prediction_date": "2026-01-02", "target_date": "2026-01-05",
+         "symbol": "AAA", "rank": 1, "selected": 1,
+         "base_close": 100, "predicted_close": 101},
+        {"prediction_date": "2026-01-02", "target_date": "2026-01-05",
+         "symbol": "AAA", "rank": 1, "selected": 1,
+         "base_close": 100, "predicted_close": 101},
+    ])
+    candidates.to_csv(tmp_path / "candidates.csv", index=False)
+    pd.DataFrame([{"date": "2026-01-05", "symbol": "AAA", "close": 102}]).to_csv(
+        tmp_path / "history.csv", index=False
+    )
+    pd.DataFrame([{"recent_error_promotion_evidence": True}]).to_csv(
+        tmp_path / "validation.csv", index=False
+    )
+    monkeypatch.setattr(validation, "CANDIDATES_FILE", tmp_path / "candidates.csv")
+    monkeypatch.setattr(validation, "HISTORY_FILE", tmp_path / "history.csv")
+    monkeypatch.setattr(validation, "OUTPUT_FILE", tmp_path / "validation.csv")
+
+    result = validation.run_selection_validation().iloc[0]
+
+    assert result["validation_status"] == "blocked_duplicate_candidate_keys"
+    assert result["recent_error_promotion_evidence"] == False
+    assert result["confidence_promotion_evidence"] == False

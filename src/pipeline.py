@@ -1228,6 +1228,8 @@ def _apply_paper_trade_accounting(rows: pd.DataFrame) -> pd.DataFrame:
     x["ledger_schema_version"] = 3
     x["record_created_at_utc"] = pd.Timestamp.now(tz="UTC").isoformat()
     x["cost_model"] = "fixed_round_trip_0.10pct_of_entry_notional"
+    x["accounting_reconciliation_status"] = np.where(buy, "RECONCILED_SCHEMA_V3", "NOT_APPLICABLE")
+    x["exit_reason_record_status"] = np.where(buy, "RECORDED", "NOT_APPLICABLE")
     return x
 
 

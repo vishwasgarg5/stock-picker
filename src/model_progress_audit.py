@@ -280,7 +280,7 @@ def audit_live_data(rows):
         listing_dates = pd.to_datetime(listing["listing_date"], errors="coerce", dayfirst=True)
         invalid_listing_dates = int(listing_dates.isna().sum())
         future_listing_dates = int((listing_dates.dt.date > datetime.now(timezone.utc).date()).sum())
-        source_valid = int((~listing["listing_date_source"].astype(str).str.contains(r"nseindia\\.(com|in)", case=False, regex=True)).sum())
+        source_valid = int((~listing["listing_date_source"].astype(str).str.contains(r"nseindia\.(com|in)", case=False, regex=True)).sum())
         result = "PASS" if nulls == 0 and unique == 0 and invalid_listing_dates == 0 and future_listing_dates == 0 and source_valid == 0 else "FAIL"
         add(rows, "Live data quality and freshness", "Listing master field completeness and validity",
             result,

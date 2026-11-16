@@ -42,7 +42,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/ohlcv.csv data/historical_coverage_audit.json data/historical_coverage_audit.csv data/historical_recovery_run.json
+          git add data/ohlcv.csv data/historical_coverage_audit.json data/historical_coverage_audit.csv data/historical_recovery_run.json data/historical_gap_repair_details.csv
           if git diff --cached --quiet; then
             echo "No historical data or report changes."
             exit 0

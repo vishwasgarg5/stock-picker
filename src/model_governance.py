@@ -368,11 +368,15 @@ def run_governance() -> dict:
         "v2_profit_factor": tail["profit_factor"],
         "governance_version": "v1.0",
         **steps,
-        "governance_steps_passed": int(sum(bool(value) for value in steps.values())),
+        "governance_steps_with_evidence": int(sum(bool(value) for value in steps.values())),
         "governance_steps_total": len(steps),
-        "governance_status": "EVIDENCE_COMPLETE" if all(steps.values()) else "INSUFFICIENT_EVIDENCE",
-        "step_semantics": "A step is true only when its corresponding source evidence is present; missing evidence is false, never assumed complete.",
+        "governance_status": "EVIDENCE_AVAILABLE_REVIEW_REQUIRED" if all(steps.values()) else "INSUFFICIENT_EVIDENCE",
+        "step_semantics": "A true step means its source evidence is present; it does not mean the model passed that evidence or is promotable.",
         "step_evidence_status": {name: ("AVAILABLE" if value else "MISSING_OR_NOT_PASSED") for name, value in steps.items()},
+        "v1_remains_production_champion": True,
+        "v2_remains_shadow_only": True,
+        "automatic_promotion": False,
+        "production_changes_authorized": False,
     }
     pd.DataFrame([report]).to_csv(DATA/"model_governance_summary.csv",index=False)
     targets.to_csv(DATA/"target_threshold_diagnostics.csv",index=False)

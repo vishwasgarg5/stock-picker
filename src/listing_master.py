@@ -64,10 +64,11 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
         if error:
             failures[symbol]=error
             lower_error=error.lower()
-            systemic=("403" in lower_error or "429" in lower_error or
-                      "timed out" in lower_error or "timeout" in lower_error or
-                      "connectionerror" in lower_error or
-                      ("404" in lower_error and "nseindia.in" in lower_error))
+            systemic=(any(token in lower_error for token in
+                      ("403", "429", "timed out", "timeout", "connection",
+                       "502", "503", "504", "server error")) or
+                      ("404" in lower_error and "nseindia.in" in lower_error) or
+                      "nse quote response missing info object" in lower_error)
             consecutive_systemic_failures = consecutive_systemic_failures + 1 if systemic else 0
             # Stop a long 500-symbol retry storm when NSE is rejecting the
             # entire session/network. Unresolved symbols remain explicit and

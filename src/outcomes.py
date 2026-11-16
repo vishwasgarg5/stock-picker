@@ -88,7 +88,10 @@ def run_outcomes() -> pd.DataFrame:
     output["target_date"] = pd.to_datetime(output["target_date"], errors="coerce").dt.normalize()
     for label in HORIZONS:
         output[f"{label}_target_date"] = pd.to_datetime(output[f"{label}_target_date"], errors="coerce").dt.normalize()
-        derived_status = np.where(output[f"{label}_actual_close"].notna(), "AVAILABLE", "PENDING")
+        actual_values = pd.to_numeric(output[f"{label}_actual_close"], errors="coerce")
+        derived_status = np.where(
+            np.isfinite(actual_values.to_numpy(dtype=float)), "AVAILABLE", "PENDING"
+        )
         status_col = f"{label}_status"
         if status_col not in output.columns:
             output[status_col] = derived_status

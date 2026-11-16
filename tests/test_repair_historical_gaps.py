@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from src import repair_historical_gaps as repair
 
@@ -45,6 +46,7 @@ def test_normalise_legacy_nse_bhavcopy_maps_equity_ohlcv_and_filters_other_serie
         "LOW": [9, 9, 19],
         "CLOSE": [11, 11, 21],
         "TOTTRDQTY": [100, 90, 200],
+        "TIMESTAMP": ["05-JUL-2024", "05-JUL-2024", "05-JUL-2024"],
     })
     result = repair.normalise_nse_bhavcopy(raw, pd.Timestamp("2024-07-05"))
 
@@ -63,8 +65,18 @@ def test_normalise_udiff_nse_bhavcopy_maps_modern_fields():
         "LwPric": [9],
         "ClsPric": [11],
         "TtlTradgVol": [100],
+        "TradDt": ["2024-07-08"],
     })
     result = repair.normalise_nse_bhavcopy(raw, pd.Timestamp("2024-07-08"))
 
     assert result.iloc[0]["symbol"] == "AAA"
     assert result.iloc[0]["volume"] == 100
+
+
+def test_normalise_nse_bhavcopy_rejects_a_different_trade_date():
+    raw = pd.DataFrame({
+        "SYMBOL": ["AAA"], "SERIES": ["EQ"], "OPEN": [10], "HIGH": [12],
+        "LOW": [9], "CLOSE": [11], "TOTTRDQTY": [100], "TIMESTAMP": ["04-JUL-2024"],
+    })
+    with pytest.raises(ValueError, match="trade date mismatch"):
+        repair.normalise_nse_bhavcopy(raw, pd.Timestamp("2024-07-05"))

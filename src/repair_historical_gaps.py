@@ -7,6 +7,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 from zipfile import BadZipFile, ZipFile
+import time
 
 import numpy as np
 import pandas as pd
@@ -78,8 +79,17 @@ def nse_bhavcopy_url(session: date | pd.Timestamp) -> str:
 
 
 def normalise_nse_bhavcopy(frame: pd.DataFrame, session: date | pd.Timestamp) -> pd.DataFrame:
-    """Map legacy and UDiFF NSE bhavcopy schemas to the project's OHLCV schema."""
+    """Map legacy and UDiFF NSE bhavcopy schemas after verifying the file date."""
     columns = {str(column).strip().lower(): column for column in frame.columns}
+    requested_day = pd.Timestamp(session).normalize()
+    date_column = next((columns[name] for name in ("traddt", "timestamp", "date") if name in columns), None)
+    if date_column is None:
+        raise ValueError("NSE bhavcopy is missing its trade-date field")
+    source_dates = pd.to_datetime(frame[date_column], errors="coerce", dayfirst=True).dropna()
+    source_dates = source_dates.dt.tz_localize(None).dt.normalize()
+    if source_dates.empty or source_dates.nunique() != 1 or source_dates.iloc[0] != requested_day:
+        observed = sorted({value.date().isoformat() for value in source_dates})
+        raise ValueError(f"NSE bhavcopy trade date mismatch: requested {requested_day.date()}, observed {observed}")
     aliases = {
         "symbol": ("symbol", "tckrsymb"),
         "series": ("series", "sctysrs"),
@@ -114,9 +124,24 @@ def normalise_nse_bhavcopy(frame: pd.DataFrame, session: date | pd.Timestamp) ->
 
 
 def fetch_nse_bhavcopy(session: date | pd.Timestamp) -> pd.DataFrame:
-    """Fetch and parse one source-backed NSE cash-market session."""
-    response = requests.get(nse_bhavcopy_url(session), headers=NSE_HEADERS, timeout=45)
-    response.raise_for_status()
+    """Fetch and parse one source-backed NSE cash-market session with bounded retries."""
+    response = None
+    for attempt in range(3):
+        try:
+            response = requests.get(nse_bhavcopy_url(session), headers=NSE_HEADERS, timeout=45)
+            if response.status_code == 404:
+                response.raise_for_status()
+            if response.status_code in {429, 500, 502, 503, 504} and attempt < 2:
+                time.sleep(2 ** attempt)
+                continue
+            response.raise_for_status()
+            break
+        except requests.RequestException:
+            if attempt == 2 or (response is not None and response.status_code == 404):
+                raise
+            time.sleep(2 ** attempt)
+    if response is None:
+        raise RuntimeError(f"NSE bhavcopy request failed for {session}")
     try:
         with ZipFile(BytesIO(response.content)) as archive:
             csv_names = [name for name in archive.namelist() if name.lower().endswith(".csv")]

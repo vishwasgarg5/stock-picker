@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 from zipfile import BadZipFile, ZipFile
 import time
+import re
 
 import numpy as np
 import pandas as pd
@@ -78,6 +79,20 @@ def nse_bhavcopy_url(session: date | pd.Timestamp) -> str:
     )
 
 
+def _parse_nse_trade_dates(values: pd.Series) -> pd.Series:
+    """Parse ISO dates as year-first and legacy NSE dates as day-first."""
+    parsed = []
+    for value in values:
+        raw = str(value).strip()
+        if re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", raw):
+            parsed.append(pd.to_datetime(raw, format="%Y-%m-%d", errors="coerce"))
+        elif re.fullmatch(r"\\d{4}/\\d{2}/\\d{2}", raw):
+            parsed.append(pd.to_datetime(raw, format="%Y/%m/%d", errors="coerce"))
+        else:
+            parsed.append(pd.to_datetime(raw, errors="coerce", dayfirst=True))
+    return pd.Series(pd.to_datetime(parsed), index=values.index)
+
+
 def normalise_nse_bhavcopy(frame: pd.DataFrame, session: date | pd.Timestamp) -> pd.DataFrame:
     """Map legacy and UDiFF NSE bhavcopy schemas after verifying the file date."""
     columns = {str(column).strip().lower(): column for column in frame.columns}
@@ -85,7 +100,7 @@ def normalise_nse_bhavcopy(frame: pd.DataFrame, session: date | pd.Timestamp) ->
     date_column = next((columns[name] for name in ("traddt", "timestamp", "date") if name in columns), None)
     if date_column is None:
         raise ValueError("NSE bhavcopy is missing its trade-date field")
-    source_dates = pd.to_datetime(frame[date_column], errors="coerce", dayfirst=True).dropna()
+    source_dates = _parse_nse_trade_dates(frame[date_column]).dropna()
     source_dates = source_dates.dt.tz_localize(None).dt.normalize()
     if source_dates.empty or source_dates.nunique() != 1 or source_dates.iloc[0] != requested_day:
         observed = sorted({value.date().isoformat() for value in source_dates})

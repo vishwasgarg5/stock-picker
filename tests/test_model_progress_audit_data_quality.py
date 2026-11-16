@@ -1,0 +1,67 @@
+from datetime import datetime, timezone
+import json
+
+import pandas as pd
+
+from src import model_progress_audit as audit
+
+
+def _calendar(root):
+    data = root / "data"
+    data.mkdir(parents=True, exist_ok=True)
+    (data / "nse_market_calendar.json").write_text(json.dumps({
+        "schema_version": 1, "exchange": "NSE", "segment": "CM",
+        "timezone": "Asia/Kolkata",
+        "updated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "holidays": [], "special_sessions": [],
+    }), encoding="utf-8")
+
+
+def _check(rows, name):
+    return next(row for row in rows if row["check"] == name)
+
+
+def test_calendar_missing_refresh_timestamp_is_not_a_pass(tmp_path, monkeypatch):
+    data = tmp_path / "data"
+    data.mkdir()
+    (data / "nse_market_calendar.json").write_text(json.dumps({
+        "exchange": "NSE", "segment": "CM", "holidays": [], "special_sessions": [],
+        "updated_at_utc": None,
+    }), encoding="utf-8")
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    payload, expected, detail = audit._calendar_context()
+    assert payload is not None
+    assert expected is None
+    assert "updated_at_utc is missing" in detail
+
+
+def test_ohlcv_audit_detects_duplicate_keys_and_invalid_bars(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    pd.DataFrame([
+        {"date": "2026-11-16", "symbol": "ABC", "open": 10, "high": 9, "low": 8, "close": 11, "volume": 100},
+        {"date": "2026-11-16", "symbol": "ABC", "open": 10, "high": 12, "low": 8, "close": 11, "volume": 100},
+    ]).to_csv(data / "ohlcv.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "OHLCV completeness and price integrity")
+    assert result["status"] == "FAIL"
+    assert "duplicate_date_symbol=1" in result["detail"]
+    assert "invalid_ohlcv=1" in result["detail"]
+
+
+def test_index_constituent_audit_detects_bad_weights_and_duplicate_memberships(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    pd.DataFrame([
+        {"index": "NIFTY50", "symbol": "ABC", "as_of_date": "2026-11-16", "weight_pct": 110, "weight_method": "OFFICIAL_NSE_WEIGHT"},
+        {"index": "NIFTY50", "symbol": "ABC", "as_of_date": "2026-11-16", "weight_pct": 110, "weight_method": "OFFICIAL_NSE_WEIGHT"},
+    ]).to_csv(data / "index_constituents_history.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "Index membership and weight integrity")
+    assert result["status"] == "FAIL"
+    assert "duplicate_memberships=1" in result["detail"]
+    assert "out_of_range_weights=2" in result["detail"]

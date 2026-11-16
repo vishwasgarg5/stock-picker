@@ -267,3 +267,35 @@ def test_governance_steps_are_not_hardcoded_complete_without_evidence(tmp_path, 
     assert result["governance_status"] == "INSUFFICIENT_EVIDENCE"
     assert result["feature_stability_status"] == "INSUFFICIENT_DATA"
     assert result["stable_features"] is None
+
+
+
+def test_governance_stability_uses_latest_ten_sessions_not_file_order():
+    from src.model_governance import _stock_stability
+
+    rows = []
+    for day in range(1, 13):
+        rows.append({
+            "symbol": "AAA",
+            "target_date": pd.Timestamp("2026-01-01") + pd.Timedelta(days=day),
+            "close_direction_correct": 1 if day <= 10 else 0,
+        })
+    result = _stock_stability(pd.DataFrame(rows[::-1])).iloc[0]
+
+    assert result["recent_accuracy_pct"] == 80.0
+
+
+def test_governance_loss_streak_uses_chronological_trade_order(monkeypatch):
+    import src.model_governance as governance
+
+    trades = pd.DataFrame([
+        {"target_date": "2026-01-01", "symbol": "A", "signal": "BUY", "profit_loss": -10.0},
+        {"target_date": "2026-01-02", "symbol": "A", "signal": "BUY", "profit_loss": 5.0},
+        {"target_date": "2026-01-03", "symbol": "A", "signal": "BUY", "profit_loss": -20.0},
+        {"target_date": "2026-01-04", "symbol": "A", "signal": "BUY", "profit_loss": 5.0},
+        {"target_date": "2026-01-05", "symbol": "A", "signal": "BUY", "profit_loss": -30.0},
+    ])
+    monkeypatch.setattr(governance, "_read", lambda name: trades.iloc[[4, 2, 0, 3, 1]].copy())
+    result = governance._tail_risk()
+
+    assert result["consecutive_losses"] == 1

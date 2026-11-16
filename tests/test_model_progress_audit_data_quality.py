@@ -71,3 +71,35 @@ def test_index_constituent_audit_detects_bad_weights_and_duplicate_memberships(t
     assert result["status"] == "FAIL"
     assert "duplicate_memberships=1" in result["detail"]
     assert "out_of_range_weights=2" in result["detail"]
+
+
+
+def test_empty_feature_artifact_with_schema_is_review_not_malformed(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    pd.DataFrame(columns=["date", "symbol", "index"]).to_csv(data / "index_constituent_features.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "Stock-index feature output")
+    assert result["status"] == "PASS"
+    population = _check(rows, "Stock-index feature population and uniqueness")
+    assert population["status"] == "REVIEW"
+    assert "zero rows" in population["detail"]
+
+
+def test_index_refresh_receipt_surfaces_per_index_source_failure(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    (data / "index_constituent_intelligence_audit.json").write_text(json.dumps({
+        "updated_at_ist": "2026-11-17T09:00:00+05:30",
+        "feature_rows": 0,
+        "index_ohlcv": {"NIFTY50": {"status": "PASS"}},
+        "constituents": {"NIFTY50": {"status": "SOURCE_UNAVAILABLE"}},
+    }), encoding="utf-8")
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    source = _check(rows, "Per-index constituent source results")
+    assert source["status"] == "REVIEW"
+    assert "NIFTY50" in source["detail"]

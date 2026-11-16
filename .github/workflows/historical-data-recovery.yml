@@ -1,0 +1,51 @@
+name: Historical OHLCV Recovery
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "data/.historical_recovery_trigger"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stock-picker-historical-recovery-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Recover OHLCV and produce per-stock coverage reports
+        run: python -m src.recover_historical_data
+
+      - name: Commit only market history and recovery reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ohlcv.csv data/historical_coverage_audit.json data/historical_coverage_audit.csv data/historical_recovery_run.json
+          if git diff --cached --quiet; then
+            echo "No historical data or report changes."
+          else
+            git commit -m "data: recover historical OHLCV coverage"
+            git push
+          fi

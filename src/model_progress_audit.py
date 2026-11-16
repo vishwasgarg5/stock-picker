@@ -261,9 +261,9 @@ def audit_live_data(rows):
                 "data/fundamentals.csv")
 
     listing = _check_csv_nonempty(rows, "NSE listing-date master", "data/nse_listing_master.csv",
-        {"symbol", "listing_date", "source", "verified_at_utc"}, 1)
+        {"symbol", "listing_date", "listing_date_source", "verified_at_utc"}, 1)
     if listing is not None:
-        required = ["symbol", "listing_date", "source", "verified_at_utc"]
+        required = ["symbol", "listing_date", "listing_date_source", "verified_at_utc"]
         nulls = int(listing[required].isna().sum().sum())
         unique = int(listing["symbol"].astype(str).str.upper().str.strip().duplicated().sum())
         add(rows, "Live data quality and freshness", "Listing master field completeness",

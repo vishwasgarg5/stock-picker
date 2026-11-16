@@ -192,13 +192,15 @@ def test_phase114_requires_exit_attribution_and_never_auto_promotes(tmp_path, mo
     loss = {"status": "SCORED"}
     incomplete_attribution = {"status": "SCORED", "unknown_or_unrecorded_reason_rows": 1}
     blocked = phase114_promotion_gate(
-        recon, funnel, forecast, replay, sustained, incomplete_attribution, loss
+        recon, funnel, forecast, replay, sustained, incomplete_attribution, loss,
+        {"status": "SCORED"},
     )
     assert blocked["gates"]["exit_reason_attribution_complete"] is False
     assert blocked["automatic_promotion"] is False
     complete_attribution = {"status": "SCORED", "unknown_or_unrecorded_reason_rows": 0}
     review = phase114_promotion_gate(
-        recon, funnel, forecast, replay, sustained, complete_attribution, loss
+        recon, funnel, forecast, replay, sustained, complete_attribution, loss,
+        {"status": "SCORED"},
     )
     assert review["status"] == "REVIEW_REQUIRED"
     assert review["gates"]["loss_concentration_evidence_available"] is True

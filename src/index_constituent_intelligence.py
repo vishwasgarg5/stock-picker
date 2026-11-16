@@ -128,7 +128,7 @@ def download_index_history(ticker_map: dict | None = None, downloader=None) -> t
     return downloaded, audit
 
 
-def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | None = None) -> pd.DataFrame:
+def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | None = None, source_url: str | None = None) -> pd.DataFrame:
     data = payload.get("data", []) if isinstance(payload, dict) else []
     if not isinstance(data, list):
         raise ValueError(f"NSE constituent response for {index} has no data list")
@@ -153,7 +153,7 @@ def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | N
             weight = np.nan
         records.append({"index": index, "symbol": symbol, "as_of_date": snapshot_date,
                         "weight_pct": weight, "weight_method": "OFFICIAL_NSE_WEIGHT" if np.isfinite(weight) else "PENDING_WEIGHT",
-                        "ffmc": ffmc, "source": NSE_API.format(NSE_INDEX_NAMES[index].replace(" ", "%20"))})
+                        "ffmc": ffmc, "source": source_url or NSE_API.format(NSE_INDEX_NAMES[index].replace(" ", "%20"))})
     out = pd.DataFrame(records, columns=MEMBER_COLUMNS)
     if out.empty:
         return out
@@ -189,15 +189,15 @@ def refresh_constituent_snapshots(session=None, indexes: dict | None = None, as_
         # NSE has exposed both route spellings in different generations of its
         # public site. Try the current hyphenated route first, then legacy.
         endpoints = [
-            NSE_API,
             "https://www.nseindia.com/api/equity-stockIndices?index={}",
+            NSE_API,
         ]
         for endpoint in endpoints:
             try:
-                response = client.get(endpoint.format(nse_name.replace(" ", "%20")),
-                                      timeout=25, headers=HEADERS)
+                request_url = endpoint.format(nse_name.replace(" ", "%20"))
+                response = client.get(request_url, timeout=25, headers=HEADERS)
                 response.raise_for_status()
-                frame = normalise_constituent_payload(index, response.json(), as_of_date)
+                frame = normalise_constituent_payload(index, response.json(), as_of_date, source_url=request_url)
                 if frame.empty:
                     raise ValueError("NSE response contained no constituents")
                 break

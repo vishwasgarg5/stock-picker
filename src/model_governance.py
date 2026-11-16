@@ -292,6 +292,38 @@ def run_governance() -> dict:
     safety = _safety()
     confidence = _read("confidence_validation_summary.csv")
     selection = _read("phase2_performance_summary.csv")
+    ranking_validation = _read("ranking_model_validation_summary.csv")
+    v1_trades = _read("paper_trades.csv")
+    manifest = _manifest()
+    strategy_state_path = DATA / "strategy_state.json"
+    phase114_path = DATA / "phase114_promotion_readiness_summary.json"
+    bootstrap_valid = (
+        int(bootstrap.get("sessions", 0)) >= 2
+        and np.isfinite(float(bootstrap.get("bootstrap_ci_low_pct", np.nan)))
+        and np.isfinite(float(bootstrap.get("bootstrap_ci_high_pct", np.nan)))
+    )
+    steps = {
+        "step_01_walk_forward": not evals.empty and "target_date" in evals.columns,
+        "step_02_target_optimization": not targets.empty,
+        "step_03_probability_calibration": not confidence.empty and "confidence_promotion_evidence" in confidence.columns,
+        "step_04_regime_validation": not regimes.empty,
+        "step_05_stock_stability": not stocks.empty,
+        "step_06_feature_stability": not features.empty,
+        "step_07_ranking_optimization": not ranking_validation.empty and str(ranking_validation.iloc[-1].get("diagnostic_ready", False)).lower() == "true",
+        "step_08_matched_session_ledger": not v1_trades.empty and {"symbol", "target_date", "signal"}.issubset(v1_trades.columns),
+        "step_09_v2_evidence_gate": phase114_path.exists(),
+        "step_10_confidence_buckets": not confidence.empty and {"confidence_bucket", "rows"}.issubset(confidence.columns),
+        "step_11_tail_risk": tail["v2_trades"] > 0,
+        "step_12_bootstrap": bootstrap_valid,
+        "step_13_statistical_promotion": bootstrap_valid and float(bootstrap["bootstrap_ci_low_pct"]) > 0,
+        "step_14_promotion_hysteresis": strategy_state_path.exists(),
+        "step_15_automatic_rollback": (DATA / "rollback_summary.json").exists(),
+        "step_16_reproducibility_manifest": manifest["files"] > 0,
+        "step_17_data_drift": drift["status"] == "PASS",
+        "step_18_model_drift": model_drift["status"] == "PASS",
+        "step_19_no_trade_safety": safety["status"] == "PASS",
+        "step_20_consolidated_dashboard": (DATA / "performance_history.csv").exists(),
+    }
     report = {
         "as_of": pd.Timestamp.now(tz="UTC").isoformat(),
         "target_threshold_current_pct": 0.15,
@@ -299,8 +331,10 @@ def run_governance() -> dict:
         "target_threshold_best_coverage_pct": float(targets.loc[targets["coverage_pct"].idxmax(),"threshold_pct"]) if not targets.empty else np.nan,
         "regime_rows": int(len(regimes)),
         "stock_rows": int(len(stocks)),
-        "unstable_stocks": int((~stocks["stable"]).sum()) if not stocks.empty and "stable" in stocks else 0,
-        "stable_features": int(features["stable_signal"].sum()) if not features.empty and "stable_signal" in features else 0,
+        "stock_stability_status": "SCORED" if not stocks.empty else "INSUFFICIENT_DATA",
+        "unstable_stocks": int((~stocks["stable"]).sum()) if not stocks.empty and "stable" in stocks else None,
+        "stable_features": int(features["stable_signal"].sum()) if not features.empty and "stable_signal" in features else None,
+        "feature_stability_status": "SCORED" if not features.empty else "INSUFFICIENT_DATA",
         "feature_count": int(len(features)),
         "bootstrap_sessions": bootstrap["sessions"],
         "bootstrap_mean_return_lift_pct": bootstrap["bootstrap_mean_pct"],
@@ -323,33 +357,19 @@ def run_governance() -> dict:
         "max_consecutive_v2_losses": tail["consecutive_losses"],
         "v2_profit_factor": tail["profit_factor"],
         "governance_version": "v1.0",
-        "step_01_walk_forward": True,
-        "step_02_target_optimization": True,
-        "step_03_probability_calibration": True,
-        "step_04_regime_validation": True,
-        "step_05_stock_stability": True,
-        "step_06_feature_stability": True,
-        "step_07_ranking_optimization": True,
-        "step_08_matched_session_ledger": True,
-        "step_09_v2_evidence_gate": True,
-        "step_10_confidence_buckets": True,
-        "step_11_tail_risk": True,
-        "step_12_bootstrap": True,
-        "step_13_statistical_promotion": True,
-        "step_14_promotion_hysteresis": True,
-        "step_15_automatic_rollback": True,
-        "step_16_reproducibility_manifest": True,
-        "step_17_data_drift": True,
-        "step_18_model_drift": True,
-        "step_19_no_trade_safety": True,
-        "step_20_consolidated_dashboard": True,
+        **steps,
+        "governance_steps_passed": int(sum(bool(value) for value in steps.values())),
+        "governance_steps_total": len(steps),
+        "governance_status": "EVIDENCE_COMPLETE" if all(steps.values()) else "INSUFFICIENT_EVIDENCE",
+        "step_semantics": "A step is true only when its corresponding source evidence is present; missing evidence is false, never assumed complete.",
+        "step_evidence_status": {name: ("AVAILABLE" if value else "MISSING_OR_NOT_PASSED") for name, value in steps.items()},
     }
     pd.DataFrame([report]).to_csv(DATA/"model_governance_summary.csv",index=False)
     targets.to_csv(DATA/"target_threshold_diagnostics.csv",index=False)
     regimes.to_csv(DATA/"regime_performance.csv",index=False)
     stocks.to_csv(DATA/"stock_stability.csv",index=False)
     features.to_csv(DATA/"feature_stability.csv",index=False)
-    (DATA/"model_manifest.json").write_text(json.dumps(_manifest(),indent=2))
+    (DATA/"model_manifest.json").write_text(json.dumps(manifest,indent=2))
     (DATA/"model_governance.json").write_text(json.dumps(report,indent=2,default=str))
     print(json.dumps(report,indent=2))
     if safety["status"] != "PASS":

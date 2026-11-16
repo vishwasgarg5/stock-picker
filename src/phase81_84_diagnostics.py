@@ -47,9 +47,9 @@ def receipt_reconciliation() -> tuple[dict[str, Any], pd.DataFrame]:
             files[name] = {"rows": 0, "confirmed": 0, "legacy_unverified": 0,
                            "unknown_status": 0, "duplicate_hash_rows": 0}
             continue
-        status = frame.get("delivery_status", pd.Series("", index=frame.index)).fillna("").astype(str).str.strip()
-        hashes = frame.get("message_hash", pd.Series("", index=frame.index)).fillna("").astype(str).str.strip()
-        ids = frame.get("telegram_message_id", pd.Series("", index=frame.index)).fillna("").astype(str).str.strip()
+        status = frame.get("delivery_status", pd.Series("", index=frame.index)).astype("string").fillna("").str.strip()
+        hashes = frame.get("message_hash", pd.Series("", index=frame.index)).astype("string").fillna("").str.strip()
+        ids = frame.get("telegram_message_id", pd.Series("", index=frame.index)).astype("string").fillna("").str.strip()
         confirmed = status.eq("TELEGRAM_API_CONFIRMED")
         legacy = status.eq("LEGACY_UNVERIFIED")
         unknown = ~(confirmed | legacy)

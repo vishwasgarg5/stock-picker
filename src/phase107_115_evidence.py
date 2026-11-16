@@ -6,6 +6,7 @@ All reports are analysis-only. No missing facts are inferred, no source ledgers
 are rewritten, and no production ranking, risk, sizing, or promotion settings change.
 """
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -610,22 +611,44 @@ def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str
     pnl_values = x[pnl_col].to_numpy(dtype=float)
     if not np.isfinite(pnl_values).all():
         return {**empty, "invalid_metric_rows": int((~np.isfinite(pnl_values)).sum()), "valid": False}
-    daily = x.groupby(date_col)[pnl_col].sum().sort_index()
+    # Use Python's checked, compensated summation rather than NumPy/pandas
+    # reductions here. Extreme-but-finite audit fixtures can otherwise emit
+    # RuntimeWarnings before this diagnostic correctly rejects the overflow.
+    try:
+        daily_items = [
+            (session, math.fsum(float(value) for value in values.to_numpy(dtype=float)))
+            for session, values in x.groupby(date_col, sort=True)[pnl_col]
+        ]
+    except (OverflowError, ValueError):
+        return {**empty, "rows": int(len(x)), "sessions": int(x[date_col].nunique()), "invalid_metric_rows": int(len(x)), "invalid_date_rows": 0, "invalid_pnl_rows": 0, "valid": False, "invalid_derived_metric": "daily_session_pnl_overflow"}
+    daily = pd.Series(dict(daily_items), dtype=float).sort_index()
     if not np.isfinite(daily.to_numpy(dtype=float)).all():
         return {**empty, "rows": int(len(x)), "sessions": int(daily.size), "invalid_metric_rows": int(len(x)), "invalid_date_rows": 0, "invalid_pnl_rows": 0, "valid": False, "invalid_derived_metric": "daily_session_pnl_overflow"}
     starting_capital = 100000.0
     # Include starting equity in the peak series so a first-session loss is
     # measured as drawdown from the initial capital rather than a zero drawdown.
-    equity = pd.concat([
-        pd.Series([starting_capital], index=[daily.index.min() - pd.Timedelta(days=1)]),
-        starting_capital + daily.cumsum(),
-    ]).sort_index()
+    try:
+        equity_values = [starting_capital]
+        running_equity = starting_capital
+        for session_pnl in daily.to_numpy(dtype=float):
+            running_equity = math.fsum((running_equity, float(session_pnl)))
+            if not math.isfinite(running_equity):
+                raise OverflowError("non-finite cumulative equity")
+            equity_values.append(running_equity)
+        trade_pnl = x[pnl_col].to_numpy(dtype=float)
+        gains = math.fsum(float(value) for value in trade_pnl if value > 0)
+        losses = math.fsum(-float(value) for value in trade_pnl if value < 0)
+        net_pnl = math.fsum(float(value) for value in daily.to_numpy(dtype=float))
+    except (OverflowError, ValueError):
+        return {**empty, "rows": int(len(x)), "sessions": int(daily.size), "invalid_metric_rows": int(len(x)), "invalid_date_rows": 0, "invalid_pnl_rows": 0, "valid": False, "invalid_derived_metric": "equity_or_aggregate_overflow"}
+    equity = pd.Series(
+        equity_values,
+        index=[daily.index.min() - pd.Timedelta(days=1), *daily.index.tolist()],
+        dtype=float,
+    )
     peak = equity.cummax()
     drawdown = ((equity / peak) - 1.0) * 100.0
-    trade_pnl = pd.to_numeric(x[pnl_col], errors="coerce").dropna()
-    gains = float(trade_pnl[trade_pnl > 0].sum())
-    losses = float(-trade_pnl[trade_pnl < 0].sum())
-    derived = [equity.to_numpy(dtype=float), drawdown.to_numpy(dtype=float), np.asarray([daily.sum(), daily.mean(), daily.max(), daily.min(), gains, losses], dtype=float)]
+    derived = [equity.to_numpy(dtype=float), drawdown.to_numpy(dtype=float), np.asarray([net_pnl, daily.mean(), daily.max(), daily.min(), gains, losses], dtype=float)]
     if not all(np.isfinite(values).all() for values in derived):
         return {**empty, "rows": int(len(x)), "sessions": int(daily.size), "invalid_metric_rows": int(len(x)), "invalid_date_rows": 0, "invalid_pnl_rows": 0, "valid": False, "invalid_derived_metric": "equity_or_aggregate_overflow"}
     return {
@@ -633,7 +656,7 @@ def _daily_metrics(frame: pd.DataFrame, date_col: str, pnl_col: str) -> dict[str
         "sessions": int(daily.size),
         "invalid_metric_rows": 0,
         "valid": True,
-        "net_pnl": float(daily.sum()),
+        "net_pnl": float(net_pnl),
         "max_drawdown_pct_from_100k_start": float(drawdown.min()) if len(drawdown) else None,
         "win_rate_pct": float((trade_pnl > 0).mean() * 100.0) if len(trade_pnl) else None,
         "positive_session_rate_pct": float((daily > 0).mean() * 100.0),

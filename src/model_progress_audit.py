@@ -293,6 +293,25 @@ def audit_live_data(rows):
                 "PASS" if not missing else "REVIEW",
                 f"covered={len(universe_symbols)-len(missing)}/{len(universe_symbols)}; unresolved={len(missing)}; examples={missing[:15]}",
                 "data/nse_listing_master.csv")
+        if history is not None:
+            bars = history[["date", "symbol"]].copy()
+            bars["date"] = pd.to_datetime(bars["date"], errors="coerce")
+            bars["symbol"] = bars["symbol"].astype(str).str.upper().str.strip()
+            listing_keys = listing[["symbol", "listing_date"]].copy()
+            listing_keys["symbol"] = listing_keys["symbol"].astype(str).str.upper().str.strip()
+            listing_keys["listing_date"] = pd.to_datetime(listing_keys["listing_date"], errors="coerce", dayfirst=True)
+            compared = bars.merge(listing_keys, on="symbol", how="inner")
+            before_listing = compared["date"].lt(compared["listing_date"])
+            count_before = int(before_listing.sum())
+            examples_before = compared.loc[before_listing, ["symbol", "date", "listing_date"]].head(8)
+            examples = [
+                f"{r.symbol}:{r.date.date()}< {r.listing_date.date()}"
+                for r in examples_before.itertuples(index=False)
+            ]
+            add(rows, "Live data quality and freshness", "OHLCV does not precede verified listing date",
+                "FAIL" if count_before else "PASS",
+                f"pre_listing_bars={count_before}; examples={examples}",
+                "data/ohlcv.csv + data/nse_listing_master.csv")
 
     index_bars = _check_csv_nonempty(rows, "Index OHLCV populated values", "data/index_ohlcv.csv",
         {"date", "index", "open", "high", "low", "close"}, 1)

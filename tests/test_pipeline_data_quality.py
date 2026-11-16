@@ -486,3 +486,18 @@ def test_candidate_history_rerun_replaces_entire_vintage_candidate_pool():
     assert "BBB" not in set(result["symbol"])
     assert "CCC" in set(result["symbol"])
 
+def test_market_risk_context_accepts_supported_levels_and_bounded_values():
+    for level, multiplier in [("RISK_ON", 1.0), ("NEUTRAL", 0.80), ("RISK_OFF", 0.55)]:
+        pipeline._validate_market_risk_context(level, multiplier, 50.0)
+
+
+def test_market_risk_context_rejects_unknown_or_malformed_values():
+    import pytest
+
+    with pytest.raises(RuntimeError, match="Unknown market risk level"):
+        pipeline._validate_market_risk_context("PANIC", 0.55, 50.0)
+    with pytest.raises(RuntimeError, match="Invalid market risk multiplier"):
+        pipeline._validate_market_risk_context("RISK_OFF", 1.2, 50.0)
+    with pytest.raises(RuntimeError, match="Invalid market intelligence score"):
+        pipeline._validate_market_risk_context("NEUTRAL", 0.80, float("nan"))
+

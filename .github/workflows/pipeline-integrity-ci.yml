@@ -7,6 +7,8 @@ on:
       - ".github/workflows/pipeline-integrity-ci.yml"
       - ".github/workflows/daily.yml"
       - "src/pipeline.py"
+      - "src/model_progress_audit.py"
+      - "tests/test_model_progress_audit_data_quality.py"
       - "src/selection_validation.py"
       - "src/historical_coverage_audit.py"
       - "src/recover_historical_data.py"

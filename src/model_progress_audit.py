@@ -294,7 +294,7 @@ def audit_live_data(rows):
                        ~ib["low"].le(ib[["open", "close"]].min(axis=1))).sum())
         dup = int(ib.duplicated(["date", "index"]).sum())
         missing_idx = sorted(expected_indexes - set(ib["index"]))
-        result = "PASS" if invalid == 0 and dup == 0 else "FAIL"
+        result = "FAIL" if invalid > 0 or dup > 0 else ("REVIEW" if missing_idx else "PASS")
         add(rows, "Live data quality and freshness", "Index OHLCV row integrity", result,
             f"rows={len(ib)}; invalid_rows={invalid}; duplicate_index_dates={dup}; indexes_without_history={missing_idx}",
             "data/index_ohlcv.csv")
@@ -359,9 +359,13 @@ def audit_live_data(rows):
         absent = sorted(expected_indexes - set(latest_by_index.index))
         sums = c.dropna(subset=["weight_pct"]).groupby(["index", "as_of_date"])["weight_pct"].sum()
         off_total = {f"{idx}@{day.date()}": round(float(v), 2) for (idx, day), v in sums.items() if abs(v - 100) > 2.0}
-        result = "PASS" if dup == 0 and bad_weight == 0 else "FAIL"
+        result = "FAIL" if dup > 0 or bad_weight > 0 else ("REVIEW" if absent else "PASS")
         add(rows, "Live data quality and freshness", "Index membership and weight integrity", result,
-            f"rows={len(c)}; duplicate_memberships={dup}; out_of_range_weights={bad_weight}; groups_not_approximately_100pct={len(off_total)}; examples={dict(list(off_total.items())[:8])}",
+            f"rows={len(c)}; duplicate_memberships={dup}; out_of_range_weights={bad_weight}; indexes_without_membership={absent}",
+            "data/index_constituents_history.csv")
+        add(rows, "Live data quality and freshness", "Constituent weight totals and coverage",
+            "REVIEW" if off_total or c["weight_pct"].isna().any() else "PASS",
+            f"index/date groups outside 98-102%={len(off_total)}; missing_weight_rows={int(c['weight_pct'].isna().sum())}; examples={dict(list(off_total.items())[:8])}",
             "data/index_constituents_history.csv")
         stale = {k: str(v.date()) for k, v in latest_by_index.items()
                  if expected_session and v.date().isoformat() < expected_session}

@@ -51,7 +51,7 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
     except Exception as exc:
         return {"status":"SOURCE_UNAVAILABLE" if todo else "PASS","symbols_requested":len(requested),
                 "symbols_cached":len(known & set(requested)),"symbols_fetched":0,"symbols_unresolved":todo,"error":str(exc)}
-    found=[]; failures={}
+    found=[]; failures={}; consecutive_systemic_failures=0
     for i,symbol in enumerate(todo):
         error="NSE lookup failed"
         for attempt in range(max_attempts):
@@ -61,7 +61,23 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
             except Exception as exc:
                 error=str(exc)
                 if attempt+1<max_attempts: time.sleep(min(2**attempt,4))
-        if error: failures[symbol]=error
+        if error:
+            failures[symbol]=error
+            lower_error=error.lower()
+            systemic=("403" in lower_error or "429" in lower_error or
+                      "timed out" in lower_error or "timeout" in lower_error or
+                      "connectionerror" in lower_error or
+                      ("404" in lower_error and "nseindia.in" in lower_error))
+            consecutive_systemic_failures = consecutive_systemic_failures + 1 if systemic else 0
+            # Stop a long 500-symbol retry storm when NSE is rejecting the
+            # entire session/network. Unresolved symbols remain explicit and
+            # are retried on the next scheduled refresh.
+            if consecutive_systemic_failures >= 10:
+                for remaining in todo[i+1:]:
+                    failures[remaining]="Skipped after 10 consecutive systemic NSE errors; will retry next refresh"
+                break
+        else:
+            consecutive_systemic_failures=0
         if delay_seconds and i+1<len(todo): time.sleep(delay_seconds)
     merged=old
     if found:

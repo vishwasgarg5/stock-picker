@@ -67,15 +67,15 @@ jobs:
           - suite: foundations-and-data
             paths: "tests/test_pipeline_data_quality.py tests/test_prediction_validation.py tests/test_corporate_action_adjustments.py tests/test_historical_coverage_audit.py tests/test_repair_historical_gaps.py tests/test_market_calendar.py tests/test_index_constituent_intelligence.py tests/test_index_intelligence_data_quality.py tests/test_weekend_data_quality_audit.py"
           - suite: forecasting-and-ranking
-            paths: "tests/test_directional_model.py tests/test_confidence.py tests/test_pipeline_ranking.py tests/test_phase128_ranking_authority.py tests/test_phase129_ranking_utility.py tests/test_news_context.py"
+            paths: "tests/test_directional_model.py tests/test_confidence.py tests/test_pipeline_ranking.py tests/test_phase128_ranking_authority_audit.py tests/test_phase129_ranking_utility_audit.py tests/test_phase129_ranking_utility_audit.py tests/test_news_context.py"
           - suite: risk-and-paper-trading
-            paths: "tests/test_paper_trading.py tests/test_paper_trading_v2_accounting.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_trade_quality_model.py tests/test_advanced_governance.py tests/test_system_health.py tests/test_telegram_delivery_receipts.py"
+            paths: "tests/test_paper_trading.py tests/test_paper_trading_v2_accounting.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_advanced_governance.py tests/test_system_health.py tests/test_telegram_delivery_receipts.py"
           - suite: phases-2-to-43
             paths: "tests/test_phase2_optimizer.py tests/test_phase4_optimizer.py tests/test_phase20_accuracy.py tests/test_phase21_26.py tests/test_phase27_data_quality.py tests/test_phase28_30_foundation.py tests/test_phase32_40_diagnostics.py tests/test_phase41_43_diagnostics.py"
           - suite: phases-48-to-106
             paths: "tests/test_phase48_52_evidence.py tests/test_phase58_62_evidence.py tests/test_phase63_72_readiness.py tests/test_phase73_76_diagnostics.py tests/test_phase77_80_diagnostics.py tests/test_phase81_84_diagnostics.py tests/test_phase85_88_diagnostics.py tests/test_phase89_92_diagnostics.py tests/test_phase93_96_diagnostics.py tests/test_phase97_forecast_quality.py tests/test_phase98_101_quality.py tests/test_phase102_diagnostics.py tests/test_phase103_forecast_evidence.py tests/test_phase104_loss_concentration.py tests/test_phase105_exit_attribution.py tests/test_phase106_trade_lifecycle.py"
           - suite: phases-107-to-129
-            paths: "tests/test_phase107_115_evidence.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase120_forecast_stability.py tests/test_phase123_feature_signal.py tests/test_phase124_feature_signal.py tests/test_phase125_feature_ablation.py tests/test_phase126_objective_target_audit.py tests/test_phase127_volatility_target.py"
+            paths: "tests/test_phase107_115_evidence.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase120_forecast_stability.py tests/test_phase123_magnitude_calibration.py tests/test_phase124_feature_signal.py tests/test_model_governance.py tests/test_phase125_feature_ablation.py tests/test_phase126_objective_target_audit.py tests/test_phase127_volatility_target.py tests/test_final_validation.py tests/test_telegram_index_summary.py"
     steps:
       - name: Checkout
         uses: actions/checkout@v6

@@ -36,8 +36,8 @@ def main(preflight: bool = False) -> int:
         )
         if has_ci_triggers and not safe_event_split:
             failures.append("workflow_has_unwanted_push_or_pull_request_trigger")
-        if "schedule:" not in workflow or "45 9 * * 1-5" not in workflow:
-            failures.append("workflow_schedule_is_not_15_15_IST_weekdays")
+        if "schedule:" not in workflow or "30 10 * * 1-5" not in workflow:
+            failures.append("workflow_schedule_is_not_16_00_IST_weekdays")
         if "workflow_dispatch:" not in workflow or "reuse_stored_data" not in workflow:
             failures.append("workflow_dispatch_reuse_input_missing")
         if "concurrency:" not in workflow or not any(

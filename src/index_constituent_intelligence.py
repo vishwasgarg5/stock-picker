@@ -165,7 +165,9 @@ def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | N
     residual_weight = max(0.0, 100.0 - float(official_total or 0.0)) if pd.notna(official_total) else 100.0
     if cap_weighted and pd.notna(total_ffmc) and total_ffmc > 0 and residual_weight > 0:
         pending_ffmc = pd.to_numeric(out.loc[pending, "ffmc"], errors="coerce")
-        out.loc[pending, "weight_pct"] = pending_ffmc / total_ffmc * 100.0 * residual_weight
+        pending_total = pending_ffmc.sum(min_count=1)
+        if pd.notna(pending_total) and pending_total > 0:
+            out.loc[pending, "weight_pct"] = pending_ffmc / pending_total * residual_weight
         out.loc[pending & out["weight_pct"].notna(), "weight_method"] = "ESTIMATED_FFMC_PROXY"
     return out
 

@@ -234,3 +234,24 @@ def test_calendar_rejects_duplicate_special_sessions(tmp_path, monkeypatch):
     result = _check(rows, "Calendar holiday and special-session records")
     assert result["status"] == "FAIL"
     assert "duplicate_special_dates=True" in result["detail"]
+
+
+def test_ohlcv_bars_before_verified_listing_date_fail_audit(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    dates = pd.date_range("2019-01-01", periods=100, freq="D")
+    pd.DataFrame([{
+        "date": day, "symbol": "AAA", "open": 10, "high": 12,
+        "low": 9, "close": 11, "volume": 100,
+    } for day in dates]).to_csv(data / "ohlcv.csv", index=False)
+    pd.DataFrame([{
+        "symbol": "AAA", "listing_date": "2020-01-01",
+        "listing_date_source": "https://www.nseindia.com/api/quote-equity?symbol=AAA",
+        "verified_at_utc": "2026-11-16T00:00:00Z",
+    }]).to_csv(data / "nse_listing_master.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "OHLCV does not precede verified listing date")
+    assert result["status"] == "FAIL"
+    assert "pre_listing_bars=100" in result["detail"]

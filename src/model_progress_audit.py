@@ -166,10 +166,18 @@ def audit_live_data(rows):
             for x in specials
         )
         dates = [x.get("date") for x in holidays if isinstance(x, dict)]
+        special_dates = [x.get("date") for x in specials if isinstance(x, dict)]
         duplicate_dates = len(dates) != len(set(dates))
-        result = "PASS" if valid_holidays and valid_specials and not duplicate_dates else "FAIL"
+        duplicate_special_dates = len(special_dates) != len(set(special_dates))
+        invalid_dates = []
+        for raw_date in dates + special_dates:
+            try:
+                datetime.fromisoformat(str(raw_date))
+            except Exception:
+                invalid_dates.append(raw_date)
+        result = "PASS" if valid_holidays and valid_specials and not duplicate_dates and not duplicate_special_dates and not invalid_dates else "FAIL"
         add(rows, "Live data quality and freshness", "Calendar holiday and special-session records",
-            result, f"holidays={len(holidays) if isinstance(holidays, list) else 'invalid'}; special_sessions={len(specials) if isinstance(specials, list) else 'invalid'}; duplicate_holiday_dates={duplicate_dates}",
+            result, f"holidays={len(holidays) if isinstance(holidays, list) else 'invalid'}; special_sessions={len(specials) if isinstance(specials, list) else 'invalid'}; duplicate_holiday_dates={duplicate_dates}; duplicate_special_dates={duplicate_special_dates}; invalid_dates={invalid_dates[:8]}",
             "data/nse_market_calendar.json")
         audit_path = ROOT / "data/nse_market_calendar_audit.json"
         if audit_path.exists():
@@ -264,11 +272,19 @@ def audit_live_data(rows):
         {"symbol", "listing_date", "listing_date_source", "verified_at_utc"}, 1)
     if listing is not None:
         required = ["symbol", "listing_date", "listing_date_source", "verified_at_utc"]
-        nulls = int(listing[required].isna().sum().sum())
+        clean = listing[required].copy()
+        for col in required:
+            clean[col] = clean[col].fillna("").astype(str).str.strip()
+        nulls = int(clean.eq("").sum().sum())
         unique = int(listing["symbol"].astype(str).str.upper().str.strip().duplicated().sum())
-        add(rows, "Live data quality and freshness", "Listing master field completeness",
-            "PASS" if nulls == 0 and unique == 0 else "FAIL",
-            f"rows={len(listing)}; missing_required_cells={nulls}; duplicate_symbols={unique}",
+        listing_dates = pd.to_datetime(listing["listing_date"], errors="coerce", dayfirst=True)
+        invalid_listing_dates = int(listing_dates.isna().sum())
+        future_listing_dates = int((listing_dates.dt.date > datetime.now(timezone.utc).date()).sum())
+        source_valid = int((~listing["listing_date_source"].astype(str).str.contains(r"nseindia\\.(com|in)", case=False, regex=True)).sum())
+        result = "PASS" if nulls == 0 and unique == 0 and invalid_listing_dates == 0 and future_listing_dates == 0 and source_valid == 0 else "FAIL"
+        add(rows, "Live data quality and freshness", "Listing master field completeness and validity",
+            result,
+            f"rows={len(listing)}; blank_required_cells={nulls}; duplicate_symbols={unique}; invalid_listing_dates={invalid_listing_dates}; future_listing_dates={future_listing_dates}; non_NSE_source_urls={source_valid}",
             "data/nse_listing_master.csv")
         if universe_symbols:
             lsyms = set(listing["symbol"].dropna().astype(str).str.upper().str.strip())
@@ -380,8 +396,11 @@ def audit_live_data(rows):
             f"missing_weights={missing_weight}; methods={methods}; estimated values must remain explicitly labelled",
             "data/index_constituents_history.csv")
 
+    feature_required = {"date", "symbol", "index", "as_of_date", "weight_pct", "weight_method",
+                        "index_return_1d_pct", "index_return_5d_pct", "stock_return_1d_pct",
+                        "rolling_corr_60d", "rolling_beta_60d", "weighted_stock_return_contribution_pct"}
     features = _check_csv_nonempty(rows, "Stock-index feature output", "data/index_constituent_features.csv",
-        {"date", "symbol", "index"}, 0)
+        feature_required, 0)
     if features is not None and features.empty:
         add(rows, "Live data quality and freshness", "Stock-index feature population and uniqueness",
             "REVIEW", "Feature artifact has a valid schema but zero rows; point-in-time membership or index history is not yet available",
@@ -389,13 +408,20 @@ def audit_live_data(rows):
     if features is not None and not features.empty:
         x = features.copy()
         x["date"] = pd.to_datetime(x["date"], errors="coerce")
+        x["as_of_date"] = pd.to_datetime(x["as_of_date"], errors="coerce")
+        x["weight_pct"] = pd.to_numeric(x["weight_pct"], errors="coerce")
         dup = int(x.duplicated(["date", "symbol", "index"]).sum())
         latest = x["date"].max()
-        numeric = [col for col in x.columns if col not in {"date", "symbol", "index"}]
-        null_pct = x[numeric].apply(pd.to_numeric, errors="coerce").isna().mean() if numeric else pd.Series(dtype=float)
-        add(rows, "Live data quality and freshness", "Stock-index feature population and uniqueness",
-            "PASS" if dup == 0 else "FAIL",
-            f"rows={len(x)}; duplicate_keys={dup}; latest={latest.date() if pd.notna(latest) else 'unknown'}; feature_null_rates={null_pct.round(3).to_dict()}",
+        future_membership = int((x["as_of_date"] > x["date"]).sum())
+        invalid_dates = int((x[["date", "as_of_date"]].isna().any(axis=1)).sum())
+        invalid_weights = int((x["weight_pct"].notna() & ~x["weight_pct"].between(0, 100)).sum())
+        core = ["weight_pct", "weight_method", "index_return_1d_pct", "index_return_5d_pct", "stock_return_1d_pct"]
+        latest_rows = x.loc[x["date"].eq(latest)].copy() if pd.notna(latest) else x.iloc[0:0]
+        missing_latest_core = int(latest_rows[core].replace("", np.nan).isna().sum().sum()) if not latest_rows.empty else 0
+        result = "FAIL" if dup or future_membership or invalid_dates or invalid_weights else ("REVIEW" if missing_latest_core else "PASS")
+        add(rows, "Live data quality and freshness", "Stock-index feature population, fields and no-lookahead integrity",
+            result,
+            f"rows={len(x)}; duplicate_keys={dup}; future_membership_rows={future_membership}; invalid_dates={invalid_dates}; invalid_weights={invalid_weights}; latest_rows={len(latest_rows)}; missing_latest_core_cells={missing_latest_core}; latest={latest.date() if pd.notna(latest) else 'unknown'}",
             "data/index_constituent_features.csv")
         if expected_session:
             latest_text = latest.date().isoformat() if pd.notna(latest) else ""

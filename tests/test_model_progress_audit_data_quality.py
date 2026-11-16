@@ -103,3 +103,11 @@ def test_index_refresh_receipt_surfaces_per_index_source_failure(tmp_path, monke
     source = _check(rows, "Per-index constituent source results")
     assert source["status"] == "REVIEW"
     assert "NIFTY50" in source["detail"]
+
+
+def test_any_blocked_gate_keeps_overall_audit_red(tmp_path, monkeypatch):
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    result = audit.run_audit(tmp_path / "audit-output")
+    assert result == 1
+    report = json.loads((tmp_path / "audit-output/model_progress_audit.json").read_text())
+    assert report["counts"]["BLOCKED"] > 0

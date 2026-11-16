@@ -92,6 +92,14 @@ The paper-trading layer records simulated entries and exits, share quantities, a
 
 All schedules are GitHub Actions schedules and may start later than the nominal time due to GitHub-hosted runner availability.
 
+### Model Progress Audit
+
+The **Model Progress Audit** workflow can be started manually from the GitHub Actions tab or runs weekly. It checks implementation structure, persisted data/evidence artifacts, roadmap evidence coverage and current readiness gates. It also runs independent regression-test groups in parallel. A failing test group does not cancel the other groups; inspect each job summary and the downloadable JUnit/inventory artifacts to locate the exact failing sub-step.
+
+The audit deliberately distinguishes a passing code/structure check from model readiness. Missing reports are marked **BLOCKED**, incomplete or insufficient evidence is **REVIEW/BLOCKED**, and malformed or missing required implementation is **FAIL**. A green workflow is not a profitability certificate and does not promote a challenger model.
+
+GitHub-hosted jobs have a hard six-hour execution ceiling and a workflow run has a 35-day ceiling. The audit therefore uses bounded independent jobs rather than an endless runner. Manual runs are available whenever a new investigation is needed; GitHub Free monthly minutes and artifact-storage quotas still apply to private repositories. See the [Model Progress Audit workflow](.github/workflows/model-progress-audit.yml) and [audit implementation](src/model_progress_audit.py).
+
 ## Data and audit trail
 
 The repository keeps the model's working history and evidence in versioned data artifacts. Important records include:

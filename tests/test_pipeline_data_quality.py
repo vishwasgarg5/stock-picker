@@ -190,3 +190,80 @@ def test_paper_trade_source_records_net_accounting_and_explicit_session_close():
     assert skipped["no_trade_reason"] == "minimum_one_share_not_affordable"
     assert pd.isna(skipped["shares"])
     assert skipped["exit_reason"] == ""
+
+
+
+def test_outcomes_preserve_separate_forecast_vintages_for_same_target(tmp_path, monkeypatch):
+    import src.outcomes as outcomes
+
+    predictions = pd.DataFrame([
+        {"prediction_date": "2026-01-02", "target_date": "2026-01-05",
+         "symbol": "aaa", "rank": 1, "score": 80, "base_close": 100,
+         "predicted_close": 101},
+        {"prediction_date": "2026-01-03", "target_date": "2026-01-05",
+         "symbol": "AAA", "rank": 2, "score": 79, "base_close": 100,
+         "predicted_close": 102},
+    ])
+    history = pd.DataFrame([
+        {"date": "2026-04-06", "symbol": "AAA", "close": 110},
+    ])
+    predictions.to_csv(tmp_path / "predictions.csv", index=False)
+    history.to_csv(tmp_path / "ohlcv.csv", index=False)
+    monkeypatch.setattr(outcomes, "PREDICTIONS_FILE", tmp_path / "predictions.csv")
+    monkeypatch.setattr(outcomes, "HISTORY_FILE", tmp_path / "ohlcv.csv")
+    monkeypatch.setattr(outcomes, "OUTPUT_FILE", tmp_path / "prediction_outcomes.csv")
+
+    result = outcomes.run_outcomes()
+
+    assert len(result) == 2
+    assert set(result["prediction_date"].dt.strftime("%Y-%m-%d")) == {
+        "2026-01-02", "2026-01-03",
+    }
+    assert result["3m_status"].eq("AVAILABLE").all()
+
+
+def test_selection_validation_scores_forecast_vintages_independently(tmp_path, monkeypatch):
+    import src.selection_validation as validation
+
+    symbols = [f"S{i}" for i in range(10)]
+    candidates = []
+    for prediction_date in ["2026-01-02", "2026-01-03"]:
+        for rank, symbol in enumerate(symbols, start=1):
+            candidates.append({
+                "prediction_date": prediction_date,
+                "target_date": "2026-01-05",
+                "symbol": symbol,
+                "base_close": 100.0,
+                "predicted_close": 101.0 + rank / 100.0,
+                "rank": rank,
+                "selected": 1,
+            })
+    history = [
+        {"date": "2026-01-05", "symbol": symbol, "close": 102.0}
+        for symbol in symbols
+    ]
+    pd.DataFrame(candidates).to_csv(tmp_path / "prediction_candidates_history.csv", index=False)
+    pd.DataFrame(history).to_csv(tmp_path / "ohlcv.csv", index=False)
+    monkeypatch.setattr(validation, "CANDIDATES_FILE", tmp_path / "prediction_candidates_history.csv")
+    monkeypatch.setattr(validation, "HISTORY_FILE", tmp_path / "ohlcv.csv")
+    monkeypatch.setattr(validation, "OUTPUT_FILE", tmp_path / "selection_validation.csv")
+
+    result = validation.run_selection_validation().iloc[0]
+
+    assert result["sessions"] == 2
+    assert result["candidate_rows"] == 20
+    assert result["recent_error_promotion_evidence"] == False
+
+
+def test_governance_steps_are_not_hardcoded_complete_without_evidence(tmp_path, monkeypatch):
+    import src.model_governance as governance
+
+    monkeypatch.setattr(governance, "DATA", tmp_path)
+    monkeypatch.setattr(governance, "SOURCE_DIRS", [])
+    result = governance.run_governance()
+
+    assert result["governance_steps_total"] == 20
+    assert result["governance_steps_passed"] < 20
+    assert result["governance_status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["feature_stability_status"] == "INSUFFICIENT_DATA"
+    assert result["stable_features"] is None

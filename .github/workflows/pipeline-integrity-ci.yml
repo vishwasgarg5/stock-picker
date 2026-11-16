@@ -52,6 +52,7 @@ on:
     paths:
       - ".github/workflows/pipeline-integrity-ci.yml"
       - ".github/workflows/daily.yml"
+      - "src/selection_validation.py"
       - "src/integration_check.py"
       - "src/pipeline.py"
       - "src/system_health.py"

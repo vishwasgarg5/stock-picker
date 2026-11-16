@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
 UNIVERSE_FILE = DATA / "universe.csv"
 HISTORY_FILE = DATA / "ohlcv.csv"
+LISTING_MASTER_FILE = DATA / "nse_listing_master.csv"
 REPORT_JSON = DATA / "historical_coverage_audit.json"
 REPORT_CSV = DATA / "historical_coverage_audit.csv"
 SESSIONS_PER_YEAR = 252
@@ -30,9 +31,54 @@ def _expected_sessions(start: pd.Timestamp, end: pd.Timestamp) -> pd.DatetimeInd
     return pd.DatetimeIndex(schedule.index).tz_localize(None).normalize()
 
 
+
+def _add_listing_coverage(detail: pd.DataFrame, valid: pd.DataFrame, listing_master: pd.DataFrame | None) -> pd.DataFrame:
+    """Measure history from verified listing dates; never infer a listing date from OHLCV."""
+    listing_map = {}
+    if listing_master is not None and not listing_master.empty and {"symbol", "listing_date"}.issubset(listing_master.columns):
+        lm = listing_master[["symbol", "listing_date"]].copy()
+        lm["symbol"] = lm["symbol"].astype(str).str.upper().str.strip()
+        lm["listing_date"] = pd.to_datetime(lm["listing_date"], errors="coerce").dt.tz_localize(None).dt.normalize()
+        lm = lm.dropna(subset=["listing_date"]).drop_duplicates("symbol", keep="last")
+        listing_map = dict(zip(lm["symbol"], lm["listing_date"]))
+    additions = []
+    for row in detail.to_dict("records"):
+        symbol = str(row["symbol"]).upper()
+        listing = listing_map.get(symbol)
+        first, last = pd.to_datetime(row.get("first_date"), errors="coerce"), pd.to_datetime(row.get("last_date"), errors="coerce")
+        item = {"listing_date": listing.date().isoformat() if listing is not None else None,
+                "listing_expected_start": None, "expected_sessions_since_listing": None,
+                "observed_sessions_since_listing": None, "calendar_sessions_without_ohlcv_since_listing": None,
+                "listing_to_first_bar_gap_sessions": None, "history_starts_at_first_possible_session": None,
+                "listing_history_status": "LISTING_DATE_UNKNOWN"}
+        if listing is not None:
+            if pd.isna(first) or pd.isna(last):
+                item["listing_history_status"] = "NO_HISTORY_SINCE_LISTING"
+            elif first < listing:
+                item["listing_history_status"] = "DATA_PRECEDES_LISTING_DATE"
+            elif last < listing:
+                item["listing_history_status"] = "NO_POST_LISTING_HISTORY"
+            else:
+                expected = _expected_sessions(listing, last)
+                dates = pd.to_datetime(valid.loc[valid["symbol"].astype(str).str.upper().eq(symbol), "date"], errors="coerce").dropna()
+                observed = pd.DatetimeIndex(dates.dt.tz_localize(None).dt.normalize().unique()).intersection(expected)
+                leading = expected[expected < first]
+                aligned = bool(len(expected) and first.normalize() == expected[0])
+                item.update({"listing_expected_start": expected[0].date().isoformat() if len(expected) else None,
+                    "expected_sessions_since_listing": int(len(expected)),
+                    "observed_sessions_since_listing": int(len(observed)),
+                    "calendar_sessions_without_ohlcv_since_listing": int(max(0,len(expected)-len(observed))),
+                    "listing_to_first_bar_gap_sessions": int(len(leading)),
+                    "history_starts_at_first_possible_session": aligned,
+                    "listing_history_status": "STARTS_AT_FIRST_POSSIBLE_SESSION" if aligned else "STARTS_AFTER_LISTING_DATE_REVIEW"})
+        additions.append(item)
+    return pd.concat([detail.reset_index(drop=True),pd.DataFrame(additions)],axis=1)
+
+
 def audit_history(
     universe: pd.DataFrame,
     history: pd.DataFrame,
+    listing_master: pd.DataFrame | None = None,
 ) -> tuple[dict[str, Any], pd.DataFrame]:
     if "symbol" not in universe.columns:
         raise ValueError("Universe file must contain a symbol column")
@@ -75,7 +121,7 @@ def audit_history(
             "at_least_5y": False, "at_least_8y": False,
             "training_ready_50_sessions": False, "status": "NO_HISTORY",
         } for symbol in symbols]
-        detail = pd.DataFrame(rows)
+        detail = _add_listing_coverage(pd.DataFrame(rows), pd.DataFrame(columns=["date","symbol"]), listing_master)
         summary = {
             "status": "BLOCKED_NO_HISTORY", "universe_symbols": len(symbols),
             "symbols_with_history": 0, "symbols_without_history": len(symbols),
@@ -135,6 +181,7 @@ def audit_history(
     detail = pd.DataFrame(records).sort_values(
         ["observed_sessions", "symbol"], ascending=[True, True]
     ).reset_index(drop=True)
+    detail = _add_listing_coverage(detail, valid, listing_master)
     counts = {
         f"{years}y": int(detail[f"at_least_{years}y"].sum())
         for years in (1, 3, 5, 8)
@@ -154,9 +201,12 @@ def audit_history(
         "median_observed_sessions": int(detail["observed_sessions"].median()),
         "median_history_years": round(float(detail["history_years"].median()), 2),
         "missing_universe_symbols": detail.loc[detail["observed_sessions"] == 0, "symbol"].tolist(),
+        "symbols_with_verified_listing_date": int(detail["listing_date"].notna().sum()),
+        "symbols_without_verified_listing_date": detail.loc[detail["listing_date"].isna(), "symbol"].tolist(),
+        "listing_history_status_counts": {str(k): int(v) for k, v in detail["listing_history_status"].value_counts(dropna=False).items()},
         "invalid_or_excluded_rows": int(len(relevant) - len(valid)),
         "calendar": "NSE exchange sessions",
-        "note": "Year bands use 252 observed trading sessions per year; session gaps use the NSE calendar.",
+        "note": "History is measured from verified NSE listing dates where available. Pre-listing dates are excluded; calendar sessions without OHLCV are review indicators, not proof of missing trades because a security may not trade every session.",
     }
     return summary, detail
 
@@ -167,7 +217,16 @@ def run() -> dict[str, Any]:
         history = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
     except (FileNotFoundError, pd.errors.EmptyDataError):
         history = pd.DataFrame()
-    summary, detail = audit_history(universe, history)
+    from .listing_master import refresh_listing_master
+    symbols = universe["symbol"].dropna().astype(str).str.upper().str.strip().unique().tolist()
+    listing_refresh = refresh_listing_master(symbols)
+    try:
+        listing_master = pd.read_csv(LISTING_MASTER_FILE, dtype=str)
+    except (FileNotFoundError, pd.errors.EmptyDataError):
+        listing_master = pd.DataFrame(columns=["symbol", "listing_date"])
+    summary, detail = audit_history(universe, history, listing_master)
+    summary["listing_master_refresh"] = listing_refresh
+    summary["listing_master_file"] = str(LISTING_MASTER_FILE.relative_to(ROOT))
     summary["detail_file"] = str(REPORT_CSV.relative_to(ROOT))
     REPORT_JSON.write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
     detail.to_csv(REPORT_CSV, index=False)

@@ -19,7 +19,8 @@ on:
         default: true
   schedule:
     # Weekly, Sunday 04:00 UTC. Manual runs are available at any time.
-    - cron: "0 4 * * 0"
+    # Run after the weekend market-data refresh (03:30 UTC).
+    - cron: "0 7 * * 0"
 
 permissions:
   contents: read
@@ -85,7 +86,7 @@ jobs:
           - suite: foundations-and-data
             paths: "tests/test_model_progress_audit_data_quality.py tests/test_pipeline_data_quality.py tests/test_prediction_validation.py tests/test_corporate_action_adjustments.py tests/test_historical_coverage_audit.py tests/test_repair_historical_gaps.py tests/test_market_calendar.py tests/test_index_constituent_intelligence.py tests/test_index_intelligence_data_quality.py tests/test_weekend_data_quality_audit.py"
           - suite: forecasting-and-ranking
-            paths: "tests/test_directional_model.py tests/test_confidence.py tests/test_pipeline_ranking.py tests/test_phase128_ranking_authority_audit.py tests/test_phase129_ranking_utility_audit.py tests/test_phase129_ranking_utility_audit.py tests/test_news_context.py"
+            paths: "tests/test_directional_model.py tests/test_confidence.py tests/test_pipeline_ranking.py tests/test_phase128_ranking_authority_audit.py tests/test_phase129_ranking_utility_audit.py tests/test_news_context.py"
           - suite: risk-and-paper-trading
             paths: "tests/test_paper_trading.py tests/test_paper_trading_v2_accounting.py tests/test_risk_off_selection.py tests/test_sector_risk.py tests/test_advanced_governance.py tests/test_system_health.py tests/test_telegram_delivery_receipts.py"
           - suite: phases-2-to-43

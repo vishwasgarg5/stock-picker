@@ -7,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from .historical_coverage_audit import run as run_coverage_audit
+from .repair_historical_gaps import repair_historical_gaps
 from .pipeline import HISTORY_FILE, load_universe, update_history
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,8 @@ def run() -> dict:
         before = pd.DataFrame()
 
     history = update_history(symbols)
+    gap_repair = repair_historical_gaps()
+    history = pd.read_csv(HISTORY_FILE, parse_dates=["date"])
     coverage = run_coverage_audit()
     symbols_with_history = (
         set(history["symbol"].astype(str).str.upper().str.strip())
@@ -42,6 +45,7 @@ def run() -> dict:
         "history_start": str(pd.to_datetime(history["date"]).min().date()) if not history.empty else None,
         "history_end": str(pd.to_datetime(history["date"]).max().date()) if not history.empty else None,
         "coverage_audit": coverage,
+        "gap_repair": gap_repair,
         "repair_policy": "Only source-returned OHLCV bars are stored; no price interpolation or synthetic history.",
     }
     REPORT.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")

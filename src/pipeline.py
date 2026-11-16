@@ -948,9 +948,13 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     candidates["news_context_error"] = ""
     try:
         from .index_intelligence import CONFIG
-        cfg=json.loads(CONFIG.read_text()) if CONFIG.exists() else {}
+        config_available = CONFIG.exists()
+        cfg=json.loads(CONFIG.read_text()) if config_available else {}
         news_reasons = cfg.get("news_reasons", []) or []
-        candidates["news_context_status"] = "AVAILABLE" if news_reasons else "NO_ITEMS"
+        candidates["news_context_status"] = (
+            "CONFIG_MISSING" if not config_available
+            else "AVAILABLE" if news_reasons else "NO_ITEMS"
+        )
         risk_level=str(cfg.get("risk_level","NEUTRAL")).upper()
         candidates["risk_level"]=risk_level
         candidates["index_risk_multiplier"]=float(cfg.get("risk_multiplier",0.80))

@@ -179,3 +179,58 @@ def test_constituent_weight_total_shortfall_is_visible(tmp_path, monkeypatch):
     result = _check(rows, "Constituent weight totals and coverage")
     assert result["status"] == "REVIEW"
     assert "90.0" in result["detail"]
+
+
+def test_index_features_reject_future_membership_lookahead(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    pd.DataFrame([{
+        "date": "2026-11-16", "as_of_date": "2026-11-17", "symbol": "AAA",
+        "index": "NIFTY50", "weight_pct": 2.0, "weight_method": "OFFICIAL_NSE_WEIGHT",
+        "index_return_1d_pct": 0.5, "index_return_5d_pct": 1.2,
+        "stock_return_1d_pct": 0.8, "rolling_corr_60d": 0.7,
+        "rolling_beta_60d": 1.1, "weighted_stock_return_contribution_pct": 0.016,
+    }]).to_csv(data / "index_constituent_features.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "Stock-index feature population, fields and no-lookahead integrity")
+    assert result["status"] == "FAIL"
+    assert "future_membership_rows=1" in result["detail"]
+
+
+def test_listing_master_rejects_blank_invalid_and_non_nse_metadata(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    pd.DataFrame([{
+        "symbol": "AAA", "listing_date": "not-a-date",
+        "listing_date_source": "https://example.com/fake",
+        "verified_at_utc": "2026-11-16T00:00:00Z",
+    }]).to_csv(data / "nse_listing_master.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "Listing master field completeness and validity")
+    assert result["status"] == "FAIL"
+    assert "invalid_listing_dates=1" in result["detail"]
+    assert "non_NSE_source_urls=1" in result["detail"]
+
+
+def test_calendar_rejects_duplicate_special_sessions(tmp_path, monkeypatch):
+    data = tmp_path / "data"
+    data.mkdir(parents=True)
+    (data / "nse_market_calendar.json").write_text(json.dumps({
+        "exchange": "NSE", "segment": "CM",
+        "updated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "holidays": [],
+        "special_sessions": [
+            {"date": "2026-11-08", "status": "CONFIRMED"},
+            {"date": "2026-11-08", "status": "CONFIRMED"},
+        ],
+    }), encoding="utf-8")
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "Calendar holiday and special-session records")
+    assert result["status"] == "FAIL"
+    assert "duplicate_special_dates=True" in result["detail"]

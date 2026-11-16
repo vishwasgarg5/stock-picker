@@ -883,6 +883,10 @@ def predict_top10(df: pd.DataFrame, ranking: pd.DataFrame, target_date: pd.Times
     out["score"] = out["symbol"].map(lookup["total_score"])
     out["technical_score"] = out["symbol"].map(lookup["technical_score"])
     out["fundamental_score"] = out["symbol"].map(lookup["fundamental_score"])
+    if "ranking_model_status" in lookup.columns:
+        out["ranking_model_status"] = out["symbol"].map(lookup["ranking_model_status"])
+    else:
+        out["ranking_model_status"] = "STATUS_UNAVAILABLE"
     # Confidence v2 uses ensemble forecast uncertainty rather than predicted-move magnitude.
     # Lower spread means stronger agreement between the independent ensemble models.
     out["prediction_spread"] = pd.to_numeric(out["prediction_spread"], errors="coerce").abs()

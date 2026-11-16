@@ -76,6 +76,12 @@ on:
       - "tests/test_phase120_forecast_stability.py"
       - "src/phase119_prospective_validation.py"
       - "tests/test_phase119_prospective_validation.py"
+      - "src/phase58_62_evidence.py"
+      - "tests/test_phase58_62_evidence.py"
+      - "src/phase81_84_diagnostics.py"
+      - "tests/test_phase81_84_diagnostics.py"
+      - "src/phase85_88_diagnostics.py"
+      - "tests/test_phase85_88_diagnostics.py"
 
 permissions:
   contents: read

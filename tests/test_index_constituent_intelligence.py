@@ -64,3 +64,16 @@ def test_features_compute_stock_index_relationships():
     assert np.isfinite(last.rolling_corr_60d)
     assert last.rolling_beta_60d > 0
     assert last.weighted_stock_return_contribution_pct != 0
+
+
+def test_estimated_weights_only_fill_residual_after_official_weights():
+    frame = ici.normalise_constituent_payload("NIFTY50", {"data": [
+        {"symbol": "AAA", "weightage": "20", "ffmc": 600},
+        {"symbol": "BBB", "ffmc": 300},
+        {"symbol": "CCC", "ffmc": 100},
+    ]}, "2024-01-02")
+    weights = frame.set_index("symbol").weight_pct
+    assert weights["AAA"] == 20
+    assert weights["BBB"] == 60
+    assert weights["CCC"] == 20
+    assert weights.sum() == 100

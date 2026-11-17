@@ -354,11 +354,17 @@ def audit_live_data(rows):
             index_source = index_audit.get("index_ohlcv", {})
             member_source = index_audit.get("constituents", {})
             expected_source_names = set(expected_indexes)
-            failed_bars = {k: v for k, v in index_source.items() if v.get("status") != "PASS"}
+            per_index_source = {k: v for k, v in index_source.items() if not str(k).startswith("_")}
+            failed_bars = {k: v for k, v in per_index_source.items() if v.get("status") != "PASS"}
             failed_members = {k: v for k, v in member_source.items() if v.get("status") != "PASS"}
+            official_snapshot = index_source.get("_official_snapshot", {})
+            add(rows, "Live source refresh receipts", "NSE official daily index snapshot",
+                "PASS" if official_snapshot.get("status") == "PASS" else "REVIEW",
+                f"status={official_snapshot.get('status', 'NOT_REPORTED')}; date={official_snapshot.get('date')}; source={official_snapshot.get('source')}; errors={official_snapshot.get('errors', [])[-3:]}",
+                "data/index_constituent_intelligence_audit.json")
             add(rows, "Live source refresh receipts", "Per-index OHLCV source results",
                 "PASS" if not failed_bars and expected_source_names.issubset(index_source) else "REVIEW",
-                f"configured={len(expected_source_names)}; reported={len(index_source)}; failed_or_missing={list(failed_bars) + sorted(expected_source_names-set(index_source))}; results={ {k:v.get('status') for k,v in index_source.items()} }",
+                f"configured={len(expected_source_names)}; reported={len(per_index_source)}; failed_or_missing={list(failed_bars) + sorted(expected_source_names-set(per_index_source))}; results={ {k:v.get('status') for k,v in per_index_source.items()} }",
                 "data/index_constituent_intelligence_audit.json")
             add(rows, "Live source refresh receipts", "Per-index constituent source results",
                 "PASS" if not failed_members and expected_source_names.issubset(member_source) else "REVIEW",

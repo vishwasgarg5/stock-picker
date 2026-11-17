@@ -9,9 +9,9 @@
   "missing_facts_inferred": false,
   "status": "BLOCKED",
   "source": "data/paper_trades.csv",
-  "buy_rows": 219,
+  "buy_rows": 224,
   "missing_columns": [],
-  "complete_rows": 70,
+  "complete_rows": 75,
   "incomplete_rows": 149,
   "missing_values_by_field": {
     "entry_price": 0,
@@ -190,12 +190,13 @@
     }
   ],
   "first_complete_session": "2026-09-18",
-  "last_complete_session": "2026-09-28",
+  "last_complete_session": "2026-11-17",
   "first_incomplete_session": "2026-09-29",
   "last_incomplete_session": "2026-11-16",
   "record_vintage_classification": "EXPLICIT_METADATA_WHEN_AVAILABLE; OTHERWISE_UNCLASSIFIED",
   "record_vintage_counts": {
-    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 219
+    "UNCLASSIFIED_NO_EXPLICIT_METADATA": 219,
+    "SCHEMA_VERSIONED:3.0": 5
   },
   "incomplete_rows_by_record_vintage": {
     "UNCLASSIFIED_NO_EXPLICIT_METADATA": 149
@@ -210,12 +211,13 @@
   "costs_subtracted_again": false,
   "fixed_share_source_evidence": {
     "status": "GROSS_SOURCE_EVIDENCE_PARTIAL",
-    "candidate_rows": 5,
-    "validated_rows": 5,
-    "mismatch_rows": 0,
-    "invalid_or_incomplete_source_rows": 214,
+    "candidate_rows": 145,
+    "validated_rows": 140,
+    "mismatch_rows": 5,
+    "invalid_or_incomplete_source_rows": 79,
     "invalid_or_incomplete_source_rows_by_reason": {
-      "INVALID_SPLIT_METADATA": 214
+      "MISSING_OR_NON_FINITE_REQUIRED_VALUE": 75,
+      "NON_POSITIVE_REQUIRED_VALUE": 4
     },
     "source_evidence_by_session": [
       {
@@ -285,226 +287,226 @@
       {
         "target_date": "2026-09-30",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-01",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-05",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-06",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-07",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-08",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-09",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 4,
+        "validated_rows": 4,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 1
       },
       {
         "target_date": "2026-10-12",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 4,
+        "validated_rows": 4,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 1
       },
       {
         "target_date": "2026-10-13",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 4,
+        "validated_rows": 4,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 1
       },
       {
         "target_date": "2026-10-14",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 4,
+        "validated_rows": 4,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 1
       },
       {
         "target_date": "2026-10-15",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-16",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-19",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-21",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-22",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-23",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-26",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-27",
         "buy_rows": 4,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 4,
+        "validated_rows": 4,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 4
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-28",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-29",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-10-30",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-11-02",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-11-04",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-11-05",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-11-06",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-11-09",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-11-11",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-11-12",
         "buy_rows": 5,
-        "candidate_rows": 0,
-        "validated_rows": 0,
+        "candidate_rows": 5,
+        "validated_rows": 5,
         "mismatch_rows": 0,
-        "invalid_or_incomplete_source_rows": 5
+        "invalid_or_incomplete_source_rows": 0
       },
       {
         "target_date": "2026-11-16",
@@ -513,12 +515,20 @@
         "validated_rows": 5,
         "mismatch_rows": 0,
         "invalid_or_incomplete_source_rows": 0
+      },
+      {
+        "target_date": "2026-11-17",
+        "buy_rows": 5,
+        "candidate_rows": 5,
+        "validated_rows": 0,
+        "mismatch_rows": 5,
+        "invalid_or_incomplete_source_rows": 0
       }
     ],
-    "invalid_split_metadata_rows": 214,
-    "max_abs_position_value_delta": 0.0,
-    "max_abs_gross_pnl_delta": 0.0,
-    "max_abs_return_delta_pct_points": 4.9404924595819466e-15,
+    "invalid_split_metadata_rows": 0,
+    "max_abs_position_value_delta": 7.275957614183426e-12,
+    "max_abs_gross_pnl_delta": 19.98930084228516,
+    "max_abs_return_delta_pct_points": 1.0989473220313073e-14,
     "source_semantics": "quantity and position_value are recorded source fields; profit_loss is gross P&L from quantity * (exit_price - entry_price)",
     "costs_modeled": false,
     "net_profit_loss_verified": false,

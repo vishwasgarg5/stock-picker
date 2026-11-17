@@ -1,6 +1,6 @@
 reason_source,reason,rows
-no_trade_reason,phase4_ineligible,196
-no_trade_reason,confidence_percentile,132
-phase4_reject_reason,minimum_expected_return,152
-phase4_reject_reason,phase4_confidence_floor,32
-phase4_reject_reason,symbol_cooldown,12
+no_trade_reason,phase4_ineligible,202
+no_trade_reason,confidence_percentile,136
+phase4_reject_reason,minimum_expected_return,154
+phase4_reject_reason,phase4_confidence_floor,33
+phase4_reject_reason,symbol_cooldown,15

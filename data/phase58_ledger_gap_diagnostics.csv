@@ -209,3 +209,8 @@ row_index,symbol,target_date,missing_quantity,missing_entry_price,missing_exit_p
 362,NAVINFLUOR,2026-11-16,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
 363,MOTILALOFS,2026-11-16,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
 364,CDSL,2026-11-16,False,False,False,True,True,False,"gross_profit_loss,costs",True,False,INCOMPLETE_REQUIRES_SOURCE_TRACE
+370,PNB,2026-11-17,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
+371,ASAHIINDIA,2026-11-17,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
+372,BANKINDIA,2026-11-17,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
+373,LICHSGFIN,2026-11-17,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
+374,NAVINFLUOR,2026-11-17,False,False,False,False,False,False,,True,True,FIELDS_PRESENT

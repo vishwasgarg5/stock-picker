@@ -1,7 +1,7 @@
 {
   "status": "MATCHED_DATA_AVAILABLE",
-  "prediction_rows": 380,
-  "prediction_sessions": 38,
+  "prediction_rows": 390,
+  "prediction_sessions": 39,
   "prediction_session_dates": [
     "2026-09-17",
     "2026-09-18",
@@ -40,19 +40,22 @@
     "2026-11-09",
     "2026-11-11",
     "2026-11-13",
-    "2026-11-16"
+    "2026-11-16",
+    "2026-11-17"
   ],
-  "candidate_rows": 2,
-  "candidate_sessions": 1,
+  "candidate_rows": 80,
+  "candidate_sessions": 4,
   "candidate_session_dates": [
-    "2026-01-02"
+    "2026-09-23",
+    "2026-11-13",
+    "2026-11-16",
+    "2026-11-17"
   ],
   "prediction_sessions_missing_candidate_history": [
     "2026-09-17",
     "2026-09-18",
     "2026-09-21",
     "2026-09-22",
-    "2026-09-23",
     "2026-09-24",
     "2026-09-25",
     "2026-09-28",
@@ -83,15 +86,13 @@
     "2026-11-05",
     "2026-11-06",
     "2026-11-09",
-    "2026-11-11",
-    "2026-11-13",
-    "2026-11-16"
+    "2026-11-11"
   ],
-  "missing_candidate_session_count": 38,
-  "duplicate_candidate_vintage_keys": 2,
-  "history_rows": 1,
-  "matched_candidate_rows": 2,
-  "candidate_rows_without_actual_close": 0,
+  "missing_candidate_session_count": 35,
+  "duplicate_candidate_vintage_keys": 0,
+  "history_rows": 958475,
+  "matched_candidate_rows": 60,
+  "candidate_rows_without_actual_close": 20,
   "minimum_sessions_required": 12,
   "minimum_rows_required": 100,
   "candidate_history_reconstructed_from_top10_predictions": false,

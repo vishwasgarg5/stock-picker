@@ -15,6 +15,7 @@
     "selection_funnel_stage_coverage": true,
     "exit_reason_attribution_complete": false,
     "forecast_metrics_available": true,
+    "market_intelligence_current": true,
     "chronological_evidence_sufficient": false,
     "sustained_v2_sample_sufficient": false
   },

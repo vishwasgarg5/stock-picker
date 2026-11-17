@@ -7,32 +7,52 @@
   "thresholds_changed": false,
   "automatic_promotion": false,
   "status": "SCORED",
-  "executed_trade_rows": 219,
+  "executed_trade_rows": 224,
   "pnl_source_field": "profit_loss",
   "exit_reason_field_used": "exit_reason",
-  "reason_groups": 5,
-  "gross_loss_magnitude": 35242.91569863994,
+  "reason_groups": 6,
+  "gross_loss_magnitude": 35270.55369863994,
   "unknown_or_unrecorded_reason_rows": 149,
-  "unknown_or_unrecorded_reason_pct": 68.0365296803653,
+  "unknown_or_unrecorded_reason_pct": 66.51785714285714,
   "unknown_reason_losing_rows": 77,
   "unknown_reason_net_pnl": -3565.7362627785315,
   "unknown_reason_gross_loss": 30038.43403035043,
-  "unknown_reason_share_of_gross_loss_pct": 85.2325451367511,
+  "unknown_reason_share_of_gross_loss_pct": 85.16575692858697,
   "metadata_non_null_counts_all_trades": {
-    "entry_price": 219,
-    "exit_price": 219
+    "entry_price": 224,
+    "exit_price": 224,
+    "exit_date": 5
   },
   "metadata_non_null_counts_unknown_reason_trades": {
     "entry_price": 149,
-    "exit_price": 149
+    "exit_price": 149,
+    "exit_date": 0
   },
   "exit_reason_coverage_by_ledger_schema": {
+    "schema_v3": {
+      "trade_rows": 5,
+      "recorded_exit_reason_rows": 5,
+      "missing_exit_reason_rows": 0,
+      "exit_reason_coverage_pct": 100.0
+    },
     "unversioned": {
       "trade_rows": 219,
       "recorded_exit_reason_rows": 70,
       "missing_exit_reason_rows": 149,
       "exit_reason_coverage_pct": 31.9635
     }
+  },
+  "exit_reason_recovery_assessment": {
+    "unknown_reason_rows": 149,
+    "rows_with_exit_classifier_source_fields": 0,
+    "rows_without_exit_classifier_source_fields": 149,
+    "classifier_source_fields_present": [
+      "target_pct",
+      "stop_pct"
+    ],
+    "price_only_evidence_is_sufficient": false,
+    "missing_reasons_inferred": false,
+    "interpretation": "Rows with classifier metadata can be reviewed against that source; rows without it cannot have an exit reason recovered from the current ledger alone."
   },
   "costs_subtracted_again": false,
   "missing_exit_reasons_inferred": false,

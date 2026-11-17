@@ -63,6 +63,11 @@ jobs:
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         continue-on-error: true
         run: python -m src.historical_coverage_audit
+      - name: Run chronological index-feature shadow validation
+        id: index_feature_validation
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        continue-on-error: true
+        run: python -m src.index_feature_validation
       - name: Record live source refresh outcomes
         if: always()
         env:

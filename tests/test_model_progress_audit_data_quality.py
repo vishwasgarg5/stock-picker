@@ -398,3 +398,28 @@ def test_listing_date_parser_handles_day_first_format_without_warnings(tmp_path,
     assert "pre_listing_bars=100" in prelisting["detail"]
     assert not [warning for warning in caught if "dayfirst" in str(warning.message).lower()]
 
+def test_prelisting_audit_reports_every_affected_symbol_not_only_top_twenty(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    symbols = [f"S{i:02d}" for i in range(25)]
+    dates = pd.date_range("2019-01-01", periods=4, freq="D")
+    bars = [{
+        "date": day, "symbol": symbol, "open": 10, "high": 12,
+        "low": 9, "close": 11, "volume": 100,
+    } for symbol in symbols for day in dates]
+    pd.DataFrame(bars).to_csv(data / "ohlcv.csv", index=False)
+    pd.DataFrame([{
+        "symbol": symbol, "listing_date": "2020-01-01",
+        "listing_date_source": "https://www.nseindia.com/api/quote-equity?symbol=" + symbol,
+        "verified_at_utc": "2026-11-16T00:00:00Z",
+    } for symbol in symbols]).to_csv(data / "nse_listing_master.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+
+    rows = []
+    audit.audit_live_data(rows)
+
+    result = _check(rows, "OHLCV does not precede verified listing date")
+    assert result["status"] == "FAIL"
+    assert "affected_symbols=25" in result["detail"]
+    assert "by_symbol_all=" in result["detail"]
+    assert all(f"{symbol}:count=4" in result["detail"] for symbol in symbols)

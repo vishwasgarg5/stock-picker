@@ -20,6 +20,7 @@ def record(**overrides):
         "effective_from": "2024-03-28", "effective_to": "2024-09-26",
         "published_at": "2024-03-15T12:30:00+05:30",
         "source": "https://www.niftyindices.com/Index_Constituent",
+        "source_document_sha256": "a" * 64,
     }
     item.update(overrides)
     return item
@@ -68,3 +69,17 @@ def test_rejects_unsupported_exchange_and_unknown_fields():
         validate_membership_records([record(exchange="UNKNOWN")])
     with pytest.raises(MembershipEvidenceError, match="unknown"):
         validate_membership_records([record(unverified_weight="10")])
+
+
+def test_rejects_missing_or_malformed_source_document_hash():
+    item = record()
+    del item["source_document_sha256"]
+    with pytest.raises(MembershipEvidenceError, match="source_document_sha256"):
+        validate_membership_records([item])
+    with pytest.raises(MembershipEvidenceError, match="64-character SHA-256"):
+        validate_membership_records([record(source_document_sha256="not-a-hash")])
+
+
+def test_rejects_non_https_source_document():
+    with pytest.raises(MembershipEvidenceError, match="HTTPS"):
+        validate_membership_records([record(source="http://example.com/release.pdf")])

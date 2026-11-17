@@ -80,3 +80,11 @@ def test_legacy_recorded_cost_matches_simulation_rate_but_is_not_broker_evidence
     assert summary["configured_cost_model"]["rate"] == 0.001
     assert summary["configured_cost_model"]["actual_broker_cost_evidence"] is False
     assert summary["status"] == "REVIEW"
+
+
+def test_all_skip_ledger_reports_no_executed_trades():
+    trades = pd.DataFrame([{"signal": "SKIP", "quantity": 0, "costs": None}])
+    detail, summary = evaluate_execution_cost_provenance(trades)
+    assert detail.empty
+    assert summary["status"] == "NO_EXECUTED_TRADES"
+    assert summary["executed_rows"] == 0

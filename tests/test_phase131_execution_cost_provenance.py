@@ -65,3 +65,18 @@ def test_skips_are_excluded_and_input_is_not_mutated():
     assert len(detail) == 1
     assert summary["executed_rows"] == 1
     pd.testing.assert_frame_equal(trades, original)
+
+
+
+def test_legacy_recorded_cost_matches_simulation_rate_but_is_not_broker_evidence():
+    trades = pd.DataFrame([{
+        "signal": "BUY", "symbol": "ABC", "target_date": "2026-11-16",
+        "shares": 10, "allocated_capital": 10000,
+        "gross_profit_loss": 25, "costs": 10, "profit_loss": 15,
+    }])
+    detail, summary = evaluate_execution_cost_provenance(trades)
+    assert detail.iloc[0]["recorded_cost_rate"] == 0.001
+    assert detail.iloc[0]["matches_current_simulation_rate"] is True
+    assert summary["configured_cost_model"]["rate"] == 0.001
+    assert summary["configured_cost_model"]["actual_broker_cost_evidence"] is False
+    assert summary["status"] == "REVIEW"

@@ -112,3 +112,13 @@ def test_official_snapshot_overrides_stale_yahoo_bars(tmp_path, monkeypatch):
     assert latest.date == pd.Timestamp("2026-11-16")
     assert latest.close == 111
     assert audit["NIFTY50"]["source"] == "NSE official daily index snapshot"
+
+
+def test_constituent_snapshot_uses_latest_completed_session_before_market_open(monkeypatch):
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    import pandas as pd
+    monkeypatch.setattr(ici, "latest_completed_session_date",
+        lambda now=None: pd.Timestamp("2026-11-16").date())
+    frame = ici.normalise_constituent_payload("NIFTY50", {"data": [{"symbol": "AAA"}]})
+    assert frame.iloc[0].as_of_date == pd.Timestamp("2026-11-16")

@@ -40,6 +40,10 @@ class BrokerCompatibilitySchemaTests(unittest.TestCase):
             with self.subTest(schema=name):
                 self.load_schema(name)
 
+    def test_ohlcv_exchange_enum_matches_fail_closed_contract(self) -> None:
+        schema = self.load_schema("ohlcv.schema.json")
+        self.assertEqual(schema["properties"]["exchange"].get("enum"), ["NSE", "BSE", "MCX"])
+
     def test_manifest_requires_hashes_and_research_only_mode(self) -> None:
         schema = self.load_schema("ingestion_manifest.schema.json")
         required = set(schema["required"])

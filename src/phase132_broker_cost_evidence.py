@@ -95,16 +95,18 @@ def evaluate_broker_cost_evidence(
         trade_rows["_manifest_symbol"] = trade_rows.get("symbol", pd.Series("", index=trade_rows.index)).astype(str).str.strip().str.upper()
 
     seen_keys: set[tuple[str, str, str]] = set()
+    assigned_ledger_rows: set[Any] = set()
     for index, record in manifest.iterrows():
         symbol = str(record.get("symbol", "")).strip().upper()
         date = pd.to_datetime(record.get("target_date", ""), errors="coerce")
         date_text = date.strftime("%Y-%m-%d") if not pd.isna(date) else ""
         broker_trade_id = str(record.get("broker_trade_id", "")).strip()
+        broker = str(record.get("broker", "")).strip()
         key = (symbol, date_text, broker_trade_id)
         reasons: list[str] = []
 
-        if not symbol or not date_text or not broker_trade_id:
-            reasons.append("MISSING_TRADE_IDENTITY")
+        if not symbol or not date_text or not broker_trade_id or not broker:
+            reasons.append("MISSING_TRADE_IDENTITY_OR_BROKER")
         if key in seen_keys:
             reasons.append("DUPLICATE_MANIFEST_IDENTITY")
         seen_keys.add(key)
@@ -161,7 +163,11 @@ def evaluate_broker_cost_evidence(
             reasons.append("LEDGER_TRADE_AMBIGUOUS")
             ledger_cost = None
         else:
+            ledger_index = candidates.index[0]
             ledger_row = candidates.iloc[0]
+            if ledger_index in assigned_ledger_rows:
+                reasons.append("LEDGER_ROW_ALREADY_MAPPED")
+            assigned_ledger_rows.add(ledger_index)
             ledger_cost = next((
                 _finite(ledger_row[name])
                 for name in ("costs", "trading_cost", "transaction_costs")

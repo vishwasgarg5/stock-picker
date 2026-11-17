@@ -122,3 +122,11 @@ def test_constituent_snapshot_uses_latest_completed_session_before_market_open(m
         lambda now=None: pd.Timestamp("2026-11-16").date())
     frame = ici.normalise_constituent_payload("NIFTY50", {"data": [{"symbol": "AAA"}]})
     assert frame.iloc[0].as_of_date == pd.Timestamp("2026-11-16")
+
+
+def test_nifty_financial_services_constituent_aliases_are_supported():
+    frame = ici.normalise_constituent_payload("NIFTYFIN", {
+        "data": [{"symbol": "AAA", "ffmc": 100}, {"symbol": "NIFTY FINANCIAL SERVICES"}],
+    }, "2026-11-16")
+    assert frame["symbol"].tolist() == ["AAA"]
+    assert frame.iloc[0]["weight_pct"] == 100

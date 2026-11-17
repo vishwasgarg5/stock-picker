@@ -107,11 +107,15 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
     todo=[s for s in requested if s not in known]
     client=session or requests.Session()
     client.headers.update(HEADERS)
+    home_error=""
     try: client.get(HOME,timeout=20)
     except Exception as exc:
-        return {"status":"SOURCE_UNAVAILABLE" if todo else "PASS","symbols_requested":len(requested),
-                "symbols_cached":len(known & set(requested)),"symbols_fetched":0,"symbols_unresolved":todo,"error":str(exc)}
-    found=[]; failures={}; consecutive_systemic_failures=0
+        home_error=str(exc)
+    found=[]
+    failures={s:f"Quote API session warm-up failed: {home_error}" for s in todo} if home_error else {}
+    if home_error:
+        todo=[]
+    consecutive_systemic_failures=0
     for i,symbol in enumerate(todo):
         error="NSE lookup failed"
         for attempt in range(max_attempts):

@@ -59,3 +59,21 @@ def test_phase105_reports_exit_reason_coverage_by_ledger_schema():
     assert coverage["unversioned"]["missing_exit_reason_rows"] == 1
     assert summary["missing_exit_reasons_inferred"] is False
     assert summary["production_model_changed"] is False
+
+    
+def test_phase105_distinguishes_recoverable_metadata_from_price_only_rows():
+    trades = pd.DataFrame([
+        {"symbol": "AAA", "signal": "BUY", "exit_reason": "", "profit_loss": -10.0,
+         "entry_price": 100.0, "exit_price": 90.0, "target_price": 110.0},
+        {"symbol": "BBB", "signal": "BUY", "exit_reason": "", "profit_loss": -5.0,
+         "entry_price": 100.0, "exit_price": 95.0},
+    ])
+
+    _, summary = evaluate_exit_attribution(trades)
+
+    assessment = summary["exit_reason_recovery_assessment"]
+    assert assessment["unknown_reason_rows"] == 2
+    assert assessment["rows_with_exit_classifier_source_fields"] == 1
+    assert assessment["rows_without_exit_classifier_source_fields"] == 1
+    assert assessment["price_only_evidence_is_sufficient"] is False
+    assert assessment["missing_reasons_inferred"] is False

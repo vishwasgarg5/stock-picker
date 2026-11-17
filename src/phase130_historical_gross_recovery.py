@@ -44,13 +44,18 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
         "pre_split_quantity", "split_ratio",
     ]
     n = buys[numeric_cols].apply(pd.to_numeric, errors="coerce")
-    finite = pd.Series(np.isfinite(n.to_numpy(dtype=float)).all(axis=1), index=buys.index)
     canonical_complete = n[["shares", "allocated_capital", "gross_profit_loss", "costs"]].notna().all(axis=1)
-    source_complete = n[[
+    source_columns = [
         "entry_price", "exit_price", "profit_loss", "quantity",
         "position_value", "planned_capital", "reference_price",
         "pre_split_quantity", "split_ratio",
-    ]].notna().all(axis=1)
+    ]
+    source_values = n[source_columns]
+    finite = pd.Series(
+        np.isfinite(source_values.to_numpy(dtype=float)).all(axis=1),
+        index=buys.index,
+    )
+    source_complete = source_values.notna().all(axis=1)
     positive = (
         n["entry_price"].gt(0) & n["exit_price"].gt(0) & n["quantity"].gt(0)
         & n["position_value"].gt(0) & n["planned_capital"].gt(0)

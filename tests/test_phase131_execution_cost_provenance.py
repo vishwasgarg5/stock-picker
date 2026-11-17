@@ -90,3 +90,36 @@ def test_all_skip_ledger_reports_no_executed_trades():
     assert detail.empty
     assert summary["status"] == "NO_EXECUTED_TRADES"
     assert summary["executed_rows"] == 0
+
+def test_buy_candidates_missing_quantity_remain_visible_as_blocked_rows():
+    trades = pd.DataFrame([
+        {
+            "signal": "BUY", "symbol": "ABC", "quantity": 2,
+            "gross_profit_loss": 10, "costs": 1, "profit_loss": 9,
+        },
+        {
+            "signal": "BUY", "symbol": "DEF", "quantity": None, "shares": None,
+            "gross_profit_loss": 10, "costs": 1, "profit_loss": 9,
+        },
+        {
+            "signal": "BUY", "symbol": "GHI", "quantity": 1,
+            "gross_profit_loss": 10, "costs": None, "profit_loss": None,
+        },
+        {"signal": "SKIP", "symbol": "XYZ", "quantity": 0},
+    ])
+
+    detail, summary = evaluate_execution_cost_provenance(trades)
+
+    assert len(detail) == 3
+    assert summary["candidate_rows"] == 3
+    assert summary["executed_rows"] == 2
+    assert summary["candidate_rows_missing_quantity"] == 1
+    assert summary["quantity_blocked_rows"] == 1
+    assert summary["accounting_blocked_rows"] == 1
+    assert summary["blocked_rows"] == 2
+    missing_quantity = detail.loc[detail["symbol"].eq("DEF")].iloc[0]
+    assert missing_quantity["status"] == "BLOCKED_MISSING_EXECUTION_QUANTITY"
+    assert missing_quantity["execution_quantity"] is None
+    assert missing_quantity["execution_quantity_status"] == "MISSING_OR_INVALID_RECORDED_QUANTITY"
+    assert summary["costs_inferred"] is False
+    assert summary["canonical_ledger_mutated"] is False

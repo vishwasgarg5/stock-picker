@@ -85,3 +85,30 @@ def test_constituent_snapshot_preserves_exact_source_endpoint():
         "data": [{"symbol": "AAA", "weightage": "10"}],
     }, "2024-01-02", source_url=source)
     assert frame.loc[0, "source"] == source
+
+
+def test_official_nse_daily_index_snapshot_parses_all_index_ohlc():
+    csv = """Index Name,Index Date,Open Index Value,High Index Value,Low Index Value,Closing Index Value,Volume
+Nifty 50,16-Nov-2026,25000,25100,24900,25050,123456
+Nifty Bank,16-Nov-2026,55000,55200,54800,55100,234567
+"""
+    out = ici.normalise_nse_index_snapshot(csv, "2026-11-16", "https://nsearchives.nseindia.com/content/indices/test.csv")
+    assert set(out["index"]) == {"NIFTY50", "BANKNIFTY"}
+    assert out.loc[out.index.eq("NIFTY50"), "close"].iloc[0] == 25050
+    assert out["source"].str.contains("nsearchives.nseindia.com").all()
+
+
+def test_official_snapshot_overrides_stale_yahoo_bars(tmp_path, monkeypatch):
+    dates = pd.date_range("2026-11-10", periods=3)
+    raw = pd.DataFrame({"Open": [100, 101, 102], "High": [102, 103, 104],
+        "Low": [99, 100, 101], "Close": [101, 102, 103], "Volume": [1, 1, 1]}, index=dates)
+    official = pd.DataFrame([{"date": pd.Timestamp("2026-11-16"), "index": "NIFTY50",
+        "ticker": "NSE_OFFICIAL_DAILY_SNAPSHOT", "open": 110, "high": 112, "low": 109,
+        "close": 111, "volume": 100, "source": "official"}], columns=ici.INDEX_COLUMNS)
+    monkeypatch.setattr(ici, "INDEX_HISTORY_FILE", tmp_path / "index_ohlcv.csv")
+    monkeypatch.setattr(ici, "download_latest_nse_index_snapshot", lambda: (official, {"status": "PASS"}))
+    out, audit = ici.download_index_history({"NIFTY50": ["TEST"]}, downloader=lambda _: raw)
+    latest = out[out.index.eq("NIFTY50")].sort_values("date").iloc[-1]
+    assert latest.date == pd.Timestamp("2026-11-16")
+    assert latest.close == 111
+    assert audit["NIFTY50"]["source"] == "NSE official daily index snapshot"

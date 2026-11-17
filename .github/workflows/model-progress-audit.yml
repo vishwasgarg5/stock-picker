@@ -50,17 +50,17 @@ jobs:
           python -m pip install -r requirements.txt
       - name: Probe and refresh official NSE market calendar
         id: calendar_refresh
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[live-audit]'))
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         continue-on-error: true
         run: python -m src.market_calendar
       - name: Probe and refresh index OHLCV, constituents and weights
         id: index_refresh
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[live-audit]'))
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         continue-on-error: true
         run: python -m src.index_constituent_intelligence
       - name: Refresh NSE listing-date master and historical coverage audit
         id: listing_refresh
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[live-audit]'))
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         continue-on-error: true
         run: python -m src.historical_coverage_audit
       - name: Record live source refresh outcomes

@@ -144,7 +144,13 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
             "cost_evidence_reference": evidence_ref,
             "status": status,
         })
-    detail = pd.DataFrame(output)
+    detail = pd.DataFrame(output, columns=[
+        "row_index", "symbol", "target_date", "recorded_costs", "allocated_capital",
+        "recorded_cost_rate", "matches_current_simulation_rate", "cost_field",
+        "gross_pnl", "gross_field", "net_pnl", "net_field", "cost_identity_delta",
+        "component_total", "component_identity_delta", "component_breakdown_status",
+        "cost_evidence_reference", "status",
+    ])
     statuses = detail.get("status", pd.Series(dtype=str))
     counts = statuses.value_counts().to_dict()
     source_verified = int(statuses.eq("SOURCE_REFERENCED_COMPONENTS_RECONCILED").sum())

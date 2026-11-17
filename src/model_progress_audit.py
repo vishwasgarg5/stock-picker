@@ -20,6 +20,7 @@ MODULES = {
     "Index feature OOS validation": "src/index_feature_validation.py",
     "Market calendar": "src/market_calendar.py",
     "Listing-date master": "src/listing_master.py",
+    "Historical exchange provenance": "src/historical_listing_provenance.py",
     "Historical coverage audit": "src/historical_coverage_audit.py",
     "Historical gap recovery": "src/repair_historical_gaps.py",
     "Index OHLCV and constituents": "src/index_constituent_intelligence.py",
@@ -58,6 +59,7 @@ ARTIFACTS = {
     "Index feature OOS validation": ("data/index_feature_validation.json", None),
     "Weekend data-quality audit": ("data/weekend_data_quality_audit.json", None),
     "Listing master": ("data/nse_listing_master.csv", set()),
+    "Historical listing provenance registry": ("data/historical_listing_provenance.csv", {"symbol", "event_type", "evidence_url", "classification_status"}),
 }
 
 PHASE_EVIDENCE = [
@@ -349,6 +351,18 @@ def audit_live_data(rows):
                     f"pre_listing_bars={count_before}; affected_symbols={len(by_symbol)}; "
                     f"by_symbol_top20={by_symbol}; examples={examples}",
                     "data/ohlcv.csv + data/nse_listing_master.csv")
+
+    # Keep the pre-listing diagnosis independent from the basic OHLCV checks.
+    # This audit records exchange-event evidence but never guesses the source
+    # exchange of an individual Yahoo Finance bar or modifies historical data.
+    try:
+        from .historical_listing_provenance import audit_historical_listing_provenance
+        provenance = audit_historical_listing_provenance(ROOT)
+        add(rows, "Live data quality and freshness", "Pre-listing historical exchange provenance",
+            provenance["status"], provenance["detail"], provenance["evidence"])
+    except Exception as exc:
+        add(rows, "Live data quality and freshness", "Pre-listing historical exchange provenance",
+            "FAIL", f"{type(exc).__name__}: {exc}", "data/historical_listing_provenance.csv")
 
     index_bars = _check_csv_nonempty(rows, "Index OHLCV populated values", "data/index_ohlcv.csv",
         {"date", "index", "open", "high", "low", "close"}, 1)

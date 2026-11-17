@@ -69,7 +69,7 @@ jobs:
         run: python -m src.index_constituent_intelligence
       - name: Refresh NSE listing-date master and historical coverage audit
         id: listing_refresh
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
         continue-on-error: true
         run: python -m src.historical_coverage_audit
       - name: Record live source refresh outcomes

@@ -228,7 +228,7 @@ jobs:
       matrix:
         include:
           - suite: foundations-and-data
-            paths: "tests/test_model_progress_audit_data_quality.py tests/test_pipeline_data_quality.py tests/test_prediction_validation.py tests/test_corporate_action_adjustments.py tests/test_historical_coverage_audit.py tests/test_repair_historical_gaps.py tests/test_market_calendar.py tests/test_index_constituent_intelligence.py tests/test_index_intelligence_data_quality.py tests/test_weekend_data_quality_audit.py tests/test_broker_data_contracts.py tests/test_nse_udiff_reconciliation.py"
+            paths: "tests/test_model_progress_audit_data_quality.py tests/test_pipeline_data_quality.py tests/test_prediction_validation.py tests/test_corporate_action_adjustments.py tests/test_historical_coverage_audit.py tests/test_repair_historical_gaps.py tests/test_market_calendar.py tests/test_index_constituent_intelligence.py tests/test_index_intelligence_data_quality.py tests/test_weekend_data_quality_audit.py tests/test_broker_data_contracts.py tests/test_nse_udiff_reconciliation.py tests/test_broker_schema_compatibility.py"
           - suite: forecasting-and-ranking
             paths: "tests/test_directional_model.py tests/test_confidence.py tests/test_pipeline_ranking.py tests/test_phase128_ranking_authority_audit.py tests/test_phase129_ranking_utility_audit.py tests/test_news_context.py"
           - suite: risk-and-paper-trading

@@ -3,7 +3,7 @@ import pandas as pd
 from src.phase131_execution_cost_provenance import evaluate_execution_cost_provenance
 
 
-def test_costs_are_source_verified_only_with_complete_components_and_reference():
+def test_costs_are_reference_present_only_with_complete_components_and_reference():
     trades = pd.DataFrame([{
         "signal": "BUY", "symbol": "ABC", "target_date": "2026-11-16",
         "quantity": 2, "gross_profit_loss": 20, "costs": 1.0, "profit_loss": 19,
@@ -27,7 +27,7 @@ def test_recorded_cost_identity_without_source_reference_is_review_only():
     detail, summary = evaluate_execution_cost_provenance(trades)
     assert detail.iloc[0]["status"] == "LEDGER_ARITHMETIC_ONLY_SOURCE_NOT_ESTABLISHED"
     assert summary["status"] == "REVIEW"
-    assert summary["source_referenced_rows"] == 0
+    assert summary["source_reference_present_rows"] == 0
 
 
 def test_missing_costs_are_blocked_and_never_reconstructed_from_gross_and_net():

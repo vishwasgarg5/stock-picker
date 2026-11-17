@@ -1,0 +1,46 @@
+name: Deploy Model Intelligence Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - "data/dashboard_data.json"
+      - ".github/workflows/deploy-dashboard-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages-dashboard
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _site/data
+          cp dashboard/index.html _site/index.html
+          cp data/dashboard_data.json _site/data/dashboard_data.json
+          touch _site/.nojekyll
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload dashboard site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy dashboard
+        id: deployment
+        uses: actions/deploy-pages@v4

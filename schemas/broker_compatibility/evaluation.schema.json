@@ -1,0 +1,5 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"broker/evaluation/1.0.0","title":"BROKER evaluation record",
+ "type":"object","additionalProperties":false,"required":["schema_version","prediction_id","target_session","symbol","actual_value","evaluated_at","benchmark_id"],
+ "properties":{"schema_version":{"const":"1.0.0"},"prediction_id":{"type":"string","minLength":1},"target_session":{"type":"string","format":"date"},"symbol":{"type":"string","minLength":1},"actual_value":{"type":"number"},"absolute_error":{"type":["number","null"],"minimum":0},"directional_correct":{"type":["boolean","null"]},"net_pnl_after_costs":{"type":["number","null"]},"evaluated_at":{"type":"string","format":"date-time"},"benchmark_id":{"type":"string","minLength":1}}
+}

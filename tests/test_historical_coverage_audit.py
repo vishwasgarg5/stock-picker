@@ -261,3 +261,61 @@ def test_equity_listing_fallback_stops_after_complete_first_mirror():
     assert audit["status"] == "PASS"
 
 # The fallback tests use real CSV line breaks to exercise pandas parsing.
+
+
+def test_curated_nse_reit_listing_dates_cover_symbols_missing_from_equity_master():
+    from src.listing_master import refresh_from_reit_listing
+
+    rows, audit = refresh_from_reit_listing({"BAGMANE", "BIRET", "EMBASSY", "UNKNOWN"})
+    by_symbol = {row["symbol"]: row for row in rows}
+
+    assert audit["status"] == "PARTIAL"
+    assert audit["symbols_unresolved"] == ["UNKNOWN"]
+    assert {symbol: row["listing_date"] for symbol, row in by_symbol.items()} == {
+        "BAGMANE": "2026-05-14",
+        "BIRET": "2021-02-16",
+        "EMBASSY": "2019-04-01",
+    }
+    assert all("nsearchives.nseindia.com" in row["listing_date_source"] for row in rows)
+    assert all(row["isin"].startswith("IN") for row in rows)
+
+
+def test_listing_master_uses_nse_reit_evidence_after_equity_master_fallbacks(tmp_path, monkeypatch):
+    from requests import HTTPError
+    from src import listing_master
+
+    class Response:
+        content = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\n"
+        def raise_for_status(self):
+            raise HTTPError("403 Client Error: Forbidden")
+
+    class CsvResponse:
+        content = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\n"
+        def raise_for_status(self):
+            return None
+
+    class Session:
+        def __init__(self):
+            self.headers = {}
+        def get(self, url, timeout, **kwargs):
+            if url == listing_master.HOME:
+                return object()
+            if "quote-equity" in url or "NSE_CM_security_" in url:
+                return Response()
+            return CsvResponse()
+
+    monkeypatch.setattr(listing_master, "DATA", tmp_path)
+    monkeypatch.setattr(listing_master, "FILE", tmp_path / "nse_listing_master.csv")
+    result = listing_master.refresh_listing_master(
+        ["BAGMANE", "BIRET", "EMBASSY"], session=Session(),
+        delay_seconds=0, max_attempts=1,
+    )
+
+    saved = pd.read_csv(listing_master.FILE, dtype=str).set_index("symbol")
+    assert result["status"] == "PASS"
+    assert result["symbols_cached"] == 3
+    assert result["symbols_unresolved"] == []
+    assert result["reit_listing_fallback"]["status"] == "PASS"
+    assert saved.loc["BAGMANE", "listing_date"] == "2026-05-14"
+    assert saved.loc["BIRET", "listing_date"] == "2021-02-16"
+    assert saved.loc["EMBASSY", "listing_date"] == "2019-04-01"

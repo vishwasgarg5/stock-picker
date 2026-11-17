@@ -161,3 +161,26 @@ def test_nse_pipe_security_master_uses_documented_listing_date_field():
     assert found[0]["listing_date"] == "2024-01-15"
     assert found[0]["company_name"] == "ABC Limited"
     assert found[0]["isin"] == "INE123A01016"
+
+
+def test_official_equity_listing_csv_parser_extracts_verified_dates():
+    from src.listing_master import parse_equity_listing_csv
+    csv = """SYMBOL,NAME OF COMPANY,SERIES,DATE OF LISTING,PAID UP VALUE,MARKET LOT,ISIN NUMBER,FACE VALUE
+AAA,AAA Limited,EQ,06-OCT-2008,5,1,INE144J01016,5
+BBB,BBB Limited,BE,03-MAY-95,10,1,INE253B01015,10
+OTHER,Other Limited,EQ,01-JAN-2000,10,1,INE000A01000,10
+"""
+    rows = parse_equity_listing_csv(csv, {"AAA", "BBB"},
+        "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv")
+    by_symbol = {row["symbol"]: row for row in rows}
+    assert by_symbol["AAA"]["listing_date"] == "2008-10-06"
+    assert by_symbol["BBB"]["listing_date"] == "1995-05-03"
+    assert len(rows) == 2
+    assert all("nsearchives.nseindia.com" in row["listing_date_source"] for row in rows)
+
+
+def test_official_equity_listing_csv_rejects_unknown_schema():
+    from src.listing_master import parse_equity_listing_csv
+    import pytest
+    with pytest.raises(ValueError, match="Symbol/Date of Listing"):
+        parse_equity_listing_csv("Ticker,Name\nAAA,AAA Limited\n", {"AAA"}, "official-source")

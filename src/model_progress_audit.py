@@ -33,6 +33,7 @@ MODULES = {
     "Risk management": "src/risk_management.py",
     "Paper trading V1": "src/paper_trading.py",
     "Paper trading V2": "src/paper_trading_v2.py",
+    "Historical execution-cost provenance": "src/phase131_execution_cost_provenance.py",
     "Realized outcomes": "src/outcomes.py",
     "Model governance": "src/model_governance.py",
     "System health": "src/system_health.py",
@@ -50,6 +51,7 @@ ARTIFACTS = {
     "NSE market calendar": ("data/nse_market_calendar.json", None),
     "Historical coverage summary": ("data/historical_coverage_audit.json", None),
     "Phase 107 P&L reconciliation": ("data/phase107_pnl_reconciliation_summary.json", None),
+    "Phase 131 execution-cost provenance": ("data/phase131_execution_cost_provenance_summary.json", None),
     "Phase 114 promotion readiness": ("data/phase114_promotion_readiness_summary.json", None),
     "Model governance": ("data/model_governance.json", None),
     "Index OHLCV": ("data/index_ohlcv.csv", set()),
@@ -79,6 +81,7 @@ PHASE_EVIDENCE = [
     "data/phase122_challenger_decision.json", "data/phase123_magnitude_calibration_decision.json",
     "data/phase124_feature_signal_decision.json", "data/phase125_feature_ablation_decision.json",
     "data/phase126_objective_target_decision.json",
+    "data/phase131_execution_cost_provenance_summary.json",
 ]
 
 def add(rows, group, name, status, detail, evidence=""):
@@ -749,6 +752,7 @@ def run_audit(output_dir: Path):
     for rel, label in [
         ("data/phase114_promotion_readiness_summary.json", "Production promotion gate"),
         ("data/phase107_pnl_reconciliation_summary.json", "Paper-trade P&L reconciliation"),
+        ("data/phase131_execution_cost_provenance_summary.json", "Historical execution-cost provenance"),
         ("data/historical_coverage_audit.json", "Historical data coverage"),
     ]:
         path = ROOT / rel

@@ -101,7 +101,9 @@ def test_capital_backed_buy_without_quantity_is_retained_as_blocked():
         "quantity": None, "shares": None, "costs": None, "gross_profit_loss": None,
     }])
     detail, summary = evaluate_execution_cost_provenance(trades)
+    assert summary["buy_signal_rows"] == 1
     assert summary["executed_rows"] == 1
+    assert summary["excluded_buy_rows_without_execution_evidence"] == 0
     assert summary["quantity_missing_but_trade_value_present_rows"] == 1
     assert detail.iloc[0]["execution_quantity_status"] == "CAPITAL_PRICE_EVIDENCE_QUANTITY_MISSING"
     assert detail.iloc[0]["status"] == "BLOCKED_MISSING_RECORDED_ACCOUNTING"
@@ -115,5 +117,7 @@ def test_zero_capital_zero_quantity_buy_is_not_counted_as_executed():
     }])
     detail, summary = evaluate_execution_cost_provenance(trades)
     assert detail.empty
+    assert summary["buy_signal_rows"] == 1
     assert summary["executed_rows"] == 0
+    assert summary["excluded_buy_rows_without_execution_evidence"] == 1
     assert summary["quantity_missing_but_trade_value_present_rows"] == 0

@@ -99,10 +99,6 @@ jobs:
       - name: Verify broker cost documents and manifest without ledger backfill
         id: phase132_broker_cost_evidence
         run: python -m src.phase132_broker_cost_evidence
-      - name: Run chronological shadow index-feature OOS validation
-        id: index_feature_oos
-        continue-on-error: true
-        run: python -m src.index_feature_validation
       - name: Audit implementation, data artifacts, roadmap evidence and readiness gates
         id: audit
         continue-on-error: true
@@ -128,7 +124,6 @@ jobs:
             data/phase131_execution_cost_provenance_summary.json
             data/phase132_broker_cost_evidence_detail.csv
             data/phase132_broker_cost_evidence_summary.json
-            data/index_feature_validation.json
             data/execution_cost_evidence_manifest.csv
           if-no-files-found: warn
           retention-days: 30

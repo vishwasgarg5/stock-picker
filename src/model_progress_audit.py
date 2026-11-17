@@ -10,6 +10,7 @@ import csv
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -290,7 +291,17 @@ def audit_live_data(rows):
             listing_dates = pd.to_datetime(listing["listing_date"], errors="coerce", dayfirst=True)
             invalid_listing_dates = int(listing_dates.isna().sum())
             future_listing_dates = int((listing_dates > pd.Timestamp(datetime.now(timezone.utc).date())).sum())
-            source_valid = int((~listing["listing_date_source"].astype(str).str.contains(r"nseindia\\.(com|in)", case=False, regex=True)).sum())
+            def is_official_nse_source(value):
+                try:
+                    parsed = urlparse(str(value).strip())
+                    host = (parsed.hostname or "").lower().rstrip(".")
+                    return parsed.scheme == "https" and (
+                        host == "nseindia.com" or host.endswith(".nseindia.com") or
+                        host == "nseindia.in" or host.endswith(".nseindia.in")
+                    )
+                except (TypeError, ValueError):
+                    return False
+            source_valid = int((~listing["listing_date_source"].map(is_official_nse_source)).sum())
             result = "PASS" if nulls == 0 and unique == 0 and invalid_listing_dates == 0 and future_listing_dates == 0 and source_valid == 0 else "FAIL"
             add(rows, "Live data quality and freshness", "Listing master field completeness and validity",
                 result,
@@ -318,9 +329,25 @@ def audit_live_data(rows):
                     f"{r.symbol}:{r.date.date()}< {r.listing_date.date()}"
                     for r in examples_before.itertuples(index=False)
                 ]
+                by_symbol = []
+                if count_before:
+                    grouped = compared.loc[before_listing].groupby("symbol").agg(
+                        pre_listing_bars=("date", "size"),
+                        first_pre_listing_bar=("date", "min"),
+                        last_pre_listing_bar=("date", "max"),
+                        listing_date=("listing_date", "first"),
+                    ).sort_values("pre_listing_bars", ascending=False)
+                    by_symbol = [
+                        f"{symbol}:count={int(row.pre_listing_bars)},"
+                        f"first={row.first_pre_listing_bar.date()},"
+                        f"last={row.last_pre_listing_bar.date()},"
+                        f"listing={row.listing_date.date()}"
+                        for symbol, row in grouped.head(20).iterrows()
+                    ]
                 add(rows, "Live data quality and freshness", "OHLCV does not precede verified listing date",
                     "FAIL" if count_before else "PASS",
-                    f"pre_listing_bars={count_before}; examples={examples}",
+                    f"pre_listing_bars={count_before}; affected_symbols={len(by_symbol)}; "
+                    f"by_symbol_top20={by_symbol}; examples={examples}",
                     "data/ohlcv.csv + data/nse_listing_master.csv")
 
     index_bars = _check_csv_nonempty(rows, "Index OHLCV populated values", "data/index_ohlcv.csv",

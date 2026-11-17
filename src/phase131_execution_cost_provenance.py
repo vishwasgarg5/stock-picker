@@ -117,7 +117,7 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
         elif cost < 0:
             status = "FAIL_INVALID_NEGATIVE_COST"
         elif component_verified and evidence_ref:
-            status = "SOURCE_REFERENCED_COMPONENTS_RECONCILED"
+            status = "REFERENCE_PRESENT_COMPONENTS_RECONCILED"
         elif component_verified:
             status = "COMPONENTS_RECONCILED_REFERENCE_MISSING"
         else:
@@ -153,16 +153,55 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     ])
     statuses = detail.get("status", pd.Series(dtype=str))
     counts = statuses.value_counts().to_dict()
-    source_verified = int(statuses.eq("SOURCE_REFERENCED_COMPONENTS_RECONCILED").sum())
+    reference_present = int(statuses.eq("REFERENCE_PRESENT_COMPONENTS_RECONCILED").sum())
     component_verified = int(statuses.isin([
-        "SOURCE_REFERENCED_COMPONENTS_RECONCILED",
+        "REFERENCE_PRESENT_COMPONENTS_RECONCILED",
         "COMPONENTS_RECONCILED_REFERENCE_MISSING",
     ]).sum())
     mismatch = int(statuses.str.startswith("FAIL_").sum())
     blocked = int(statuses.eq("BLOCKED_MISSING_RECORDED_ACCOUNTING").sum())
     ledger_only = int(statuses.eq("LEDGER_ARITHMETIC_ONLY_SOURCE_NOT_ESTABLISHED").sum())
     summary = {
-        "status": "NO_EXECUTED_TRADES" if detail.empty else "PASS" if source_verified == len(detail) and mismatch == 0 and blocked == 0 else (
+        "status": "NO_EXECUTED_TRADES" if detail.empty else "FAIL" if mismatch else "BLOCKED" if blocked else "REVIEW",
+        "executed_rows": int(len(detail)),
+        "configured_cost_model": cost_model,
+        "rows_matching_current_simulation_rate": int(detail["matches_current_simulation_rate"].sum()),
+        "ledger_cost_rows": int(detail["recorded_costs"].notna().sum()),
+        "component_verified_rows": component_verified,
+        "source_reference_present_rows": reference_present,
+        "source_documents_verified": False,
+        "ledger_arithmetic_only_rows": ledger_only,
+        "blocked_rows": blocked,
+        "mismatch_rows": mismatch,
+        "status_counts": {str(k): int(v) for k, v in counts.items()},
+        "costs_inferred": False,
+        "costs_estimated": False,
+        "costs_zero_filled": False,
+        "canonical_ledger_mutated": False,
+        "policy": "A recorded total that satisfies gross minus costs equals net is arithmetic reconciliation only. A component breakdown and reference string are reported as supplied, but the referenced document is not fetched or authenticated by this audit. The current fixed round-trip simulation rate is reported separately and is never applied to historical rows. No rate-based reconstruction or backfill is performed.",
+    }
+    return detail, summary
+
+
+def build_report() -> dict[str, Any]:
+    path = DATA / "paper_trades.csv"
+    try:
+        trades = pd.read_csv(path, low_memory=False) if path.is_file() else pd.DataFrame()
+    except (OSError, ValueError, UnicodeDecodeError, pd.errors.ParserError):
+        trades = pd.DataFrame()
+    detail, summary = evaluate_execution_cost_provenance(trades)
+    DATA.mkdir(exist_ok=True)
+    detail.to_csv(DATA / "phase131_execution_cost_provenance_detail.csv", index=False)
+    report = {**summary, "source": "data/paper_trades.csv"}
+    (DATA / "phase131_execution_cost_provenance_summary.json").write_text(
+        json.dumps(report, indent=2, allow_nan=False) + "\\n", encoding="utf-8"
+    )
+    print(json.dumps(report, indent=2, allow_nan=False))
+    return report
+
+
+if __name__ == "__main__":
+    build_report()
             "FAIL" if mismatch else "BLOCKED" if blocked else "REVIEW"
         ),
         "executed_rows": int(len(detail)),

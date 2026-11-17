@@ -23,6 +23,7 @@ from src.broker_data_contracts import (
     build_ingestion_manifest,
     validate_ohlcv_record,
     validate_unique_sessions,
+    verify_ingestion_manifest,
 )
 
 SOURCE_ID = "NSE_CM_UDIFF_BHAVCOPY"
@@ -138,6 +139,43 @@ def latest_available_session(target: date, lookback_days: int = 10) -> tuple[dat
     )
 
 
+
+def verify_persisted_manifest(manifest_path: Path, output_root: Path) -> dict[str, Any]:
+    """Verify persisted manifest, raw/normalized bytes, and normalized record count."""
+    root = Path(output_root).resolve()
+    manifest_file = Path(manifest_path).resolve()
+    if root not in manifest_file.parents or not manifest_file.is_file():
+        raise DataContractError("Manifest file is missing or outside the audit root")
+    try:
+        manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise DataContractError(f"Cannot read persisted manifest: {exc}") from exc
+    verify_ingestion_manifest(manifest)
+    payloads = {}
+    for field in ("raw_file", "normalized_file"):
+        target = (root / manifest[field]).resolve()
+        if root not in target.parents or not target.is_file():
+            raise DataContractError(f"Manifest {field} is missing or outside the audit root")
+        payloads[field] = target.read_bytes()
+    verify_ingestion_manifest(manifest, raw_bytes=payloads["raw_file"],
+                              normalized_bytes=payloads["normalized_file"])
+    try:
+        reader = csv.DictReader(io.StringIO(payloads["normalized_file"].decode("utf-8-sig")))
+        rows = list(reader)
+    except (UnicodeDecodeError, csv.Error) as exc:
+        raise DataContractError(f"Normalized snapshot is not valid CSV: {exc}") from exc
+    if len(rows) != manifest["record_count"]:
+        raise DataContractError(
+            f"Manifest record_count {manifest['record_count']} does not match "
+            f"normalized snapshot rows {len(rows)}"
+        )
+    if not rows:
+        raise DataContractError("Normalized snapshot contains no records")
+    return {"status": "PASS", "record_count": len(rows),
+            "raw_sha256_verified": True, "normalized_sha256_verified": True,
+            "manifest_verified": True}
+
+
 def write_research_snapshot(
     session: date, archive: bytes, csv_payload: bytes, records: list[dict], output_root: Path
 ) -> dict[str, Any]:
@@ -171,6 +209,7 @@ def write_research_snapshot(
             raise DataContractError("Audit output path escaped its root")
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(payload)
+    verify_persisted_manifest(output_root / manifest_name, output_root)
     return manifest
 
 

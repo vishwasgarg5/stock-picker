@@ -49,7 +49,7 @@ NSE_INDEX_NAMES = {
     "BANKNIFTY": "NIFTY BANK",
     "NIFTYIT": "NIFTY IT",
     "NIFTYAUTO": "NIFTY AUTO",
-    "NIFTYFIN": "NIFTY FINANCIAL SERVICES",
+    "NIFTYFIN": ["NIFTY FINANCIAL SERVICES", "NIFTY FIN SERVICE"],
     "NIFTYPHARMA": "NIFTY PHARMA",
     "NIFTYFMCG": "NIFTY FMCG",
 }
@@ -93,6 +93,96 @@ def normalise_index_bars(index: str, ticker: str, raw: pd.DataFrame) -> pd.DataF
     return x[INDEX_COLUMNS].sort_values("date")
 
 
+NSE_INDEX_ARCHIVE_URL = "https://nsearchives.nseindia.com/content/indices/ind_close_all_{date}.csv"
+NSE_INDEX_ARCHIVE_HEADERS = {
+    **HEADERS,
+    "Referer": "https://www.nseindia.com/all-reports",
+    "Host": "nsearchives.nseindia.com",
+}
+INDEX_SNAPSHOT_NAMES = {
+    "NIFTY 50": "NIFTY50",
+    "NIFTY NEXT 50": "NIFTYNEXT50",
+    "NIFTY 100": "NIFTY100",
+    "NIFTY 200": "NIFTY200",
+    "NIFTY 500": "NIFTY500",
+    "NIFTY BANK": "BANKNIFTY",
+    "NIFTY IT": "NIFTYIT",
+    "NIFTY AUTO": "NIFTYAUTO",
+    "NIFTY FINANCIAL SERVICES": "NIFTYFIN",
+    "NIFTY PHARMA": "NIFTYPHARMA",
+    "NIFTY FMCG": "NIFTYFMCG",
+}
+
+
+def normalise_nse_index_snapshot(payload: bytes | str, snapshot_date: str, source_url: str) -> pd.DataFrame:
+    """Parse NSE's official ind_close_all daily index snapshot (all configured indices)."""
+    from io import BytesIO, StringIO
+    raw = pd.read_csv(BytesIO(payload) if isinstance(payload, bytes) else StringIO(payload))
+    if raw.empty:
+        raise ValueError("NSE index snapshot is empty")
+    def key(value):
+        return "".join(ch for ch in str(value).lower() if ch.isalnum())
+    columns = {key(c): c for c in raw.columns}
+    def pick(*names):
+        return next((columns[key(name)] for name in names if key(name) in columns), None)
+    name_col = pick("Index Name", "IndexName")
+    open_col = pick("Open Index Value", "Open")
+    high_col = pick("High Index Value", "High")
+    low_col = pick("Low Index Value", "Low")
+    close_col = pick("Closing Index Value", "Close", "Closing Value")
+    volume_col = pick("Volume", "Shares Traded", "Total Traded Quantity")
+    if not all((name_col, open_col, high_col, low_col, close_col)):
+        raise ValueError(f"Unexpected NSE index snapshot columns: {list(raw.columns)}")
+    rows = []
+    for _, row in raw.iterrows():
+        index_name = " ".join(str(row[name_col]).upper().replace("&", " ").split())
+        index = INDEX_SNAPSHOT_NAMES.get(index_name)
+        if not index:
+            continue
+        values = {}
+        for target, source in (("open", open_col), ("high", high_col), ("low", low_col), ("close", close_col)):
+            values[target] = pd.to_numeric(str(row[source]).replace(",", "").strip(), errors="coerce")
+        volume = pd.to_numeric(str(row[volume_col]).replace(",", "").strip(), errors="coerce") if volume_col else np.nan
+        if not all(np.isfinite(values[k]) and values[k] > 0 for k in values):
+            continue
+        rows.append({"date": pd.Timestamp(snapshot_date), "index": index, "ticker": "NSE_OFFICIAL_DAILY_SNAPSHOT",
+                     **values, "volume": volume, "source": source_url})
+    result = pd.DataFrame(rows, columns=INDEX_COLUMNS)
+    if result.empty:
+        raise ValueError("NSE index snapshot contained no configured index OHLC rows")
+    return result.drop_duplicates(["date", "index"], keep="last")
+
+
+def download_latest_nse_index_snapshot(session=None, max_calendar_days: int = 14) -> tuple[pd.DataFrame, dict]:
+    """Fetch the newest available official NSE all-index daily OHLC snapshot."""
+    from datetime import timedelta
+    from . import market_calendar
+    client = session or requests.Session()
+    client.headers.update(NSE_INDEX_ARCHIVE_HEADERS)
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).date()
+    now = datetime.now(ZoneInfo("Asia/Kolkata")).time()
+    # The current session is eligible only after the equity market closes.
+    start = today if now >= datetime.strptime("15:35", "%H:%M").time() and market_calendar.is_trading_session(today) else today - timedelta(days=1)
+    attempts, errors = [], []
+    for offset in range(max_calendar_days):
+        candidate = start - timedelta(days=offset)
+        if not market_calendar.is_trading_session(candidate):
+            continue
+        url = NSE_INDEX_ARCHIVE_URL.format(date=candidate.strftime("%d%m%Y"))
+        try:
+            response = client.get(url, timeout=25, headers=NSE_INDEX_ARCHIVE_HEADERS)
+            response.raise_for_status()
+            bars = normalise_nse_index_snapshot(response.content, candidate.isoformat(), url)
+            attempts.append(candidate.isoformat())
+            return bars, {"status": "PASS", "date": candidate.isoformat(), "source": url,
+                          "rows": int(len(bars)), "attempted_sessions": attempts}
+        except Exception as exc:
+            errors.append({"date": candidate.isoformat(), "error": str(exc)})
+            attempts.append(candidate.isoformat())
+    return pd.DataFrame(columns=INDEX_COLUMNS), {"status": "SOURCE_UNAVAILABLE",
+        "attempted_sessions": attempts, "errors": errors[-5:]}
+
+
 def download_index_history(ticker_map: dict | None = None, downloader=None) -> tuple[pd.DataFrame, dict]:
     tickers = ticker_map or INDEX_TICKERS
     download = downloader or (lambda ticker: yf.Ticker(ticker).history(period="max", interval="1d", auto_adjust=False))
@@ -107,7 +197,7 @@ def download_index_history(ticker_map: dict | None = None, downloader=None) -> t
                     rows.append(bars)
                     audit[index] = {"status": "PASS", "ticker": ticker, "rows_downloaded": int(len(bars)),
                                     "first_date": bars.date.min().date().isoformat(),
-                                    "last_date": bars.date.max().date().isoformat()}
+                                    "last_date": bars.date.max().date().isoformat(), "source": "Yahoo Finance"}
                     found = True
                     break
             except Exception as exc:
@@ -119,6 +209,21 @@ def download_index_history(ticker_map: dict | None = None, downloader=None) -> t
         old = pd.read_csv(INDEX_HISTORY_FILE)
         if not old.empty and set(INDEX_COLUMNS).issubset(old.columns):
             downloaded = pd.concat([old[INDEX_COLUMNS], downloaded], ignore_index=True)
+    # Yahoo may return a stale final bar while reporting a successful download.
+    # NSE's official daily index snapshot is the freshness authority and replaces
+    # same-date Yahoo values when available.
+    official, official_audit = download_latest_nse_index_snapshot()
+    if not official.empty:
+        downloaded = pd.concat([downloaded, official], ignore_index=True)
+        for index, frame in official.groupby("index"):
+            audit[index] = {**audit.get(index, {}), "status": "PASS",
+                "source": "NSE official daily index snapshot",
+                "official_snapshot_date": frame.date.max().date().isoformat(),
+                "last_date": frame.date.max().date().isoformat()}
+    for index in tickers:
+        if index not in audit:
+            audit[index] = {"status": "SOURCE_UNAVAILABLE", "rows_downloaded": 0}
+    audit["_official_snapshot"] = official_audit
     if not downloaded.empty:
         downloaded["date"] = _normalise_date(downloaded["date"])
         downloaded = downloaded.dropna(subset=["date"]).drop_duplicates(["date", "index"], keep="last")
@@ -126,7 +231,6 @@ def download_index_history(ticker_map: dict | None = None, downloader=None) -> t
         INDEX_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
         downloaded.to_csv(INDEX_HISTORY_FILE, index=False)
     return downloaded, audit
-
 
 def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | None = None, source_url: str | None = None) -> pd.DataFrame:
     data = payload.get("data", []) if isinstance(payload, dict) else []
@@ -183,26 +287,29 @@ def refresh_constituent_snapshots(session=None, indexes: dict | None = None, as_
     except Exception as exc:
         return pd.DataFrame(columns=MEMBER_COLUMNS), {"status": "SOURCE_UNAVAILABLE", "error": str(exc)}
     all_rows, audit = [], {}
-    for index, nse_name in (indexes or NSE_INDEX_NAMES).items():
+    for index, configured_names in (indexes or NSE_INDEX_NAMES).items():
         errors = []
         frame = pd.DataFrame(columns=MEMBER_COLUMNS)
-        # NSE has exposed both route spellings in different generations of its
-        # public site. Try the current hyphenated route first, then legacy.
+        names = configured_names if isinstance(configured_names, (list, tuple)) else [configured_names]
+        # Try both known route spellings and the configured official index-name aliases.
         endpoints = [
+            "https://www.nseindia.com/api/equity-stock-indices?index={}",
             "https://www.nseindia.com/api/equity-stockIndices?index={}",
-            NSE_API,
         ]
-        for endpoint in endpoints:
-            try:
-                request_url = endpoint.format(nse_name.replace(" ", "%20"))
-                response = client.get(request_url, timeout=25, headers=HEADERS)
-                response.raise_for_status()
-                frame = normalise_constituent_payload(index, response.json(), as_of_date, source_url=request_url)
-                if frame.empty:
-                    raise ValueError("NSE response contained no constituents")
+        for nse_name in names:
+            for endpoint in endpoints:
+                try:
+                    request_url = endpoint.format(nse_name.replace(" ", "%20"))
+                    response = client.get(request_url, timeout=25, headers=HEADERS)
+                    response.raise_for_status()
+                    frame = normalise_constituent_payload(index, response.json(), as_of_date, source_url=request_url)
+                    if frame.empty:
+                        raise ValueError("NSE response contained no constituents")
+                    break
+                except Exception as exc:
+                    errors.append(f"{request_url}: {exc}")
+            if not frame.empty:
                 break
-            except Exception as exc:
-                errors.append(f"{endpoint}: {exc}")
         if not frame.empty:
             all_rows.append(frame)
             audit[index] = {"status": "PASS", "constituents": int(len(frame)),

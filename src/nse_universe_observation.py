@@ -114,9 +114,21 @@ def verify_observation_manifest(manifest_path: Path, audit_root: Path) -> dict[s
         digest = hashlib.sha256(payload).hexdigest()
         if manifest[field] != digest:
             raise DataContractError(f"{field} does not match persisted observation file")
-    rows = normalize_nifty50(normalized)
-    if len(rows) != manifest["record_count"]:
+    try:
+        reader = csv.DictReader(io.StringIO(normalized.decode("utf-8-sig")))
+        normalized_rows = list(reader)
+    except (UnicodeDecodeError, csv.Error) as exc:
+        raise DataContractError(f"Normalized observation is not valid CSV: {exc}") from exc
+    symbols = [str(row.get("symbol") or "").strip().upper() for row in normalized_rows]
+    if len(normalized_rows) != manifest["record_count"] or len(symbols) != 50:
         raise DataContractError("Observation record count does not match normalized file")
+    if any(not symbol for symbol in symbols) or len(set(symbols)) != len(symbols):
+        raise DataContractError("Normalized observation contains empty or duplicate symbols")
+    if normalize_nifty50(raw) != [
+        {key: str(row.get(key) or "").strip() for key in FIELDS}
+        for row in normalized_rows
+    ]:
+        raise DataContractError("Normalized observation does not match raw NSE source")
     return {"status": "PASS", "record_count": len(rows),
             "raw_sha256_verified": True, "normalized_sha256_verified": True,
             "pit_eligible": False}
@@ -127,8 +139,8 @@ def write_observation(rows: list[dict[str, str]], raw: bytes, audit_root: Path,
     root = Path(audit_root).resolve()
     observed_at = observed_at or datetime.now(timezone.utc).isoformat()
     _aware_timestamp(observed_at, "observed_at")
-    if len(rows) != 50 or len({row.get("symbol") for row in rows}) != 50:
-        raise DataContractError("Observation must contain 50 unique symbols")
+    if normalize_nifty50(raw) != rows:
+        raise DataContractError("Normalized rows do not match raw NSE source")
     normalized_io = io.StringIO(newline="")
     writer = csv.DictWriter(normalized_io, fieldnames=FIELDS)
     writer.writeheader()

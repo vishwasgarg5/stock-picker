@@ -57,6 +57,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
+      - name: Validate Broker-derived fail-closed data contracts
+        id: broker_data_contracts
+        run: python -m src.broker_data_contracts
       - name: Probe and refresh official NSE market calendar
         id: calendar_refresh
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'

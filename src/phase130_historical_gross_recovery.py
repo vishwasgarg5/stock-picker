@@ -22,7 +22,7 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
     required = [
         "signal", "symbol", "target_date", "entry_price", "exit_price",
         "profit_loss", "shares", "allocated_capital", "gross_profit_loss",
-        "costs", "position_value",
+        "costs", "position_value", "return_pct",
     ]
     missing_columns = [c for c in required if c not in trades.columns]
     if missing_columns:
@@ -56,7 +56,8 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
     stored_gross = n["profit_loss"]
     observed_quantity = n["quantity"] if "quantity" in n else pd.Series(np.nan, index=buys.index)
     implied_from_capital = capital / entry.replace(0, np.nan)
-    implied_from_pnl = stored_gross / (exit_price - entry).replace(0, np.nan)
+    # Do not divide by the price move to infer shares: a valid trade can
+    # close at its entry price, making that denominator zero.
     shares = observed_quantity.where(observed_quantity.gt(0), implied_from_capital)
     source_values = pd.DataFrame({
         "entry": entry, "exit": exit_price, "capital": capital,
@@ -65,7 +66,8 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
     finite = pd.Series(np.isfinite(source_values.to_numpy(dtype=float)).all(axis=1), index=buys.index)
     positive = entry.gt(0) & exit_price.gt(0) & capital.gt(0) & shares.gt(0)
     share_identity = (shares - implied_from_capital).abs().le(TOLERANCE)
-    pnl_share_identity = (shares - implied_from_pnl).abs().le(TOLERANCE)
+    # The gross-P&L identity below validates shares without a zero-move
+    # division and independently checks the recorded legacy P&L.
     gross_calculated = shares * (exit_price - entry)
     gross_identity = (gross_calculated - stored_gross).abs().le(TOLERANCE)
     return_calculated = stored_gross / capital * 100.0
@@ -89,7 +91,7 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
         optional_identity &= ~supplied | (n["planned_capital"].gt(0) & n["reference_price"].gt(0) & planned_ok)
 
     valid = (
-        finite & positive & share_identity & pnl_share_identity
+        finite & positive & share_identity
         & gross_identity & return_identity & optional_identity
     )
     recoverable = ~canonical_complete & valid
@@ -111,7 +113,7 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
         "net_profit_loss_recovered": False,
         "exit_reason_recovered": False,
         "share_identity_delta": (shares - implied_from_capital),
-        "pnl_implied_share_delta": (shares - implied_from_pnl),
+        "capital_implied_share_delta": (shares - implied_from_capital),
         "gross_pnl_delta": (gross_calculated - stored_gross),
         "return_delta_pct_points": (return_calculated - pd.to_numeric(buys.get("return_pct"), errors="coerce")),
     })
@@ -124,7 +126,7 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
         "gross_source_recoverable_rows": recoverable_count,
         "gross_source_unresolved_rows": int(len(buys) - canonical_complete.sum() - recoverable_count),
         "validated_source_identities": {
-            "shares": "position_value / entry_price = recorded gross profit_loss / (exit_price - entry_price)",
+            "shares": "position_value / entry_price, cross-checked against recorded gross P&L",
             "allocated_capital": "recorded position_value",
             "gross_profit_loss": "validated_shares * (exit_price - entry_price) = recorded profit_loss",
             "return": "recorded profit_loss / position_value * 100 = recorded return_pct",

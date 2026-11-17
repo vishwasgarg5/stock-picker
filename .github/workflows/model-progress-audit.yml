@@ -128,6 +128,51 @@ jobs:
             echo ""
             echo "A failed source probe does not stop the data-quality audit or the independent regression suites."
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Write immutable workflow run provenance manifest
+        if: always()
+        env:
+          GIT_COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+          CALENDAR_OUTCOME: ${{ steps.calendar_refresh.outcome }}
+          INDEX_OUTCOME: ${{ steps.index_refresh.outcome }}
+          LISTING_OUTCOME: ${{ steps.listing_refresh.outcome }}
+          UDIFF_OUTCOME: ${{ steps.nse_udiff.outcome }}
+          OOS_OUTCOME: ${{ steps.index_feature_oos.outcome }}
+        run: |
+          mkdir -p audit/model_progress
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          from pathlib import Path
+          payload = {
+              "schema_version": "1.0.0",
+              "workflow": "model-progress-audit",
+              "commit_sha": os.environ["GIT_COMMIT"],
+              "run_id": int(os.environ["RUN_ID"]),
+              "run_attempt": int(os.environ["RUN_ATTEMPT"]),
+              "event": os.environ["EVENT_NAME"],
+              "actor": os.environ["ACTOR"],
+              "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+              "source_outcomes": {
+                  "nse_market_calendar": os.environ.get("CALENDAR_OUTCOME", "not-run"),
+                  "index_data": os.environ.get("INDEX_OUTCOME", "not-run"),
+                  "nse_listing_master": os.environ.get("LISTING_OUTCOME", "not-run"),
+                  "nse_udiff_research_ingestion": os.environ.get("UDIFF_OUTCOME", "not-run"),
+                  "index_feature_oos": os.environ.get("OOS_OUTCOME", "not-run"),
+              },
+              "scope": "research_and_audit_only",
+              "canonical_ohlcv_mutated_by_udiff_ingestion": False,
+              "paper_trade_ledger_mutated": False,
+              "model_promotion_authorized": False,
+              "live_execution_enabled": False,
+          }
+          path = Path("audit/model_progress/run_manifest.json")
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+          print(json.dumps(payload, indent=2, sort_keys=True))
+          PY
       - name: Audit implementation, data artifacts, roadmap evidence and readiness gates
         id: audit
         continue-on-error: true

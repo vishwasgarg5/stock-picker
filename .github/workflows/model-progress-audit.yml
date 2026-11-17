@@ -59,7 +59,7 @@ jobs:
           python -m pip install -r requirements.txt
       - name: Probe and refresh official NSE market calendar
         id: calendar_refresh
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
         continue-on-error: true
         run: python -m src.market_calendar
       - name: Probe and refresh index OHLCV, constituents and weights

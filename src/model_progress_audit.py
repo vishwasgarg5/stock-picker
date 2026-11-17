@@ -350,13 +350,13 @@ def audit_live_data(rows):
                         f"first={row.first_pre_listing_bar.date()},"
                         f"last={row.last_pre_listing_bar.date()},"
                         f"listing={row.listing_date.date()}"
-                        for symbol, row in grouped.head(20).iterrows()
+                        for symbol, row in grouped.iterrows()
                     ]
                 affected_symbols = set(grouped.index.astype(str)) if count_before else set()
                 # A pre-listing date is a provenance exception, not proof of a
                 # bad price row: legitimate BSE history, permitted-to-trade
                 # windows and predecessor securities can predate NSE admission.
-                # Keep it red until every affected symbol has an explicit case
+                # Keep it visible until every affected symbol has an explicit case
                 # in the provenance registry; the separate provenance check
                 # remains REVIEW until row-level source evidence is available.
                 registry_symbols = set()
@@ -373,7 +373,7 @@ def audit_live_data(rows):
                 add(rows, "Live data quality and freshness", "OHLCV does not precede verified listing date",
                     result,
                     f"pre_listing_bars={count_before}; affected_symbols={len(by_symbol)}; "
-                    f"by_symbol_top20={by_symbol}; examples={examples}; "
+                    f"by_symbol_all={by_symbol}; examples={examples}; "
                     f"provenance_case_coverage={len(affected_symbols & registry_symbols)}/{len(affected_symbols)}; "
                     f"row_level_exchange_attribution_unresolved={bool(count_before)}; "
                     f"see Pre-listing historical exchange provenance for evidence status",

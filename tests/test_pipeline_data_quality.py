@@ -610,3 +610,24 @@ def test_index_market_features_ignore_unconfigured_index_symbols():
     out = pipeline.merge_index_market_features(stock, index)
     assert out["index_nifty50_available_1d"].iloc[0] == 0.0
     assert out["index_nifty50_return_1d"].iloc[0] == 0.0
+
+
+def test_pipeline_features_include_same_day_index_market_context(tmp_path, monkeypatch):
+    dates = pd.bdate_range("2026-01-01", periods=30)
+    stock = pd.DataFrame({
+        "date": dates, "symbol": ["AAA"] * len(dates),
+        "open": [100 + i for i in range(30)], "high": [102 + i for i in range(30)],
+        "low": [99 + i for i in range(30)], "close": [101 + i for i in range(30)],
+        "volume": [1000] * 30,
+    })
+    index = pd.DataFrame({
+        "date": dates, "index": ["NIFTY50"] * len(dates),
+        "close": [20000 + 100 * i for i in range(30)],
+    })
+    monkeypatch.setattr(pipeline, "INDEX_HISTORY_FILE", tmp_path / "index_ohlcv.csv")
+    index.to_csv(pipeline.INDEX_HISTORY_FILE, index=False)
+    out = pipeline.features(stock)
+    assert set(pipeline.INDEX_MARKET_FEATURE_COLUMNS).issubset(out.columns)
+    assert out.iloc[-1]["index_nifty50_available_1d"] == 1.0
+    assert out.iloc[-1]["index_nifty50_available_5d"] == 1.0
+    assert out.iloc[-1]["index_nifty50_return_1d"] == pytest.approx(100 / 22900)

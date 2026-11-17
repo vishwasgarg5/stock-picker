@@ -598,7 +598,7 @@ def test_index_market_features_have_explicit_missingness_and_stable_schema():
     out = pipeline.merge_index_market_features(stock, pd.DataFrame())
     assert set(pipeline.INDEX_MARKET_FEATURE_COLUMNS).issubset(out.columns)
     assert out[pipeline.INDEX_MARKET_FEATURE_COLUMNS].eq(0.0).all().all()
-    assert len(pipeline.FEATURE_COLUMNS) == 18 + len(pipeline.INDEX_MARKET_FEATURE_COLUMNS)
+    assert len(pipeline.FEATURE_COLUMNS) == 18 and len(pipeline.INDEX_AUGMENTED_FEATURE_COLUMNS) == 18 + len(pipeline.INDEX_MARKET_FEATURE_COLUMNS)
 
 
 def test_index_market_features_ignore_unconfigured_index_symbols():

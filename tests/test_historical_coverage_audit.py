@@ -112,3 +112,34 @@ def test_listing_master_stops_repeated_systemic_nse_failures(tmp_path, monkeypat
     assert result["symbols_fetched"] == 0
     assert len(result["symbols_unresolved"]) == 30
     assert any("Skipped after 10 consecutive systemic NSE errors" in value for value in result["lookup_failures"].values())
+
+
+def test_nse_security_master_listing_date_parser_uses_named_columns():
+    import gzip
+    from src.listing_master import parse_security_master
+    payload = b"Symbol,Company Name,ISIN,Listing Date\nABC,ABC Limited,INE123A01016,20240115\nOTHER,Other Ltd,INE123A01024,20240201\n"
+    found = parse_security_master(gzip.compress(payload), {"ABC"},
+        "https://nsearchives.nseindia.com/content/cm/NSE_CM_security_15012024.csv.gz")
+    assert len(found) == 1
+    assert found[0]["symbol"] == "ABC"
+    assert found[0]["listing_date"] == "2024-01-15"
+    assert "nsearchives.nseindia.com" in found[0]["listing_date_source"]
+
+
+def test_listing_master_persists_schema_when_official_sources_unavailable(tmp_path, monkeypatch):
+    from requests import HTTPError
+    from src import listing_master
+    class Response:
+        content = b""
+        def raise_for_status(self): raise HTTPError("403 Forbidden")
+    class Session:
+        def __init__(self): self.headers = {}
+        def get(self, url, timeout, **kwargs):
+            if url == listing_master.HOME: return object()
+            return Response()
+    monkeypatch.setattr(listing_master, "DATA", tmp_path)
+    monkeypatch.setattr(listing_master, "FILE", tmp_path / "nse_listing_master.csv")
+    result = listing_master.refresh_listing_master(["ABC"], session=Session(), delay_seconds=0, max_attempts=1)
+    assert result["status"] == "SOURCE_UNAVAILABLE"
+    assert listing_master.FILE.exists()
+    assert list(pd.read_csv(listing_master.FILE).columns) == listing_master.COLS

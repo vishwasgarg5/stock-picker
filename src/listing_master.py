@@ -19,7 +19,7 @@ COLS=["symbol","company_name","isin","listing_date","listing_date_source","verif
 
 def parse_date(value):
     raw=str(value or "").strip()
-    for fmt in ("%d-%b-%Y","%Y-%m-%d","%d/%m/%Y","%d-%m-%Y","%Y%m%d","%d%m%Y"):
+    for fmt in ("%d-%b-%Y","%d-%b-%y","%Y-%m-%d","%d/%m/%Y","%d-%m-%Y","%Y%m%d","%d%m%Y"):
         try: return pd.Timestamp(datetime.strptime(raw,fmt).date())
         except ValueError: pass
     parsed=pd.to_datetime(raw,errors="coerce",dayfirst=True)
@@ -110,6 +110,49 @@ def parse_security_master(payload: bytes, requested_symbols: set[str], source_ur
     if not found:
         raise ValueError("NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout")
     return found
+
+
+EQUITY_LIST_URL="https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+EQUITY_LIST_HEADERS={**HEADERS,"Referer":"https://www.nseindia.com/static/market-data/securities-available-for-trading","Host":"nsearchives.nseindia.com"}
+
+
+def parse_equity_listing_csv(payload: bytes | str, requested_symbols: set[str], source_url: str) -> list[dict]:
+    """Parse NSE's official Securities available for Equity segment CSV."""
+    from io import StringIO
+    frame=pd.read_csv(BytesIO(payload) if isinstance(payload,bytes) else StringIO(payload),low_memory=False)
+    def key(value): return "".join(ch for ch in str(value).lower() if ch.isalnum())
+    columns={key(c):c for c in frame.columns}
+    symbol_col=next((columns[k] for k in ("symbol","tradingsymbol") if k in columns),None)
+    listing_col=next((columns[k] for k in ("dateoflisting","listingdate") if k in columns),None)
+    company_col=next((columns[k] for k in ("nameofcompany","companyname") if k in columns),None)
+    isin_col=next((columns[k] for k in ("isinnumber","isin") if k in columns),None)
+    if not symbol_col or not listing_col:
+        raise ValueError(f"NSE equity listing CSV missing Symbol/Date of Listing columns: {list(frame.columns)}")
+    frame[symbol_col]=frame[symbol_col].astype(str).str.upper().str.strip()
+    frame=frame[frame[symbol_col].isin(requested_symbols)].copy()
+    found=[]
+    for _,row in frame.iterrows():
+        try: day=parse_date(row[listing_col])
+        except Exception: continue
+        isin=str(row[isin_col]).strip().upper() if isin_col and pd.notna(row[isin_col]) else ""
+        if isin and (len(isin)!=12 or not isin.startswith("IN")): continue
+        found.append({"symbol":str(row[symbol_col]),"company_name":str(row[company_col]).strip() if company_col and pd.notna(row[company_col]) else "",
+            "isin":isin,"listing_date":day.date().isoformat(),"listing_date_source":source_url,
+            "verified_at_utc":datetime.now().astimezone().isoformat()})
+    # Multiple series may be present; one NSE symbol maps to one listing date.
+    return list({item["symbol"]:item for item in found}.values())
+
+
+def refresh_from_equity_listing(client, unresolved: set[str]) -> tuple[list[dict],dict]:
+    if not unresolved: return [],{"status":"SKIPPED","reason":"No unresolved symbols"}
+    try:
+        response=client.get(EQUITY_LIST_URL,timeout=30,headers=EQUITY_LIST_HEADERS)
+        response.raise_for_status()
+        found=parse_equity_listing_csv(response.content,unresolved,EQUITY_LIST_URL)
+        return found,{"status":"PASS" if found else "NO_MATCHES","source":EQUITY_LIST_URL,
+            "symbols_found":len(found),"symbols_requested":len(unresolved)}
+    except Exception as exc:
+        return [],{"status":"SOURCE_UNAVAILABLE","source":EQUITY_LIST_URL,"error":str(exc)}
 
 
 def refresh_from_security_master(client, unresolved: set[str], max_calendar_days: int = 10) -> tuple[list[dict],dict]:
@@ -208,6 +251,11 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
     if master_found:
         merged=pd.concat([merged,pd.DataFrame(master_found)],ignore_index=True).drop_duplicates("symbol",keep="last").reindex(columns=COLS)
     cached=set(merged.loc[merged.listing_date.astype(str).str.strip().ne(""),"symbol"])
+    unresolved_set=set(requested)-cached
+    equity_found,equity_audit=refresh_from_equity_listing(client,unresolved_set)
+    if equity_found:
+        merged=pd.concat([merged,pd.DataFrame(equity_found)],ignore_index=True).drop_duplicates("symbol",keep="last").reindex(columns=COLS)
+    cached=set(merged.loc[merged.listing_date.astype(str).str.strip().ne(""),"symbol"])
     unresolved=sorted(set(requested)-cached)
     # Persist a schema-bearing file even when NSE is unavailable. An empty file
     # is explicitly reported as unavailable; it is never mistaken for coverage.
@@ -221,6 +269,6 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
             "symbols_requested":len(requested),"symbols_cached":len(cached & set(requested)),
             "symbols_fetched":len(found),"symbols_from_security_master":len(master_found),
             "symbols_unresolved":unresolved,"lookup_failures":failures,
-            "security_master_fallback":master_audit,
-            "source":"NSE official quote-equity API and daily MII CM security master",
+            "security_master_fallback":master_audit,"equity_listing_fallback":equity_audit,
+            "source":"NSE official quote-equity API, daily MII CM security master, and Securities available for Equity segment CSV",
             "cache_file":"data/nse_listing_master.csv"}

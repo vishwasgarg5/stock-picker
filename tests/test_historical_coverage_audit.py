@@ -143,3 +143,21 @@ def test_listing_master_persists_schema_when_official_sources_unavailable(tmp_pa
     assert result["status"] == "SOURCE_UNAVAILABLE"
     assert listing_master.FILE.exists()
     assert list(pd.read_csv(listing_master.FILE).columns) == listing_master.COLS
+
+
+def test_nse_pipe_security_master_uses_documented_listing_date_field():
+    import gzip
+    from src.listing_master import parse_security_master
+    fields = [""] * 54
+    fields[0] = "12345"
+    fields[1] = "ABC"
+    fields[21] = "ABC Limited"
+    fields[27] = str(int((pd.Timestamp("2024-01-15") - pd.Timestamp("1980-01-01")).total_seconds()))
+    fields[53] = "INE123A01016"
+    payload = ("NEATCM|01.00.00|0\n" + "|".join(fields) + "\n").encode()
+    found = parse_security_master(gzip.compress(payload), {"ABC"},
+        "https://nsearchives.nseindia.com/content/cm/NSE_CM_security_15012024.csv.gz")
+    assert len(found) == 1
+    assert found[0]["listing_date"] == "2024-01-15"
+    assert found[0]["company_name"] == "ABC Limited"
+    assert found[0]["isin"] == "INE123A01016"

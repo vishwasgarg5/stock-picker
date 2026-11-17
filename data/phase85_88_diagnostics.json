@@ -7,40 +7,40 @@
   ],
   "phase85_receipt_anomaly_classification": {
     "status": "REVIEW_REQUIRED",
-    "rows": 181,
+    "rows": 185,
     "repeated_hash_rows": 10,
     "missing_hash_rows": 0,
     "hash_coverage_pct": 100.0,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 71,
+        "rows": 72,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 61.97,
+        "message_id_coverage_pct": 62.5,
         "repeated_hash_rows": 10,
         "unique_repeated_hashes": 4
       },
       "telegram_evening_sent.csv": {
-        "rows": 39,
+        "rows": 40,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 53.85,
+        "message_id_coverage_pct": 55.0,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       },
       "telegram_paper_sent.csv": {
-        "rows": 40,
+        "rows": 41,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 52.5,
+        "message_id_coverage_pct": 53.66,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       },
       "telegram_paper_v2_sent.csv": {
-        "rows": 31,
+        "rows": 32,
         "hash_coverage_pct": 100.0,
         "status_coverage_pct": 100.0,
-        "message_id_coverage_pct": 70.97,
+        "message_id_coverage_pct": 71.88,
         "repeated_hash_rows": 0,
         "unique_repeated_hashes": 0
       }
@@ -93,9 +93,9 @@
       "dividends",
       "stock_splits"
     ],
-    "raw_read_seconds": 0.3548,
-    "gzip_read_seconds": 0.5819,
-    "gzip_read_time_delta_pct": 63.99,
+    "raw_read_seconds": 0.3465,
+    "gzip_read_seconds": 0.5953,
+    "gzip_read_time_delta_pct": 71.81,
     "raw_dataframe_memory_bytes": 179250084,
     "gzip_dataframe_memory_bytes": 179250084,
     "dataframe_memory_equal": true,

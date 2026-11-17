@@ -1,10 +1,10 @@
 {
-  "updated_at_ist": "2026-11-17T19:50:09.654544+05:30",
+  "updated_at_ist": "2026-11-18T01:40:23.393017+05:30",
   "index_ohlcv": {
     "NIFTY50": {
       "status": "PASS",
       "ticker": "^NSEI",
-      "rows_downloaded": 4702,
+      "rows_downloaded": 4701,
       "first_date": "2007-09-16",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -13,7 +13,7 @@
     "NIFTYNEXT50": {
       "status": "PASS",
       "ticker": "^NSMIDCP",
-      "rows_downloaded": 4717,
+      "rows_downloaded": 4716,
       "first_date": "2007-09-16",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -22,7 +22,7 @@
     "NIFTY100": {
       "status": "PASS",
       "ticker": "^CNX100",
-      "rows_downloaded": 5156,
+      "rows_downloaded": 5155,
       "first_date": "2005-11-29",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -31,7 +31,7 @@
     "NIFTY200": {
       "status": "PASS",
       "ticker": "^CNX200",
-      "rows_downloaded": 5639,
+      "rows_downloaded": 5638,
       "first_date": "2003-12-31",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -40,7 +40,7 @@
     "NIFTY500": {
       "status": "PASS",
       "ticker": "^CRSLDX",
-      "rows_downloaded": 5199,
+      "rows_downloaded": 5198,
       "first_date": "2005-09-25",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -49,7 +49,7 @@
     "BANKNIFTY": {
       "status": "PASS",
       "ticker": "^NSEBANK",
-      "rows_downloaded": 4717,
+      "rows_downloaded": 4716,
       "first_date": "2007-09-16",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -58,7 +58,7 @@
     "NIFTYIT": {
       "status": "PASS",
       "ticker": "^CNXIT",
-      "rows_downloaded": 4717,
+      "rows_downloaded": 4716,
       "first_date": "2007-09-16",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -67,7 +67,7 @@
     "NIFTYAUTO": {
       "status": "PASS",
       "ticker": "^CNXAUTO",
-      "rows_downloaded": 3763,
+      "rows_downloaded": 3762,
       "first_date": "2011-07-11",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -76,7 +76,7 @@
     "NIFTYFIN": {
       "status": "PASS",
       "ticker": "NIFTY_FIN_SERVICE.NS",
-      "rows_downloaded": 3724,
+      "rows_downloaded": 3723,
       "first_date": "2011-09-06",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -85,7 +85,7 @@
     "NIFTYPHARMA": {
       "status": "PASS",
       "ticker": "^CNXPHARMA",
-      "rows_downloaded": 3889,
+      "rows_downloaded": 3888,
       "first_date": "2011-01-30",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",
@@ -94,7 +94,7 @@
     "NIFTYFMCG": {
       "status": "PASS",
       "ticker": "^CNXFMCG",
-      "rows_downloaded": 3874,
+      "rows_downloaded": 3873,
       "first_date": "2011-01-30",
       "last_date": "2026-11-17",
       "source": "NSE official daily index snapshot",

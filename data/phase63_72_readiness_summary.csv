@@ -2,5 +2,5 @@ section,status,target_date,rows_for_target_date,top10_rows,top10_complete,invali
 prediction_report,PASS,2026-11-18,10.0,10.0,True,0.0,0.0,0.0,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 forecast_baseline,BASELINE_NOT_BEATEN,,,,,,,,,380.0,38.0,1.8515981982069587,1.8451174664273609,0.006480731779597848,False,49.473684210526315,5.0,50.0,1.354086523467702,1.3558608846587101,-0.0017743611910081558,True,54.0,True,False,,,,,,,,,,,,,,,,,,,,
 paper_ledger,PASS,,,,,,,,,,,,,,,,,,,,,,,,,380.0,75.0,0.0,0.0,False,True,,,,,,,,,,,,,,
-telegram_receipts,REVIEW,,,,,,,,,,,,,,,,,,,,,,,,,181.0,,,,,,181.0,108.0,6.0,False,"Repeated non-empty (target_date, message_hash) keys within the same log file; blank legacy keys are excluded.",,,,,,,,,
+telegram_receipts,REVIEW,,,,,,,,,,,,,,,,,,,,,,,,,185.0,,,,,,185.0,112.0,6.0,False,"Repeated non-empty (target_date, message_hash) keys within the same log file; blank legacy keys are excluded.",,,,,,,,,
 v2_evidence,PASS,,,,,,,,,,,,,,,,,,,,,,,,,340.0,,,,,,,,,,,34.0,2.0,338.0,0.0,False,False,V1,SHADOW_ONLY,False

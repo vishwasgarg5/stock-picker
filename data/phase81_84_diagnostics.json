@@ -6,42 +6,42 @@
     84
   ],
   "phase81_telegram_receipts": {
-    "rows": 181,
-    "confirmed": 108,
+    "rows": 185,
+    "confirmed": 112,
     "legacy_unverified": 73,
     "unknown_status": 0,
     "duplicate_hash_rows": 10,
     "confirmed_missing_message_id": 0,
-    "api_confirmed_pct": 59.67,
+    "api_confirmed_pct": 60.54,
     "status": "RECEIPTS_NEED_RECONCILIATION",
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 71,
-        "confirmed": 44,
+        "rows": 72,
+        "confirmed": 45,
         "legacy_unverified": 27,
         "unknown_status": 0,
         "duplicate_hash_rows": 10,
         "confirmed_missing_message_id": 0
       },
       "telegram_evening_sent.csv": {
-        "rows": 39,
-        "confirmed": 21,
+        "rows": 40,
+        "confirmed": 22,
         "legacy_unverified": 18,
         "unknown_status": 0,
         "duplicate_hash_rows": 0,
         "confirmed_missing_message_id": 0
       },
       "telegram_paper_sent.csv": {
-        "rows": 40,
-        "confirmed": 21,
+        "rows": 41,
+        "confirmed": 22,
         "legacy_unverified": 19,
         "unknown_status": 0,
         "duplicate_hash_rows": 0,
         "confirmed_missing_message_id": 0
       },
       "telegram_paper_v2_sent.csv": {
-        "rows": 31,
-        "confirmed": 22,
+        "rows": 32,
+        "confirmed": 23,
         "legacy_unverified": 9,
         "unknown_status": 0,
         "duplicate_hash_rows": 0,

@@ -113,7 +113,10 @@ jobs:
           AUDIT_OUTCOME: ${{ steps.audit.outcome }}
         run: |
           if [ "${AUDIT_OUTCOME}" = "failure" ]; then
-            echo "Inventory found one or more FAIL checks; see the report above."
+            echo "Inventory audit exited non-zero. This can mean FAIL checks, BLOCKED evidence gates, or an execution error; inspect the report counts above."
+            if [ -f audit/model_progress/model_progress_audit.md ]; then
+              grep -E "^- (Total checks|PASS|FAIL|BLOCKED|REVIEW):" audit/model_progress/model_progress_audit.md || true
+            fi
             exit 1
           fi
 

@@ -83,7 +83,8 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     if trades.empty:
         return pd.DataFrame(columns=columns), {
             "status": "NO_EXECUTED_TRADES", "executed_rows": 0,
-            "configured_cost_model": cost_model, "rows_matching_current_simulation_rate": 0,
+            "configured_cost_model": cost_model, "quantity_missing_but_trade_value_present_rows": 0,
+            "rows_matching_current_simulation_rate": 0,
             "ledger_cost_rows": 0, "component_verified_rows": 0,
             "source_reference_present_rows": 0, "source_documents_verified": False,
             "ledger_arithmetic_only_rows": 0, "blocked_rows": 0, "mismatch_rows": 0,

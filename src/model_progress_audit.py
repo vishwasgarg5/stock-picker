@@ -269,49 +269,57 @@ def audit_live_data(rows):
                 "data/fundamentals.csv")
 
     listing = _check_csv_nonempty(rows, "NSE listing-date master", "data/nse_listing_master.csv",
-        {"symbol", "listing_date", "listing_date_source", "verified_at_utc"}, 1)
+        {"symbol", "listing_date", "listing_date_source", "verified_at_utc"}, 0)
     if listing is not None:
-        required = ["symbol", "listing_date", "listing_date_source", "verified_at_utc"]
-        clean = listing[required].copy()
-        for col in required:
-            clean[col] = clean[col].fillna("").astype(str).str.strip()
-        nulls = int(clean.eq("").sum().sum())
-        unique = int(listing["symbol"].astype(str).str.upper().str.strip().duplicated().sum())
-        listing_dates = pd.to_datetime(listing["listing_date"], errors="coerce", dayfirst=True)
-        invalid_listing_dates = int(listing_dates.isna().sum())
-        future_listing_dates = int((listing_dates > pd.Timestamp(datetime.now(timezone.utc).date())).sum())
-        source_valid = int((~listing["listing_date_source"].astype(str).str.contains(r"nseindia\.(com|in)", case=False, regex=True)).sum())
-        result = "PASS" if nulls == 0 and unique == 0 and invalid_listing_dates == 0 and future_listing_dates == 0 and source_valid == 0 else "FAIL"
-        add(rows, "Live data quality and freshness", "Listing master field completeness and validity",
-            result,
-            f"rows={len(listing)}; blank_required_cells={nulls}; duplicate_symbols={unique}; invalid_listing_dates={invalid_listing_dates}; future_listing_dates={future_listing_dates}; non_NSE_source_urls={source_valid}",
-            "data/nse_listing_master.csv")
-        if universe_symbols:
-            lsyms = set(listing["symbol"].dropna().astype(str).str.upper().str.strip())
-            missing = sorted(universe_symbols - lsyms)
-            add(rows, "Live data quality and freshness", "Listing-date master universe coverage",
-                "PASS" if not missing else "REVIEW",
-                f"covered={len(universe_symbols)-len(missing)}/{len(universe_symbols)}; unresolved={len(missing)}; examples={missing[:15]}",
+        if listing.empty:
+            add(rows, "Live data quality and freshness", "Listing master field completeness and validity",
+                "REVIEW", "Schema is present but no verified listing-date rows were recovered from NSE sources",
                 "data/nse_listing_master.csv")
-        if history is not None:
-            bars = history[["date", "symbol"]].copy()
-            bars["date"] = pd.to_datetime(bars["date"], errors="coerce")
-            bars["symbol"] = bars["symbol"].astype(str).str.upper().str.strip()
-            listing_keys = listing[["symbol", "listing_date"]].copy()
-            listing_keys["symbol"] = listing_keys["symbol"].astype(str).str.upper().str.strip()
-            listing_keys["listing_date"] = pd.to_datetime(listing_keys["listing_date"], errors="coerce", dayfirst=True)
-            compared = bars.merge(listing_keys, on="symbol", how="inner")
-            before_listing = compared["date"].lt(compared["listing_date"])
-            count_before = int(before_listing.sum())
-            examples_before = compared.loc[before_listing, ["symbol", "date", "listing_date"]].head(8)
-            examples = [
-                f"{r.symbol}:{r.date.date()}< {r.listing_date.date()}"
-                for r in examples_before.itertuples(index=False)
-            ]
-            add(rows, "Live data quality and freshness", "OHLCV does not precede verified listing date",
-                "FAIL" if count_before else "PASS",
-                f"pre_listing_bars={count_before}; examples={examples}",
-                "data/ohlcv.csv + data/nse_listing_master.csv")
+            add(rows, "Live data quality and freshness", "Listing-date master universe coverage",
+                "REVIEW", f"covered=0/{len(universe_symbols)}; unresolved={len(universe_symbols)}; source returned no verified rows",
+                "data/nse_listing_master.csv")
+        else:
+            required = ["symbol", "listing_date", "listing_date_source", "verified_at_utc"]
+            clean = listing[required].copy()
+            for col in required:
+                clean[col] = clean[col].fillna("").astype(str).str.strip()
+            nulls = int(clean.eq("").sum().sum())
+            unique = int(listing["symbol"].astype(str).str.upper().str.strip().duplicated().sum())
+            listing_dates = pd.to_datetime(listing["listing_date"], errors="coerce", dayfirst=True)
+            invalid_listing_dates = int(listing_dates.isna().sum())
+            future_listing_dates = int((listing_dates > pd.Timestamp(datetime.now(timezone.utc).date())).sum())
+            source_valid = int((~listing["listing_date_source"].astype(str).str.contains(r"nseindia\\.(com|in)", case=False, regex=True)).sum())
+            result = "PASS" if nulls == 0 and unique == 0 and invalid_listing_dates == 0 and future_listing_dates == 0 and source_valid == 0 else "FAIL"
+            add(rows, "Live data quality and freshness", "Listing master field completeness and validity",
+                result,
+                f"rows={len(listing)}; blank_required_cells={nulls}; duplicate_symbols={unique}; invalid_listing_dates={invalid_listing_dates}; future_listing_dates={future_listing_dates}; non_NSE_source_urls={source_valid}",
+                "data/nse_listing_master.csv")
+            if universe_symbols:
+                lsyms = set(listing["symbol"].dropna().astype(str).str.upper().str.strip())
+                missing = sorted(universe_symbols - lsyms)
+                add(rows, "Live data quality and freshness", "Listing-date master universe coverage",
+                    "PASS" if not missing else "REVIEW",
+                    f"covered={len(universe_symbols)-len(missing)}/{len(universe_symbols)}; unresolved={len(missing)}; examples={missing[:15]}",
+                    "data/nse_listing_master.csv")
+            if history is not None:
+                bars = history[["date", "symbol"]].copy()
+                bars["date"] = pd.to_datetime(bars["date"], errors="coerce")
+                bars["symbol"] = bars["symbol"].astype(str).str.upper().str.strip()
+                listing_keys = listing[["symbol", "listing_date"]].copy()
+                listing_keys["symbol"] = listing_keys["symbol"].astype(str).str.upper().str.strip()
+                listing_keys["listing_date"] = pd.to_datetime(listing_keys["listing_date"], errors="coerce", dayfirst=True)
+                compared = bars.merge(listing_keys, on="symbol", how="inner")
+                before_listing = compared["date"].lt(compared["listing_date"])
+                count_before = int(before_listing.sum())
+                examples_before = compared.loc[before_listing, ["symbol", "date", "listing_date"]].head(8)
+                examples = [
+                    f"{r.symbol}:{r.date.date()}< {r.listing_date.date()}"
+                    for r in examples_before.itertuples(index=False)
+                ]
+                add(rows, "Live data quality and freshness", "OHLCV does not precede verified listing date",
+                    "FAIL" if count_before else "PASS",
+                    f"pre_listing_bars={count_before}; examples={examples}",
+                    "data/ohlcv.csv + data/nse_listing_master.csv")
 
     index_bars = _check_csv_nonempty(rows, "Index OHLCV populated values", "data/index_ohlcv.csv",
         {"date", "index", "open", "high", "low", "close"}, 1)

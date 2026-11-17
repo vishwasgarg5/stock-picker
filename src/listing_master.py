@@ -163,6 +163,16 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
                 found.append(normalise_quote(symbol,response.json())); error=""; break
             except Exception as exc:
                 error=str(exc)
+                lower_error=error.lower()
+                systemic_now=(any(token in lower_error for token in
+                    ("403", "429", "timed out", "timeout", "connection",
+                     "502", "503", "504", "server error")) or
+                    ("404" in lower_error and "nseindia" in lower_error) or
+                    "nse quote response missing info object" in lower_error)
+                # Retrying a systemic rejection does not help and delays the
+                # circuit breaker; retry only symbol-specific/transient errors.
+                if systemic_now:
+                    break
                 if attempt+1<max_attempts: time.sleep(min(2**attempt,4))
         if error:
             failures[symbol]=error

@@ -11,7 +11,7 @@ The workflow combines several layers:
 - **Market universe:** Maintains the Nifty 500 constituent universe and a separate watchlist for newly listed securities.
 - **Historical market data:** Collects daily OHLCV data and corporate actions, maintains the historical store, and audits coverage against NSE trading sessions.
 - **Official NSE market calendar:** Refreshes NSE Capital Market holidays from the exchange source, blocks routine model runs on closed dates, and supports circular-confirmed special sessions such as Diwali Muhurat Trading.
-- **Listing-aware historical coverage:** Retrieves verified NSE listing dates, measures each stock's OHLCV history from its own listing date, and flags possible leading-history gaps without inventing pre-listing bars.
+- **Listing-aware historical coverage:** Retrieves verified NSE listing dates from the quote-equity API with a fallback to the exchange's daily MII CM security master, measures each stock's OHLCV history from its own listing date, and flags possible leading-history gaps without inventing pre-listing bars.
 - **Technical features:** Builds price, momentum, trend, volatility, range and volume features from historical bars.
 - **Forecasting:** Trains and refreshes the core forecasting models and produces next-session OHLC forecasts for eligible stocks.
 - **Stock ranking:** Scores and ranks the universe using forecast and market features, with dedicated challenger models evaluated separately.

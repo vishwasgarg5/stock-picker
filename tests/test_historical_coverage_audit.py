@@ -106,7 +106,7 @@ def test_listing_master_stops_repeated_systemic_nse_failures(tmp_path, monkeypat
     monkeypatch.setattr(listing_master, "FILE", tmp_path / "nse_listing_master.csv")
     result = listing_master.refresh_listing_master(
         [f"SYM{i}" for i in range(30)], session=session,
-        delay_seconds=0, max_attempts=1,
+        delay_seconds=0,
     )
     assert session.quote_calls == 10
     assert result["symbols_fetched"] == 0

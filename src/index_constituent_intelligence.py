@@ -257,7 +257,7 @@ def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | N
             weight = np.nan
         records.append({"index": index, "symbol": symbol, "as_of_date": snapshot_date,
                         "weight_pct": weight, "weight_method": "OFFICIAL_NSE_WEIGHT" if np.isfinite(weight) else "PENDING_WEIGHT",
-                        "ffmc": ffmc, "source": source_url or NSE_API.format(NSE_INDEX_NAMES[index].replace(" ", "%20"))})
+                        "ffmc": ffmc, "source": source_url or NSE_API.format((NSE_INDEX_NAMES[index][0] if isinstance(NSE_INDEX_NAMES[index], (list, tuple)) else NSE_INDEX_NAMES[index]).replace(" ", "%20"))})
     out = pd.DataFrame(records, columns=MEMBER_COLUMNS)
     if out.empty:
         return out

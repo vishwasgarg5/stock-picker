@@ -1,6 +1,6 @@
 # Trader → Stock Picker migration register
 
-**Baseline:** Stock Picker commit \`df5d3c115af06ec8097a6063972627845134a16b\`  
+**Baseline:** Stock Picker commit df5d3c115af06ec8097a6063972627845134a16b  
 **Migration policy:** adopt useful methodology, not Trader's entire repository or unverified evidence.  
 **Production status:** V1 unchanged; V2 remains shadow-only; no promotion, holdout access or live execution is authorized.
 
@@ -8,34 +8,37 @@
 
 | Trader capability | Stock Picker implementation | Boundary |
 |---|---|---|
-| Shuffled-label predictive-edge controls | \`src/predictive_edge.py\` | Refits a cloned estimator on shuffled training labels; test labels remain untouched |
-| Logistic comparator | \`src/predictive_edge.py\` | Standardized logistic comparator for classification only |
-| Regression comparator | \`src/predictive_edge.py\` | Training-mean baseline for continuous price/return targets |
-| Dependence-aware uncertainty | \`src/predictive_edge.py\` | Circular moving-block bootstrap over chronological fold-level paired differences |
-| Point-in-time feature provenance | \`src/point_in_time_research.py\` | Earliest availability is max(publication time, first-seen time) |
-| Security-master structural audit | \`src/point_in_time_research.py\` | Effective-date/identity schema checks; does not certify historical completeness |
-| Execution capacity and participation | \`src/execution_capacity.py\` | Explicit one-session volume cap; no invented liquidity threshold |
-| Partial/unfilled quantity accounting | \`src/execution_capacity.py\` | Reports requested, filled and unfilled quantities separately |
-| Scenario slippage | \`src/execution_capacity.py\` | Explicit caller-supplied basis points; never presented as observed fills |
-| Immutable model freeze | \`src/model_freeze.py\` | Write-once artifact manifest binds model, feature/label specs, config, data snapshot and revision |
-| Evidence monitoring | \`src/research_monitoring.py\` | Read-only SHA-256 inventory and fail-closed safety-state report |
-| Staged validation contract | \`src/staged_validation.py\` | Explicit prerequisites; broad evaluation and confirmatory holdout remain blocked until all pass |
-| Five-session ATR triple barrier | \`src/research_labels.py\` | Previously adopted; separate research label only |
+| Shuffled-label predictive-edge controls | `src/predictive_edge.py` | Refits a cloned estimator on shuffled training labels; test labels remain untouched |
+| Logistic comparator | `src/predictive_edge.py` | Standardized logistic comparator for classification only |
+| Regression comparator | `src/predictive_edge.py` | Training-mean baseline for continuous price/return targets |
+| Dependence-aware uncertainty | `src/predictive_edge.py`, `src/research_statistics.py` | Circular moving-block bootstrap over chronological folds; Newey-West HAC inference |
+| Power/MDE feasibility | `src/research_statistics.py` | Explicit daily counts and preregistered parameters; feasibility only, not edge evidence |
+| Outcome-aware purged folds | `src/research_statistics.py` | Expanding chronological folds purged by actual outcome-end dates |
+| Point-in-time feature provenance | `src/point_in_time_research.py` | Earliest availability is max(publication time, first-seen time) |
+| Security-master structural audit | `src/point_in_time_research.py` | Effective-date/identity schema checks; does not certify historical completeness |
+| Source-byte provenance | `src/source_evidence.py` | Validates manifest and retained payload hashes; does not authenticate publishers |
+| Execution capacity and participation | `src/execution_capacity.py` | Explicit one-session volume cap; no invented liquidity threshold |
+| Partial/unfilled quantity accounting | `src/execution_capacity.py` | Reports requested, filled and unfilled quantities separately |
+| Scenario slippage | `src/execution_capacity.py` | Explicit caller-supplied basis points; never presented as observed fills |
+| Immutable model freeze | `src/model_freeze.py` | Write-once manifest binds model, feature/label specs, config, data snapshot and revision |
+| Evidence monitoring | `src/research_monitoring.py` | Read-only SHA-256 inventory and fail-closed safety-state report |
+| Staged validation contract | `src/staged_validation.py` | Explicit prerequisites; broad evaluation and confirmatory holdout remain blocked until all pass |
+| Five-session ATR triple barrier | `src/research_labels.py` | Separate research label only; does not replace production target |
 
 ## Existing Stock Picker capabilities retained (not duplicated)
 
 Stock Picker already contains model governance and walk-forward evaluation, a 92-file model manifest, portfolio/risk controls, listing-date refresh, drift/monitoring artifacts, execution-cost provenance, broker-document hash verification, and prospective validation. Relevant existing modules include:
 
-- \`src/model_governance.py\`, \`src/advanced_governance.py\`, \`src/walk_forward.py\`
-- \`src/risk_management.py\`, \`src/portfolio_comparison.py\`
-- \`src/phase119_prospective_validation.py\`
-- \`src/phase131_execution_cost_provenance.py\`, \`src/phase132_broker_cost_evidence.py\`
+- `src/model_governance.py`, `src/advanced_governance.py`, `src/walk_forward.py`
+- `src/risk_management.py`, `src/portfolio_comparison.py`
+- `src/phase119_prospective_validation.py`
+- `src/phase131_execution_cost_provenance.py`, `src/phase132_broker_cost_evidence.py`
 
 These were not replaced or rewired. The new research modules are opt-in utilities and are not imported by the production pipeline.
 
 ## Deliberately not copied verbatim
 
-1. **Trader's Nifty 50 pilot protocol and its 16 pilot-specific gates:** it is a distinct five-name, Nifty 50 TRI-relative experiment with its own registered target and statistical-power assumptions. Copying those constants into Stock Picker would silently redefine its experiment.
+1. **Trader's Nifty 50 pilot protocol and its 16 pilot-specific gates:** it is a distinct five-name, Nifty 50 TRI-relative experiment with its own registered target and statistical-power assumptions. The reusable power/MDE, purged-fold and inference methods were generalized instead of importing those experiment-specific constants.
 2. **Groww-specific fee configuration and pilot slippage thresholds:** broker/account tariffs and numerical liquidity assumptions need independent confirmation for the actual account, instrument, date and execution route. Existing Stock Picker cost evidence remains authoritative.
 3. **Trader's broad-universe expansion as an executable universe:** Stock Picker's listing, membership, corporate-action and security-identity evidence must be independently complete first. A schema audit is not proof of a survivorship-free historical universe.
 4. **Trader's full portfolio, data acquisition, broker and paper-trading implementation:** Stock Picker already has separate established systems; replacing them wholesale would create unnecessary risk and duplicate ledgers.

@@ -81,6 +81,9 @@ jobs:
             echo ""
             echo "A failed source probe does not stop the data-quality audit or the independent regression suites."
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Validate source-backed historical gross trade recovery
+        id: phase130_recovery
+        run: python -m src.phase130_historical_gross_recovery
       - name: Audit implementation, data artifacts, roadmap evidence and readiness gates
         id: audit
         continue-on-error: true
@@ -98,7 +101,10 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: model-progress-inventory
-          path: audit/model_progress/
+          path: |
+            audit/model_progress/
+            data/phase130_historical_gross_recovery_detail.csv
+            data/phase130_historical_gross_recovery_summary.json
           if-no-files-found: warn
           retention-days: 30
       - name: Fail inventory job when required implementation checks fail
@@ -132,7 +138,7 @@ jobs:
           - suite: phases-48-to-106
             paths: "tests/test_phase48_52_evidence.py tests/test_phase58_62_evidence.py tests/test_phase63_72_readiness.py tests/test_phase73_76_diagnostics.py tests/test_phase77_80_diagnostics.py tests/test_phase81_84_diagnostics.py tests/test_phase85_88_diagnostics.py tests/test_phase89_92_diagnostics.py tests/test_phase93_96_diagnostics.py tests/test_phase97_forecast_quality.py tests/test_phase98_101_quality.py tests/test_phase102_diagnostics.py tests/test_phase103_forecast_evidence.py tests/test_phase104_loss_concentration.py tests/test_phase105_exit_attribution.py tests/test_phase106_trade_lifecycle.py"
           - suite: phases-107-to-129
-            paths: "tests/test_phase107_115_evidence.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase120_forecast_stability.py tests/test_phase123_magnitude_calibration.py tests/test_phase124_feature_signal.py tests/test_model_governance.py tests/test_phase125_feature_ablation.py tests/test_phase126_objective_target_audit.py tests/test_phase127_volatility_target.py tests/test_final_validation.py tests/test_telegram_index_summary.py"
+            paths: "tests/test_phase107_115_evidence.py tests/test_phase116_shrinkage_calibration.py tests/test_phase117_bias_correction.py tests/test_phase118_forecast_error_diagnosis.py tests/test_phase119_prospective_validation.py tests/test_phase120_forecast_stability.py tests/test_phase123_magnitude_calibration.py tests/test_phase124_feature_signal.py tests/test_model_governance.py tests/test_phase125_feature_ablation.py tests/test_phase126_objective_target_audit.py tests/test_phase127_volatility_target.py tests/test_final_validation.py tests/test_telegram_index_summary.py tests/test_phase130_historical_gross_recovery.py"
     steps:
       - name: Checkout
         uses: actions/checkout@v6

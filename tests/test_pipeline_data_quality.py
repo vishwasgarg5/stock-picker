@@ -631,4 +631,4 @@ def test_pipeline_features_include_same_day_index_market_context(tmp_path, monke
     assert set(pipeline.INDEX_MARKET_FEATURE_COLUMNS).issubset(out.columns)
     assert out.iloc[-1]["index_nifty50_available_1d"] == 1.0
     assert out.iloc[-1]["index_nifty50_available_5d"] == 1.0
-    assert out.iloc[-1]["index_nifty50_return_1d"] == pytest.approx(100 / 22900)
+    assert out.iloc[-1]["index_nifty50_return_1d"] == pytest.approx(100 / 22800)

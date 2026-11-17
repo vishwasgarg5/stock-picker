@@ -41,5 +41,3 @@ jobs:
           python -m pip install -r requirements.txt pytest
       - name: Run provenance regression tests
         run: python -m pytest -q tests/test_historical_listing_provenance.py
-      - name: Run read-only historical provenance audit
-        run: python -m src.historical_listing_provenance

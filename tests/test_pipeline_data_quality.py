@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from src import pipeline
 from src.pipeline import _merge_candidate_history, _select_completed_market_date, validate_data_quality

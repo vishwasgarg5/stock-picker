@@ -25,22 +25,33 @@ COMPONENT_COLUMNS = (
 
 
 def configured_cost_model() -> dict[str, Any]:
-    """Read the current simulation assumption; it is not proof of historical broker fees."""
-    source = ROOT / "src" / "paper_trading.py"
-    if not source.is_file():
-        return {"rate": None, "source": "src/paper_trading.py", "status": "SOURCE_UNAVAILABLE"}
-    source_text = source.read_text(encoding="utf-8")
-    match = re.search(r"^ROUND_TRIP_COST_PCT[ ]*=[ ]*([0-9]+([.][0-9]+)?)", source_text, re.MULTILINE)
-    if not match:
-        return {"rate": None, "source": "src/paper_trading.py", "status": "RATE_NOT_FOUND"}
+    """Read both simulation assumptions; neither is proof of historical broker fees."""
+    specifications = (
+        ("src/pipeline.py", "PAPER_ROUND_TRIP_COST_PCT"),
+        ("src/paper_trading.py", "ROUND_TRIP_COST_PCT"),
+    )
+    models = []
+    for relative_path, constant in specifications:
+        source = ROOT / relative_path
+        if not source.is_file():
+            models.append({"source": relative_path, "constant": constant, "rate": None, "status": "SOURCE_UNAVAILABLE"})
+            continue
+        source_text = source.read_text(encoding="utf-8")
+        match = re.search(r"^" + re.escape(constant) + r"[ ]*=[ ]*([0-9]+([.][0-9]+)?)", source_text, re.MULTILINE)
+        models.append({
+            "source": relative_path,
+            "constant": constant,
+            "rate": float(match.group(1)) if match else None,
+            "status": "FIXED_SIMULATION_ASSUMPTION_NOT_BROKER_EVIDENCE" if match else "RATE_NOT_FOUND",
+        })
+    primary = next((model for model in models if model["rate"] is not None), {})
     return {
-        "rate": float(match.group(1)),
-        "source": "src/paper_trading.py:ROUND_TRIP_COST_PCT",
-        "status": "FIXED_SIMULATION_ASSUMPTION_NOT_BROKER_EVIDENCE",
+        "rate": primary.get("rate"),
+        "source": primary.get("source"),
+        "models": models,
+        "status": "SIMULATION_ASSUMPTIONS_ONLY",
         "actual_broker_cost_evidence": False,
     }
-
-
 def _number(row: pd.Series, name: str) -> float | None:
     if name not in row.index or pd.isna(row[name]) or str(row[name]).strip() == "":
         return None
@@ -86,7 +97,7 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     qty = quantity.where(quantity.gt(0), shares)
     executed = signal.isin(["BUY", "LONG", "EXECUTED"]) & qty.gt(0)
     rows = trades.loc[executed]
-    model_rate = cost_model.get("rate")
+    model_rates = [model["rate"] for model in cost_model.get("models", []) if model.get("rate") is not None]
     output = []
 
     for idx, row in rows.iterrows():
@@ -137,8 +148,7 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
             "allocated_capital": allocated,
             "recorded_cost_rate": recorded_rate,
             "matches_current_simulation_rate": bool(
-                recorded_rate is not None and model_rate is not None
-                and abs(recorded_rate - model_rate) <= 1e-9
+                recorded_rate is not None and any(abs(recorded_rate - rate) <= 1e-9 for rate in model_rates)
             ),
             "cost_field": cost_field,
             "gross_pnl": gross,

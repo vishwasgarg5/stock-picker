@@ -4,6 +4,7 @@ import json
 import pandas as pd
 
 from src import model_progress_audit as audit
+from src.model_progress_audit import _missing_artifact_result
 
 
 def _calendar(root):
@@ -423,3 +424,21 @@ def test_prelisting_audit_reports_every_affected_symbol_not_only_top_twenty(tmp_
     assert "affected_symbols=25" in result["detail"]
     assert "by_symbol_all=" in result["detail"]
     assert all(f"{symbol}:count=4" in result["detail"] for symbol in symbols)
+
+
+def test_weekend_audit_artifact_is_review_for_manual_and_push_runs():
+    status, detail = _missing_artifact_result("data/weekend_data_quality_audit.json", "workflow_dispatch")
+    assert status == "REVIEW"
+    assert "separate scheduled workflow" in detail
+    assert _missing_artifact_result("data/weekend_data_quality_audit.json", "push")[0] == "REVIEW"
+
+
+def test_weekend_audit_artifact_is_blocked_for_scheduled_audit_run():
+    status, detail = _missing_artifact_result("data/weekend_data_quality_audit.json", "schedule")
+    assert status == "BLOCKED"
+    assert "not been produced" in detail
+
+
+def test_other_missing_artifacts_remain_blocked_for_manual_runs():
+    status, _ = _missing_artifact_result("data/index_feature_validation.json", "workflow_dispatch")
+    assert status == "BLOCKED"

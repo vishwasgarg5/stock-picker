@@ -70,6 +70,25 @@ def chronological_date_split(frame: pd.DataFrame, train_fraction: float = 0.80) 
     return pd.Timestamp(dates[cut - 1]), pd.Timestamp(dates[cut])
 
 
+def chronological_train_test_split(
+    frame: pd.DataFrame, train_fraction: float = 0.80,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Timestamp, pd.Timestamp]:
+    """Split by feature date and purge labels whose next-session outcome reaches test."""
+    if "target_end_date" not in frame:
+        raise ValueError("target_end_date is required to prevent next-session label leakage")
+    train_end, test_start = chronological_date_split(frame, train_fraction)
+    dates = pd.to_datetime(frame["date"], errors="coerce").dt.normalize()
+    target_dates = pd.to_datetime(frame["target_end_date"], errors="coerce").dt.normalize()
+    train_mask = dates.le(train_end) & target_dates.lt(test_start)
+    test_mask = dates.ge(test_start) & target_dates.notna()
+    train, test = frame.loc[train_mask].copy(), frame.loc[test_mask].copy()
+    if not train.empty and not (pd.to_datetime(train["target_end_date"]) < test_start).all():
+        raise AssertionError("Training target outcomes overlap the test period")
+    if not train.empty and not (pd.to_datetime(train["date"]) < test_start).all():
+        raise AssertionError("Training feature dates overlap the test period")
+    return train, test, train_end, test_start
+
+
 def _predict(model: dict, x: pd.DataFrame) -> np.ndarray:
     pred, _ = pipeline._ensemble_predict(model, x)
     return np.asarray(pred, dtype=float)
@@ -102,13 +121,7 @@ def run_validation(
     work = work.dropna(subset=["date"]).sort_values(["date", "symbol"])
     if len(work) < 1000:
         raise RuntimeError(f"Insufficient aligned stock/index training rows: {len(work)}")
-    train_end, test_start = chronological_date_split(work, train_fraction)
-    train = work.loc[(work["date"] <= train_end) & (work["target_end_date"] < test_start)].copy()
-    test = work.loc[(work["date"] >= test_start) & work["target_end_date"].notna()].copy()
-    if not train.empty and not (train["target_end_date"] < test_start).all():
-        raise AssertionError("Training labels overlap the chronological test period")
-    if not train.empty and not (train["date"] < test_start).all():
-        raise AssertionError("Training feature dates overlap the chronological test period")
+    train, test, train_end, test_start = chronological_train_test_split(work, train_fraction)
     if len(train) > max_train_rows:
         train = train.sample(n=max_train_rows, random_state=42).sort_values(["date", "symbol"])
     if len(test) > max_test_rows:

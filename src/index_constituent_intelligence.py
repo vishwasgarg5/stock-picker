@@ -232,11 +232,28 @@ def download_index_history(ticker_map: dict | None = None, downloader=None) -> t
         downloaded.to_csv(INDEX_HISTORY_FILE, index=False)
     return downloaded, audit
 
+def latest_completed_session_date(now=None):
+    """Return the latest completed NSE cash-market session, not the calendar date."""
+    from datetime import timedelta
+    from . import market_calendar
+    current = now or datetime.now(ZoneInfo("Asia/Kolkata"))
+    today = current.date()
+    if current.time() < datetime.strptime("15:35", "%H:%M").time() or not market_calendar.is_trading_session(today):
+        candidate = today - timedelta(days=1)
+    else:
+        candidate = today
+    for _ in range(370):
+        if market_calendar.is_trading_session(candidate):
+            return candidate
+        candidate -= timedelta(days=1)
+    raise RuntimeError("Could not find a completed NSE session in the previous 370 days")
+
+
 def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | None = None, source_url: str | None = None) -> pd.DataFrame:
     data = payload.get("data", []) if isinstance(payload, dict) else []
     if not isinstance(data, list):
         raise ValueError(f"NSE constituent response for {index} has no data list")
-    snapshot_date = pd.Timestamp(as_of_date or datetime.now(ZoneInfo("Asia/Kolkata")).date()).normalize()
+    snapshot_date = pd.Timestamp(as_of_date or latest_completed_session_date()).normalize()
     records = []
     for item in data:
         if not isinstance(item, dict):

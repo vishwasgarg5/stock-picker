@@ -600,10 +600,10 @@ def audit_live_data(rows):
 
     # Explicitly surface whether the index features are actually consumed by the production model.
     pipeline_text = (ROOT / "src/pipeline.py").read_text(encoding="utf-8") if (ROOT / "src/pipeline.py").exists() else ""
-    consumed = "index_constituent_features" in pipeline_text
-    add(rows, "Live data quality and freshness", "Index features connected to production prediction pipeline",
+    consumed = "merge_index_market_features" in pipeline_text and "INDEX_MARKET_FEATURE_COLUMNS" in pipeline_text
+    add(rows, "Live data quality and freshness", "Historical index returns connected to production prediction pipeline",
         "PASS" if consumed else "BLOCKED",
-        "Production pipeline " + ("references index constituent feature data" if consumed else "does not yet load index_constituent_features.csv; collection alone does not mean model learns from it"),
+        "Production pipeline " + ("merges same-session historical index return features into stock rows" if consumed else "does not yet merge historical index market returns into stock features"),
         "src/pipeline.py")
 
 def run_audit(output_dir: Path):

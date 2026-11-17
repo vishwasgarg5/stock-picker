@@ -53,3 +53,17 @@ def test_chronological_split_requires_target_endpoint():
     from src.index_feature_validation import chronological_train_test_split
     with pytest.raises(ValueError, match="target_end_date"):
         chronological_train_test_split(pd.DataFrame({"date": pd.date_range("2026-01-01", periods=40)}))
+
+
+def test_test_sample_cap_keeps_complete_cross_sections():
+    from src.index_feature_validation import cap_test_rows_by_complete_sessions
+    dates = pd.bdate_range("2026-01-01", periods=5)
+    frame = pd.DataFrame([
+        {"date": day, "symbol": symbol}
+        for day in dates for symbol in ["AAA", "BBB", "CCC", "DDD"]
+    ])
+    capped = cap_test_rows_by_complete_sessions(frame, 8)
+    assert capped["date"].nunique() == 2
+    assert len(capped) == 8
+    assert capped.groupby("date")["symbol"].nunique().eq(4).all()
+    assert capped["date"].min() == dates[-2]

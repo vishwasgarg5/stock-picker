@@ -396,6 +396,9 @@ jobs:
       - name: Build Phase 2 performance dashboard
         run: python -m src.phase2_dashboard
 
+      - name: Build live model intelligence dashboard
+        run: python -m src.model_dashboard
+
       - name: Final end-to-end integration and promotion gate
         run: python -m src.integration_check
 

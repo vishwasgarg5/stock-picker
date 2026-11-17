@@ -145,7 +145,7 @@ def test_listing_master_persists_schema_when_official_sources_unavailable(tmp_pa
     assert list(pd.read_csv(listing_master.FILE).columns) == listing_master.COLS
 
 
-def test_nse_pipe_security_master_uses_documented_listing_date_field():
+def test_nse_legacy_pipe_security_master_layout_remains_supported():
     import gzip
     from src.listing_master import parse_security_master
     fields = [""] * 54

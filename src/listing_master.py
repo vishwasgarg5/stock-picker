@@ -92,7 +92,7 @@ def parse_security_master(payload: bytes, requested_symbols: set[str], source_ur
     # NSE's published master specification also defines the legacy NEATCM
     # pipe-delimited record layout. Header record is followed by data records.
     raw_bytes=payload
-    if raw_bytes[:2] == b"\\x1f\\x8b":
+    if raw_bytes[:2] == b"\x1f\x8b":
         raw_bytes=gzip.decompress(raw_bytes)
     lines=raw_bytes.decode("utf-8",errors="replace").splitlines()
     found=[]

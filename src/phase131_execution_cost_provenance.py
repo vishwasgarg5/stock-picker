@@ -58,8 +58,9 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
         }
 
     signal = trades.get("signal", pd.Series("BUY", index=trades.index)).astype(str).str.upper().str.strip()
-    qty_name = "quantity" if "quantity" in trades.columns else "shares"
-    qty = pd.to_numeric(trades.get(qty_name, pd.Series(np.nan, index=trades.index)), errors="coerce")
+    quantity = pd.to_numeric(trades.get("quantity", pd.Series(np.nan, index=trades.index)), errors="coerce")
+    shares = pd.to_numeric(trades.get("shares", pd.Series(np.nan, index=trades.index)), errors="coerce")
+    qty = quantity.where(quantity.gt(0), shares)
     executed = signal.isin(["BUY", "LONG", "EXECUTED"]) & qty.gt(0)
     rows = trades.loc[executed]
     output = []
@@ -76,9 +77,9 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
 
         supplied_components = [(name, _number(row, name)) for name in COMPONENT_COLUMNS]
         supplied_components = [(name, value) for name, value in supplied_components if value is not None]
-        component_names_present = [name for name in COMPONENT_COLUMNS if name in row.index]
-        components_complete = bool(component_names_present) and all(
-            name in dict(supplied_components) for name in component_names_present
+        components_complete = all(
+            name in row.index and _number(row, name) is not None
+            for name in COMPONENT_COLUMNS
         )
         component_total = sum(value for _, value in supplied_components) if components_complete else None
         component_delta = component_total - cost if component_total is not None and cost is not None else None

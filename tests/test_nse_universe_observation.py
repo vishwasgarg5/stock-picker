@@ -64,3 +64,18 @@ def test_observation_rejects_missing_files_and_pit_promotion(tmp_path):
     manifest_path = next((tmp_path / "audit" / "manifests").glob("*.json"))
     with pytest.raises(DataContractError, match="normalized_file is missing"):
         verify_observation_manifest(manifest_path, tmp_path / "audit")
+
+
+
+def test_observation_manifest_cannot_be_marked_pit_eligible(tmp_path):
+    import json
+
+    raw = payload()
+    rows = normalize_nifty50(raw)
+    manifest = write_observation(rows, raw, tmp_path / "audit", "2026-11-17T08:00:00+00:00")
+    manifest_path = next((tmp_path / "audit" / "manifests").glob("*.json"))
+    stored = json.loads(manifest_path.read_text())
+    stored["pit_eligible"] = True
+    manifest_path.write_text(json.dumps(stored))
+    with pytest.raises(DataContractError, match="PIT-ineligible"):
+        verify_observation_manifest(manifest_path, tmp_path / "audit")

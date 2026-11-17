@@ -99,6 +99,9 @@ def audit_historical_listing_provenance(root: Path, history_frame: pd.DataFrame 
     bar_listing_dates = bars["symbol"].map(listing_map)
     has_listing_date = bar_listing_dates.notna()
     pre_listing_mask = has_listing_date & bars["date"].lt(bar_listing_dates)
+    # Count bars from the complete history universe, including any symbols
+    # missing from the registry, so an incomplete inventory cannot understate it.
+    total_pre_listing = int(pre_listing_mask.sum())
     affected_symbols = sorted(set(bars.loc[pre_listing_mask, "symbol"]))
     registry_symbols = set(registry["symbol"])
     missing_registry_symbols = sorted(set(affected_symbols) - registry_symbols)

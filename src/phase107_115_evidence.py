@@ -101,20 +101,31 @@ def _fixed_share_source_evidence(buys: pd.DataFrame) -> dict[str, Any]:
         if not {"pre_split_quantity", "split_ratio"}.issubset(buys.columns):
             invalid_split_metadata |= True
         else:
-            pre_split = pd.to_numeric(buys["pre_split_quantity"], errors="coerce")
-            ratio = pd.to_numeric(buys["split_ratio"], errors="coerce")
+            # Empty columns are common in older ledger exports and mean that no
+            # split adjustment was recorded. Treat both-empty as "not supplied";
+            # reject only partial or malformed split metadata.
+            pre_raw = buys["pre_split_quantity"]
+            ratio_raw = buys["split_ratio"]
+            pre_present = pre_raw.notna() & pre_raw.astype(str).str.strip().ne("")
+            ratio_present = ratio_raw.notna() & ratio_raw.astype(str).str.strip().ne("")
+            split_metadata_supplied = pre_present | ratio_present
+            split_metadata_paired = pre_present & ratio_present
+            pre_split = pd.to_numeric(pre_raw, errors="coerce")
+            ratio = pd.to_numeric(ratio_raw, errors="coerce")
             split_metadata_finite = pd.Series(
                 np.isfinite(pre_split.to_numpy(dtype=float))
                 & np.isfinite(ratio.to_numpy(dtype=float)),
                 index=buys.index,
             )
-            invalid_split_metadata = (
-                ~split_metadata_finite | pre_split.le(0) | ratio.le(0)
+            valid_split_metadata = (
+                split_metadata_supplied & split_metadata_paired
+                & split_metadata_finite & pre_split.gt(0) & ratio.gt(0)
             )
+            invalid_split_metadata = split_metadata_supplied & ~valid_split_metadata
             split_delta = pre_split * ratio - numeric["quantity"]
-            mismatch |= split_delta.abs().gt(0.05)
+            mismatch |= valid_split_metadata & split_delta.abs().gt(0.05)
             reference_delta = pre_split * numeric["reference_price"] - numeric["planned_capital"]
-            mismatch |= reference_delta.abs().gt(0.05)
+            mismatch |= valid_split_metadata & reference_delta.abs().gt(0.05)
     candidates &= ~invalid_split_metadata
     valid = candidates & ~mismatch
     candidate_count = int(candidates.sum())

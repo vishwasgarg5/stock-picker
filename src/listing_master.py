@@ -239,6 +239,60 @@ def refresh_from_security_master(client, unresolved: set[str], max_calendar_days
         attempts.append(candidate.isoformat())
     return [],{"status":"SOURCE_UNAVAILABLE","attempted_dates":attempts,"errors":errors[-5:]}
 
+REIT_LISTING_EVIDENCE = {
+    # These trusts are not present in NSE's ordinary equity-segment EQUITY_L.csv.
+    # Dates below are the original NSE trading/listing dates, not later unit allotments.
+    "BAGMANE": {
+        "company_name": "Bagmane Prime Office REIT",
+        "isin": "INE2OVN25015",
+        "listing_date": "2026-05-14",
+        "source": "https://nsearchives.nseindia.com/corporate/BAGMANE_13112026211944_BagmaneREITHalfYearlyReportSeptember302026.pdf",
+    },
+    "BIRET": {
+        "company_name": "Brookfield India Real Estate Trust",
+        "isin": "INE0FDU25010",
+        "listing_date": "2021-02-16",
+        "source": "https://nsearchives.nseindia.com/corporate/BIRET_27062025104434_SubmissionofAnnualReport.pdf",
+    },
+    "EMBASSY": {
+        "company_name": "Embassy Office Parks REIT",
+        "isin": "INE041025011",
+        "listing_date": "2019-04-01",
+        "source": "https://nsearchives.nseindia.com/corporate/EMBASSY_02112024111645_EmbassyREITHalfYearlyReportFY25.pdf",
+    },
+}
+
+
+def refresh_from_reit_listing(unresolved: set[str]) -> tuple[list[dict], dict]:
+    """Resolve known REIT/InvIT symbols omitted from NSE's ordinary equity master.
+
+    Each date is backed by an NSE-hosted issuer filing that states the original
+    listing date. This narrow registry is not a general date-inference fallback.
+    """
+    requested = {str(symbol).strip().upper() for symbol in unresolved if str(symbol).strip()}
+    found = []
+    for symbol in sorted(requested):
+        evidence = REIT_LISTING_EVIDENCE.get(symbol)
+        if not evidence:
+            continue
+        found.append({
+            "symbol": symbol,
+            "company_name": evidence["company_name"],
+            "isin": evidence["isin"],
+            "listing_date": parse_date(evidence["listing_date"]).date().isoformat(),
+            "listing_date_source": evidence["source"],
+            "verified_at_utc": datetime.now().astimezone().isoformat(),
+        })
+    missing = sorted(requested - {row["symbol"] for row in found})
+    return found, {
+        "status": "PASS" if not missing else ("PARTIAL" if found else "NO_MATCHING_CURATED_REITS"),
+        "symbols_requested": len(requested),
+        "symbols_found": len(found),
+        "symbols_unresolved": missing,
+        "sources_used": sorted({row["listing_date_source"] for row in found}),
+    }
+
+
 def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=3):
     DATA.mkdir(parents=True,exist_ok=True)
     old=pd.read_csv(FILE,dtype=str).fillna("") if FILE.exists() else pd.DataFrame(columns=COLS)
@@ -318,6 +372,11 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
     if equity_found:
         merged=pd.concat([merged,pd.DataFrame(equity_found)],ignore_index=True).drop_duplicates("symbol",keep="last").reindex(columns=COLS)
     cached=set(merged.loc[merged.listing_date.astype(str).str.strip().ne(""),"symbol"])
+    unresolved_set=set(requested)-cached
+    reit_found,reit_audit=refresh_from_reit_listing(unresolved_set)
+    if reit_found:
+        merged=pd.concat([merged,pd.DataFrame(reit_found)],ignore_index=True).drop_duplicates("symbol",keep="last").reindex(columns=COLS)
+    cached=set(merged.loc[merged.listing_date.astype(str).str.strip().ne(""),"symbol"])
     unresolved=sorted(set(requested)-cached)
     # Persist a schema-bearing file even when NSE is unavailable. An empty file
     # is explicitly reported as unavailable; it is never mistaken for coverage.
@@ -331,6 +390,6 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
             "symbols_requested":len(requested),"symbols_cached":len(cached & set(requested)),
             "symbols_fetched":len(found),"symbols_from_security_master":len(master_found),
             "symbols_unresolved":unresolved,"lookup_failures":failures,
-            "security_master_fallback":master_audit,"equity_listing_fallback":equity_audit,
+            "security_master_fallback":master_audit,"equity_listing_fallback":equity_audit,"reit_listing_fallback":reit_audit,
             "source":"NSE official quote-equity API, daily MII CM security master, and Securities available for Equity segment CSV",
             "cache_file":"data/nse_listing_master.csv"}

@@ -94,7 +94,7 @@ Nifty Bank,16-Nov-2026,55000,55200,54800,55100,234567
 """
     out = ici.normalise_nse_index_snapshot(csv, "2026-11-16", "https://nsearchives.nseindia.com/content/indices/test.csv")
     assert set(out["index"]) == {"NIFTY50", "BANKNIFTY"}
-    assert out.loc[out.index.eq("NIFTY50"), "close"].iloc[0] == 25050
+    assert out.loc[out["index"].eq("NIFTY50"), "close"].iloc[0] == 25050
     assert out["source"].str.contains("nsearchives.nseindia.com").all()
 
 
@@ -108,7 +108,7 @@ def test_official_snapshot_overrides_stale_yahoo_bars(tmp_path, monkeypatch):
     monkeypatch.setattr(ici, "INDEX_HISTORY_FILE", tmp_path / "index_ohlcv.csv")
     monkeypatch.setattr(ici, "download_latest_nse_index_snapshot", lambda: (official, {"status": "PASS"}))
     out, audit = ici.download_index_history({"NIFTY50": ["TEST"]}, downloader=lambda _: raw)
-    latest = out[out.index.eq("NIFTY50")].sort_values("date").iloc[-1]
+    latest = out[out["index"].eq("NIFTY50")].sort_values("date").iloc[-1]
     assert latest.date == pd.Timestamp("2026-11-16")
     assert latest.close == 111
     assert audit["NIFTY50"]["source"] == "NSE official daily index snapshot"

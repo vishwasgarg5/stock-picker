@@ -9,13 +9,15 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
+from urllib.parse import urlparse
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Iterable
 
 REQUIRED_FIELDS = (
     "schema_version", "universe", "symbol", "exchange", "asset_class",
-    "effective_from", "published_at", "source",
+    "effective_from", "published_at", "source", "source_document_sha256",
 )
 OPTIONAL_FIELDS = ("effective_to",)
 ALLOWED_EXCHANGES = {"NSE", "BSE", "MCX"}
@@ -74,8 +76,14 @@ def validate_membership_records(records: Iterable[dict[str, Any]]) -> dict[str, 
         exchange = str(original["exchange"]).strip().upper()
         asset_class = str(original["asset_class"]).strip()
         source = str(original["source"]).strip()
+        source_hash = str(original["source_document_sha256"]).strip().lower()
+        parsed_source = urlparse(source)
         if not universe or not symbol or not asset_class or not source:
             raise MembershipEvidenceError(f"record {number} has empty identity or source provenance")
+        if parsed_source.scheme != "https" or not parsed_source.netloc:
+            raise MembershipEvidenceError(f"record {number} source must be an HTTPS document URL")
+        if not re.fullmatch(r"[0-9a-f]{64}", source_hash):
+            raise MembershipEvidenceError(f"record {number} source_document_sha256 must be a 64-character SHA-256 hex digest")
         if exchange not in ALLOWED_EXCHANGES:
             raise MembershipEvidenceError(f"record {number} has unsupported exchange: {exchange}")
         start = _parse_date(original["effective_from"], "effective_from")
@@ -93,6 +101,7 @@ def validate_membership_records(records: Iterable[dict[str, Any]]) -> dict[str, 
             "exchange": exchange, "asset_class": asset_class, "effective_from": start.isoformat(),
             "effective_to": end.isoformat() if end else None,
             "published_at": str(original["published_at"]), "source": source,
+            "source_document_sha256": source_hash,
         })
 
     for identity, spans in intervals.items():

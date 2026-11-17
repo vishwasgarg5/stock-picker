@@ -1,0 +1,43 @@
+name: Historical Provenance Audit
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/historical-provenance-audit.yml"
+      - "src/historical_listing_provenance.py"
+      - "tests/test_historical_listing_provenance.py"
+      - "data/historical_listing_provenance.csv"
+      - "data/ohlcv.csv"
+      - "data/nse_listing_master.csv"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/historical-provenance-audit.yml"
+      - "src/historical_listing_provenance.py"
+      - "tests/test_historical_listing_provenance.py"
+      - "data/historical_listing_provenance.csv"
+      - "data/ohlcv.csv"
+      - "data/nse_listing_master.csv"
+
+permissions:
+  contents: read
+
+jobs:
+  provenance-audit:
+    name: Historical provenance coverage and regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pytest
+      - name: Run provenance regression tests
+        run: python -m pytest -q tests/test_historical_listing_provenance.py

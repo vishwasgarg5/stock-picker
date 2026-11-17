@@ -79,3 +79,32 @@ def test_provenance_listing_date_parser_accepts_day_first_dates(tmp_path):
     assert result["pre_listing_bars"] == 10
     assert result["bars_inside_documented_event_windows"] == 7
 
+
+
+
+def test_provenance_audit_fails_when_affected_symbol_is_missing_from_registry(tmp_path):
+    _inputs(tmp_path)
+    data = tmp_path / "data"
+    history_path = data / "ohlcv.csv"
+    history = pd.read_csv(history_path)
+    extra = history.copy()
+    extra["symbol"] = "MISSING"
+    history = pd.concat([history, extra], ignore_index=True)
+    history.to_csv(history_path, index=False)
+
+    listings_path = data / "nse_listing_master.csv"
+    listings = pd.read_csv(listings_path)
+    listings = pd.concat([
+        listings,
+        pd.DataFrame([{"symbol": "MISSING", "listing_date": "2021-05-07"}]),
+    ], ignore_index=True)
+    listings.to_csv(listings_path, index=False)
+
+    result = audit_historical_listing_provenance(tmp_path)
+
+    assert result["status"] == "FAIL"
+    assert result["affected_symbols"] == ["CAMS", "MISSING"]
+    assert result["missing_registry_symbols"] == ["MISSING"]
+    assert "missing_registry_symbols=['MISSING']" in result["detail"]
+    # The audit is read-only: both symbols' original OHLCV rows remain present.
+    assert len(pd.read_csv(history_path)) == 20

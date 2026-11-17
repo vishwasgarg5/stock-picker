@@ -94,13 +94,35 @@ def audit_historical_listing_provenance(root: Path, history_frame: pd.DataFrame 
             # unresolved until an exchange/vendor record proves its origin.
             unresolved_symbols.append(symbol)
 
+    # Independently derive every symbol with pre-listing bars from the full
+    # OHLCV universe. Iterating only registry rows would make omissions invisible.
+    bar_listing_dates = bars["symbol"].map(listing_map)
+    has_listing_date = bar_listing_dates.notna()
+    pre_listing_mask = has_listing_date & bars["date"].lt(bar_listing_dates)
+    # Count bars from the complete history universe, including any symbols
+    # missing from the registry, so an incomplete inventory cannot understate it.
+    total_pre_listing = int(pre_listing_mask.sum())
+    affected_symbols = sorted(set(bars.loc[pre_listing_mask, "symbol"]))
+    registry_symbols = set(registry["symbol"])
+    missing_registry_symbols = sorted(set(affected_symbols) - registry_symbols)
+    symbols_without_listing_dates = sorted(
+        set(bars.loc[~has_listing_date, "symbol"])
+    )
+
     source_fields = sorted(history_columns.intersection(
         {"exchange", "source_exchange", "provider", "source", "vendor_ticker"}
     ))
     source_attribution = "present" if source_fields else "absent"
-    status = "REVIEW" if total_pre_listing or unresolved_symbols or not source_fields else "PASS"
+    status = (
+        "FAIL" if missing_registry_symbols else
+        "REVIEW" if total_pre_listing or unresolved_symbols or not source_fields else
+        "PASS"
+    )
     detail = (
-        f"registry_symbols={len(registry)}; pre_listing_bars={total_pre_listing}; "
+        f"registry_symbols={len(registry)}; independently_detected_pre_listing_symbols={len(affected_symbols)}; "
+        f"missing_registry_symbols={missing_registry_symbols}; "
+        f"symbols_without_listing_dates={symbols_without_listing_dates}; "
+        f"pre_listing_bars={total_pre_listing}; "
         f"bars_inside_documented_event_windows={total_inside_event_windows}; "
         f"symbols_requiring_row_level_attribution={sorted(set(unresolved_symbols))}; "
         f"OHLCV_exchange_or_provider_fields={source_attribution}{source_fields}; "
@@ -109,4 +131,7 @@ def audit_historical_listing_provenance(root: Path, history_frame: pd.DataFrame 
     return {"status": status, "detail": detail, "evidence": evidence,
             "pre_listing_bars": total_pre_listing,
             "bars_inside_documented_event_windows": total_inside_event_windows,
-            "unresolved_symbols": sorted(set(unresolved_symbols))}
+            "unresolved_symbols": sorted(set(unresolved_symbols)),
+            "affected_symbols": affected_symbols,
+            "missing_registry_symbols": missing_registry_symbols,
+            "symbols_without_listing_dates": symbols_without_listing_dates}

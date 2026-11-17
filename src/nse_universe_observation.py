@@ -129,7 +129,7 @@ def verify_observation_manifest(manifest_path: Path, audit_root: Path) -> dict[s
         for row in normalized_rows
     ]:
         raise DataContractError("Normalized observation does not match raw NSE source")
-    return {"status": "PASS", "record_count": len(rows),
+    return {"status": "PASS", "record_count": len(normalized_rows),
             "raw_sha256_verified": True, "normalized_sha256_verified": True,
             "pit_eligible": False}
 

@@ -12,9 +12,9 @@ def test_costs_are_source_verified_only_with_complete_components_and_reference()
         "cost_evidence_reference": "contract-note-123",
     }])
     detail, summary = evaluate_execution_cost_provenance(trades)
-    assert detail.iloc[0]["status"] == "SOURCE_REFERENCED_COMPONENTS_RECONCILED"
-    assert summary["source_referenced_rows"] == 1
-    assert summary["status"] == "PASS"
+    assert detail.iloc[0]["status"] == "REFERENCE_PRESENT_COMPONENTS_RECONCILED"
+    assert summary["source_reference_present_rows"] == 1
+    assert summary["status"] == "REVIEW"
     assert summary["costs_inferred"] is False
     assert summary["canonical_ledger_mutated"] is False
 

@@ -106,6 +106,12 @@ The audit deliberately distinguishes a passing code/structure check from model r
 
 GitHub-hosted jobs have a hard six-hour execution ceiling and a workflow run has a 35-day ceiling. The audit therefore uses bounded independent jobs rather than an endless runner. Manual runs are available whenever a new investigation is needed; GitHub Free monthly minutes and artifact-storage quotas still apply to private repositories. See the [Model Progress Audit workflow](.github/workflows/model-progress-audit.yml) and [audit implementation](src/model_progress_audit.py).
 
+## Model Intelligence Dashboard
+
+The repository includes a responsive dashboard UI at `dashboard/index.html` and its generated evidence snapshot at `data/dashboard_data.json`. The dashboard reads persisted model artifacts and reports the latest Top-10 forecast, forecast accuracy, chronological V1/V2 paper-trading evidence, selection funnel, historical OHLCV coverage, NSE calendar/index freshness, trade P&L reconciliation and promotion gates.
+
+The `Model Intelligence Dashboard` GitHub Actions workflow rebuilds the snapshot when model data or dashboard code changes and can also be run manually. Missing, malformed or stale evidence is displayed as unavailable, REVIEW, FAIL or BLOCKED; it is never promoted to PASS by the dashboard. V2 remains explicitly shadow-only unless the separate governance process authorizes a change.
+
 ## Data and audit trail
 
 The repository keeps the model's working history and evidence in versioned data artifacts. Important records include:

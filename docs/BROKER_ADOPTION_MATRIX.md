@@ -19,7 +19,7 @@ This document tracks reusable capabilities from `vishwasgarg5/Broker` against th
 | `src/broker/data_pipeline.py` | Orchestrates UDiFF ingestion and current Nifty 50 constituent observation | Existing Stock Picker market-data workflow; `src/universe.py` | **Partial / not equivalent** | Add a dated observation feed only if it is useful for reconciliation; current constituents must not be represented as historical membership. |
 | `src/broker/readiness.py` | Explicit research gates and next-session chronology | Existing model-promotion/readiness audits; `src/broker_data_contracts.py` | **Adopted in part** | Preserve Stock Picker's stricter gates; never replace them with a smaller generic gate list. |
 | `schemas/ohlcv.schema.json` | Versioned normalized OHLCV contract | Existing CSV/data-quality checks and `src/broker_data_contracts.py` | **Runtime parity to verify** | Add schema-driven fixtures/validation only where it does not reject valid legacy Stock Picker records. |
-| `schemas/ingestion_manifest.schema.json` | Versioned source, retrieval, file and SHA-256 provenance | PR #40 manifest builder and UDiFF audit output | **Adopted in part** | Verify manifest files against raw and normalized bytes; preserve immutable, content-addressed artifacts. |
+| `schemas/ingestion_manifest.schema.json` | Versioned source, retrieval, file and SHA-256 provenance | `src/broker_data_contracts.py`, `src/nse_udiff_reconciliation.py` | **Research verification implemented** | Persisted raw/normalized bytes are re-hashed from disk and normalized row counts are checked against the manifest; tampering, missing files and count mismatches fail closed. |
 | `schemas/universe_observation.schema.json` | Snapshot of observed current universe | `data/universe.csv`, listing master and constituent history | **Gap** | Add explicit observation records; do not treat a snapshot as effective-dated history. |
 | `schemas/universe_membership.schema.json` | Effective-dated point-in-time membership | `src/index_constituent_intelligence.py`, listing master | **Partial** | Reuse dated membership where official effective dates exist; never backfill today's members into the past. |
 | `schemas/corporate_actions.schema.json` | Source-backed corporate-action event contract | `tests/test_corporate_action_adjustments.py` and existing adjustment pipeline | **Partial** | Align event provenance and availability timestamps; do not replace existing split/dividend handling without regression proof. |
@@ -34,14 +34,14 @@ This document tracks reusable capabilities from `vishwasgarg5/Broker` against th
 
 - `src/broker_data_contracts.py`: normalized OHLCV, chronology/duplicate, timezone-aware point-in-time, safe relative paths, SHA-256 manifests and fail-closed readiness helpers.
 - `tests/test_broker_data_contracts.py`: focused contract regression coverage.
-- `src/nse_udiff_reconciliation.py`: official NSE UDiFF research ingestion with raw/normalized snapshots and manifest under an isolated audit root.
+- `src/nse_udiff_reconciliation.py`: official NSE UDiFF research ingestion with raw/normalized snapshots, a persisted manifest, and post-write hash/record-count verification under an isolated audit root.
 - `tests/test_nse_udiff_reconciliation.py`: deterministic ingestion tests.
 - Model Progress Audit workflow: runs the contracts and isolated UDiFF probe and reports source status without mutating canonical OHLCV or paper ledgers.
 
 ## Remaining implementation sequence
 
 1. **Schema parity:** map BROKER JSON schemas to Stock Picker's actual CSV/JSON fields; add compatibility tests before enforcing any schema at runtime.
-2. **Manifest verification:** verify persisted raw/normalized hashes and record counts from the audit artifact; report tampering/missing files as BLOCKED.
+2. **Manifest verification:** implemented in PR #40; persisted raw/normalized hashes and normalized record counts are checked from disk, with tampering/missing files rejected. CI evidence is still pending.
 3. **Universe observations:** persist dated source snapshots separately from effective-dated membership; explicitly mark observations as not point-in-time eligible.
 4. **Membership provenance:** reconcile official effective dates and publication/availability timestamps with existing constituent history.
 5. **Corporate-action provenance:** verify source, ex-date, action type, ratio/factor and available-at timestamp while preserving existing adjustment behaviour.

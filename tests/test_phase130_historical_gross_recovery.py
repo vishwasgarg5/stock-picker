@@ -40,8 +40,8 @@ def test_rejects_source_identity_mismatch():
 def test_recovers_legacy_fixed_notional_shares_only_when_pnl_and_return_agree():
     trades = pd.DataFrame([{
         "signal": "BUY", "symbol": "OLD", "target_date": "2026-09-29",
-        "entry_price": 100.0, "exit_price": 110.0, "profit_loss": 200.0,
-        "return_pct": 1.0, "shares": None, "allocated_capital": None,
+        "entry_price": 100.0, "exit_price": 110.0, "profit_loss": 2000.0,
+        "return_pct": 10.0, "shares": None, "allocated_capital": None,
         "gross_profit_loss": None, "costs": None, "position_value": 20000.0,
     }])
     detail, summary = evaluate_historical_gross_recovery(trades)

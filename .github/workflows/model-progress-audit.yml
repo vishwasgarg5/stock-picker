@@ -64,6 +64,16 @@ jobs:
         id: nse_udiff
         continue-on-error: true
         run: python -m src.nse_udiff_reconciliation --output-root audit/broker_udiff
+      - name: Capture official Nifty 50 membership as a non-PIT research observation
+        id: universe_observation
+        continue-on-error: true
+        run: python -m src.nse_universe_observation --output-root audit/broker_universe
+      - name: Publish Nifty 50 observation status
+        if: always()
+        run: |
+          if [ -f audit/broker_universe/status.json ]; then
+            python -c 'import json,pathlib; p=json.loads(pathlib.Path("audit/broker_universe/status.json").read_text()); print("## NSE Nifty 50 universe observation\\n\\n- Status: **" + p.get("status", "UNKNOWN") + "**\\n- PIT eligible: **" + str(p.get("pit_eligible")) + "**\\n- Canonical universe mutated: **" + str(p.get("canonical_universe_mutated")) + "**\\n- Historical membership created: **" + str(p.get("historical_membership_created")) + "**")' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Publish independent NSE UDiFF source status
         if: always()
         run: |
@@ -140,6 +150,7 @@ jobs:
           INDEX_OUTCOME: ${{ steps.index_refresh.outcome }}
           LISTING_OUTCOME: ${{ steps.listing_refresh.outcome }}
           UDIFF_OUTCOME: ${{ steps.nse_udiff.outcome }}
+          UNIVERSE_OBSERVATION_OUTCOME: ${{ steps.universe_observation.outcome }}
           OOS_OUTCOME: ${{ steps.index_feature_oos.outcome }}
         run: |
           mkdir -p audit/model_progress
@@ -161,6 +172,7 @@ jobs:
                   "index_data": os.environ.get("INDEX_OUTCOME", "not-run"),
                   "nse_listing_master": os.environ.get("LISTING_OUTCOME", "not-run"),
                   "nse_udiff_research_ingestion": os.environ.get("UDIFF_OUTCOME", "not-run"),
+                  "nifty50_universe_observation": os.environ.get("UNIVERSE_OBSERVATION_OUTCOME", "not-run"),
                   "index_feature_oos": os.environ.get("OOS_OUTCOME", "not-run"),
               },
               "scope": "research_and_audit_only",
@@ -192,6 +204,8 @@ jobs:
           name: model-progress-inventory
           path: |
             audit/model_progress/
+            audit/broker_udiff/
+            audit/broker_universe/
             data/phase130_historical_gross_recovery_detail.csv
             data/phase130_historical_gross_recovery_summary.json
             data/phase131_execution_cost_provenance_detail.csv
@@ -228,7 +242,7 @@ jobs:
       matrix:
         include:
           - suite: foundations-and-data
-            paths: "tests/test_model_progress_audit_data_quality.py tests/test_pipeline_data_quality.py tests/test_prediction_validation.py tests/test_corporate_action_adjustments.py tests/test_historical_coverage_audit.py tests/test_repair_historical_gaps.py tests/test_market_calendar.py tests/test_index_constituent_intelligence.py tests/test_index_intelligence_data_quality.py tests/test_weekend_data_quality_audit.py tests/test_broker_data_contracts.py tests/test_nse_udiff_reconciliation.py tests/test_broker_schema_compatibility.py"
+            paths: "tests/test_model_progress_audit_data_quality.py tests/test_pipeline_data_quality.py tests/test_prediction_validation.py tests/test_corporate_action_adjustments.py tests/test_historical_coverage_audit.py tests/test_repair_historical_gaps.py tests/test_market_calendar.py tests/test_index_constituent_intelligence.py tests/test_index_intelligence_data_quality.py tests/test_weekend_data_quality_audit.py tests/test_broker_data_contracts.py tests/test_nse_udiff_reconciliation.py tests/test_broker_schema_compatibility.py tests/test_nse_universe_observation.py"
           - suite: forecasting-and-ranking
             paths: "tests/test_directional_model.py tests/test_confidence.py tests/test_pipeline_ranking.py tests/test_phase128_ranking_authority_audit.py tests/test_phase129_ranking_utility_audit.py tests/test_news_context.py"
           - suite: risk-and-paper-trading

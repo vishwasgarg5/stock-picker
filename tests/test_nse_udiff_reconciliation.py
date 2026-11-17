@@ -19,6 +19,7 @@ from src.nse_udiff_reconciliation import (
     normalize_bhavcopy,
     run,
     write_research_snapshot,
+    verify_persisted_manifest,
 )
 
 HEADER = "TradDt,TckrSymb,SctySrs,OpnPric,HghPric,LwPric,ClsPric,TtlTradgVol"
@@ -100,3 +101,39 @@ def test_failed_live_source_is_recorded_as_blocked_without_mutating_data(tmp_pat
     assert result["paper_trade_ledger_mutated"] is False
     stored = json.loads((tmp_path / "audit" / "status.json").read_text())
     assert stored["status"] == "BLOCKED"
+
+
+
+def test_persisted_manifest_verifies_hashes_and_record_count(tmp_path):
+    payload = csv_payload("2026-11-06,RELIANCE,EQ,100,105,99,103,1000")
+    archive = zip_payload(payload)
+    rows = normalize_bhavcopy(payload, date(2026, 11, 6), "2026-11-06T12:00:00+00:00")
+    manifest = write_research_snapshot(date(2026, 11, 6), archive, payload, rows, tmp_path / "audit")
+    manifest_path = next((tmp_path / "audit" / "manifests").glob("*.json"))
+    verified = verify_persisted_manifest(manifest_path, tmp_path / "audit")
+    assert verified["status"] == "PASS"
+    assert verified["raw_sha256_verified"] is True
+    assert verified["normalized_sha256_verified"] is True
+    assert verified["record_count"] == 1
+
+
+def test_persisted_manifest_rejects_tampered_raw_archive(tmp_path):
+    payload = csv_payload("2026-11-06,RELIANCE,EQ,100,105,99,103,1000")
+    archive = zip_payload(payload)
+    rows = normalize_bhavcopy(payload, date(2026, 11, 6), "2026-11-06T12:00:00+00:00")
+    manifest = write_research_snapshot(date(2026, 11, 6), archive, payload, rows, tmp_path / "audit")
+    (tmp_path / "audit" / manifest["raw_file"]).write_bytes(b"tampered")
+    manifest_path = next((tmp_path / "audit" / "manifests").glob("*.json"))
+    with pytest.raises(DataContractError, match="raw_sha256"):
+        verify_persisted_manifest(manifest_path, tmp_path / "audit")
+
+
+def test_persisted_manifest_rejects_missing_normalized_file(tmp_path):
+    payload = csv_payload("2026-11-06,RELIANCE,EQ,100,105,99,103,1000")
+    archive = zip_payload(payload)
+    rows = normalize_bhavcopy(payload, date(2026, 11, 6), "2026-11-06T12:00:00+00:00")
+    manifest = write_research_snapshot(date(2026, 11, 6), archive, payload, rows, tmp_path / "audit")
+    (tmp_path / "audit" / manifest["normalized_file"]).unlink()
+    manifest_path = next((tmp_path / "audit" / "manifests").glob("*.json"))
+    with pytest.raises(DataContractError, match="normalized_file is missing"):
+        verify_persisted_manifest(manifest_path, tmp_path / "audit")

@@ -298,7 +298,10 @@ def test_listing_master_accepts_official_nse_hosts_and_rejects_lookalikes(tmp_pa
 def test_pre_listing_audit_reports_per_symbol_counts_and_date_ranges(tmp_path, monkeypatch):
     _calendar(tmp_path)
     data = tmp_path / "data"
-    dates = pd.to_datetime(["2019-01-01", "2019-01-02", "2020-01-01"])
+    # The live-data audit intentionally requires at least 100 OHLCV rows.
+    # Keep this fixture above that production threshold while checking the
+    # per-symbol pre-listing counts and date ranges.
+    dates = pd.date_range("2019-01-01", periods=50, freq="D")
     pd.DataFrame([{
         "date": day, "symbol": symbol, "open": 10, "high": 12,
         "low": 9, "close": 11, "volume": 100,
@@ -313,6 +316,6 @@ def test_pre_listing_audit_reports_per_symbol_counts_and_date_ranges(tmp_path, m
     audit.audit_live_data(rows)
     result = _check(rows, "OHLCV does not precede verified listing date")
     assert result["status"] == "FAIL"
-    assert "pre_listing_bars=4" in result["detail"]
-    assert "AAA:count=2,first=2019-01-01,last=2019-01-02,listing=2020-01-01" in result["detail"]
-    assert "BBB:count=2,first=2019-01-01,last=2019-01-02,listing=2020-01-01" in result["detail"]
+    assert "pre_listing_bars=100" in result["detail"]
+    assert "AAA:count=50,first=2019-01-01,last=2019-02-19,listing=2020-01-01" in result["detail"]
+    assert "BBB:count=50,first=2019-01-01,last=2019-02-19,listing=2020-01-01" in result["detail"]

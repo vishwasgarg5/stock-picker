@@ -42,34 +42,73 @@ SECURITY_MASTER_URL="https://nsearchives.nseindia.com/content/cm/NSE_CM_security
 SECURITY_MASTER_HEADERS={**HEADERS,"Referer":"https://www.nseindia.com/all-reports","Host":"nsearchives.nseindia.com"}
 
 
+def _parse_mii_listing_date(raw):
+    value=str(raw or "").strip()
+    if not value or value in {"0","0.0","00000000"}:
+        raise ValueError("NSE security master listing date is empty")
+    # The official NSE master specification stores LONG date/time values as
+    # seconds from 1980-01-01; accept explicit YYYYMMDD/date strings too.
+    try:
+        numeric=int(float(value))
+        if 19000101 <= numeric <= 21001231 and len(value.split(".")[0]) == 8:
+            return parse_date(str(numeric))
+        if 0 < numeric < 2_000_000_000:
+            return pd.Timestamp("1980-01-01") + pd.to_timedelta(numeric,unit="s")
+    except (TypeError,ValueError,OverflowError):
+        pass
+    return parse_date(value)
+
+
 def parse_security_master(payload: bytes, requested_symbols: set[str], source_url: str) -> list[dict]:
     """Extract verified listing dates from NSE's daily MII CM security master."""
+    def build(symbol, company, isin, raw_date):
+        try: day=_parse_mii_listing_date(raw_date)
+        except Exception: return None
+        return {"symbol":str(symbol).strip().upper(),"company_name":str(company or "").strip(),
+            "isin":str(isin or "").strip().upper(),"listing_date":day.date().isoformat(),
+            "listing_date_source":source_url,"verified_at_utc":datetime.now().astimezone().isoformat()}
+    # Newer CSV-style MII exports may publish named columns.
     try:
-        frame=pd.read_csv(BytesIO(payload),compression="gzip",low_memory=False)
+        try: frame=pd.read_csv(BytesIO(payload),compression="gzip",low_memory=False)
+        except Exception: frame=pd.read_csv(BytesIO(payload),low_memory=False)
+        def key(value):
+            return "".join(ch for ch in str(value).lower() if ch.isalnum())
+        columns={key(c):c for c in frame.columns}
+        symbol_col=next((columns[k] for k in ("symbol","tradingsymbol","securitysymbol") if k in columns),None)
+        listing_col=next((columns[k] for k in ("listingdate","dateoflisting") if k in columns),None)
+        isin_col=next((columns[k] for k in ("isin","isinnumber","isinno") if k in columns),None)
+        company_col=next((columns[k] for k in ("companyname","securityname","issuername","name") if k in columns),None)
+        if symbol_col and listing_col:
+            frame[symbol_col]=frame[symbol_col].astype(str).str.upper().str.strip()
+            frame=frame[frame[symbol_col].isin(requested_symbols)]
+            found=[]
+            for _,row in frame.iterrows():
+                item=build(row[symbol_col],row[company_col] if company_col else "",
+                    row[isin_col] if isin_col else "",row[listing_col])
+                if item: found.append(item)
+            if found: return found
     except Exception:
-        # Some archive mirrors return a decompressed CSV despite the .gz suffix.
-        frame=pd.read_csv(BytesIO(payload),low_memory=False)
-    def key(value):
-        return "".join(ch for ch in str(value).lower() if ch.isalnum())
-    columns={key(c):c for c in frame.columns}
-    symbol_col=next((columns[k] for k in ("symbol","tradingsymbol","securitysymbol") if k in columns),None)
-    listing_col=next((columns[k] for k in ("listingdate","dateoflisting") if k in columns),None)
-    isin_col=next((columns[k] for k in ("isin","isinnumber","isinno") if k in columns),None)
-    company_col=next((columns[k] for k in ("companyname","securityname","issuername") if k in columns),None)
-    if not symbol_col or not listing_col:
-        raise ValueError(f"NSE MII security master missing named Symbol/Listing Date columns; columns={list(frame.columns)[:30]}")
-    frame[symbol_col]=frame[symbol_col].astype(str).str.upper().str.strip()
-    frame=frame[frame[symbol_col].isin(requested_symbols)]
+        pass
+    # NSE's published master specification also defines the legacy NEATCM
+    # pipe-delimited record layout. Header record is followed by data records.
+    raw_bytes=payload
+    if raw_bytes[:2] == b"\\x1f\\x8b":
+        raw_bytes=gzip.decompress(raw_bytes)
+    lines=raw_bytes.decode("utf-8",errors="replace").splitlines()
     found=[]
-    for _,row in frame.iterrows():
-        raw=row[listing_col]
-        try: day=parse_date(raw)
-        except Exception: continue
-        symbol=str(row[symbol_col])
-        isin=str(row[isin_col]).strip().upper() if isin_col and pd.notna(row[isin_col]) else ""
-        found.append({"symbol":symbol,"company_name":str(row[company_col]).strip() if company_col and pd.notna(row[company_col]) else "",
-            "isin":isin,"listing_date":day.date().isoformat(),"listing_date_source":source_url,
-            "verified_at_utc":datetime.now().astimezone().isoformat()})
+    for line in lines:
+        fields=line.strip().split("|")
+        if len(fields)<54 or fields[0].strip().upper().startswith("NEATCM"):
+            continue
+        symbol=fields[1].strip().upper()
+        if symbol not in requested_symbols:
+            continue
+        # NEATCM CM layout: Name=field 21, Listing Date=field 27,
+        # ISIN Number=field 53 (zero-based positions).
+        item=build(symbol,fields[21],fields[53],fields[27])
+        if item: found.append(item)
+    if not found:
+        raise ValueError("NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout")
     return found
 
 

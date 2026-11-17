@@ -47,30 +47,42 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
     n = buys[numeric_cols].apply(pd.to_numeric, errors="coerce")
     canonical_complete = n[["shares", "allocated_capital", "gross_profit_loss", "costs"]].notna().all(axis=1)
 
-    # The older fixed-notional schema recorded position_value but not shares.
-    # Shares can be recovered only where position_value / entry_price and
-    # recorded P&L / price movement independently agree.
+    # Support both ledger generations without treating field presence as proof:
+    # newer rows record shares/allocated_capital and gross_profit_loss, while
+    # older rows record quantity/position_value and keep gross P&L in profit_loss.
     entry = n["entry_price"]
     exit_price = n["exit_price"]
-    capital = n["position_value"]
-    stored_gross = n["profit_loss"]
+    allocated = n["allocated_capital"]
+    position_value = n["position_value"]
+    capital = allocated.where(allocated.gt(0), position_value)
+    stored_net_or_legacy_pnl = n["profit_loss"]
+    stored_gross = n["gross_profit_loss"].where(
+        n["gross_profit_loss"].notna(), stored_net_or_legacy_pnl
+    )
     observed_quantity = n["quantity"] if "quantity" in n else pd.Series(np.nan, index=buys.index)
+    observed_shares = n["shares"] if "shares" in n else pd.Series(np.nan, index=buys.index)
     implied_from_capital = capital / entry.replace(0, np.nan)
-    # Do not divide by the price move to infer shares: a valid trade can
-    # close at its entry price, making that denominator zero.
-    shares = observed_quantity.where(observed_quantity.gt(0), implied_from_capital)
+    # Prefer an explicitly recorded quantity, then recorded shares, and only
+    # then derive shares from recorded capital / entry price.
+    shares = observed_quantity.where(
+        observed_quantity.gt(0),
+        observed_shares.where(observed_shares.gt(0), implied_from_capital),
+    )
     source_values = pd.DataFrame({
         "entry": entry, "exit": exit_price, "capital": capital,
-        "stored_gross": stored_gross, "shares": shares,
+        "stored_gross": stored_gross, "stored_pnl": stored_net_or_legacy_pnl,
+        "shares": shares,
     }, index=buys.index)
     finite = pd.Series(np.isfinite(source_values.to_numpy(dtype=float)).all(axis=1), index=buys.index)
     positive = entry.gt(0) & exit_price.gt(0) & capital.gt(0) & shares.gt(0)
     share_identity = (shares - implied_from_capital).abs().le(TOLERANCE)
-    # The gross-P&L identity below validates shares without a zero-move
-    # division and independently checks the recorded legacy P&L.
+    # Do not divide by the price move to infer shares: a valid flat-price
+    # trade has a zero move but still has a verifiable share count.
     gross_calculated = shares * (exit_price - entry)
     gross_identity = (gross_calculated - stored_gross).abs().le(TOLERANCE)
-    return_calculated = stored_gross / capital * 100.0
+    # return_pct has historically been calculated from profit_loss, which is
+    # net P&L in the newer schema and gross P&L in the older schema.
+    return_calculated = stored_net_or_legacy_pnl / capital * 100.0
     if "return_pct" in buys.columns:
         recorded_return = pd.to_numeric(buys["return_pct"], errors="coerce")
     else:
@@ -94,18 +106,27 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
         finite & positive & share_identity
         & gross_identity & return_identity & optional_identity
     )
+    canonical_validated = canonical_complete & valid
     recoverable = ~canonical_complete & valid
     reason = pd.Series("SOURCE_IDENTITY_MISMATCH", index=buys.index, dtype="string")
     reason.loc[~finite] = "MISSING_OR_NONFINITE_SOURCE"
     reason.loc[finite & ~positive] = "NON_POSITIVE_SOURCE_VALUE"
     reason.loc[recoverable] = "GROSS_FIELDS_SOURCE_VALIDATED"
-    reason.loc[canonical_complete] = "CANONICAL_FIELDS_ALREADY_PRESENT"
+    reason.loc[canonical_validated] = "CANONICAL_FIELDS_SOURCE_VALIDATED"
+    reason.loc[canonical_complete & ~valid] = "CANONICAL_FIELDS_PRESENT_IDENTITY_MISMATCH"
     detail = pd.DataFrame({
         "source_row_index": buys.index,
         "symbol": buys["symbol"].astype(str),
         "target_date": buys["target_date"].astype(str),
         "recovery_status": reason,
         "source_quantity": observed_quantity,
+        "source_shares": observed_shares,
+        "source_allocated_capital": allocated,
+        "source_position_value": position_value,
+        "gross_reference_field": pd.Series(
+            np.where(n["gross_profit_loss"].notna(), "gross_profit_loss", "profit_loss"),
+            index=buys.index,
+        ),
         "validated_shares": shares.where(valid),
         "validated_allocated_capital": capital.where(valid),
         "validated_gross_profit_loss": gross_calculated.where(valid),
@@ -123,13 +144,14 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
         "source": "data/paper_trades.csv",
         "buy_rows": int(len(buys)),
         "canonical_complete_rows": int(canonical_complete.sum()),
+        "canonical_source_validated_rows": int(canonical_validated.sum()),
         "gross_source_recoverable_rows": recoverable_count,
-        "gross_source_unresolved_rows": int(len(buys) - canonical_complete.sum() - recoverable_count),
+        "gross_source_unresolved_rows": int(len(buys) - canonical_validated.sum() - recoverable_count),
         "validated_source_identities": {
-            "shares": "position_value / entry_price, cross-checked against recorded gross P&L",
-            "allocated_capital": "recorded position_value",
-            "gross_profit_loss": "validated_shares * (exit_price - entry_price) = recorded profit_loss",
-            "return": "recorded profit_loss / position_value * 100 = recorded return_pct",
+            "shares": "recorded quantity or shares, cross-checked against allocated_capital or position_value divided by entry_price",
+            "allocated_capital": "recorded allocated_capital, falling back to recorded position_value for legacy rows",
+            "gross_profit_loss": "validated_shares * (exit_price - entry_price) = recorded gross_profit_loss, falling back to legacy profit_loss",
+            "return": "recorded profit_loss / validated capital * 100 = recorded return_pct",
             "optional_quantity": "recorded quantity must agree with the independently implied shares when present",
             "optional_split": "pre_split_quantity * split_ratio = quantity when split metadata is supplied",
             "optional_planned_capital": "quantity * reference_price = planned_capital when both are supplied",
@@ -141,7 +163,7 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
         "source_ledger_mutated": False,
         "missing_facts_inferred": False,
         "promotion_authorized": False,
-        "interpretation": "Shares, allocated notional, and gross P&L are independently cross-validated and reported as separate source-backed evidence. Costs, net P&L, and exit reasons remain unresolved; the canonical ledger and promotion gate remain unchanged.",
+        "interpretation": "Both canonical and legacy rows are independently checked against recorded share, capital, gross-P&L, and return identities. Costs, net P&L reconstruction, and exit reasons remain unresolved; the canonical ledger and promotion gate remain unchanged.",
     }
     return detail, summary
 

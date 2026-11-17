@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -86,6 +87,18 @@ PHASE_EVIDENCE = [
     "data/phase126_objective_target_decision.json",
     "data/phase131_execution_cost_provenance_summary.json",
 ]
+
+def _missing_artifact_result(rel: str, event_name: str | None = None) -> tuple[str, str]:
+    """Do not block ad-hoc audits on a separately scheduled weekend artifact."""
+    event = event_name if event_name is not None else os.getenv("GITHUB_EVENT_NAME", "manual")
+    if rel == "data/weekend_data_quality_audit.json" and event != "schedule":
+        return (
+            "REVIEW",
+            "Weekend audit is produced by its separate scheduled workflow; "
+            f"this audit was triggered by {event!r}, so absence is reported as REVIEW, not BLOCKED",
+        )
+    return "BLOCKED", "Artifact has not been produced or is not present; dependent validation cannot be confirmed"
+
 
 def add(rows, group, name, status, detail, evidence=""):
     rows.append({"group": group, "check": name, "status": status, "detail": str(detail), "evidence": evidence})
@@ -710,8 +723,8 @@ def run_audit(output_dir: Path):
     for name, (rel, required_columns) in ARTIFACTS.items():
         path = ROOT / rel
         if not path.is_file():
-            add(rows, "Data and evidence artifacts", name, "BLOCKED",
-                "Artifact has not been produced or is not present; dependent validation cannot be confirmed", rel)
+            missing_status, missing_detail = _missing_artifact_result(rel)
+            add(rows, "Data and evidence artifacts", name, missing_status, missing_detail, rel)
             continue
         try:
             if path.suffix.lower() == ".json":

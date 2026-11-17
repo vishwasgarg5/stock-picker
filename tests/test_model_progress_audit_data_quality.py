@@ -255,3 +255,16 @@ def test_ohlcv_bars_before_verified_listing_date_fail_audit(tmp_path, monkeypatc
     result = _check(rows, "OHLCV does not precede verified listing date")
     assert result["status"] == "FAIL"
     assert "pre_listing_bars=100" in result["detail"]
+
+
+def test_empty_listing_master_schema_is_review_not_missing_artifact(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    pd.DataFrame(columns=["symbol", "company_name", "isin", "listing_date",
+        "listing_date_source", "verified_at_utc"]).to_csv(data / "nse_listing_master.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "Listing master field completeness and validity")
+    assert result["status"] == "REVIEW"
+    assert "no verified listing-date rows" in result["detail"]

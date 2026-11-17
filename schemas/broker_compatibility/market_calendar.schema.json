@@ -1,0 +1,5 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"broker/market-calendar/1.0.0","title":"Exchange trading calendar session",
+ "type":"object","additionalProperties":false,"required":["schema_version","exchange","session_date","session_type","is_trading_day","source","retrieved_at"],
+ "properties":{"schema_version":{"const":"1.0.0"},"exchange":{"enum":["NSE","BSE","MCX"]},"session_date":{"type":"string","format":"date"},"session_type":{"enum":["regular","special","muhurat","holiday","closed"]},"is_trading_day":{"type":"boolean"},"open_time":{"type":["string","null"],"pattern":"^([01][0-9]|2[0-3]):[0-5][0-9]$"},"close_time":{"type":["string","null"],"pattern":"^([01][0-9]|2[0-3]):[0-5][0-9]$"},"source":{"type":"string","minLength":1},"retrieved_at":{"type":"string","format":"date-time"}}
+}

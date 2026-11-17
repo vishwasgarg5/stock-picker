@@ -90,3 +90,30 @@ def test_all_skip_ledger_reports_no_executed_trades():
     assert detail.empty
     assert summary["status"] == "NO_EXECUTED_TRADES"
     assert summary["executed_rows"] == 0
+
+
+
+def test_capital_backed_buy_without_quantity_is_retained_as_blocked():
+    trades = pd.DataFrame([{
+        "signal": "BUY", "symbol": "LEGACY", "target_date": "2026-09-29",
+        "entry_price": 100.0, "exit_price": 110.0, "position_value": 20000.0,
+        "profit_loss": 2000.0, "return_pct": 10.0,
+        "quantity": None, "shares": None, "costs": None, "gross_profit_loss": None,
+    }])
+    detail, summary = evaluate_execution_cost_provenance(trades)
+    assert summary["executed_rows"] == 1
+    assert summary["quantity_missing_but_trade_value_present_rows"] == 1
+    assert detail.iloc[0]["execution_quantity_status"] == "CAPITAL_PRICE_EVIDENCE_QUANTITY_MISSING"
+    assert detail.iloc[0]["status"] == "BLOCKED_MISSING_RECORDED_ACCOUNTING"
+
+
+def test_zero_capital_zero_quantity_buy_is_not_counted_as_executed():
+    trades = pd.DataFrame([{
+        "signal": "BUY", "symbol": "NOFILL", "target_date": "2026-10-09",
+        "entry_price": 100.0, "exit_price": 110.0, "position_value": 0.0,
+        "profit_loss": 0.0, "quantity": 0.0, "shares": None,
+    }])
+    detail, summary = evaluate_execution_cost_provenance(trades)
+    assert detail.empty
+    assert summary["executed_rows"] == 0
+    assert summary["quantity_missing_but_trade_value_present_rows"] == 0

@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MODULES = {
     "Universe management": "src/universe.py",
     "Core forecasting pipeline": "src/pipeline.py",
+    "Index feature OOS validation": "src/index_feature_validation.py",
     "Market calendar": "src/market_calendar.py",
     "Listing-date master": "src/listing_master.py",
     "Historical coverage audit": "src/historical_coverage_audit.py",
@@ -53,6 +54,7 @@ ARTIFACTS = {
     "Index constituent history": ("data/index_constituents_history.csv", set()),
     "Index constituent features": ("data/index_constituent_features.csv", set()),
     "Index intelligence audit": ("data/index_constituent_intelligence_audit.json", None),
+    "Index feature OOS validation": ("data/index_feature_validation.json", None),
     "Weekend data-quality audit": ("data/weekend_data_quality_audit.json", None),
     "Listing master": ("data/nse_listing_master.csv", set()),
 }
@@ -592,18 +594,41 @@ def audit_live_data(rows):
         (weekend_path, "Weekend stock-history quality refresh", "src.weekend_data_quality_audit"),
         (weekend_path, "Weekend index data refresh", "src.index_constituent_intelligence"),
     ]
+    wiring.append((weekend_path, "Weekend chronological index-feature validation", "src.index_feature_validation"))
     for path, label, needle in wiring:
         present = path.exists() and needle in path.read_text(encoding="utf-8")
         add(rows, "Refresh automation wiring", label, "PASS" if present else "FAIL",
             "Refresh command is wired into workflow" if present else f"Refresh command missing from {path.relative_to(ROOT)}",
             str(path.relative_to(ROOT)))
 
+    validation_path = ROOT / "data/index_feature_validation.json"
+    if validation_path.exists():
+        try:
+            report = inspect_json(validation_path)
+            chronology_ok = bool(report.get("train_end") and report.get("test_start")
+                and pd.Timestamp(report["train_end"]) < pd.Timestamp(report["test_start"]))
+            enough = int(report.get("test_sessions", 0)) >= 30
+            safe = report.get("production_promotion_authorized") is False
+            status = "PASS" if report.get("status") == "EVALUATED" and chronology_ok and enough and safe else "REVIEW"
+            add(rows, "Model readiness evidence", "Chronological index-feature OOS evidence", status,
+                f"status={report.get('status')}; test_sessions={report.get('test_sessions')}; train_end={report.get('train_end')}; test_start={report.get('test_start')}; decision={report.get('decision')}; production_promotion_authorized={report.get('production_promotion_authorized')}",
+                "data/index_feature_validation.json")
+        except Exception as exc:
+            add(rows, "Model readiness evidence", "Chronological index-feature OOS evidence", "FAIL", str(exc),
+                "data/index_feature_validation.json")
+    else:
+        add(rows, "Model readiness evidence", "Chronological index-feature OOS evidence", "BLOCKED",
+            "Shadow index-feature comparison has not run yet; production model remains on baseline features",
+            "data/index_feature_validation.json")
+
     # Explicitly surface whether the index features are actually consumed by the production model.
     pipeline_text = (ROOT / "src/pipeline.py").read_text(encoding="utf-8") if (ROOT / "src/pipeline.py").exists() else ""
-    consumed = "merge_index_market_features" in pipeline_text and "INDEX_MARKET_FEATURE_COLUMNS" in pipeline_text
+    consumed = ("merge_index_market_features" in pipeline_text
+                and "INDEX_AUGMENTED_FEATURE_COLUMNS" in pipeline_text
+                and (ROOT / "src/index_feature_validation.py").is_file())
     add(rows, "Live data quality and freshness", "Historical index returns connected to production prediction pipeline",
         "PASS" if consumed else "BLOCKED",
-        "Production pipeline " + ("merges same-session historical index return features into stock rows" if consumed else "does not yet merge historical index market returns into stock features"),
+        "Research path " + ("builds same-session historical index returns for a separate shadow model; production model remains unchanged pending validation" if consumed else "is missing point-in-time index features or the chronological shadow validator"),
         "src/pipeline.py")
 
 def run_audit(output_dir: Path):

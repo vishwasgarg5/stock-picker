@@ -112,7 +112,10 @@ def parse_security_master(payload: bytes, requested_symbols: set[str], source_ur
     return found
 
 
-EQUITY_LIST_URL="https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+EQUITY_LIST_URLS=(
+    "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+    "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
+)
 EQUITY_LIST_HEADERS={**HEADERS,"Referer":"https://www.nseindia.com/static/market-data/securities-available-for-trading","Host":"nsearchives.nseindia.com"}
 
 
@@ -145,14 +148,23 @@ def parse_equity_listing_csv(payload: bytes | str, requested_symbols: set[str], 
 
 def refresh_from_equity_listing(client, unresolved: set[str]) -> tuple[list[dict],dict]:
     if not unresolved: return [],{"status":"SKIPPED","reason":"No unresolved symbols"}
-    try:
-        response=client.get(EQUITY_LIST_URL,timeout=30,headers=EQUITY_LIST_HEADERS)
-        response.raise_for_status()
-        found=parse_equity_listing_csv(response.content,unresolved,EQUITY_LIST_URL)
-        return found,{"status":"PASS" if found else "NO_MATCHES","source":EQUITY_LIST_URL,
-            "symbols_found":len(found),"symbols_requested":len(unresolved)}
-    except Exception as exc:
-        return [],{"status":"SOURCE_UNAVAILABLE","source":EQUITY_LIST_URL,"error":str(exc)}
+    errors=[]
+    for url in EQUITY_LIST_URLS:
+        try:
+            response=client.get(url,timeout=30,headers=EQUITY_LIST_HEADERS)
+            response.raise_for_status()
+            found=parse_equity_listing_csv(response.content,unresolved,url)
+            if found:
+                return found,{"status":"PASS","source":url,"symbols_found":len(found),
+                    "symbols_requested":len(unresolved),"prior_endpoint_errors":errors}
+            errors.append({"source":url,"error":"CSV parsed but no requested symbols matched"})
+        except Exception as exc:
+            errors.append({"source":url,"error":str(exc)})
+            message=str(exc).lower()
+            if not any(token in message for token in ("404","403","429","502","503","504","connection","timeout")):
+                break
+    return [],{"status":"SOURCE_UNAVAILABLE","attempted_sources":list(EQUITY_LIST_URLS),
+        "symbols_requested":len(unresolved),"errors":errors}
 
 
 def refresh_from_security_master(client, unresolved: set[str], max_calendar_days: int = 10) -> tuple[list[dict],dict]:

@@ -1,0 +1,5 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"broker/paper-trades/1.0.0","title":"Paper trade simulation ledger entry",
+ "type":"object","additionalProperties":false,"required":["schema_version","trade_id","symbol","side","quantity","decision_at","fill_at","fill_price","fees","slippage","simulation_only"],
+ "properties":{"schema_version":{"const":"1.0.0"},"trade_id":{"type":"string","minLength":1},"symbol":{"type":"string","minLength":1},"side":{"enum":["BUY","SELL"]},"quantity":{"type":"number","exclusiveMinimum":0},"decision_at":{"type":"string","format":"date-time"},"fill_at":{"type":"string","format":"date-time"},"fill_price":{"type":"number","exclusiveMinimum":0},"fees":{"type":"number","minimum":0},"slippage":{"type":"number","minimum":0},"simulation_only":{"const":true}}
+}

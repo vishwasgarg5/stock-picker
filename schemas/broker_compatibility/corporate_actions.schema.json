@@ -1,0 +1,5 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"broker/corporate-actions/1.0.0","title":"BROKER corporate action",
+ "type":"object","additionalProperties":false,"required":["schema_version","symbol","ex_date","action_type","source","available_at"],
+ "properties":{"schema_version":{"const":"1.0.0"},"symbol":{"type":"string","minLength":1},"ex_date":{"type":"string","format":"date"},"action_type":{"enum":["split","bonus","dividend","buyback","rights","merger","demerger","other"]},"ratio_numerator":{"type":["number","null"],"exclusiveMinimum":0},"ratio_denominator":{"type":["number","null"],"exclusiveMinimum":0},"cash_amount":{"type":["number","null"]},"adjustment_factor":{"type":["number","null"],"exclusiveMinimum":0},"source":{"type":"string","minLength":1},"available_at":{"type":"string","format":"date-time"}}
+}

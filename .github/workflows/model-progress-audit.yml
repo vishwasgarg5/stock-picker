@@ -10,6 +10,15 @@ on:
       - "src/**"
       - "data/*.json"
       - "data/*.csv"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/model-progress-audit.yml"
+      - "src/model_progress_audit.py"
+      - "tests/**"
+      - "src/**"
+      - "data/*.json"
+      - "data/*.csv"
   workflow_dispatch:
     inputs:
       run_regression_tests:
@@ -48,39 +57,66 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
+      - name: Validate Broker-derived fail-closed data contracts
+        id: broker_data_contracts
+        run: python -m src.broker_data_contracts
+      - name: Ingest official NSE UDiFF as isolated research evidence
+        id: nse_udiff
+        continue-on-error: true
+        run: python -m src.nse_udiff_reconciliation --output-root audit/broker_udiff
+      - name: Capture official Nifty 50 membership as a non-PIT research observation
+        id: universe_observation
+        continue-on-error: true
+        run: python -m src.nse_universe_observation --output-root audit/broker_universe
+      - name: Publish Nifty 50 observation status
+        if: always()
+        run: |
+          if [ -f audit/broker_universe/status.json ]; then
+            python -c 'import json,pathlib; p=json.loads(pathlib.Path("audit/broker_universe/status.json").read_text()); print("## NSE Nifty 50 universe observation\\n\\n- Status: **" + p.get("status", "UNKNOWN") + "**\\n- PIT eligible: **" + str(p.get("pit_eligible")) + "**\\n- Canonical universe mutated: **" + str(p.get("canonical_universe_mutated")) + "**\\n- Historical membership created: **" + str(p.get("historical_membership_created")) + "**")' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Publish independent NSE UDiFF source status
+        if: always()
+        run: |
+          if [ -f audit/broker_udiff/status.json ]; then
+            python -c 'import json,pathlib; p=json.loads(pathlib.Path("audit/broker_udiff/status.json").read_text()); print("## Independent NSE UDiFF research feed\\n\\n- Status: **" + p.get("status", "UNKNOWN") + "**\\n- Session: " + p.get("session_date", "not available") + "\\n- Records: " + str(p.get("record_count", "not available")) + "\\n- Canonical OHLCV mutated: **" + str(p.get("canonical_ohlcv_mutated")) + "**\\n- Paper ledger mutated: **" + str(p.get("paper_trade_ledger_mutated")) + "**")' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Probe and refresh official NSE market calendar
         id: calendar_refresh
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
         continue-on-error: true
         run: python -m src.market_calendar
       - name: Probe and refresh index OHLCV, constituents and weights
         id: index_refresh
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
         continue-on-error: true
         run: python -m src.index_constituent_intelligence
+      - name: Publish constituent-feature generation status
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          report_path = Path("data/index_constituent_intelligence_audit.json")
+          print("## Point-in-time constituent-feature generation")
+          if not report_path.is_file():
+              print("- Status: **BLOCKED**")
+              print("- Reason: generator audit artifact was not produced")
+          else:
+              report = json.loads(report_path.read_text(encoding="utf-8"))
+              diag = report.get("feature_diagnostics", {})
+              print(f"- Status: **{report.get('status', 'UNKNOWN')}**")
+              print(f"- Feature rows: **{report.get('feature_rows', 0)}**")
+              print(f"- Blocked reason: `{report.get('feature_blocked_reason') or 'none'}`")
+              print(f"- Latest stock/index dates: {diag.get('latest_stock_date')} / {diag.get('latest_index_date')}")
+              print(f"- Latest membership observation: {diag.get('latest_membership_as_of_date')}")
+              print(f"- Rows after point-in-time membership filter: {diag.get('rows_after_membership_asof', 0)}")
+              print(f"- Unmatched membership symbols: {diag.get('unmatched_membership_symbol_count', 0)}")
+          PY
       - name: Refresh NSE listing-date master and historical coverage audit
         id: listing_refresh
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
         continue-on-error: true
         run: python -m src.historical_coverage_audit
-      - name: Record live source refresh outcomes
-        if: always()
-        env:
-          CALENDAR_REFRESH: ${{ steps.calendar_refresh.outcome }}
-          INDEX_REFRESH: ${{ steps.index_refresh.outcome }}
-          LISTING_REFRESH: ${{ steps.listing_refresh.outcome }}
-        run: |
-          {
-            echo "## Live source refresh probes"
-            echo ""
-            echo "| Source | Result |"
-            echo "|---|---|"
-            echo "| NSE official calendar | ${CALENDAR_REFRESH} |"
-            echo "| Index OHLCV / constituents / weights | ${INDEX_REFRESH} |"
-            echo "| NSE listing-date master / history audit | ${LISTING_REFRESH} |"
-            echo ""
-            echo "A failed source probe does not stop the data-quality audit or the independent regression suites."
-          } >> "$GITHUB_STEP_SUMMARY"
       - name: Validate source-backed historical gross trade recovery
         id: phase130_recovery
         run: python -m src.phase130_historical_gross_recovery
@@ -90,6 +126,87 @@ jobs:
       - name: Verify broker cost documents and manifest without ledger backfill
         id: phase132_broker_cost_evidence
         run: python -m src.phase132_broker_cost_evidence
+      - name: Generate weekend data-quality audit evidence
+        id: weekend_audit
+        continue-on-error: true
+        run: python -m src.weekend_data_quality_audit
+      - name: Run chronological shadow index-feature OOS validation when index history exists
+        if: hashFiles('data/index_ohlcv.csv') != ''
+        id: index_feature_oos
+        continue-on-error: true
+        run: python -m src.index_feature_validation
+      - name: Record live source refresh outcomes
+        if: always()
+        env:
+          CALENDAR_REFRESH: ${{ steps.calendar_refresh.outcome }}
+          INDEX_REFRESH: ${{ steps.index_refresh.outcome }}
+          LISTING_REFRESH: ${{ steps.listing_refresh.outcome }}
+          INDEX_FEATURE_OOS: ${{ steps.index_feature_oos.outcome }}
+        run: |
+          {
+            echo "## Live source refresh probes"
+            echo ""
+            echo "| Source | Result |"
+            echo "|---|---|"
+            echo "| NSE official calendar | ${CALENDAR_REFRESH} |"
+            echo "| Index OHLCV / constituents / weights | ${INDEX_REFRESH} |"
+            echo "| NSE listing-date master / history audit | ${LISTING_REFRESH} |"
+            echo "| Chronological index-feature OOS evaluation | ${INDEX_FEATURE_OOS:-not-run} |"
+            if [ "${INDEX_REFRESH}" = "skipped" ] || [ "${INDEX_REFRESH}" = "failure" ]; then
+              echo "Index OHLCV refresh did not run successfully; the OOS evaluation cannot produce evidence from this run."
+            elif [ ! -s data/index_ohlcv.csv ]; then
+              echo "Index OHLCV source produced no usable history; OOS evidence remains blocked. No substitute data is generated."
+            fi
+            echo ""
+            echo "A failed source probe does not stop the data-quality audit or the independent regression suites."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Write immutable workflow run provenance manifest
+        if: always()
+        env:
+          GIT_COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+          CALENDAR_OUTCOME: ${{ steps.calendar_refresh.outcome }}
+          INDEX_OUTCOME: ${{ steps.index_refresh.outcome }}
+          LISTING_OUTCOME: ${{ steps.listing_refresh.outcome }}
+          UDIFF_OUTCOME: ${{ steps.nse_udiff.outcome }}
+          UNIVERSE_OBSERVATION_OUTCOME: ${{ steps.universe_observation.outcome }}
+          OOS_OUTCOME: ${{ steps.index_feature_oos.outcome }}
+        run: |
+          mkdir -p audit/model_progress
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          from pathlib import Path
+          payload = {
+              "schema_version": "1.0.0",
+              "workflow": "model-progress-audit",
+              "commit_sha": os.environ["GIT_COMMIT"],
+              "run_id": int(os.environ["RUN_ID"]),
+              "run_attempt": int(os.environ["RUN_ATTEMPT"]),
+              "event": os.environ["EVENT_NAME"],
+              "actor": os.environ["ACTOR"],
+              "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+              "source_outcomes": {
+                  "nse_market_calendar": os.environ.get("CALENDAR_OUTCOME", "not-run"),
+                  "index_data": os.environ.get("INDEX_OUTCOME", "not-run"),
+                  "nse_listing_master": os.environ.get("LISTING_OUTCOME", "not-run"),
+                  "nse_udiff_research_ingestion": os.environ.get("UDIFF_OUTCOME", "not-run"),
+                  "nifty50_universe_observation": os.environ.get("UNIVERSE_OBSERVATION_OUTCOME", "not-run"),
+                  "index_feature_oos": os.environ.get("OOS_OUTCOME", "not-run"),
+              },
+              "scope": "research_and_audit_only",
+              "canonical_ohlcv_mutated_by_udiff_ingestion": False,
+              "paper_trade_ledger_mutated": False,
+              "model_promotion_authorized": False,
+              "live_execution_enabled": False,
+          }
+          path = Path("audit/model_progress/run_manifest.json")
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print(json.dumps(payload, indent=2, sort_keys=True))
+          PY
       - name: Audit implementation, data artifacts, roadmap evidence and readiness gates
         id: audit
         continue-on-error: true
@@ -109,12 +226,20 @@ jobs:
           name: model-progress-inventory
           path: |
             audit/model_progress/
+            audit/broker_udiff/
+            audit/broker_universe/
             data/phase130_historical_gross_recovery_detail.csv
             data/phase130_historical_gross_recovery_summary.json
             data/phase131_execution_cost_provenance_detail.csv
             data/phase131_execution_cost_provenance_summary.json
             data/phase132_broker_cost_evidence_detail.csv
             data/phase132_broker_cost_evidence_summary.json
+            data/weekend_data_quality_audit.json
+            data/weekend_data_quality_audit.csv
+            data/index_feature_validation.json
+            data/index_constituent_intelligence_audit.json
+            data/index_constituent_features.csv
+            data/index_constituents_history.csv
             data/execution_cost_evidence_manifest.csv
           if-no-files-found: warn
           retention-days: 30
@@ -142,7 +267,7 @@ jobs:
       matrix:
         include:
           - suite: foundations-and-data
-            paths: "tests/test_model_progress_audit_data_quality.py tests/test_pipeline_data_quality.py tests/test_prediction_validation.py tests/test_corporate_action_adjustments.py tests/test_historical_coverage_audit.py tests/test_repair_historical_gaps.py tests/test_market_calendar.py tests/test_index_constituent_intelligence.py tests/test_index_intelligence_data_quality.py tests/test_weekend_data_quality_audit.py"
+            paths: "tests/test_model_progress_audit_data_quality.py tests/test_pipeline_data_quality.py tests/test_prediction_validation.py tests/test_corporate_action_adjustments.py tests/test_historical_coverage_audit.py tests/test_repair_historical_gaps.py tests/test_market_calendar.py tests/test_index_constituent_intelligence.py tests/test_index_intelligence_data_quality.py tests/test_weekend_data_quality_audit.py tests/test_broker_data_contracts.py tests/test_nse_udiff_reconciliation.py tests/test_broker_schema_compatibility.py tests/test_nse_universe_observation.py tests/test_universe_membership_provenance.py"
           - suite: forecasting-and-ranking
             paths: "tests/test_directional_model.py tests/test_confidence.py tests/test_pipeline_ranking.py tests/test_phase128_ranking_authority_audit.py tests/test_phase129_ranking_utility_audit.py tests/test_news_context.py"
           - suite: risk-and-paper-trading

@@ -423,3 +423,26 @@ def test_prelisting_audit_reports_every_affected_symbol_not_only_top_twenty(tmp_
     assert "affected_symbols=25" in result["detail"]
     assert "by_symbol_all=" in result["detail"]
     assert all(f"{symbol}:count=4" in result["detail"] for symbol in symbols)
+
+def test_pnl_audit_surfaces_gross_recovery_without_unblocking_net_gate(tmp_path, monkeypatch):
+    data = tmp_path / "data"
+    data.mkdir(parents=True)
+    (data / "phase130_historical_gross_recovery_summary.json").write_text(json.dumps({
+        "gross_source_recoverable_rows": 145,
+        "gross_source_unresolved_rows": 4,
+        "costs_recovered_rows": 0,
+        "net_profit_loss_recovered_rows": 0,
+        "canonical_ledger_backfilled": False,
+        "missing_facts_inferred": False,
+    }), encoding="utf-8")
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+
+    detail = audit._append_gross_recovery_context("Current evidence report status: BLOCKED")
+
+    assert "source-backed gross rows=145" in detail
+    assert "gross rows unresolved=4" in detail
+    assert "costs recovered=0" in detail
+    assert "net P&L recovered=0" in detail
+    assert "canonical ledger backfilled=False" in detail
+    assert "missing facts inferred=False" in detail
+    assert "Current evidence report status: BLOCKED" in detail

@@ -1,0 +1,5 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"broker/fundamentals/1.0.0","title":"BROKER point-in-time fundamentals",
+ "type":"object","required":["schema_version","symbol","period_end","available_at","source"],
+ "properties":{"schema_version":{"const":"1.0.0"},"symbol":{"type":"string","minLength":1},"period_end":{"type":"string","format":"date"},"available_at":{"type":"string","format":"date-time"},"source":{"type":"string","minLength":1},"market_cap":{"type":["number","null"],"minimum":0},"enterprise_value":{"type":["number","null"],"minimum":0},"pe_ttm":{"type":["number","null"]},"pb":{"type":["number","null"]},"roe":{"type":["number","null"]},"roce":{"type":["number","null"]},"sales_growth_3y":{"type":["number","null"]},"profit_growth_3y":{"type":["number","null"]},"dividend_yield":{"type":["number","null"],"minimum":0}}
+}

@@ -1,0 +1,5 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"broker/ingestion-manifest/1.0.0","title":"Immutable market-data ingestion manifest",
+ "type":"object","additionalProperties":false,"required":["schema_version","dataset","source_id","source_url","exchange","session_date","retrieved_at","raw_sha256","normalized_sha256","raw_file","normalized_file","record_count","research_only"],
+ "properties":{"schema_version":{"const":"1.0.0"},"dataset":{"type":"string","minLength":1},"source_id":{"type":"string","minLength":1},"source_url":{"type":"string","format":"uri"},"exchange":{"enum":["NSE","BSE","MCX"]},"session_date":{"type":"string","format":"date"},"retrieved_at":{"type":"string","format":"date-time"},"raw_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"normalized_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"raw_file":{"type":"string","minLength":1},"normalized_file":{"type":"string","minLength":1},"record_count":{"type":"integer","minimum":1},"series_filter":{"type":"string"},"research_only":{"const":true}}
+}

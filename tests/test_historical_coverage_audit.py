@@ -145,7 +145,7 @@ def test_listing_master_persists_schema_when_official_sources_unavailable(tmp_pa
     assert list(pd.read_csv(listing_master.FILE).columns) == listing_master.COLS
 
 
-def test_nse_pipe_security_master_uses_documented_listing_date_field():
+def test_nse_legacy_pipe_security_master_layout_remains_supported():
     import gzip
     from src.listing_master import parse_security_master
     fields = [""] * 54
@@ -155,6 +155,28 @@ def test_nse_pipe_security_master_uses_documented_listing_date_field():
     fields[27] = str(int((pd.Timestamp("2024-01-15") - pd.Timestamp("1980-01-01")).total_seconds()))
     fields[53] = "INE123A01016"
     payload = ("NEATCM|01.00.00|0\n" + "|".join(fields) + "\n").encode()
+    found = parse_security_master(gzip.compress(payload), {"ABC"},
+        "https://nsearchives.nseindia.com/content/cm/NSE_CM_security_15012024.csv.gz")
+    assert len(found) == 1
+    assert found[0]["listing_date"] == "2024-01-15"
+    assert found[0]["company_name"] == "ABC Limited"
+    assert found[0]["isin"] == "INE123A01016"
+
+
+def test_nse_mii_v16_pipe_security_master_uses_specified_fields():
+    import gzip
+    from src.listing_master import parse_security_master
+
+    # v1.6 record fields after expanding the six market-eligibility values:
+    # symbol=1, company name=15, listing date=21, ISIN=47.
+    fields = [""] * 48
+    fields[0] = "12345"
+    fields[1] = "ABC"
+    fields[15] = "ABC Limited"
+    fields[21] = str(int((pd.Timestamp("2024-01-15") - pd.Timestamp("1980-01-01")).total_seconds()))
+    fields[47] = "INE123A01016"
+    payload = ("NEATCM|01.00.00|0\n" + "|".join(fields) + "\n").encode()
+
     found = parse_security_master(gzip.compress(payload), {"ABC"},
         "https://nsearchives.nseindia.com/content/cm/NSE_CM_security_15012024.csv.gz")
     assert len(found) == 1
@@ -184,3 +206,116 @@ def test_official_equity_listing_csv_rejects_unknown_schema():
     import pytest
     with pytest.raises(ValueError, match="Symbol/Date of Listing"):
         parse_equity_listing_csv("Ticker,Name\nAAA,AAA Limited\n", {"AAA"}, "official-source")
+
+
+def test_equity_listing_fallback_uses_second_mirror_for_remaining_symbols(monkeypatch):
+    from src import listing_master
+
+    class Response:
+        def __init__(self, content):
+            self.content = content
+        def raise_for_status(self):
+            return None
+
+    class Session:
+        def __init__(self):
+            self.calls = []
+        def get(self, url, timeout, headers):
+            self.calls.append(url)
+            if url == listing_master.EQUITY_LIST_URLS[0]:
+                payload = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\nABC,ABC Limited,INE123A01016,15-Jan-2024\n"
+            else:
+                payload = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\nDEF,DEF Limited,INE123A01024,16-Jan-2024\n"
+            return Response(payload)
+
+    session = Session()
+    found, audit = listing_master.refresh_from_equity_listing(session, {"ABC", "DEF"})
+
+    assert {row["symbol"] for row in found} == {"ABC", "DEF"}
+    assert len(session.calls) == 2
+    assert audit["status"] == "PASS"
+    assert audit["symbols_found"] == 2
+    assert audit["symbols_unresolved"] == []
+
+
+def test_equity_listing_fallback_stops_after_complete_first_mirror():
+    from src import listing_master
+
+    class Response:
+        content = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\nABC,ABC Limited,INE123A01016,15-Jan-2024\n"
+        def raise_for_status(self):
+            return None
+
+    class Session:
+        def __init__(self):
+            self.calls = 0
+        def get(self, url, timeout, headers):
+            self.calls += 1
+            return Response()
+
+    session = Session()
+    found, audit = listing_master.refresh_from_equity_listing(session, {"ABC"})
+
+    assert len(found) == 1
+    assert session.calls == 1
+    assert audit["status"] == "PASS"
+
+# The fallback tests use real CSV line breaks to exercise pandas parsing.
+
+
+def test_curated_nse_reit_listing_dates_cover_symbols_missing_from_equity_master():
+    from src.listing_master import refresh_from_reit_listing
+
+    rows, audit = refresh_from_reit_listing({"BAGMANE", "BIRET", "EMBASSY", "UNKNOWN"})
+    by_symbol = {row["symbol"]: row for row in rows}
+
+    assert audit["status"] == "PARTIAL"
+    assert audit["symbols_unresolved"] == ["UNKNOWN"]
+    assert {symbol: row["listing_date"] for symbol, row in by_symbol.items()} == {
+        "BAGMANE": "2026-05-14",
+        "BIRET": "2021-02-16",
+        "EMBASSY": "2019-04-01",
+    }
+    assert all("nsearchives.nseindia.com" in row["listing_date_source"] for row in rows)
+    assert all(row["isin"].startswith("IN") for row in rows)
+
+
+def test_listing_master_uses_nse_reit_evidence_after_equity_master_fallbacks(tmp_path, monkeypatch):
+    from requests import HTTPError
+    from src import listing_master
+
+    class Response:
+        content = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\n"
+        def raise_for_status(self):
+            raise HTTPError("403 Client Error: Forbidden")
+
+    class CsvResponse:
+        content = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\n"
+        def raise_for_status(self):
+            return None
+
+    class Session:
+        def __init__(self):
+            self.headers = {}
+        def get(self, url, timeout, **kwargs):
+            if url == listing_master.HOME:
+                return object()
+            if "quote-equity" in url or "NSE_CM_security_" in url:
+                return Response()
+            return CsvResponse()
+
+    monkeypatch.setattr(listing_master, "DATA", tmp_path)
+    monkeypatch.setattr(listing_master, "FILE", tmp_path / "nse_listing_master.csv")
+    result = listing_master.refresh_listing_master(
+        ["BAGMANE", "BIRET", "EMBASSY"], session=Session(),
+        delay_seconds=0, max_attempts=1,
+    )
+
+    saved = pd.read_csv(listing_master.FILE, dtype=str).set_index("symbol")
+    assert result["status"] == "PASS"
+    assert result["symbols_cached"] == 3
+    assert result["symbols_unresolved"] == []
+    assert result["reit_listing_fallback"]["status"] == "PASS"
+    assert saved.loc["BAGMANE", "listing_date"] == "2026-05-14"
+    assert saved.loc["BIRET", "listing_date"] == "2021-02-16"
+    assert saved.loc["EMBASSY", "listing_date"] == "2019-04-01"

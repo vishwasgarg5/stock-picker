@@ -140,3 +140,58 @@ def test_latest_completed_session_skips_current_preopen_day(monkeypatch):
         lambda day: pd.Timestamp(day).date() == pd.Timestamp("2026-11-16").date())
     now = datetime(2026, 11, 17, 5, 15, tzinfo=ZoneInfo("Asia/Kolkata"))
     assert ici.latest_completed_session_date(now) == pd.Timestamp("2026-11-16").date()
+
+
+def test_zero_rows_explain_membership_snapshot_newer_than_market_data():
+    dates = pd.bdate_range("2026-10-01", "2026-11-16")
+    stock = pd.DataFrame({"date": dates, "symbol": "AAA", "close": np.arange(100, 100 + len(dates))})
+    index = pd.DataFrame({"date": dates, "index": "NIFTY50", "close": np.arange(200, 200 + len(dates))})
+    membership = pd.DataFrame({
+        "index": ["NIFTY50"], "symbol": ["AAA"], "as_of_date": ["2026-11-17"],
+        "weight_pct": [10.0], "weight_method": ["ESTIMATED_FFMC_PROXY"],
+    })
+    diagnostics = {}
+
+    out = ici.build_constituent_features(stock, index, membership, diagnostics=diagnostics)
+
+    assert out.empty
+    assert diagnostics["status"] == "BLOCKED"
+    assert diagnostics["blocked_reason"] == "MEMBERSHIP_SNAPSHOT_NEWER_THAN_MARKET_DATA"
+    assert diagnostics["latest_stock_date"] == "2026-11-16"
+    assert diagnostics["latest_index_date"] == "2026-11-16"
+    assert diagnostics["latest_membership_as_of_date"] == "2026-11-17"
+    assert diagnostics["date_overlap_rows"] > 0
+    assert diagnostics["rows_after_membership_asof"] == 0
+    assert diagnostics["historical_membership_backfilled"] is False
+
+
+def test_zero_rows_identify_symbol_mapping_mismatch_without_rewriting_symbols():
+    dates = pd.bdate_range("2026-10-01", periods=25)
+    stock = pd.DataFrame({"date": dates, "symbol": "AAA.NS", "close": np.arange(100, 125)})
+    index = pd.DataFrame({"date": dates, "index": "NIFTY50", "close": np.arange(200, 225)})
+    membership = pd.DataFrame({
+        "index": ["NIFTY50"], "symbol": ["AAA"], "as_of_date": ["2026-10-01"],
+        "weight_pct": [10.0], "weight_method": ["OFFICIAL_NSE_WEIGHT"],
+    })
+    diagnostics = {}
+
+    out = ici.build_constituent_features(stock, index, membership, diagnostics=diagnostics)
+
+    assert out.empty
+    assert diagnostics["blocked_reason"] == "NO_MEMBERSHIP_SYMBOLS_MATCH_STOCK_HISTORY"
+    assert diagnostics["unmatched_membership_symbols"] == ["AAA"]
+    assert diagnostics["matched_stock_symbol_groups"] == 0
+
+
+def test_zero_rows_identify_missing_point_in_time_membership_snapshots():
+    dates = pd.bdate_range("2026-10-01", periods=25)
+    stock = pd.DataFrame({"date": dates, "symbol": "AAA", "close": np.arange(100, 125)})
+    index = pd.DataFrame({"date": dates, "index": "NIFTY50", "close": np.arange(200, 225)})
+    diagnostics = {}
+
+    out = ici.build_constituent_features(stock, index, pd.DataFrame(), diagnostics=diagnostics)
+
+    assert out.empty
+    assert diagnostics["status"] == "BLOCKED"
+    assert diagnostics["blocked_reason"] == "NO_CONSTITUENT_SNAPSHOTS"
+    assert diagnostics["historical_membership_backfilled"] is False

@@ -206,3 +206,56 @@ def test_official_equity_listing_csv_rejects_unknown_schema():
     import pytest
     with pytest.raises(ValueError, match="Symbol/Date of Listing"):
         parse_equity_listing_csv("Ticker,Name\nAAA,AAA Limited\n", {"AAA"}, "official-source")
+
+
+def test_equity_listing_fallback_uses_second_mirror_for_remaining_symbols(monkeypatch):
+    from src import listing_master
+
+    class Response:
+        def __init__(self, content):
+            self.content = content
+        def raise_for_status(self):
+            return None
+
+    class Session:
+        def __init__(self):
+            self.calls = []
+        def get(self, url, timeout, headers):
+            self.calls.append(url)
+            if url == listing_master.EQUITY_LIST_URLS[0]:
+                payload = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\\nABC,ABC Limited,INE123A01016,15-Jan-2024\\n"
+            else:
+                payload = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\\nDEF,DEF Limited,INE123A01024,16-Jan-2024\\n"
+            return Response(payload)
+
+    session = Session()
+    found, audit = listing_master.refresh_from_equity_listing(session, {"ABC", "DEF"})
+
+    assert {row["symbol"] for row in found} == {"ABC", "DEF"}
+    assert len(session.calls) == 2
+    assert audit["status"] == "PASS"
+    assert audit["symbols_found"] == 2
+    assert audit["symbols_unresolved"] == []
+
+
+def test_equity_listing_fallback_stops_after_complete_first_mirror():
+    from src import listing_master
+
+    class Response:
+        content = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\\nABC,ABC Limited,INE123A01016,15-Jan-2024\\n"
+        def raise_for_status(self):
+            return None
+
+    class Session:
+        def __init__(self):
+            self.calls = 0
+        def get(self, url, timeout, headers):
+            self.calls += 1
+            return Response()
+
+    session = Session()
+    found, audit = listing_master.refresh_from_equity_listing(session, {"ABC"})
+
+    assert len(found) == 1
+    assert session.calls == 1
+    assert audit["status"] == "PASS"

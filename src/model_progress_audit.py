@@ -346,11 +346,32 @@ def audit_live_data(rows):
                         f"listing={row.listing_date.date()}"
                         for symbol, row in grouped.head(20).iterrows()
                     ]
+                affected_symbols = set(grouped.index.astype(str)) if count_before else set()
+                # A pre-listing date is a provenance exception, not proof of a
+                # bad price row: legitimate BSE history, permitted-to-trade
+                # windows and predecessor securities can predate NSE admission.
+                # Keep it red until every affected symbol has an explicit case
+                # in the provenance registry; the separate provenance check
+                # remains REVIEW until row-level source evidence is available.
+                registry_symbols = set()
+                registry_path = ROOT / "data/historical_listing_provenance.csv"
+                if registry_path.is_file():
+                    try:
+                        registry = pd.read_csv(registry_path, usecols=["symbol"])
+                        registry_symbols = set(registry["symbol"].dropna().astype(str).str.upper().str.strip())
+                    except (ValueError, OSError, pd.errors.ParserError):
+                        registry_symbols = set()
+                has_complete_case_coverage = bool(affected_symbols) and affected_symbols.issubset(registry_symbols)
+                result = ("REVIEW" if count_before and has_complete_case_coverage
+                          else "FAIL" if count_before else "PASS")
                 add(rows, "Live data quality and freshness", "OHLCV does not precede verified listing date",
-                    "FAIL" if count_before else "PASS",
+                    result,
                     f"pre_listing_bars={count_before}; affected_symbols={len(by_symbol)}; "
-                    f"by_symbol_top20={by_symbol}; examples={examples}",
-                    "data/ohlcv.csv + data/nse_listing_master.csv")
+                    f"by_symbol_top20={by_symbol}; examples={examples}; "
+                    f"provenance_case_coverage={len(affected_symbols & registry_symbols)}/{len(affected_symbols)}; "
+                    f"row_level_exchange_attribution_unresolved={bool(count_before)}; "
+                    f"see Pre-listing historical exchange provenance for evidence status",
+                    "data/ohlcv.csv + data/nse_listing_master.csv + data/historical_listing_provenance.csv")
 
     # Keep the pre-listing diagnosis independent from the basic OHLCV checks.
     # This audit records exchange-event evidence but never guesses the source

@@ -319,3 +319,52 @@ def test_pre_listing_audit_reports_per_symbol_counts_and_date_ranges(tmp_path, m
     assert "pre_listing_bars=100" in result["detail"]
     assert "AAA:count=50,first=2019-01-01,last=2019-02-19,listing=2020-01-01" in result["detail"]
     assert "BBB:count=50,first=2019-01-01,last=2019-02-19,listing=2020-01-01" in result["detail"]
+
+
+def test_prelisting_bars_with_symbol_provenance_case_are_review_not_false_failure(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    dates = pd.date_range("2019-01-01", periods=100, freq="D")
+    pd.DataFrame([{
+        "date": day, "symbol": "AAA", "open": 10, "high": 12,
+        "low": 9, "close": 11, "volume": 100,
+    } for day in dates]).to_csv(data / "ohlcv.csv", index=False)
+    pd.DataFrame([{
+        "symbol": "AAA", "listing_date": "2020-01-01",
+        "listing_date_source": "https://www.nseindia.com/api/quote-equity?symbol=AAA",
+        "verified_at_utc": "2026-11-16T00:00:00Z",
+    }]).to_csv(data / "nse_listing_master.csv", index=False)
+    pd.DataFrame([{
+        "symbol": "AAA", "event_type": "BSE_HISTORY_REVIEW",
+        "predecessor_symbol": "", "evidence_start_date": "", "evidence_end_date": "",
+        "evidence_exchange": "BSE", "evidence_url": "https://example.com/evidence",
+        "evidence_note": "Case registered; individual bar source still requires verification.",
+        "classification_status": "ROW_SOURCE_UNVERIFIED",
+    }]).to_csv(data / "historical_listing_provenance.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "OHLCV does not precede verified listing date")
+    assert result["status"] == "REVIEW"
+    assert "provenance_case_coverage=1/1" in result["detail"]
+    assert "row_level_exchange_attribution_unresolved=True" in result["detail"]
+
+
+def test_prelisting_bars_without_provenance_case_remain_failure(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    dates = pd.date_range("2019-01-01", periods=100, freq="D")
+    pd.DataFrame([{
+        "date": day, "symbol": "AAA", "open": 10, "high": 12,
+        "low": 9, "close": 11, "volume": 100,
+    } for day in dates]).to_csv(data / "ohlcv.csv", index=False)
+    pd.DataFrame([{
+        "symbol": "AAA", "listing_date": "2020-01-01",
+        "listing_date_source": "https://www.nseindia.com/api/quote-equity?symbol=AAA",
+        "verified_at_utc": "2026-11-16T00:00:00Z",
+    }]).to_csv(data / "nse_listing_master.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "OHLCV does not precede verified listing date")
+    assert result["status"] == "FAIL"

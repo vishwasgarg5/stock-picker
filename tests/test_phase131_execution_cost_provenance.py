@@ -78,6 +78,8 @@ def test_legacy_recorded_cost_matches_simulation_rate_but_is_not_broker_evidence
     assert detail.iloc[0]["recorded_cost_rate"] == 0.001
     assert bool(detail.iloc[0]["matches_current_simulation_rate"]) is True
     assert summary["configured_cost_model"]["rate"] == 0.001
+    assert {m["source"] for m in summary["configured_cost_model"]["models"]} == {"src/pipeline.py", "src/paper_trading.py"}
+    assert all(m["rate"] == 0.001 for m in summary["configured_cost_model"]["models"])
     assert summary["configured_cost_model"]["actual_broker_cost_evidence"] is False
     assert summary["status"] == "REVIEW"
 

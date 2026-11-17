@@ -119,7 +119,7 @@ def test_buy_candidates_missing_quantity_remain_visible_as_blocked_rows():
     assert summary["blocked_rows"] == 2
     missing_quantity = detail.loc[detail["symbol"].eq("DEF")].iloc[0]
     assert missing_quantity["status"] == "BLOCKED_MISSING_EXECUTION_QUANTITY"
-    assert missing_quantity["execution_quantity"] is None
+    assert pd.isna(missing_quantity["execution_quantity"])
     assert missing_quantity["execution_quantity_status"] == "MISSING_OR_INVALID_RECORDED_QUANTITY"
     assert summary["costs_inferred"] is False
     assert summary["canonical_ledger_mutated"] is False

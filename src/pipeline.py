@@ -41,6 +41,16 @@ PAPER_CAPITAL = 100000.0
 # Conservative simulated round-trip cost assumption; not a broker fee quote.
 PAPER_ROUND_TRIP_COST_PCT = 0.001
 
+INDEX_FEATURE_INDEXES = (
+    "NIFTY50", "NIFTYNEXT50", "NIFTY100", "NIFTY200", "NIFTY500",
+    "BANKNIFTY", "NIFTYIT", "NIFTYAUTO", "NIFTYFIN", "NIFTYPHARMA", "NIFTYFMCG",
+)
+INDEX_HISTORY_FILE = DATA / "index_ohlcv.csv"
+INDEX_MARKET_FEATURE_COLUMNS = [
+    f"index_{index.lower()}_{suffix}"
+    for index in INDEX_FEATURE_INDEXES
+    for suffix in ("return_1d", "return_5d", "available_1d", "available_5d")
+]
 FEATURE_COLUMNS = [
     "return_1d", "return_5d", "return_20d",
     "sma20", "sma50", "ema20", "ema50",
@@ -48,7 +58,7 @@ FEATURE_COLUMNS = [
     "atr14_pct", "macd", "macd_signal",
     "bb_position", "range_pct", "close_sma20_gap",
     "close_sma50_gap", "volatility20", "volume_trend5",
-]
+] + INDEX_MARKET_FEATURE_COLUMNS
 TARGETS = {"open": "target_open_return", "high": "target_high_return", "low": "target_low_return", "close": "target_close_return"}
 EMPTY_HISTORY = ["date", "symbol", "open", "high", "low", "close", "volume", "dividends", "stock_splits"]
 
@@ -507,6 +517,63 @@ def rsi(close: pd.Series, period: int = 14) -> pd.Series:
     return 100 - (100 / (1 + rs))
 
 
+def merge_index_market_features(
+    stock_frame: pd.DataFrame,
+    index_history: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Attach same-session index returns without using future bars or membership lookahead.
+
+    Missing observations are represented by zero plus an explicit horizon-specific
+    availability flag; zero is never interpreted as an observed flat return.
+    """
+    if stock_frame.empty:
+        result = stock_frame.copy()
+        for column in INDEX_MARKET_FEATURE_COLUMNS:
+            result[column] = pd.Series(dtype=float)
+        return result
+    x = stock_frame.copy()
+    x["_index_join_date"] = pd.to_datetime(x["date"], errors="coerce").dt.tz_localize(None).dt.normalize()
+    if index_history is None:
+        try:
+            index_history = pd.read_csv(INDEX_HISTORY_FILE)
+        except (FileNotFoundError, pd.errors.EmptyDataError):
+            index_history = pd.DataFrame()
+    required = {"date", "index", "close"}
+    if index_history is None or index_history.empty or not required.issubset(index_history.columns):
+        for column in INDEX_MARKET_FEATURE_COLUMNS:
+            x[column] = 0.0
+        x = x.drop(columns=["_index_join_date"])
+        return x
+    idx = index_history[["date", "index", "close"]].copy()
+    idx["date"] = pd.to_datetime(idx["date"], errors="coerce").dt.tz_localize(None).dt.normalize()
+    idx["index"] = idx["index"].astype(str).str.upper().str.strip()
+    idx["close"] = pd.to_numeric(idx["close"], errors="coerce")
+    idx = idx.dropna(subset=["date", "index", "close"])
+    idx = idx.loc[idx["index"].isin(INDEX_FEATURE_INDEXES) & idx["close"].gt(0)]
+    idx = idx.drop_duplicates(["index", "date"], keep="last").sort_values(["index", "date"])
+    pieces = []
+    for index, group in idx.groupby("index", sort=False):
+        group = group.sort_values("date").copy()
+        prefix = f"index_{index.lower()}_"
+        group[prefix + "return_1d"] = group["close"].pct_change(fill_method=None)
+        group[prefix + "return_5d"] = group["close"].pct_change(5, fill_method=None)
+        group[prefix + "available_1d"] = group[prefix + "return_1d"].notna().astype(float)
+        group[prefix + "available_5d"] = group[prefix + "return_5d"].notna().astype(float)
+        pieces.append(group[["date"] + [prefix + suffix for suffix in
+            ("return_1d", "return_5d", "available_1d", "available_5d")]])
+    if pieces:
+        wide = pieces[0]
+        for piece in pieces[1:]:
+            wide = wide.merge(piece, on="date", how="outer", validate="one_to_one")
+        wide = wide.rename(columns={"date": "_index_join_date"})
+        x = x.merge(wide, on="_index_join_date", how="left", validate="many_to_one", sort=False)
+    for column in INDEX_MARKET_FEATURE_COLUMNS:
+        if column not in x:
+            x[column] = 0.0
+        x[column] = pd.to_numeric(x[column], errors="coerce").fillna(0.0)
+    return x.drop(columns=["_index_join_date"])
+
+
 def features(df: pd.DataFrame) -> pd.DataFrame:
     """Build strictly historical, next-day-safe features for each stock."""
     df = _add_split_adjusted_columns(df)
@@ -540,7 +607,7 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
     df["volume_ratio"] = volume / df["volume_ma20"].replace(0, np.nan)
     df["volume_ma5"] = g["split_adjusted_volume"].transform(lambda x: x.rolling(5).mean())
     df["volume_trend5"] = df["volume_ma5"] / df["volume_ma20"].replace(0, np.nan)
-    return df
+    return merge_index_market_features(df)
 
 
 def market_regime(df: pd.DataFrame) -> str:

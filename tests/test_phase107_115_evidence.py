@@ -719,3 +719,29 @@ def test_fixed_share_source_evidence_localizes_invalid_rows_by_reason_and_sessio
     assert result["costs_modeled"] is False
     assert result["net_profit_loss_verified"] is False
     pd.testing.assert_frame_equal(buys, original)
+
+
+def test_phase107_treats_both_blank_split_fields_as_unprovided(tmp_path, monkeypatch):
+    import src.phase107_115_evidence as module
+    monkeypatch.setattr(module, "DATA", tmp_path)
+    trades = pd.DataFrame([{
+        "signal": "BUY", "target_date": "2026-11-16",
+        "entry_price": 100, "exit_price": 110,
+        "quantity": 2, "position_value": 200,
+        "planned_capital": 200, "reference_price": 100,
+        "pre_split_quantity": None, "split_ratio": None,
+        "profit_loss": 20, "return_pct": 10,
+        "shares": None, "allocated_capital": None,
+        "gross_profit_loss": None, "costs": None,
+    }])
+    result = phase107_pnl_reconciliation(trades)
+    evidence = result["fixed_share_source_evidence"]
+    assert evidence["candidate_rows"] == 1
+    assert evidence["validated_rows"] == 1
+    assert evidence["invalid_split_metadata_rows"] == 0
+    assert evidence["status"] == "GROSS_SOURCE_EVIDENCE_VALIDATED"
+    # Gross source evidence must not be promoted into canonical net accounting.
+    assert result["status"] == "BLOCKED"
+    assert result["incomplete_rows"] == 1
+    assert evidence["costs_modeled"] is False
+    assert evidence["source_ledger_mutated"] is False

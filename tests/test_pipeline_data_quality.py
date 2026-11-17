@@ -569,3 +569,44 @@ def test_empty_isolated_yahoo_response_is_retried_three_times(monkeypatch):
 
     assert calls == [("AAA",), ("AAA",), ("AAA",), ("AAA",)]
     assert result.empty
+
+
+def test_index_market_features_join_same_date_without_future_lookahead():
+    stock = pd.DataFrame({
+        "date": pd.to_datetime(["2026-01-02", "2026-01-03", "2026-01-06"]),
+        "symbol": ["AAA", "AAA", "AAA"],
+    })
+    index = pd.DataFrame({
+        "date": pd.to_datetime(["2026-01-01", "2026-01-02", "2026-01-03", "2026-01-06"]),
+        "index": ["NIFTY50"] * 4,
+        "close": [100.0, 101.0, 99.99, 102.0],
+    })
+    out = pipeline.merge_index_market_features(stock, index)
+    first = out.iloc[0]
+    second = out.iloc[1]
+    assert first["index_nifty50_return_1d"] == pytest.approx(0.01)
+    assert first["index_nifty50_available_1d"] == 1.0
+    assert second["index_nifty50_return_1d"] == pytest.approx(99.99 / 101.0 - 1.0)
+    assert second["index_nifty50_return_1d"] != pytest.approx(102.0 / 99.99 - 1.0)
+    assert second["index_banknifty_return_1d"] == 0.0
+    assert second["index_banknifty_available_1d"] == 0.0
+
+
+def test_index_market_features_have_explicit_missingness_and_stable_schema():
+    stock = pd.DataFrame({"date": pd.to_datetime(["2026-01-02"]), "symbol": ["AAA"]})
+    out = pipeline.merge_index_market_features(stock, pd.DataFrame())
+    assert set(pipeline.INDEX_MARKET_FEATURE_COLUMNS).issubset(out.columns)
+    assert out[pipeline.INDEX_MARKET_FEATURE_COLUMNS].eq(0.0).all().all()
+    assert len(pipeline.FEATURE_COLUMNS) == 18 + len(pipeline.INDEX_MARKET_FEATURE_COLUMNS)
+
+
+def test_index_market_features_ignore_unconfigured_index_symbols():
+    stock = pd.DataFrame({"date": pd.to_datetime(["2026-01-02"]), "symbol": ["AAA"]})
+    index = pd.DataFrame({
+        "date": pd.to_datetime(["2026-01-01", "2026-01-02"]),
+        "index": ["UNCONFIGURED", "UNCONFIGURED"],
+        "close": [100.0, 110.0],
+    })
+    out = pipeline.merge_index_market_features(stock, index)
+    assert out["index_nifty50_available_1d"].iloc[0] == 0.0
+    assert out["index_nifty50_return_1d"].iloc[0] == 0.0

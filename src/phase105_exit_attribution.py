@@ -107,6 +107,32 @@ def evaluate_exit_attribution(trades: pd.DataFrame) -> tuple[pd.DataFrame, dict[
             "exit_reason_coverage_pct": round(recorded / count * 100.0, 4) if count else None,
         }
     unknown_gross_loss = float(-unknown.loc[unknown["recorded_pnl"] < 0, "recorded_pnl"].sum())
+    # Identify whether the existing ledger contains source fields that could
+    # support later human-reviewed attribution. Prices alone are insufficient:
+    # daily OHLC cannot reveal event order when stop and target are both reached.
+    classifier_fields = (
+        "exit_signal", "trade_status", "target_price", "stop_loss",
+        "stop_loss_price", "target_pct", "stop_pct", "holding_days", "hold_days",
+    )
+    present_classifier_fields = [field for field in classifier_fields if field in unknown.columns]
+    if present_classifier_fields and not unknown.empty:
+        classifier_available = pd.DataFrame({
+            field: unknown[field].notna()
+            & unknown[field].astype(str).str.strip().ne("")
+            & ~unknown[field].astype(str).str.strip().str.upper().isin(["NAN", "NONE", "NA", "N/A"])
+            for field in present_classifier_fields
+        }).any(axis=1)
+    else:
+        classifier_available = pd.Series(False, index=unknown.index)
+    exit_reason_recovery_assessment = {
+        "unknown_reason_rows": int(len(unknown)),
+        "rows_with_exit_classifier_source_fields": int(classifier_available.sum()),
+        "rows_without_exit_classifier_source_fields": int((~classifier_available).sum()),
+        "classifier_source_fields_present": present_classifier_fields,
+        "price_only_evidence_is_sufficient": False,
+        "missing_reasons_inferred": False,
+        "interpretation": "Rows with classifier metadata can be reviewed against that source; rows without it cannot have an exit reason recovered from the current ledger alone.",
+    }
     summary = {
         **safe,
         "status": "SCORED" if len(x) >= 20 else "SMALL_SAMPLE",
@@ -124,6 +150,7 @@ def evaluate_exit_attribution(trades: pd.DataFrame) -> tuple[pd.DataFrame, dict[
         "metadata_non_null_counts_all_trades": metadata_presence,
         "metadata_non_null_counts_unknown_reason_trades": blank_metadata,
         "exit_reason_coverage_by_ledger_schema": schema_audit,
+        "exit_reason_recovery_assessment": exit_reason_recovery_assessment,
         "costs_subtracted_again": False,
         "missing_exit_reasons_inferred": False,
         "interpretation": "Prioritize fixing exit-reason recording and inspect available metadata. This report does not infer unknown exits, blacklist symbols, or alter trading rules.",

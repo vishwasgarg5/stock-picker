@@ -1,0 +1,5 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"broker/universe-observation/1.0.0","title":"Observed current index membership snapshot",
+ "type":"object","additionalProperties":false,"required":["schema_version","dataset","universe","exchange","source_id","source_url","observed_at","raw_sha256","normalized_sha256","record_count","pit_eligible","pit_reason","raw_file","normalized_file"],
+ "properties":{"schema_version":{"const":"1.0.0"},"dataset":{"const":"universe_observation"},"universe":{"type":"string","minLength":1},"exchange":{"enum":["NSE","BSE"]},"source_id":{"type":"string","minLength":1},"source_url":{"type":"string","format":"uri"},"observed_at":{"type":"string","format":"date-time"},"raw_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"normalized_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"record_count":{"type":"integer","minimum":1},"pit_eligible":{"const":false},"pit_reason":{"type":"string","minLength":1},"raw_file":{"type":"string","minLength":1},"normalized_file":{"type":"string","minLength":1}}
+}

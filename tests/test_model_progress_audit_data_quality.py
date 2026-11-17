@@ -268,3 +268,51 @@ def test_empty_listing_master_schema_is_review_not_missing_artifact(tmp_path, mo
     result = _check(rows, "Listing master field completeness and validity")
     assert result["status"] == "REVIEW"
     assert "no verified listing-date rows" in result["detail"]
+
+
+def test_listing_master_accepts_official_nse_hosts_and_rejects_lookalikes(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    sources = [
+        "https://www.nseindia.com/api/quote-equity?symbol=AAA",
+        "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+        "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
+        "https://example.com/nseindia.com/fake",
+        "https://nseindia.com.attacker.example/fake",
+        "http://www.nseindia.com/insecure",
+        "not a url",
+    ]
+    pd.DataFrame([{
+        "symbol": f"S{i}", "listing_date": "2020-01-01",
+        "listing_date_source": source,
+        "verified_at_utc": "2026-11-16T00:00:00Z",
+    } for i, source in enumerate(sources)]).to_csv(data / "nse_listing_master.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "Listing master field completeness and validity")
+    assert result["status"] == "FAIL"
+    assert "non_NSE_source_urls=4" in result["detail"]
+
+
+def test_pre_listing_audit_reports_per_symbol_counts_and_date_ranges(tmp_path, monkeypatch):
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    dates = pd.to_datetime(["2019-01-01", "2019-01-02", "2020-01-01"])
+    pd.DataFrame([{
+        "date": day, "symbol": symbol, "open": 10, "high": 12,
+        "low": 9, "close": 11, "volume": 100,
+    } for symbol in ["AAA", "BBB"] for day in dates]).to_csv(data / "ohlcv.csv", index=False)
+    pd.DataFrame([{
+        "symbol": symbol, "listing_date": "2020-01-01",
+        "listing_date_source": "https://www.nseindia.com/api/quote-equity?symbol=" + symbol,
+        "verified_at_utc": "2026-11-16T00:00:00Z",
+    } for symbol in ["AAA", "BBB"]]).to_csv(data / "nse_listing_master.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+    rows = []
+    audit.audit_live_data(rows)
+    result = _check(rows, "OHLCV does not precede verified listing date")
+    assert result["status"] == "FAIL"
+    assert "pre_listing_bars=4" in result["detail"]
+    assert "AAA:count=2,first=2019-01-01,last=2019-01-02,listing=2020-01-01" in result["detail"]
+    assert "BBB:count=2,first=2019-01-01,last=2019-01-02,listing=2020-01-01" in result["detail"]

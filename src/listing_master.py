@@ -166,24 +166,50 @@ def parse_equity_listing_csv(payload: bytes | str, requested_symbols: set[str], 
 
 
 def refresh_from_equity_listing(client, unresolved: set[str]) -> tuple[list[dict],dict]:
-    if not unresolved: return [],{"status":"SKIPPED","reason":"No unresolved symbols"}
+    """Fill unresolved listing dates across both official NSE CSV mirrors.
+
+    A partial match from the first mirror is not proof that the remaining
+    symbols are absent. Query the second mirror for only the still-unresolved
+    symbols, preserving the first valid source row for each symbol.
+    """
+    requested={str(symbol).strip().upper() for symbol in unresolved if str(symbol).strip()}
+    if not requested:
+        return [],{"status":"SKIPPED","reason":"No unresolved symbols"}
+    found_by_symbol={}
     errors=[]
+    attempted=[]
     for url in EQUITY_LIST_URLS:
+        remaining=requested-set(found_by_symbol)
+        if not remaining:
+            break
+        attempted.append(url)
         try:
             response=client.get(url,timeout=30,headers=EQUITY_LIST_HEADERS)
             response.raise_for_status()
-            found=parse_equity_listing_csv(response.content,unresolved,url)
-            if found:
-                return found,{"status":"PASS","source":url,"symbols_found":len(found),
-                    "symbols_requested":len(unresolved),"prior_endpoint_errors":errors}
-            errors.append({"source":url,"error":"CSV parsed but no requested symbols matched"})
+            rows=parse_equity_listing_csv(response.content,remaining,url)
+            for row in rows:
+                symbol=str(row.get("symbol","")).strip().upper()
+                if symbol in remaining and symbol not in found_by_symbol:
+                    found_by_symbol[symbol]=row
+            if not rows:
+                errors.append({"source":url,"error":"CSV parsed but no remaining requested symbols matched"})
         except Exception as exc:
             errors.append({"source":url,"error":str(exc)})
-            message=str(exc).lower()
-            if not any(token in message for token in ("404","403","429","502","503","504","connection","timeout")):
-                break
-    return [],{"status":"SOURCE_UNAVAILABLE","attempted_sources":list(EQUITY_LIST_URLS),
-        "symbols_requested":len(unresolved),"errors":errors}
+    found=list(found_by_symbol.values())
+    missing=sorted(requested-set(found_by_symbol))
+    status="PASS" if not missing else ("PARTIAL" if found else "SOURCE_UNAVAILABLE")
+    audit={
+        "status":status,
+        "symbols_found":len(found),
+        "symbols_requested":len(requested),
+        "symbols_unresolved":missing,
+        "attempted_sources":attempted,
+        "sources_used":sorted({row["listing_date_source"] for row in found}),
+        "errors":errors,
+    }
+    if len(audit["sources_used"])==1:
+        audit["source"]=audit["sources_used"][0]
+    return found,audit
 
 
 def refresh_from_security_master(client, unresolved: set[str], max_calendar_days: int = 10) -> tuple[list[dict],dict]:

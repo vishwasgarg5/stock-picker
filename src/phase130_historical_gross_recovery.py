@@ -22,8 +22,7 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
     required = [
         "signal", "symbol", "target_date", "entry_price", "exit_price",
         "profit_loss", "shares", "allocated_capital", "gross_profit_loss",
-        "costs", "quantity", "position_value", "planned_capital",
-        "reference_price", "pre_split_quantity", "split_ratio",
+        "costs", "position_value",
     ]
     missing_columns = [c for c in required if c not in trades.columns]
     if missing_columns:
@@ -39,63 +38,82 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
     ].copy()
     numeric_cols = [
         "entry_price", "exit_price", "profit_loss", "shares",
-        "allocated_capital", "gross_profit_loss", "costs", "quantity",
-        "position_value", "planned_capital", "reference_price",
-        "pre_split_quantity", "split_ratio",
+        "allocated_capital", "gross_profit_loss", "costs", "position_value",
     ]
+    for optional in ("quantity", "planned_capital", "reference_price",
+                     "pre_split_quantity", "split_ratio"):
+        if optional in buys.columns:
+            numeric_cols.append(optional)
     n = buys[numeric_cols].apply(pd.to_numeric, errors="coerce")
     canonical_complete = n[["shares", "allocated_capital", "gross_profit_loss", "costs"]].notna().all(axis=1)
-    source_columns = [
-        "entry_price", "exit_price", "profit_loss", "quantity",
-        "position_value", "planned_capital", "reference_price",
-        "pre_split_quantity", "split_ratio",
-    ]
-    source_values = n[source_columns]
-    finite = pd.Series(
-        np.isfinite(source_values.to_numpy(dtype=float)).all(axis=1),
-        index=buys.index,
-    )
-    source_complete = source_values.notna().all(axis=1)
-    positive = (
-        n["entry_price"].gt(0) & n["exit_price"].gt(0) & n["quantity"].gt(0)
-        & n["position_value"].gt(0) & n["planned_capital"].gt(0)
-        & n["reference_price"].gt(0) & n["pre_split_quantity"].gt(0)
-        & n["split_ratio"].gt(0)
-    )
-    shares_delta = n["pre_split_quantity"] * n["split_ratio"] - n["quantity"]
-    capital_delta = n["quantity"] * n["entry_price"] - n["position_value"]
-    planned_delta = n["pre_split_quantity"] * n["reference_price"] - n["planned_capital"]
-    gross_delta = n["quantity"] * (n["exit_price"] - n["entry_price"]) - n["profit_loss"]
+
+    # The older fixed-notional schema recorded position_value but not shares.
+    # Shares can be recovered only where position_value / entry_price and
+    # recorded P&L / price movement independently agree.
+    entry = n["entry_price"]
+    exit_price = n["exit_price"]
+    capital = n["position_value"]
+    stored_gross = n["profit_loss"]
+    observed_quantity = n["quantity"] if "quantity" in n else pd.Series(np.nan, index=buys.index)
+    implied_from_capital = capital / entry.replace(0, np.nan)
+    implied_from_pnl = stored_gross / (exit_price - entry).replace(0, np.nan)
+    shares = observed_quantity.where(observed_quantity.gt(0), implied_from_capital)
+    source_values = pd.DataFrame({
+        "entry": entry, "exit": exit_price, "capital": capital,
+        "stored_gross": stored_gross, "shares": shares,
+    }, index=buys.index)
+    finite = pd.Series(np.isfinite(source_values.to_numpy(dtype=float)).all(axis=1), index=buys.index)
+    positive = entry.gt(0) & exit_price.gt(0) & capital.gt(0) & shares.gt(0)
+    share_identity = (shares - implied_from_capital).abs().le(TOLERANCE)
+    pnl_share_identity = (shares - implied_from_pnl).abs().le(TOLERANCE)
+    gross_calculated = shares * (exit_price - entry)
+    gross_identity = (gross_calculated - stored_gross).abs().le(TOLERANCE)
+    return_calculated = stored_gross / capital * 100.0
+    if "return_pct" in buys.columns:
+        recorded_return = pd.to_numeric(buys["return_pct"], errors="coerce")
+        return_identity = (return_calculated - recorded_return).abs().le(TOLERANCE)
+    else:
+        return_identity = pd.Series(False, index=buys.index)
+
+    optional_identity = pd.Series(True, index=buys.index)
+    if {"pre_split_quantity", "split_ratio", "quantity"}.issubset(n.columns):
+        pre = n["pre_split_quantity"]
+        ratio = n["split_ratio"]
+        supplied = pre.notna() | ratio.notna()
+        paired_valid = pre.gt(0) & ratio.gt(0) & n["quantity"].gt(0)
+        split_ok = (pre * ratio - n["quantity"]).abs().le(TOLERANCE)
+        optional_identity &= ~supplied | (paired_valid & split_ok)
+    if {"planned_capital", "reference_price", "quantity"}.issubset(n.columns):
+        supplied = n["planned_capital"].notna() | n["reference_price"].notna()
+        planned_ok = (n["quantity"] * n["reference_price"] - n["planned_capital"]).abs().le(TOLERANCE)
+        optional_identity &= ~supplied | (n["planned_capital"].gt(0) & n["reference_price"].gt(0) & planned_ok)
+
     valid = (
-        finite & source_complete & positive
-        & shares_delta.abs().le(TOLERANCE)
-        & capital_delta.abs().le(TOLERANCE)
-        & planned_delta.abs().le(TOLERANCE)
-        & gross_delta.abs().le(TOLERANCE)
+        finite & positive & share_identity & pnl_share_identity
+        & gross_identity & return_identity & optional_identity
     )
     recoverable = ~canonical_complete & valid
     reason = pd.Series("SOURCE_IDENTITY_MISMATCH", index=buys.index, dtype="string")
-    reason.loc[~finite | ~source_complete] = "MISSING_OR_NONFINITE_SOURCE"
-    reason.loc[canonical_complete] = "CANONICAL_FIELDS_ALREADY_PRESENT"
+    reason.loc[~finite] = "MISSING_OR_NONFINITE_SOURCE"
+    reason.loc[finite & ~positive] = "NON_POSITIVE_SOURCE_VALUE"
     reason.loc[recoverable] = "GROSS_FIELDS_SOURCE_VALIDATED"
+    reason.loc[canonical_complete] = "CANONICAL_FIELDS_ALREADY_PRESENT"
     detail = pd.DataFrame({
         "source_row_index": buys.index,
         "symbol": buys["symbol"].astype(str),
         "target_date": buys["target_date"].astype(str),
         "recovery_status": reason,
-        "source_quantity": n["quantity"],
-        "validated_shares": n["quantity"].where(valid),
-        "validated_allocated_capital": n["position_value"].where(valid),
-        "validated_gross_profit_loss": (
-            n["quantity"] * (n["exit_price"] - n["entry_price"])
-        ).where(valid),
+        "source_quantity": observed_quantity,
+        "validated_shares": shares.where(valid),
+        "validated_allocated_capital": capital.where(valid),
+        "validated_gross_profit_loss": gross_calculated.where(valid),
         "costs_recovered": False,
         "net_profit_loss_recovered": False,
         "exit_reason_recovered": False,
-        "shares_delta": shares_delta,
-        "capital_delta": capital_delta,
-        "planned_capital_delta": planned_delta,
-        "gross_pnl_delta": gross_delta,
+        "share_identity_delta": (shares - implied_from_capital),
+        "pnl_implied_share_delta": (shares - implied_from_pnl),
+        "gross_pnl_delta": (gross_calculated - stored_gross),
+        "return_delta_pct_points": (return_calculated - pd.to_numeric(buys.get("return_pct"), errors="coerce")),
     })
     recoverable_count = int(recoverable.sum())
     summary = {
@@ -106,10 +124,13 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
         "gross_source_recoverable_rows": recoverable_count,
         "gross_source_unresolved_rows": int(len(buys) - canonical_complete.sum() - recoverable_count),
         "validated_source_identities": {
-            "shares": "pre_split_quantity * split_ratio = quantity",
-            "allocated_capital": "quantity * entry_price = position_value",
-            "planned_capital": "pre_split_quantity * reference_price = planned_capital",
-            "gross_profit_loss": "quantity * (exit_price - entry_price) = recorded profit_loss",
+            "shares": "position_value / entry_price = recorded gross profit_loss / (exit_price - entry_price)",
+            "allocated_capital": "recorded position_value",
+            "gross_profit_loss": "validated_shares * (exit_price - entry_price) = recorded profit_loss",
+            "return": "recorded profit_loss / position_value * 100 = recorded return_pct",
+            "optional_quantity": "recorded quantity must agree with the independently implied shares when present",
+            "optional_split": "pre_split_quantity * split_ratio = quantity when split metadata is supplied",
+            "optional_planned_capital": "quantity * reference_price = planned_capital when both are supplied",
         },
         "costs_recovered_rows": 0,
         "net_profit_loss_recovered_rows": 0,
@@ -118,7 +139,7 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
         "source_ledger_mutated": False,
         "missing_facts_inferred": False,
         "promotion_authorized": False,
-        "interpretation": "Validated shares, actual entry notional, and gross P&L are emitted as separate source-backed evidence only. Costs, net P&L, and exit reasons remain unresolved; the canonical ledger and promotion gate remain unchanged.",
+        "interpretation": "Shares, allocated notional, and gross P&L are independently cross-validated and reported as separate source-backed evidence. Costs, net P&L, and exit reasons remain unresolved; the canonical ledger and promotion gate remain unchanged.",
     }
     return detail, summary
 

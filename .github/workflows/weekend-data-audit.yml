@@ -40,12 +40,14 @@ jobs:
         run: python -m src.weekend_data_quality_audit
       - name: Refresh index OHLCV and constituent intelligence
         run: python -m src.index_constituent_intelligence
+      - name: Run chronological index-feature shadow validation
+        run: python -m src.index_feature_validation
 
       - name: Commit only refreshed OHLCV and weekend audit reports
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/nse_market_calendar.json data/nse_market_calendar_audit.json data/ohlcv.csv data/fundamentals.csv data/fundamentals_history.csv data/weekend_data_quality_audit.json data/weekend_data_quality_audit.csv data/historical_coverage_audit.json data/historical_coverage_audit.csv data/nse_listing_master.csv data/index_ohlcv.csv data/index_constituents_history.csv data/index_constituent_features.csv data/index_constituent_intelligence_audit.json
+          git add data/nse_market_calendar.json data/nse_market_calendar_audit.json data/ohlcv.csv data/fundamentals.csv data/fundamentals_history.csv data/weekend_data_quality_audit.json data/weekend_data_quality_audit.csv data/historical_coverage_audit.json data/historical_coverage_audit.csv data/nse_listing_master.csv data/index_ohlcv.csv data/index_constituents_history.csv data/index_constituent_features.csv data/index_constituent_intelligence_audit.json data/index_feature_validation.json
           if git diff --cached --quiet; then
             echo "No data or audit report changes to commit."
           else

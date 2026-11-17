@@ -23,7 +23,7 @@ def configured_cost_model() -> dict[str, Any]:
     if not source.is_file():
         return {"rate": None, "source": "src/paper_trading.py", "status": "SOURCE_UNAVAILABLE"}
     text = source.read_text(encoding="utf-8")
-    match = re.search(r"^ROUND_TRIP_COST_PCT\\s*=\\s*([0-9]+(?:\\.[0-9]+)?)", text, re.MULTILINE)
+    match = re.search(r"^ROUND_TRIP_COST_PCT[ ]*=[ ]*([0-9]+([.][0-9]+)?)", text, re.MULTILINE)
     if not match:
         return {"rate": None, "source": "src/paper_trading.py", "status": "RATE_NOT_FOUND"}
     return {

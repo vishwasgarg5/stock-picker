@@ -30,7 +30,7 @@ def test_normalizer_requires_exactly_50_unique_symbols():
     rows = normalize_nifty50(raw)
     assert len(rows) == 50
     assert rows[0]["symbol"] == "SYM00"
-    with pytest.raises(DataContractError, match="Expected 50"):
+    with pytest.raises(DataContractError, match="Duplicate"):
         normalize_nifty50(raw.replace(b"SYM49", b"SYM48"))
 
 

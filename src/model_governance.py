@@ -20,6 +20,19 @@ TARGET_THRESHOLDS = (0.0010, 0.0015, 0.0025, 0.0050)
 BOOTSTRAPS = 5000
 
 
+def _json_default(value):
+    """Convert NumPy scalars to native JSON values without stringifying booleans."""
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
+def _has_confidence_buckets(frame: pd.DataFrame) -> bool:
+    return not frame.empty and {"confidence_bucket", "rows"}.issubset(frame.columns)
+
+
 def _read(name: str, dates: tuple[str, ...] = ()) -> pd.DataFrame:
     p = DATA / name
     if not p.exists():
@@ -301,6 +314,7 @@ def run_governance() -> dict:
     model_drift = _model_drift()
     safety = _safety()
     confidence = _read("confidence_validation_summary.csv")
+    confidence_buckets = _read("confidence_validation.csv")
     selection = _read("phase2_performance_summary.csv")
     ranking_validation = _read("ranking_model_validation_summary.csv")
     v1_trades = _read("paper_trades.csv")
@@ -322,7 +336,7 @@ def run_governance() -> dict:
         "step_07_ranking_optimization": not ranking_validation.empty and str(ranking_validation.iloc[-1].get("diagnostic_ready", False)).lower() == "true",
         "step_08_matched_session_ledger": not v1_trades.empty and {"symbol", "target_date", "signal"}.issubset(v1_trades.columns),
         "step_09_v2_evidence_gate": phase114_path.exists(),
-        "step_10_confidence_buckets": not confidence.empty and {"confidence_bucket", "rows"}.issubset(confidence.columns),
+        "step_10_confidence_buckets": _has_confidence_buckets(confidence_buckets),
         "step_11_tail_risk": tail["v2_trades"] > 0,
         "step_12_bootstrap": bootstrap_valid,
         "step_13_statistical_promotion": bootstrap_valid and float(bootstrap["bootstrap_ci_low_pct"]) > 0,
@@ -384,8 +398,8 @@ def run_governance() -> dict:
     stocks.to_csv(DATA/"stock_stability.csv",index=False)
     features.to_csv(DATA/"feature_stability.csv",index=False)
     (DATA/"model_manifest.json").write_text(json.dumps(manifest,indent=2))
-    (DATA/"model_governance.json").write_text(json.dumps(report,indent=2,default=str))
-    print(json.dumps(report, indent=2, default=lambda value: value.item() if isinstance(value, np.generic) else str(value)))
+    (DATA/"model_governance.json").write_text(json.dumps(report,indent=2,default=_json_default))
+    print(json.dumps(report, indent=2, default=_json_default))
     if safety["status"] != "PASS":
         raise RuntimeError("Governance safety gate failed: " + "; ".join(safety["failures"]))
     return report

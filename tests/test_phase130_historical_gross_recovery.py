@@ -74,3 +74,38 @@ def test_does_not_recover_zero_allocation_rows():
     _, summary = evaluate_historical_gross_recovery(trades)
     assert summary["gross_source_recoverable_rows"] == 0
     assert summary["gross_source_unresolved_rows"] == 1
+
+
+
+def test_validates_canonical_share_capital_gross_and_return_identities():
+    trades = pd.DataFrame([{
+        "signal": "BUY", "symbol": "CANON", "target_date": "2026-11-16",
+        "entry_price": 100.0, "exit_price": 110.0, "profit_loss": 19.0,
+        "return_pct": 9.5, "shares": 2.0, "allocated_capital": 200.0,
+        "gross_profit_loss": 20.0, "costs": 1.0, "position_value": None,
+    }])
+    original = trades.copy(deep=True)
+    detail, summary = evaluate_historical_gross_recovery(trades)
+    assert summary["canonical_complete_rows"] == 1
+    assert summary["canonical_source_validated_rows"] == 1
+    assert summary["gross_source_unresolved_rows"] == 0
+    assert detail.iloc[0]["recovery_status"] == "CANONICAL_FIELDS_SOURCE_VALIDATED"
+    assert detail.iloc[0]["validated_shares"] == 2.0
+    assert detail.iloc[0]["validated_allocated_capital"] == 200.0
+    assert detail.iloc[0]["validated_gross_profit_loss"] == 20.0
+    pd.testing.assert_frame_equal(trades, original)
+
+
+def test_canonical_field_presence_does_not_hide_identity_mismatch():
+    trades = pd.DataFrame([{
+        "signal": "BUY", "symbol": "BAD", "target_date": "2026-11-16",
+        "entry_price": 100.0, "exit_price": 110.0, "profit_loss": 18.0,
+        "return_pct": 9.0, "shares": 2.0, "allocated_capital": 200.0,
+        "gross_profit_loss": 19.0, "costs": 1.0, "position_value": None,
+    }])
+    detail, summary = evaluate_historical_gross_recovery(trades)
+    assert summary["canonical_complete_rows"] == 1
+    assert summary["canonical_source_validated_rows"] == 0
+    assert summary["gross_source_unresolved_rows"] == 1
+    assert detail.iloc[0]["recovery_status"] == "CANONICAL_FIELDS_PRESENT_IDENTITY_MISMATCH"
+    assert pd.isna(detail.iloc[0]["validated_gross_profit_loss"])

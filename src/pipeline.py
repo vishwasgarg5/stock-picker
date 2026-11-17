@@ -58,7 +58,10 @@ FEATURE_COLUMNS = [
     "atr14_pct", "macd", "macd_signal",
     "bb_position", "range_pct", "close_sma20_gap",
     "close_sma50_gap", "volatility20", "volume_trend5",
-] + INDEX_MARKET_FEATURE_COLUMNS
+]
+# Research-only augmented feature set. It is intentionally excluded from the
+# production model until chronological out-of-sample validation justifies it.
+INDEX_AUGMENTED_FEATURE_COLUMNS = FEATURE_COLUMNS + INDEX_MARKET_FEATURE_COLUMNS
 TARGETS = {"open": "target_open_return", "high": "target_high_return", "low": "target_low_return", "close": "target_close_return"}
 EMPTY_HISTORY = ["date", "symbol", "open", "high", "low", "close", "volume", "dividends", "stock_splits"]
 

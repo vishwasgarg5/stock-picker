@@ -1,6 +1,8 @@
 """Verified NSE listing-date cache sourced from NSE's official quote-equity API."""
 from __future__ import annotations
-import os, tempfile, time
+import os, tempfile, time, gzip
+from io import BytesIO
+from datetime import timedelta
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
@@ -17,7 +19,7 @@ COLS=["symbol","company_name","isin","listing_date","listing_date_source","verif
 
 def parse_date(value):
     raw=str(value or "").strip()
-    for fmt in ("%d-%b-%Y","%Y-%m-%d","%d/%m/%Y","%d-%m-%Y"):
+    for fmt in ("%d-%b-%Y","%Y-%m-%d","%d/%m/%Y","%d-%m-%Y","%Y%m%d","%d%m%Y"):
         try: return pd.Timestamp(datetime.strptime(raw,fmt).date())
         except ValueError: pass
     parsed=pd.to_datetime(raw,errors="coerce",dayfirst=True)
@@ -34,6 +36,64 @@ def normalise_quote(symbol,payload):
     return {"symbol":sym,"company_name":str(info.get("companyName") or "").strip(),"isin":isin,
             "listing_date":day.date().isoformat(),"listing_date_source":URL.format(quote(sym)),
             "verified_at_utc":datetime.now().astimezone().isoformat()}
+
+
+SECURITY_MASTER_URL="https://nsearchives.nseindia.com/content/cm/NSE_CM_security_{date}.csv.gz"
+SECURITY_MASTER_HEADERS={**HEADERS,"Referer":"https://www.nseindia.com/all-reports","Host":"nsearchives.nseindia.com"}
+
+
+def parse_security_master(payload: bytes, requested_symbols: set[str], source_url: str) -> list[dict]:
+    """Extract verified listing dates from NSE's daily MII CM security master."""
+    try:
+        frame=pd.read_csv(BytesIO(payload),compression="gzip",low_memory=False)
+    except Exception:
+        # Some archive mirrors return a decompressed CSV despite the .gz suffix.
+        frame=pd.read_csv(BytesIO(payload),low_memory=False)
+    def key(value):
+        return "".join(ch for ch in str(value).lower() if ch.isalnum())
+    columns={key(c):c for c in frame.columns}
+    symbol_col=next((columns[k] for k in ("symbol","tradingsymbol","securitysymbol") if k in columns),None)
+    listing_col=next((columns[k] for k in ("listingdate","dateoflisting") if k in columns),None)
+    isin_col=next((columns[k] for k in ("isin","isinnumber","isinno") if k in columns),None)
+    company_col=next((columns[k] for k in ("companyname","securityname","issuername") if k in columns),None)
+    if not symbol_col or not listing_col:
+        raise ValueError(f"NSE MII security master missing named Symbol/Listing Date columns; columns={list(frame.columns)[:30]}")
+    frame[symbol_col]=frame[symbol_col].astype(str).str.upper().str.strip()
+    frame=frame[frame[symbol_col].isin(requested_symbols)]
+    found=[]
+    for _,row in frame.iterrows():
+        raw=row[listing_col]
+        try: day=parse_date(raw)
+        except Exception: continue
+        symbol=str(row[symbol_col])
+        isin=str(row[isin_col]).strip().upper() if isin_col and pd.notna(row[isin_col]) else ""
+        found.append({"symbol":symbol,"company_name":str(row[company_col]).strip() if company_col and pd.notna(row[company_col]) else "",
+            "isin":isin,"listing_date":day.date().isoformat(),"listing_date_source":source_url,
+            "verified_at_utc":datetime.now().astimezone().isoformat()})
+    return found
+
+
+def refresh_from_security_master(client, unresolved: set[str], max_calendar_days: int = 10) -> tuple[list[dict],dict]:
+    if not unresolved:
+        return [],{"status":"SKIPPED","reason":"No unresolved symbols"}
+    from datetime import datetime as dt
+    today=dt.now().date()
+    attempts=[]; errors=[]
+    for offset in range(max_calendar_days):
+        candidate=today-timedelta(days=offset)
+        url=SECURITY_MASTER_URL.format(date=candidate.strftime("%d%m%Y"))
+        try:
+            response=client.get(url,timeout=25,headers=SECURITY_MASTER_HEADERS)
+            response.raise_for_status()
+            found=parse_security_master(response.content,unresolved,url)
+            attempts.append(candidate.isoformat())
+            if found:
+                return found,{"status":"PASS","source":url,"symbols_found":len(found),"attempted_dates":attempts}
+            errors.append({"date":candidate.isoformat(),"error":"Valid file but no requested listing rows parsed"})
+        except Exception as exc:
+            errors.append({"date":candidate.isoformat(),"error":str(exc)})
+        attempts.append(candidate.isoformat())
+    return [],{"status":"SOURCE_UNAVAILABLE","attempted_dates":attempts,"errors":errors[-5:]}
 
 def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=3):
     DATA.mkdir(parents=True,exist_ok=True)
@@ -90,8 +150,24 @@ def refresh_listing_master(symbols,session=None,delay_seconds=0.15,max_attempts=
         finally:
             if os.path.exists(tmp): os.unlink(tmp)
     cached=set(merged.loc[merged.listing_date.astype(str).str.strip().ne(""),"symbol"])
+    unresolved_set=set(requested)-cached
+    master_found, master_audit=refresh_from_security_master(client,unresolved_set)
+    if master_found:
+        merged=pd.concat([merged,pd.DataFrame(master_found)],ignore_index=True).drop_duplicates("symbol",keep="last").reindex(columns=COLS)
+    cached=set(merged.loc[merged.listing_date.astype(str).str.strip().ne(""),"symbol"])
     unresolved=sorted(set(requested)-cached)
+    # Persist a schema-bearing file even when NSE is unavailable. An empty file
+    # is explicitly reported as unavailable; it is never mistaken for coverage.
+    fd,tmp=tempfile.mkstemp(prefix="nse-listings-",suffix=".csv",dir=DATA)
+    try:
+        with os.fdopen(fd,"w",encoding="utf-8",newline="") as f: merged.reindex(columns=COLS).to_csv(f,index=False)
+        os.replace(tmp,FILE)
+    finally:
+        if os.path.exists(tmp): os.unlink(tmp)
     return {"status":"PASS" if not unresolved else ("PARTIAL" if cached & set(requested) else "SOURCE_UNAVAILABLE"),
             "symbols_requested":len(requested),"symbols_cached":len(cached & set(requested)),
-            "symbols_fetched":len(found),"symbols_unresolved":unresolved,"lookup_failures":failures,
-            "source":"NSE India official quote-equity API info.listingDate","cache_file":"data/nse_listing_master.csv"}
+            "symbols_fetched":len(found),"symbols_from_security_master":len(master_found),
+            "symbols_unresolved":unresolved,"lookup_failures":failures,
+            "security_master_fallback":master_audit,
+            "source":"NSE official quote-equity API and daily MII CM security master",
+            "cache_file":"data/nse_listing_master.csv"}

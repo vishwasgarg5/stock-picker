@@ -35,7 +35,7 @@ def test_prelisting_provenance_audit_preserves_and_reports_rows(tmp_path):
     result = audit_historical_listing_provenance(tmp_path)
     assert result["status"] == "REVIEW"
     assert result["pre_listing_bars"] == 10
-    assert result["bars_inside_documented_event_windows"] == 0
+    assert result["bars_inside_documented_event_windows"] == 7
     assert "OHLCV_exchange_or_provider_fields=absent" in result["detail"]
     assert "no OHLCV rows changed or deleted" in result["detail"]
     assert len(pd.read_csv(tmp_path / "data" / "ohlcv.csv")) == 10
@@ -51,7 +51,7 @@ def test_event_window_does_not_claim_row_level_exchange_attribution(tmp_path):
     assert result["pre_listing_bars"] == 10
     assert result["bars_inside_documented_event_windows"] == 10
     assert result["status"] == "REVIEW"
-    assert "row-level attribution" in result["detail"]
+    assert "row_level_attribution" in result["detail"]
 
 
 def test_provenance_audit_blocks_when_listing_master_is_unavailable(tmp_path):

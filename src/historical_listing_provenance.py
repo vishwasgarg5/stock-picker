@@ -21,7 +21,7 @@ REGISTRY_COLUMNS = {
 }
 
 
-def audit_historical_listing_provenance(root: Path) -> dict:
+def audit_historical_listing_provenance(root: Path, history_frame: pd.DataFrame | None = None, listing_frame: pd.DataFrame | None = None) -> dict:
     """Compare pre-listing bars with verified event evidence without attribution guesses."""
     root = Path(root)
     registry_path = root / REGISTRY
@@ -47,7 +47,7 @@ def audit_historical_listing_provenance(root: Path) -> dict:
         return {"status": "FAIL", "detail": "Provenance registry has blank or duplicate symbols",
                 "evidence": evidence}
 
-    listings = pd.read_csv(listing_path, dtype=str).fillna("")
+    listings = (listing_frame.copy() if listing_frame is not None else pd.read_csv(listing_path, dtype=str)).fillna("")
     if not {"symbol", "listing_date"}.issubset(listings.columns):
         return {"status": "FAIL", "detail": "NSE listing master lacks symbol/listing_date",
                 "evidence": evidence}
@@ -57,8 +57,8 @@ def audit_historical_listing_provenance(root: Path) -> dict:
                    .drop_duplicates("symbol", keep="last")
                    .set_index("symbol")["listing_date"].to_dict())
 
-    history_columns = set(pd.read_csv(history_path, nrows=0).columns)
-    bars = pd.read_csv(history_path, usecols=["date", "symbol"])
+    history_columns = set(history_frame.columns) if history_frame is not None else set(pd.read_csv(history_path, nrows=0).columns)
+    bars = history_frame[["date", "symbol"]].copy() if history_frame is not None else pd.read_csv(history_path, usecols=["date", "symbol"])
     bars["date"] = pd.to_datetime(bars["date"], errors="coerce")
     bars["symbol"] = bars["symbol"].astype(str).str.upper().str.strip()
     bars = bars.dropna(subset=["date"])

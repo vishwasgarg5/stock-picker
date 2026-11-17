@@ -357,7 +357,7 @@ def audit_live_data(rows):
     # exchange of an individual Yahoo Finance bar or modifies historical data.
     try:
         from .historical_listing_provenance import audit_historical_listing_provenance
-        provenance = audit_historical_listing_provenance(ROOT)
+        provenance = audit_historical_listing_provenance(ROOT, history_frame=history, listing_frame=listing)
         add(rows, "Live data quality and freshness", "Pre-listing historical exchange provenance",
             provenance["status"], provenance["detail"], provenance["evidence"])
     except Exception as exc:

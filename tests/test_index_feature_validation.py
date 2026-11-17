@@ -31,3 +31,25 @@ def test_index_validation_metrics_measure_direction_and_daily_rank():
 def test_index_validation_rejects_too_few_unique_sessions():
     with pytest.raises(ValueError, match="30 unique sessions"):
         chronological_date_split(pd.DataFrame({"date": pd.date_range("2026-01-01", periods=10)}))
+
+
+def test_chronological_split_purges_next_session_labels_at_boundary():
+    from src.index_feature_validation import chronological_train_test_split
+    dates = pd.bdate_range("2026-01-01", periods=40)
+    frame = pd.DataFrame({
+        "date": list(dates[:-1]) * 2,
+        "target_end_date": list(dates[1:]) * 2,
+        "symbol": ["AAA"] * 39 + ["BBB"] * 39,
+    })
+    train, test, train_end, test_start = chronological_train_test_split(frame, 0.80)
+    assert train_end < test_start
+    assert (train["date"] < test_start).all()
+    assert (train["target_end_date"] < test_start).all()
+    assert (test["date"] >= test_start).all()
+    assert not ((train["date"] == train_end) & (train["target_end_date"] == test_start)).any()
+
+
+def test_chronological_split_requires_target_endpoint():
+    from src.index_feature_validation import chronological_train_test_split
+    with pytest.raises(ValueError, match="target_end_date"):
+        chronological_train_test_split(pd.DataFrame({"date": pd.date_range("2026-01-01", periods=40)}))

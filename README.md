@@ -106,6 +106,12 @@ The audit deliberately distinguishes a passing code/structure check from model r
 
 GitHub-hosted jobs have a hard six-hour execution ceiling and a workflow run has a 35-day ceiling. The audit therefore uses bounded independent jobs rather than an endless runner. Manual runs are available whenever a new investigation is needed; GitHub Free monthly minutes and artifact-storage quotas still apply to private repositories. See the [Model Progress Audit workflow](.github/workflows/model-progress-audit.yml) and [audit implementation](src/model_progress_audit.py).
 
+## Publishing the dashboard
+
+The dashboard is prepared for GitHub Pages deployment. In the repository, open **Settings → Pages** and set **Build and deployment → Source** to **GitHub Actions**. The `Deploy Model Intelligence Dashboard` workflow then publishes the dashboard on pushes to `main` that change the dashboard or its generated data. The repository's Pages setting is currently disabled, so the first deployment will remain unavailable until this one-time repository setting is enabled by an owner.
+
+Once enabled, the site URL is `https://vishwasgarg5.github.io/stock-picker/`.
+
 ## Model Intelligence Dashboard
 
 The repository includes a responsive dashboard UI at `dashboard/index.html` and its generated evidence snapshot at `data/dashboard_data.json`. The dashboard reads persisted model artifacts and reports the latest Top-10 forecast, forecast accuracy, chronological V1/V2 paper-trading evidence, selection funnel, historical OHLCV coverage, NSE calendar/index freshness, trade P&L reconciliation and promotion gates.

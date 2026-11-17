@@ -52,7 +52,7 @@ def audit_historical_listing_provenance(root: Path, history_frame: pd.DataFrame 
         return {"status": "FAIL", "detail": "NSE listing master lacks symbol/listing_date",
                 "evidence": evidence}
     listings["symbol"] = listings["symbol"].astype(str).str.upper().str.strip()
-    listings["listing_date"] = pd.to_datetime(listings["listing_date"], errors="coerce", dayfirst=True)
+    listings["listing_date"] = pd.to_datetime(listings["listing_date"], format="mixed", errors="coerce", dayfirst=True)
     listing_map = (listings.dropna(subset=["listing_date"])
                    .drop_duplicates("symbol", keep="last")
                    .set_index("symbol")["listing_date"].to_dict())

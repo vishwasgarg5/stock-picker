@@ -62,7 +62,6 @@ def validate_membership_records(records: Iterable[dict[str, Any]]) -> dict[str, 
         if not isinstance(original, dict):
             raise MembershipEvidenceError(f"record {number} must be an object")
         missing = set(REQUIRED_FIELDS) - set(original)
-        extra = set(REQUIRED_FIELDS + OPTIONAL_FIELDS) ^ set(REQUIRED_FIELDS + OPTIONAL_FIELDS)
         unknown = set(original) - set(REQUIRED_FIELDS) - set(OPTIONAL_FIELDS)
         if missing or unknown:
             raise MembershipEvidenceError(
@@ -110,7 +109,8 @@ def validate_membership_records(records: Iterable[dict[str, Any]]) -> dict[str, 
         "status": "PASS" if count else "BLOCKED",
         "record_count": count,
         "validated_records": accepted,
-        "point_in_time_ready": bool(count),
+        "contract_validated": bool(count),
+        "point_in_time_ready": False,
         "historical_membership_inferred": False,
     }
 

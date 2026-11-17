@@ -75,7 +75,7 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     cost_model = configured_cost_model()
     columns = [
         "row_index", "symbol", "target_date", "recorded_costs", "allocated_capital",
-        "recorded_cost_rate", "matches_current_simulation_rate", "cost_field",
+        "execution_quantity_status", "recorded_cost_rate", "matches_current_simulation_rate", "cost_field",
         "gross_pnl", "gross_field", "net_pnl", "net_field", "cost_identity_delta",
         "component_total", "component_identity_delta", "component_breakdown_status",
         "cost_evidence_reference", "status",
@@ -95,7 +95,16 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     quantity = pd.to_numeric(trades.get("quantity", pd.Series(np.nan, index=trades.index)), errors="coerce")
     shares = pd.to_numeric(trades.get("shares", pd.Series(np.nan, index=trades.index)), errors="coerce")
     qty = quantity.where(quantity.gt(0), shares)
-    executed = signal.isin(["BUY", "LONG", "EXECUTED"]) & qty.gt(0)
+    allocated = pd.to_numeric(trades.get("allocated_capital", pd.Series(np.nan, index=trades.index)), errors="coerce")
+    position_value = pd.to_numeric(trades.get("position_value", pd.Series(np.nan, index=trades.index)), errors="coerce")
+    capital_evidence = allocated.where(allocated.gt(0), position_value)
+    entry = pd.to_numeric(trades.get("entry_price", pd.Series(np.nan, index=trades.index)), errors="coerce")
+    exit_price = pd.to_numeric(trades.get("exit_price", pd.Series(np.nan, index=trades.index)), errors="coerce")
+    # Older BUY rows can prove a funded trade through positive recorded capital
+    # and entry/exit prices even when the quantity field was lost. Keep these
+    # rows in the audit as blocked rather than silently excluding them.
+    capital_price_evidence = capital_evidence.gt(0) & entry.gt(0) & exit_price.gt(0)
+    executed = signal.isin(["BUY", "LONG", "EXECUTED"]) & (qty.gt(0) | capital_price_evidence)
     rows = trades.loc[executed]
     model_rates = [model["rate"] for model in cost_model.get("models", []) if model.get("rate") is not None]
     output = []
@@ -146,6 +155,11 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
             "target_date": str(row.get("target_date", "")),
             "recorded_costs": cost,
             "allocated_capital": allocated,
+            "execution_quantity_status": (
+                "RECORDED_QUANTITY" if _number(row, "quantity") is not None and _number(row, "quantity") > 0
+                else "RECORDED_SHARES" if _number(row, "shares") is not None and _number(row, "shares") > 0
+                else "CAPITAL_PRICE_EVIDENCE_QUANTITY_MISSING"
+            ),
             "recorded_cost_rate": recorded_rate,
             "matches_current_simulation_rate": bool(
                 recorded_rate is not None and any(abs(recorded_rate - rate) <= 1e-9 for rate in model_rates)
@@ -181,6 +195,9 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
             "FAIL" if mismatch else "BLOCKED" if blocked else "REVIEW"
         ),
         "executed_rows": int(len(detail)),
+        "quantity_missing_but_trade_value_present_rows": int(
+            detail["execution_quantity_status"].eq("CAPITAL_PRICE_EVIDENCE_QUANTITY_MISSING").sum()
+        ),
         "configured_cost_model": cost_model,
         "rows_matching_current_simulation_rate": int(detail["matches_current_simulation_rate"].sum()),
         "ledger_cost_rows": int(detail["recorded_costs"].notna().sum()),

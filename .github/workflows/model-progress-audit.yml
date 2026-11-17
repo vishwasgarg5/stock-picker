@@ -64,7 +64,7 @@ jobs:
         run: python -m src.market_calendar
       - name: Probe and refresh index OHLCV, constituents and weights
         id: index_refresh
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
         continue-on-error: true
         run: python -m src.index_constituent_intelligence
       - name: Refresh NSE listing-date master and historical coverage audit
@@ -78,6 +78,7 @@ jobs:
           CALENDAR_REFRESH: ${{ steps.calendar_refresh.outcome }}
           INDEX_REFRESH: ${{ steps.index_refresh.outcome }}
           LISTING_REFRESH: ${{ steps.listing_refresh.outcome }}
+          INDEX_FEATURE_OOS: ${{ steps.index_feature_oos.outcome }}
         run: |
           {
             echo "## Live source refresh probes"
@@ -87,6 +88,12 @@ jobs:
             echo "| NSE official calendar | ${CALENDAR_REFRESH} |"
             echo "| Index OHLCV / constituents / weights | ${INDEX_REFRESH} |"
             echo "| NSE listing-date master / history audit | ${LISTING_REFRESH} |"
+            echo "| Chronological index-feature OOS evaluation | ${INDEX_FEATURE_OOS:-not-run} |"
+            if [ "${INDEX_REFRESH}" = "skipped" ] || [ "${INDEX_REFRESH}" = "failure" ]; then
+              echo "Index OHLCV refresh did not run successfully; the OOS evaluation cannot produce evidence from this run."
+            elif [ ! -s data/index_ohlcv.csv ]; then
+              echo "Index OHLCV source produced no usable history; OOS evidence remains blocked. No substitute data is generated."
+            fi
             echo ""
             echo "A failed source probe does not stop the data-quality audit or the independent regression suites."
           } >> "$GITHUB_STEP_SUMMARY"

@@ -136,6 +136,10 @@ jobs:
       - name: Refresh index OHLCV, constituent weights and point-in-time stock/index features
         run: python -m src.index_constituent_intelligence
 
+      - name: Refresh NSE listing-date master and listing-aware historical coverage
+        continue-on-error: true
+        run: python -m src.historical_coverage_audit
+
       - name: Run Phase 4 adaptive performance optimizer
         run: python -m src.phase4_optimizer
 

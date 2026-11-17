@@ -82,7 +82,8 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     ]
     if trades.empty:
         return pd.DataFrame(columns=columns), {
-            "status": "NO_EXECUTED_TRADES", "executed_rows": 0,
+            "status": "NO_EXECUTED_TRADES", "buy_signal_rows": 0, "executed_rows": 0,
+            "excluded_buy_rows_without_execution_evidence": 0,
             "configured_cost_model": cost_model, "quantity_missing_but_trade_value_present_rows": 0,
             "rows_matching_current_simulation_rate": 0,
             "ledger_cost_rows": 0, "component_verified_rows": 0,
@@ -195,7 +196,11 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
         "status": "NO_EXECUTED_TRADES" if detail.empty else (
             "FAIL" if mismatch else "BLOCKED" if blocked else "REVIEW"
         ),
+        "buy_signal_rows": int(signal.isin(["BUY", "LONG", "EXECUTED"]).sum()),
         "executed_rows": int(len(detail)),
+        "excluded_buy_rows_without_execution_evidence": int(
+            signal.isin(["BUY", "LONG", "EXECUTED"]).sum() - len(detail)
+        ),
         "quantity_missing_but_trade_value_present_rows": int(
             detail["execution_quantity_status"].eq("CAPITAL_PRICE_EVIDENCE_QUANTITY_MISSING").sum()
         ),

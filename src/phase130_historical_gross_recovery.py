@@ -71,9 +71,9 @@ def evaluate_historical_gross_recovery(trades: pd.DataFrame) -> tuple[pd.DataFra
     return_calculated = stored_gross / capital * 100.0
     if "return_pct" in buys.columns:
         recorded_return = pd.to_numeric(buys["return_pct"], errors="coerce")
-        return_identity = (return_calculated - recorded_return).abs().le(TOLERANCE)
     else:
-        return_identity = pd.Series(False, index=buys.index)
+        recorded_return = pd.Series(np.nan, index=buys.index)
+    return_identity = (return_calculated - recorded_return).abs().le(TOLERANCE)
 
     optional_identity = pd.Series(True, index=buys.index)
     if {"pre_split_quantity", "split_ratio", "quantity"}.issubset(n.columns):

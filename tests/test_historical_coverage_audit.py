@@ -223,9 +223,9 @@ def test_equity_listing_fallback_uses_second_mirror_for_remaining_symbols(monkey
         def get(self, url, timeout, headers):
             self.calls.append(url)
             if url == listing_master.EQUITY_LIST_URLS[0]:
-                payload = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\\nABC,ABC Limited,INE123A01016,15-Jan-2024\\n"
+                payload = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\nABC,ABC Limited,INE123A01016,15-Jan-2024\n"
             else:
-                payload = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\\nDEF,DEF Limited,INE123A01024,16-Jan-2024\\n"
+                payload = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\nDEF,DEF Limited,INE123A01024,16-Jan-2024\n"
             return Response(payload)
 
     session = Session()
@@ -242,7 +242,7 @@ def test_equity_listing_fallback_stops_after_complete_first_mirror():
     from src import listing_master
 
     class Response:
-        content = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\\nABC,ABC Limited,INE123A01016,15-Jan-2024\\n"
+        content = b"SYMBOL,NAME OF COMPANY,ISIN NUMBER,DATE OF LISTING\nABC,ABC Limited,INE123A01016,15-Jan-2024\n"
         def raise_for_status(self):
             return None
 

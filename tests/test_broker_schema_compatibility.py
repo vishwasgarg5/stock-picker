@@ -57,7 +57,9 @@ class BrokerCompatibilitySchemaTests(unittest.TestCase):
 
     def test_historical_membership_requires_effective_and_publication_dates(self) -> None:
         schema = self.load_schema("universe_membership.schema.json")
-        self.assertTrue({"effective_from", "published_at", "source"} <= set(schema["required"]))
+        self.assertTrue({"effective_from", "published_at", "source", "source_document_sha256"} <= set(schema["required"]))
+        self.assertRegex(schema["properties"]["source_document_sha256"]["pattern"], r"64")
+        self.assertEqual(schema["properties"]["source"].get("pattern"), "^https://")
 
     def test_corporate_actions_require_source_and_availability_timestamp(self) -> None:
         schema = self.load_schema("corporate_actions.schema.json")

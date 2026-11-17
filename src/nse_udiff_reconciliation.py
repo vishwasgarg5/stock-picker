@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import io
 import json
 import time
@@ -143,9 +144,13 @@ def write_research_snapshot(
     """Persist raw, normalized and manifest files only below the supplied audit root."""
     output_root = Path(output_root).resolve()
     raw_bytes = archive
-    normalized_bytes = csv_payload
+    normalized_buffer = io.StringIO(newline="")
+    writer = csv.DictWriter(normalized_buffer, fieldnames=list(records[0]))
+    writer.writeheader()
+    writer.writerows(records)
+    normalized_bytes = normalized_buffer.getvalue().encode("utf-8")
     stamp = datetime.now(timezone.utc).isoformat()
-    revision = __import__("hashlib").sha256(raw_bytes).hexdigest()[:12]
+    revision = hashlib.sha256(raw_bytes).hexdigest()[:12]
     raw_name = f"raw/nse_cm_bhavcopy_{session:%Y%m%d}_{revision}.zip"
     normalized_name = f"normalized/nse_equity_{session.isoformat()}_{revision}.csv"
     manifest_name = f"manifests/nse_cm_{session.isoformat()}_{revision}.json"

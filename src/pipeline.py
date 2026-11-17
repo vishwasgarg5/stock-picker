@@ -1438,7 +1438,7 @@ def _apply_paper_trade_accounting(rows: pd.DataFrame) -> pd.DataFrame:
         np.nan,
     )
     x["exit_reason"] = np.where(buy, "session_close", "")
-    x["exit_date"] = np.where(buy, x["target_date"], "")
+    x["exit_date"] = x["target_date"].astype("string").where(buy, "")
     x["ledger_schema_version"] = 3
     x["record_created_at_utc"] = pd.Timestamp.now(tz="UTC").isoformat()
     x["cost_model"] = "fixed_round_trip_0.10pct_of_entry_notional"

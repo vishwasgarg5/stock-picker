@@ -89,6 +89,26 @@ def chronological_train_test_split(
     return train, test, train_end, test_start
 
 
+def cap_test_rows_by_complete_sessions(
+    test: pd.DataFrame, max_rows: int,
+) -> pd.DataFrame:
+    """Cap evaluation size by whole dates so cross-sectional rankings stay valid."""
+    if test.empty or max_rows <= 0 or len(test) <= max_rows:
+        return test.copy()
+    counts = test.groupby("date").size().sort_index()
+    selected = []
+    total = 0
+    # Select latest complete sessions, never random individual stocks.
+    for day, count in reversed(list(counts.items())):
+        if selected and total + int(count) > max_rows:
+            break
+        selected.append(day)
+        total += int(count)
+    if not selected:
+        selected = [counts.idxmax()]
+    return test.loc[test["date"].isin(selected)].copy().sort_values(["date", "symbol"])
+
+
 def _predict(model: dict, x: pd.DataFrame) -> np.ndarray:
     pred, _ = pipeline._ensemble_predict(model, x)
     return np.asarray(pred, dtype=float)
@@ -125,7 +145,7 @@ def run_validation(
     if len(train) > max_train_rows:
         train = train.sample(n=max_train_rows, random_state=42).sort_values(["date", "symbol"])
     if len(test) > max_test_rows:
-        test = test.sample(n=max_test_rows, random_state=43).sort_values(["date", "symbol"])
+        test = cap_test_rows_by_complete_sessions(test, max_test_rows)
     if len(train) < 500 or len(test) < 100:
         raise RuntimeError(f"Insufficient split size: train={len(train)}, test={len(test)}")
     baseline_model = pipeline._fit_ensemble(train[BASELINE_FEATURES], train["target_close_return"])

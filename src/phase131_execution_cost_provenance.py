@@ -81,6 +81,8 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     qty = quantity.where(quantity.gt(0), shares)
     executed = signal.isin(["BUY", "LONG", "EXECUTED"]) & qty.gt(0)
     rows = trades.loc[executed]
+    cost_model = configured_cost_model()
+    model_rate = cost_model.get("rate")
     output = []
     for idx, row in rows.iterrows():
         cost, cost_field = _first_recorded(row, COST_COLUMNS)
@@ -127,6 +129,7 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
             "recorded_costs": cost,
             "allocated_capital": allocated,
             "recorded_cost_rate": recorded_rate,
+            "matches_current_simulation_rate": bool(recorded_rate is not None and model_rate is not None and abs(recorded_rate - model_rate) <= 1e-9),
             "cost_field": cost_field,
             "gross_pnl": gross,
             "gross_field": gross_field,
@@ -157,7 +160,8 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
             "FAIL" if mismatch else "BLOCKED" if blocked else "REVIEW"
         ),
         "executed_rows": int(len(detail)),
-        "configured_cost_model": configured_cost_model(),
+        "configured_cost_model": cost_model,
+        "rows_matching_current_simulation_rate": int(detail["matches_current_simulation_rate"].sum()),
         "ledger_cost_rows": int(detail["recorded_costs"].notna().sum()),
         "component_verified_rows": component_verified,
         "source_referenced_rows": source_verified,

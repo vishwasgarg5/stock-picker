@@ -46,3 +46,13 @@ def test_dashboard_handles_missing_or_malformed_artifacts(tmp_path, monkeypatch)
     assert payload["paper_trading"]["v1"]["buy_rows"] == 1
     assert payload["paper_trading"]["v1"]["skip_rows"] == 1
     assert payload["forecast"]["status"] == "NOT_AVAILABLE"
+
+def test_dashboard_marks_old_calendar_refresh_for_review(tmp_path, monkeypatch):
+    import src.model_dashboard as dashboard
+
+    monkeypatch.setattr(dashboard, "DATA", tmp_path)
+    (tmp_path / "nse_market_calendar.json").write_text(
+        json.dumps({"updated_at_utc": "2026-01-01T00:00:00Z"}), encoding="utf-8"
+    )
+    payload = build_dashboard()
+    assert payload["data_health"]["calendar"]["status"] == "REVIEW"

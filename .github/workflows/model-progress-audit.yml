@@ -72,6 +72,24 @@ jobs:
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
         continue-on-error: true
         run: python -m src.historical_coverage_audit
+      - name: Validate source-backed historical gross trade recovery
+        id: phase130_recovery
+        run: python -m src.phase130_historical_gross_recovery
+      - name: Audit historical execution-cost provenance without backfilling
+        id: phase131_cost_provenance
+        run: python -m src.phase131_execution_cost_provenance
+      - name: Verify broker cost documents and manifest without ledger backfill
+        id: phase132_broker_cost_evidence
+        run: python -m src.phase132_broker_cost_evidence
+      - name: Generate weekend data-quality audit evidence
+        id: weekend_audit
+        continue-on-error: true
+        run: python -m src.weekend_data_quality_audit
+      - name: Run chronological shadow index-feature OOS validation when index history exists
+        if: hashFiles('data/index_ohlcv.csv') != ''
+        id: index_feature_oos
+        continue-on-error: true
+        run: python -m src.index_feature_validation
       - name: Record live source refresh outcomes
         if: always()
         env:
@@ -97,24 +115,6 @@ jobs:
             echo ""
             echo "A failed source probe does not stop the data-quality audit or the independent regression suites."
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Validate source-backed historical gross trade recovery
-        id: phase130_recovery
-        run: python -m src.phase130_historical_gross_recovery
-      - name: Audit historical execution-cost provenance without backfilling
-        id: phase131_cost_provenance
-        run: python -m src.phase131_execution_cost_provenance
-      - name: Verify broker cost documents and manifest without ledger backfill
-        id: phase132_broker_cost_evidence
-        run: python -m src.phase132_broker_cost_evidence
-      - name: Generate weekend data-quality audit evidence
-        id: weekend_audit
-        continue-on-error: true
-        run: python -m src.weekend_data_quality_audit
-      - name: Run chronological shadow index-feature OOS validation when index history exists
-        if: hashFiles('data/index_ohlcv.csv') != ''
-        id: index_feature_oos
-        continue-on-error: true
-        run: python -m src.index_feature_validation
       - name: Audit implementation, data artifacts, roadmap evidence and readiness gates
         id: audit
         continue-on-error: true

@@ -106,10 +106,10 @@ def run_validation(
     if len(train) < 500 or len(test) < 100:
         raise RuntimeError(f"Insufficient split size: train={len(train)}, test={len(test)}")
     baseline_model = pipeline._fit_ensemble(train[BASELINE_FEATURES], train["target_close_return"])
-    index_model = pipeline._fit_ensemble(train[pipeline.FEATURE_COLUMNS], train["target_close_return"])
+    index_model = pipeline._fit_ensemble(train[pipeline.INDEX_AUGMENTED_FEATURE_COLUMNS], train["target_close_return"])
     evaluation = test[["date", "symbol", "target_close_return"]].rename(columns={"target_close_return": "actual"}).copy()
     evaluation["baseline_predicted"] = _predict(baseline_model, test[BASELINE_FEATURES])
-    evaluation["index_predicted"] = _predict(index_model, test[pipeline.FEATURE_COLUMNS])
+    evaluation["index_predicted"] = _predict(index_model, test[pipeline.INDEX_AUGMENTED_FEATURE_COLUMNS])
     evaluation["period"] = pd.qcut(
         evaluation["date"].rank(method="dense"), q=3, labels=["test_1", "test_2", "test_3"],
         duplicates="drop",
@@ -153,7 +153,7 @@ def run_validation(
         "train_sessions": int(train["date"].nunique()),
         "test_sessions": int(test["date"].nunique()),
         "baseline_feature_count": len(BASELINE_FEATURES),
-        "index_augmented_feature_count": len(pipeline.FEATURE_COLUMNS),
+        "index_augmented_feature_count": len(pipeline.INDEX_AUGMENTED_FEATURE_COLUMNS),
         "index_feature_columns": pipeline.INDEX_MARKET_FEATURE_COLUMNS,
         "index_feature_availability_pct": {
             index: float(work[f"index_{index.lower()}_available_1d"].mean() * 100.0)

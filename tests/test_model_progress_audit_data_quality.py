@@ -368,3 +368,33 @@ def test_prelisting_bars_without_provenance_case_remain_failure(tmp_path, monkey
     audit.audit_live_data(rows)
     result = _check(rows, "OHLCV does not precede verified listing date")
     assert result["status"] == "FAIL"
+
+def test_listing_date_parser_handles_day_first_format_without_warnings(tmp_path, monkeypatch):
+    import warnings
+
+    _calendar(tmp_path)
+    data = tmp_path / "data"
+    dates = pd.date_range("2019-01-01", periods=100, freq="D")
+    pd.DataFrame([{
+        "date": day, "symbol": "AAA", "open": 10, "high": 12,
+        "low": 9, "close": 11, "volume": 100,
+    } for day in dates]).to_csv(data / "ohlcv.csv", index=False)
+    pd.DataFrame([{
+        "symbol": "AAA", "listing_date": "31/12/2019",
+        "listing_date_source": "https://www.nseindia.com/api/quote-equity?symbol=AAA",
+        "verified_at_utc": "2026-11-16T00:00:00Z",
+    }]).to_csv(data / "nse_listing_master.csv", index=False)
+    monkeypatch.setattr(audit, "ROOT", tmp_path)
+
+    rows = []
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        audit.audit_live_data(rows)
+
+    listing = _check(rows, "Listing master field completeness and validity")
+    prelisting = _check(rows, "OHLCV does not precede verified listing date")
+    assert listing["status"] == "PASS"
+    assert prelisting["status"] == "FAIL"
+    assert "pre_listing_bars=100" in prelisting["detail"]
+    assert not [warning for warning in caught if "dayfirst" in str(warning.message).lower()]
+

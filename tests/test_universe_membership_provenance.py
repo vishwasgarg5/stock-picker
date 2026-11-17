@@ -29,7 +29,8 @@ def test_accepts_effective_dated_membership_with_publication_provenance():
     result = validate_membership_records([record()])
     assert result["status"] == "PASS"
     assert result["record_count"] == 1
-    assert result["point_in_time_ready"] is True
+    assert result["contract_validated"] is True
+    assert result["point_in_time_ready"] is False
     assert result["historical_membership_inferred"] is False
 
 

@@ -385,7 +385,7 @@ def run_governance() -> dict:
     features.to_csv(DATA/"feature_stability.csv",index=False)
     (DATA/"model_manifest.json").write_text(json.dumps(manifest,indent=2))
     (DATA/"model_governance.json").write_text(json.dumps(report,indent=2,default=str))
-    print(json.dumps(report,indent=2))
+    print(json.dumps(report, indent=2, default=lambda value: value.item() if isinstance(value, np.generic) else str(value)))
     if safety["status"] != "PASS":
         raise RuntimeError("Governance safety gate failed: " + "; ".join(safety["failures"]))
     return report

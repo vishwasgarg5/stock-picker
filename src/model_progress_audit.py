@@ -98,6 +98,26 @@ def inspect_json(path: Path):
     return value
 
 
+def _append_gross_recovery_context(detail: str) -> str:
+    """Surface Phase 130 gross-only recovery without clearing the net P&L gate."""
+    path = ROOT / "data/phase130_historical_gross_recovery_summary.json"
+    if not path.is_file():
+        return detail
+    try:
+        payload = inspect_json(path)
+    except Exception as exc:
+        return detail + f"; gross-source recovery report unreadable: {type(exc).__name__}"
+    if not isinstance(payload, dict):
+        return detail + "; gross-source recovery report has an invalid shape"
+    return detail + (
+        f"; source-backed gross rows={int(payload.get('gross_source_recoverable_rows', 0))}"
+        f"; gross rows unresolved={int(payload.get('gross_source_unresolved_rows', 0))}"
+        f"; costs recovered={int(payload.get('costs_recovered_rows', 0))}"
+        f"; net P&L recovered={int(payload.get('net_profit_loss_recovered_rows', 0))}"
+        f"; canonical ledger backfilled={payload.get('canonical_ledger_backfilled') is True}"
+        f"; missing facts inferred={payload.get('missing_facts_inferred') is True}"
+    )
+
 def _read_csv(path: Path):
     import pandas as pd
     return pd.read_csv(path, low_memory=False)
@@ -775,6 +795,8 @@ def run_audit(output_dir: Path):
             unmet = payload.get("unmet_gates", [])
             if unmet:
                 detail += f"; unmet gates: {', '.join(map(str, unmet))}"
+            if label == "Paper-trade P&L reconciliation":
+                detail = _append_gross_recovery_context(detail)
             add(rows, "Model readiness evidence", label, result, detail, rel)
         except Exception as exc:
             add(rows, "Model readiness evidence", label, "FAIL", f"Invalid report: {exc}", rel)

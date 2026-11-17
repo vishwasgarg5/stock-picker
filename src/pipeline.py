@@ -574,7 +574,7 @@ def merge_index_market_features(
     return x.drop(columns=["_index_join_date"])
 
 
-def features(df: pd.DataFrame) -> pd.DataFrame:
+def features(df: pd.DataFrame, index_history: pd.DataFrame | None = None) -> pd.DataFrame:
     """Build strictly historical, next-day-safe features for each stock."""
     df = _add_split_adjusted_columns(df)
     g = df.groupby("symbol", group_keys=False)
@@ -607,7 +607,7 @@ def features(df: pd.DataFrame) -> pd.DataFrame:
     df["volume_ratio"] = volume / df["volume_ma20"].replace(0, np.nan)
     df["volume_ma5"] = g["split_adjusted_volume"].transform(lambda x: x.rolling(5).mean())
     df["volume_trend5"] = df["volume_ma5"] / df["volume_ma20"].replace(0, np.nan)
-    return merge_index_market_features(df)
+    return merge_index_market_features(df, index_history=index_history)
 
 
 def market_regime(df: pd.DataFrame) -> str:

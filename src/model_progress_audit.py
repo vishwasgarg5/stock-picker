@@ -296,7 +296,7 @@ def audit_live_data(rows):
                 clean[col] = clean[col].fillna("").astype(str).str.strip()
             nulls = int(clean.eq("").sum().sum())
             unique = int(listing["symbol"].astype(str).str.upper().str.strip().duplicated().sum())
-            listing_dates = pd.to_datetime(listing["listing_date"], errors="coerce", dayfirst=True)
+            listing_dates = pd.to_datetime(listing["listing_date"], format="mixed", errors="coerce", dayfirst=True)
             invalid_listing_dates = int(listing_dates.isna().sum())
             future_listing_dates = int((listing_dates > pd.Timestamp(datetime.now(timezone.utc).date())).sum())
             def is_official_nse_source(value):
@@ -328,7 +328,7 @@ def audit_live_data(rows):
                 bars["symbol"] = bars["symbol"].astype(str).str.upper().str.strip()
                 listing_keys = listing[["symbol", "listing_date"]].copy()
                 listing_keys["symbol"] = listing_keys["symbol"].astype(str).str.upper().str.strip()
-                listing_keys["listing_date"] = pd.to_datetime(listing_keys["listing_date"], errors="coerce", dayfirst=True)
+                listing_keys["listing_date"] = pd.to_datetime(listing_keys["listing_date"], format="mixed", errors="coerce", dayfirst=True)
                 compared = bars.merge(listing_keys, on="symbol", how="inner")
                 before_listing = compared["date"].lt(compared["listing_date"])
                 count_before = int(before_listing.sum())

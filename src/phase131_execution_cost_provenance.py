@@ -6,6 +6,7 @@ Read-only diagnostics. Recorded costs are never reconstructed from gross/net P&L
 estimated from rates, or written back to the canonical ledger.
 """
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,23 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
+
+
+def configured_cost_model() -> dict[str, Any]:
+    """Read the current simulation assumption; it is not proof of historical broker fees."""
+    source = ROOT / "src" / "paper_trading.py"
+    if not source.is_file():
+        return {"rate": None, "source": "src/paper_trading.py", "status": "SOURCE_UNAVAILABLE"}
+    text = source.read_text(encoding="utf-8")
+    match = re.search(r"^ROUND_TRIP_COST_PCT\\s*=\\s*([0-9]+(?:\\.[0-9]+)?)", text, re.MULTILINE)
+    if not match:
+        return {"rate": None, "source": "src/paper_trading.py", "status": "RATE_NOT_FOUND"}
+    return {
+        "rate": float(match.group(1)),
+        "source": "src/paper_trading.py:ROUND_TRIP_COST_PCT",
+        "status": "FIXED_SIMULATION_ASSUMPTION_NOT_BROKER_EVIDENCE",
+        "actual_broker_cost_evidence": False,
+    }
 COST_COLUMNS = ("costs", "trading_cost", "transaction_costs")
 GROSS_COLUMNS = ("gross_profit_loss", "gross_pnl")
 NET_COLUMNS = ("profit_loss", "net_pnl")
@@ -45,7 +63,7 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     """Classify executed rows using recorded cost fields and independent identities."""
     if trades.empty:
         detail = pd.DataFrame(columns=[
-            "row_index", "symbol", "target_date", "recorded_costs",
+            "row_index", "symbol", "target_date", "recorded_costs", "allocated_capital", "recorded_cost_rate",
             "cost_field", "gross_pnl", "net_pnl", "cost_identity_delta",
             "component_breakdown_status", "cost_evidence_reference", "status",
         ])
@@ -66,6 +84,8 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     output = []
     for idx, row in rows.iterrows():
         cost, cost_field = _first_recorded(row, COST_COLUMNS)
+        allocated = _number(row, "allocated_capital")
+        recorded_rate = cost / allocated if cost is not None and allocated is not None and allocated > 0 else None
         gross, gross_field = _first_recorded(row, GROSS_COLUMNS)
         net, net_field = _first_recorded(row, NET_COLUMNS)
         all_cost_values = [(name, _number(row, name)) for name in COST_COLUMNS]
@@ -105,6 +125,8 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
             "symbol": str(row.get("symbol", "")),
             "target_date": str(row.get("target_date", "")),
             "recorded_costs": cost,
+            "allocated_capital": allocated,
+            "recorded_cost_rate": recorded_rate,
             "cost_field": cost_field,
             "gross_pnl": gross,
             "gross_field": gross_field,
@@ -135,6 +157,7 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
             "FAIL" if mismatch else "BLOCKED" if blocked else "REVIEW"
         ),
         "executed_rows": int(len(detail)),
+        "configured_cost_model": configured_cost_model(),
         "ledger_cost_rows": int(detail["recorded_costs"].notna().sum()),
         "component_verified_rows": component_verified,
         "source_referenced_rows": source_verified,
@@ -146,7 +169,7 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
         "costs_estimated": False,
         "costs_zero_filled": False,
         "canonical_ledger_mutated": False,
-        "policy": "A recorded total that satisfies gross minus costs equals net is arithmetic reconciliation only. Source-backed verification additionally requires a complete recorded component breakdown and a source reference. No rate-based reconstruction or backfill is performed.",
+        "policy": "A recorded total that satisfies gross minus costs equals net is arithmetic reconciliation only. Source-backed verification additionally requires a complete recorded component breakdown and a source reference. The current fixed round-trip simulation rate is reported separately and is never applied to historical rows. No rate-based reconstruction or backfill is performed.",
     }
     return detail, summary
 

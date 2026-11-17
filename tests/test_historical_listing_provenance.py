@@ -65,3 +65,17 @@ def test_provenance_audit_blocks_when_listing_master_is_unavailable(tmp_path):
     result = audit_historical_listing_provenance(tmp_path)
     assert result["status"] == "BLOCKED"
     assert "nse_listing_master.csv" in result["detail"]
+
+def test_provenance_listing_date_parser_accepts_day_first_dates(tmp_path):
+    _inputs(tmp_path)
+    listing_path = tmp_path / "data" / "nse_listing_master.csv"
+    pd.DataFrame([{"symbol": "CAMS", "listing_date": "31/05/2021"}]).to_csv(
+        listing_path, index=False
+    )
+
+    result = audit_historical_listing_provenance(tmp_path)
+
+    assert result["status"] == "REVIEW"
+    assert result["pre_listing_bars"] == 10
+    assert result["bars_inside_documented_event_windows"] == 7
+

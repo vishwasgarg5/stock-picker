@@ -163,6 +163,28 @@ def test_nse_pipe_security_master_uses_documented_listing_date_field():
     assert found[0]["isin"] == "INE123A01016"
 
 
+def test_nse_mii_v16_pipe_security_master_uses_specified_fields():
+    import gzip
+    from src.listing_master import parse_security_master
+
+    # v1.6 record fields after expanding the six market-eligibility values:
+    # symbol=1, company name=15, listing date=21, ISIN=47.
+    fields = [""] * 48
+    fields[0] = "12345"
+    fields[1] = "ABC"
+    fields[15] = "ABC Limited"
+    fields[21] = str(int((pd.Timestamp("2024-01-15") - pd.Timestamp("1980-01-01")).total_seconds()))
+    fields[47] = "INE123A01016"
+    payload = ("NEATCM|01.00.00|0\\n" + "|".join(fields) + "\\n").encode()
+
+    found = parse_security_master(gzip.compress(payload), {"ABC"},
+        "https://nsearchives.nseindia.com/content/cm/NSE_CM_security_15012024.csv.gz")
+    assert len(found) == 1
+    assert found[0]["listing_date"] == "2024-01-15"
+    assert found[0]["company_name"] == "ABC Limited"
+    assert found[0]["isin"] == "INE123A01016"
+
+
 def test_official_equity_listing_csv_parser_extracts_verified_dates():
     from src.listing_master import parse_equity_listing_csv
     csv = """SYMBOL,NAME OF COMPANY,SERIES,DATE OF LISTING,PAID UP VALUE,MARKET LOT,ISIN NUMBER,FACE VALUE

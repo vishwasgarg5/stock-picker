@@ -88,17 +88,27 @@ def run_validation(
         index_history = pd.read_csv(DATA / "index_ohlcv.csv", parse_dates=["date"])
     if history.empty or index_history.empty:
         raise RuntimeError("Stock OHLCV and index OHLCV are both required for index-feature validation")
+    history = history.copy()
+    history["date"] = pd.to_datetime(history["date"], errors="coerce").dt.normalize()
+    history = history.dropna(subset=["date"]).sort_values(["symbol", "date"])
     enriched = pipeline.features(history, index_history=index_history)
     work = pipeline.add_targets(enriched)
-    needed = list(dict.fromkeys(BASELINE_FEATURES + pipeline.INDEX_MARKET_FEATURE_COLUMNS + ["target_close_return"]))
+    # The target at date t uses the next observed stock close. Record that
+    # endpoint and purge any training label whose outcome reaches the test era.
+    work["target_end_date"] = work.groupby("symbol")["date"].shift(-1)
+    needed = list(dict.fromkeys(BASELINE_FEATURES + pipeline.INDEX_MARKET_FEATURE_COLUMNS + ["target_close_return", "target_end_date"]))
     work = work.dropna(subset=needed).copy()
     work["date"] = pd.to_datetime(work["date"], errors="coerce").dt.normalize()
     work = work.dropna(subset=["date"]).sort_values(["date", "symbol"])
     if len(work) < 1000:
         raise RuntimeError(f"Insufficient aligned stock/index training rows: {len(work)}")
     train_end, test_start = chronological_date_split(work, train_fraction)
-    train = work.loc[work["date"] <= train_end]
-    test = work.loc[work["date"] >= test_start]
+    train = work.loc[(work["date"] <= train_end) & (work["target_end_date"] < test_start)].copy()
+    test = work.loc[(work["date"] >= test_start) & work["target_end_date"].notna()].copy()
+    if not train.empty and not (train["target_end_date"] < test_start).all():
+        raise AssertionError("Training labels overlap the chronological test period")
+    if not train.empty and not (train["date"] < test_start).all():
+        raise AssertionError("Training feature dates overlap the chronological test period")
     if len(train) > max_train_rows:
         train = train.sample(n=max_train_rows, random_state=42).sort_values(["date", "symbol"])
     if len(test) > max_test_rows:
@@ -142,7 +152,7 @@ def run_validation(
     report = {
         "status": "EVALUATED",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "method": "chronological 80/20 date split; fixed 3 expanding-order test windows; same ensemble and same rows for baseline and augmented model",
+        "method": "chronological 80/20 date split with next-observed-session target-end purge at boundary; fixed 3 ordered test windows; same ensemble and same rows for baseline and augmented model",
         "target": "next observed stock-session close return",
         "train_start": train["date"].min().date().isoformat(),
         "train_end": train_end.date().isoformat(),

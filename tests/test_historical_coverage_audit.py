@@ -175,7 +175,7 @@ def test_nse_mii_v16_pipe_security_master_uses_specified_fields():
     fields[15] = "ABC Limited"
     fields[21] = str(int((pd.Timestamp("2024-01-15") - pd.Timestamp("1980-01-01")).total_seconds()))
     fields[47] = "INE123A01016"
-    payload = ("NEATCM|01.00.00|0\\n" + "|".join(fields) + "\\n").encode()
+    payload = ("NEATCM|01.00.00|0\n" + "|".join(fields) + "\n").encode()
 
     found = parse_security_master(gzip.compress(payload), {"ABC"},
         "https://nsearchives.nseindia.com/content/cm/NSE_CM_security_15012024.csv.gz")

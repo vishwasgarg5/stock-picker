@@ -259,3 +259,5 @@ def test_equity_listing_fallback_stops_after_complete_first_mirror():
     assert len(found) == 1
     assert session.calls == 1
     assert audit["status"] == "PASS"
+
+# The fallback tests use real CSV line breaks to exercise pandas parsing.

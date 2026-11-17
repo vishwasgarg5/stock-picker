@@ -121,7 +121,16 @@ def build_dashboard() -> dict[str, Any]:
     index_latest = market.get("latest_index_session") or market.get("reference_ohlcv_session")
     index_stale = bool(market.get("stale_index_rows", 0) or market.get("future_index_rows", 0) or market.get("duplicate_index_rows", 0))
     calendar_updated = calendar.get("updated_at_utc")
-    calendar_status = "PASS" if calendar_updated else "REVIEW"
+    calendar_status = "REVIEW"
+    if calendar_updated:
+        try:
+            refreshed = datetime.fromisoformat(str(calendar_updated).replace("Z", "+00:00"))
+            if refreshed.tzinfo is None:
+                refreshed = refreshed.replace(tzinfo=timezone.utc)
+            age_days = (datetime.now(timezone.utc) - refreshed.astimezone(timezone.utc)).total_seconds() / 86400
+            calendar_status = "PASS" if 0 <= age_days <= 10 else "REVIEW"
+        except (TypeError, ValueError):
+            calendar_status = "FAIL"
     coverage_status = _status(coverage.get("status"), "NOT_AVAILABLE")
     promotion_status = _status(promotion.get("status"), "NOT_AVAILABLE")
     market_status = "FAIL" if index_stale else ("PASS" if market.get("index_data_available") and index_latest else "REVIEW")

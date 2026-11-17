@@ -130,3 +130,13 @@ def test_nifty_financial_services_constituent_aliases_are_supported():
     }, "2026-11-16")
     assert frame["symbol"].tolist() == ["AAA"]
     assert frame.iloc[0]["weight_pct"] == 100
+
+
+def test_latest_completed_session_skips_current_preopen_day(monkeypatch):
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    import src.market_calendar as calendar
+    monkeypatch.setattr(calendar, "is_trading_session",
+        lambda day: pd.Timestamp(day).date() == pd.Timestamp("2026-11-16").date())
+    now = datetime(2026, 11, 17, 5, 15, tzinfo=ZoneInfo("Asia/Kolkata"))
+    assert ici.latest_completed_session_date(now) == pd.Timestamp("2026-11-16").date()

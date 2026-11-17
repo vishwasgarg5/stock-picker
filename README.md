@@ -16,7 +16,7 @@ The workflow combines several layers:
 - **Forecasting:** Trains and refreshes the core forecasting models and produces next-session OHLC forecasts for eligible stocks.
 - **Stock ranking:** Scores and ranks the universe using forecast and market features, with dedicated challenger models evaluated separately.
 - **Market context:** Adds index/regime intelligence, sector context and available news information to the decision process.
-- **Index and constituent intelligence:** Maintains daily index OHLCV, captures point-in-time constituent membership and weights, and measures each stock's rolling correlation, beta and weighted contribution to its indices. Official weights are distinguished from explicitly labelled free-float-market-cap estimates; current constituents are never backfilled into the past.
+- **Index and constituent intelligence:** Maintains daily index OHLCV using Yahoo Finance with an official NSE `ind_close_all_DDMMYYYY.csv` archive fallback, captures point-in-time constituent membership and weights, and measures each stock's rolling correlation, beta and weighted contribution to its indices. Official weights are distinguished from explicitly labelled free-float-market-cap estimates; current constituents are never backfilled into the past. Constituent snapshots are dated to the latest completed NSE session, not the calendar date of an early-morning refresh.
 - **Risk and trade quality:** Applies expected-return, volatility, risk/reward, position-size and portfolio-risk checks. The system can return **NO_TRADE** when conditions do not meet its controls.
 - **Paper trading:** Records simulated trade decisions, quantities, capital allocation, costs, exits and portfolio results. Paper-trading results are measurement evidence, not live broker executions.
 - **Evaluation and governance:** Compares forecasts with realized prices, tracks longer-horizon outcomes, audits performance and keeps challenger models behind evidence and authorization gates.
@@ -47,7 +47,7 @@ flowchart TD
 
 ### Daily production cycle
 
-The main GitHub Actions workflow is scheduled daily at 16:00 India time and first refreshes/checks the official NSE Capital Market calendar. The production job runs only when the calendar confirms an open session, including confirmed special sessions. Its high-level sequence is:
+The main GitHub Actions workflow is scheduled daily at 16:00 India time and first refreshes/checks the official NSE Capital Market calendar. It also refreshes the NSE listing-date master and listing-aware historical-coverage audit after market-data updates. The production job runs only when the calendar confirms an open session, including confirmed special sessions. Its high-level sequence is:
 
 1. Validate source code, regression tests and integration wiring.
 2. Build and validate challenger components for new listings, ranking, trade quality, directional accuracy and confidence.

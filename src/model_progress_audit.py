@@ -363,7 +363,7 @@ def audit_live_data(rows):
                 f"status={official_snapshot.get('status', 'NOT_REPORTED')}; date={official_snapshot.get('date')}; source={official_snapshot.get('source')}; errors={official_snapshot.get('errors', [])[-3:]}",
                 "data/index_constituent_intelligence_audit.json")
             add(rows, "Live source refresh receipts", "Per-index OHLCV source results",
-                "PASS" if not failed_bars and expected_source_names.issubset(index_source) else "REVIEW",
+                "PASS" if not failed_bars and expected_source_names.issubset(per_index_source) else "REVIEW",
                 f"configured={len(expected_source_names)}; reported={len(per_index_source)}; failed_or_missing={list(failed_bars) + sorted(expected_source_names-set(per_index_source))}; results={ {k:v.get('status') for k,v in per_index_source.items()} }",
                 "data/index_constituent_intelligence_audit.json")
             add(rows, "Live source refresh receipts", "Per-index constituent source results",

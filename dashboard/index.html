@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Evidence-backed NSE stock picker model intelligence dashboard">
+<title>Stock Picker · Model Intelligence</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#121a2d;--panel2:#172238;--line:#26344d;--muted:#93a4bd;--text:#edf3fc;--cyan:#62d6d0;--green:#63d69b;--amber:#f3c66b;--red:#ff7e83;--blue:#88aaff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0%,#1b3150 0,transparent 35%),var(--bg);color:var(--text);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1440px;margin:auto;padding:28px 22px 56px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:22px}.eyebrow{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}.title{font-size:clamp(25px,4vw,38px);letter-spacing:-.04em;margin:4px 0}.sub{color:var(--muted);margin:0}.meta{color:var(--muted);font-size:12px;text-align:right}.pill{display:inline-flex;padding:4px 9px;border:1px solid var(--line);border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.04em}.PASS,.SCORED{color:var(--green);border-color:#27674e}.REVIEW,.REVIEW_REQUIRED,.INSUFFICIENT_EVIDENCE,.BLOCKED{color:var(--amber);border-color:#765b2c}.FAIL{color:var(--red);border-color:#793d47}.NOT_AVAILABLE,.UNKNOWN{color:var(--muted)}.grid{display:grid;gap:14px}.metrics{grid-template-columns:repeat(4,minmax(0,1fr));margin:18px 0}.layout{grid-template-columns:1.2fr .8fr;margin-top:14px}.card{background:linear-gradient(145deg,rgba(23,34,56,.96),rgba(16,25,43,.96));border:1px solid var(--line);border-radius:16px;padding:17px;min-width:0;box-shadow:0 12px 30px #0002}.metric-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}.metric-value{font-size:27px;font-weight:750;letter-spacing:-.04em;margin:6px 0 2px}.metric-note{font-size:12px;color:var(--muted)}h2{font-size:15px;margin:0 0 14px;letter-spacing:-.01em}.section{margin-top:24px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.section-head h2{margin:0}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #ffffff0d}.kv:last-child{border:0}.k{color:var(--muted)}.v{text-align:right;font-weight:650;overflow-wrap:anywhere}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;white-space:nowrap;font-size:12px}th{text-align:left;color:var(--muted);font-weight:650;padding:9px;border-bottom:1px solid var(--line)}td{padding:10px 9px;border-bottom:1px solid #ffffff0c}tbody tr:hover{background:#ffffff08}.symbol{font-weight:800;color:var(--cyan)}.empty{padding:18px;color:var(--muted);text-align:center}.bar{height:7px;border-radius:9px;background:#26344d;overflow:hidden;margin-top:7px}.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--blue));border-radius:9px}.gate{display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #ffffff0c}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber);margin-top:7px;flex:none}.foot{color:var(--muted);font-size:11px;margin-top:25px;border-top:1px solid var(--line);padding-top:14px}.warning{color:var(--amber);font-size:12px;margin-top:10px}.refresh{background:transparent;border:1px solid var(--line);color:var(--text);padding:7px 11px;border-radius:9px;cursor:pointer}.refresh:hover{border-color:var(--cyan)}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}}@media(max-width:560px){.wrap{padding:20px 13px}.top{display:block}.meta{text-align:left;margin-top:12px}.two,.three{grid-template-columns:1fr}.metric-value{font-size:23px}}
+</style></head>
+<body><main class="wrap">
+<header class="top"><div><div class="eyebrow">NSE · Research & paper trading</div><h1 class="title">Model Intelligence</h1><p class="sub">Live view of persisted forecasts, evidence, data quality and governance.</p></div><div class="meta"><div id="generated">Loading dashboard data…</div><button class="refresh" onclick="load()">Refresh data</button></div></header>
+<div id="error" class="warning"></div>
+<section class="grid metrics" id="metrics"></section>
+<section class="grid layout">
+<div class="card"><div class="section-head"><h2>Latest Top-10 forecasts</h2><span id="forecast-date" class="pill">—</span></div><div class="table-wrap"><table><thead><tr><th>Rank</th><th>Symbol</th><th>Target</th><th>Base close</th><th>Forecast close</th><th>Score</th></tr></thead><tbody id="predictions"></tbody></table></div><div id="prediction-empty" class="empty" hidden>No persisted prediction rows for the latest session.</div></div>
+<div class="card"><h2>Production & promotion control</h2><div id="production"></div><div class="warning">A dashboard status is an evidence summary—not a profitability claim or authorization to promote a challenger.</div></div>
+</section>
+<section class="section"><div class="section-head"><h2>Forecast quality & chronological replay</h2><span id="forecast-status" class="pill">—</span></div><div class="grid three" id="forecast-cards"></div></section>
+<section class="section"><div class="section-head"><h2>Paper trading & selection funnel</h2><span class="pill">Simulated results only</span></div><div class="grid three" id="trading"></div></section>
+<section class="section"><div class="section-head"><h2>Data health</h2><span class="sub">Source dates and audit statuses</span></div><div class="grid three" id="health"></div></section>
+<section class="section"><div class="section-head"><h2>Reconciliation & governance</h2><span id="recon-status" class="pill">—</span></div><div class="grid two"><div class="card" id="reconciliation"></div><div class="card" id="governance"></div></div></section>
+<footer class="foot">Source: repository data artifacts generated by the model workflows. Missing or malformed evidence is shown as unavailable/review; it is never silently converted to PASS. Forecasts are research outputs, not investment advice. V2 remains shadow-only unless explicit governance and human authorization permit otherwise.</footer>
+</main>
+<script>
+const fmt=(v,d=2)=>v===null||v===undefined||v===""||!Number.isFinite(Number(v))?"—":Number(v).toLocaleString("en-IN",{maximumFractionDigits:d});
+const status=s=>'<span class="pill '+String(s||"NOT_AVAILABLE").replace(/[^A-Z_]/g,"")+'">'+esc(s||"NOT AVAILABLE")+'</span>';
+const esc=s=>String(s??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const kv=(k,v)=>'<div class="kv"><span class="k">'+esc(k)+'</span><span class="v">'+(typeof v==="string"&&v.startsWith("<span")?v:esc(v))+'</span></div>';
+const card=(title,body)=>'<article class="card"><h2>'+title+'</h2>'+body+'</article>';
+async function load(){try{document.getElementById("error").textContent="";const r=await fetch("dashboard_data.json?ts="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error("dashboard_data.json returned HTTP "+r.status);const d=await r.json();render(d);document.getElementById("generated").textContent="Generated "+new Date(d.generated_at_utc).toLocaleString("en-IN",{timeZone:"Asia/Kolkata"})+" IST"}catch(e){document.getElementById("error").textContent="Unable to load dashboard data: "+e.message+" — run the dashboard build workflow and serve this folder over HTTP."}}
+function render(d){
+const p=d.production||{},f=d.forecast||{},h=d.data_health||{},c=h.historical_coverage||{},m=h.index||{},cal=h.calendar||{},rec=d.reconciliation||{},g=d.governance||{};
+document.getElementById("metrics").innerHTML=[
+["Production champion",p.champion||"—","Challenger: "+(p.challenger_mode||"—")],
+["Forecast close MAPE",fmt(f.close_mape_pct)+"%","Evaluated rows: "+fmt(f.evaluated_rows,0)],
+["Historical coverage",fmt(c.symbols_with_history,0)+" / "+fmt(c.universe_symbols,0),"Training-ready: "+fmt(c.training_ready_50_sessions,0)],
+["Promotion readiness",p.promotion_status||"—","Automatic promotion: "+(p.automatic_promotion?"enabled":"disabled")]
+].map(x=>'<article class="card"><div class="metric-label">'+esc(x[0])+'</div><div class="metric-value">'+esc(x[1])+'</div><div class="metric-note">'+esc(x[2])+'</div></article>').join("");
+document.getElementById("forecast-date").textContent=(d.predictions?.prediction_date||"No prediction date")+" → "+(d.predictions?.target_date||"—");
+const rows=d.predictions?.top10||[];document.getElementById("predictions").innerHTML=rows.map(x=>'<tr><td>'+esc(x.rank)+'</td><td class="symbol">'+esc(x.symbol)+'</td><td>'+esc(x.target_date)+'</td><td>'+fmt(x.base_close)+'</td><td>'+fmt(x.predicted_close)+'</td><td>'+fmt(x.score)+'</td></tr>').join("");document.getElementById("prediction-empty").hidden=rows.length>0;
+document.getElementById("production").innerHTML=kv("Champion",p.champion)+kv("Challenger mode",p.challenger_mode)+kv("Promotion",status(p.promotion_status))+kv("Production changes authorized",p.production_changes_authorized?"YES":"NO")+kv("Automatic promotion",p.automatic_promotion?"YES":"NO");
+document.getElementById("forecast-status").outerHTML=status(f.status);
+document.getElementById("forecast-cards").innerHTML=[
+card("Forecast accuracy",kv("Close MAPE",fmt(f.close_mape_pct)+"%")+kv("Close MAE",fmt(f.close_mae))+kv("Directional accuracy",fmt(f.directional_accuracy_pct)+"%")+kv("Rows scored",fmt(f.evaluated_rows,0))),
+card("V1 chronological paper replay",kv("Status",status(f.chronological_status))+kv("Sessions",fmt(f.v1?.sessions,0))+kv("Net P&L",fmt(f.v1?.net_pnl))+kv("Max drawdown",fmt(f.v1?.max_drawdown_pct_from_100k_start)+"%")+kv("Win rate",fmt(f.v1?.win_rate_pct)+"%")),
+card("V2 shadow replay",kv("Sessions",fmt(f.v2?.sessions,0))+kv("Net P&L",fmt(f.v2?.net_pnl))+kv("Win rate",fmt(f.v2?.win_rate_pct)+"%")+kv("Evidence requirement",fmt(f.v2?.minimum_v2_sessions_for_evidence,0)+" sessions"))
+].join("");
+const t=d.paper_trading||{},funnel=t.v2_funnel||{};
+document.getElementById("trading").innerHTML=[
+card("V1 paper ledger",kv("Rows",fmt(t.v1?.rows,0))+kv("BUY rows",fmt(t.v1?.buy_rows,0))+kv("Net P&L (recorded)",fmt(t.v1?.net_pnl))+kv("Win rate",fmt(t.v1?.win_rate_pct)+"%")),
+card("V2 paper ledger",kv("Rows",fmt(t.v2?.rows,0))+kv("BUY rows",fmt(t.v2?.buy_rows,0))+kv("SKIP rows",fmt(t.v2?.skip_rows,0))+kv("Net P&L (recorded)",fmt(t.v2?.net_pnl))),
+card("V2 selection funnel",kv("Status",status(funnel.status))+kv("BUY",fmt(funnel.buy_rows,0))+kv("SKIP",fmt(funnel.skip_rows,0))+kv("SKIP without reason",fmt(funnel.skip_rows_without_reason,0))+kv("Top reject reasons",Object.entries(funnel.top_rejection_reasons||{}).map(([k,v])=>k+": "+v).join(", ")||"—"))
+].join("");
+document.getElementById("health").innerHTML=[
+card("Historical OHLCV coverage",kv("Status",status(c.status))+kv("Symbols with history",fmt(c.symbols_with_history,0)+" / "+fmt(c.universe_symbols,0))+kv("Training-ready ≥50 sessions",fmt(c.training_ready_50_sessions,0))+kv("History range",(c.history_start||"—")+" → "+(c.history_end||"—"))),
+card("NSE calendar",kv("Status",status(cal.status))+kv("Last refresh",cal.updated_at_utc||"No refresh timestamp")+kv("Holidays",fmt(cal.holiday_count,0))+kv("Special sessions",fmt((cal.special_sessions||[]).length,0))),
+card("Index & market intelligence",kv("Status",status(m.status))+kv("Latest index session",m.latest_session)+kv("Reference OHLCV",m.reference_ohlcv_session)+kv("Risk level",m.risk_level)+kv("Regime",m.regime)+kv("Stale / duplicate / future",fmt(m.stale_rows,0)+" / "+fmt(m.duplicate_rows,0)+" / "+fmt(m.future_rows,0)))
+].join("");
+document.getElementById("recon-status").outerHTML=status(rec.status);
+document.getElementById("reconciliation").innerHTML="<h2>Trade P&L reconciliation</h2>"+kv("Status",status(rec.status))+kv("BUY rows",fmt(rec.buy_rows,0))+kv("Complete",fmt(rec.complete_rows,0))+kv("Incomplete",fmt(rec.incomplete_rows,0))+kv("Mismatches",fmt(rec.mismatch_rows,0))+kv("Last complete session",rec.last_complete_session)+kv("Last incomplete session",rec.last_incomplete_session);
+document.getElementById("governance").innerHTML="<h2>Governance & audit signals</h2>"+kv("Promotion",status(g.promotion_status))+kv("Unmet gates",(g.unmet_gates||[]).join(", ")||"None recorded")+kv("Drift",status(g.drift_status))+kv("Model drift",status(g.model_drift_status))+kv("Safety",status(g.safety_status))+kv("Unstable stocks",fmt(g.unstable_stocks,0))+kv("Stable features",fmt(g.stable_features,0))+kv("Performance findings",(g.performance_findings||[]).join("; ")||"—");
+}
+load();
+</script></body></html>

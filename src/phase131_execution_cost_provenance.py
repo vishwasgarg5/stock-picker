@@ -162,7 +162,7 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
     blocked = int(statuses.eq("BLOCKED_MISSING_RECORDED_ACCOUNTING").sum())
     ledger_only = int(statuses.eq("LEDGER_ARITHMETIC_ONLY_SOURCE_NOT_ESTABLISHED").sum())
     summary = {
-        "status": "PASS" if len(detail) and source_verified == len(detail) and mismatch == 0 and blocked == 0 else (
+        "status": "NO_EXECUTED_TRADES" if detail.empty else "PASS" if source_verified == len(detail) and mismatch == 0 and blocked == 0 else (
             "FAIL" if mismatch else "BLOCKED" if blocked else "REVIEW"
         ),
         "executed_rows": int(len(detail)),

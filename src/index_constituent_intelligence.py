@@ -359,16 +359,73 @@ def refresh_constituent_snapshots(session=None, indexes: dict | None = None, as_
     return fresh, audit
 
 
-def build_constituent_features(stock_history: pd.DataFrame, index_history: pd.DataFrame,
-                               membership: pd.DataFrame, min_periods: int = 20) -> pd.DataFrame:
-    """Create date-effective, no-look-ahead stock/index relationship features."""
-    output = []
+def build_constituent_features(
+    stock_history: pd.DataFrame,
+    index_history: pd.DataFrame,
+    membership: pd.DataFrame,
+    min_periods: int = 20,
+    diagnostics: dict | None = None,
+) -> pd.DataFrame:
+    """Create date-effective features and explain every zero-row outcome.
+
+    Membership snapshots are applied only on/after their observed as_of_date.
+    This function never infers historical membership or moves a snapshot date
+    backwards to make older market bars join.
+    """
+    audit = {
+        "status": "BLOCKED",
+        "blocked_reason": None,
+        "input_rows": {
+            "stock_history": int(len(stock_history)),
+            "index_history": int(len(index_history)),
+            "membership": int(len(membership)),
+        },
+        "stage_rows": {},
+        "membership_groups": 0,
+        "matched_stock_symbol_groups": 0,
+        "matched_index_series_groups": 0,
+        "date_overlap_groups": 0,
+        "date_overlap_rows": 0,
+        "rows_after_membership_asof": 0,
+        "output_rows": 0,
+        "unmatched_membership_symbols": [],
+        "unsupported_membership_indexes": [],
+        "latest_stock_date": None,
+        "latest_index_date": None,
+        "latest_membership_as_of_date": None,
+        "latest_aligned_market_data_date": None,
+        "membership_scope": "observed_snapshots_only",
+        "historical_membership_backfilled": False,
+    }
+
+    def finish(frame: pd.DataFrame, reason: str | None = None) -> pd.DataFrame:
+        audit["status"] = "BLOCKED" if reason else "PASS"
+        audit["blocked_reason"] = reason
+        audit["output_rows"] = int(len(frame))
+        audit["stage_rows"]["output"] = int(len(frame))
+        if diagnostics is not None:
+            diagnostics.update(audit)
+        return frame
+
+    def empty(reason: str) -> pd.DataFrame:
+        return finish(pd.DataFrame(columns=FEATURE_COLUMNS), reason)
+
+    if stock_history.empty:
+        return empty("STOCK_HISTORY_EMPTY")
+    if index_history.empty:
+        return empty("INDEX_HISTORY_EMPTY")
+    if membership.empty:
+        return empty("NO_CONSTITUENT_SNAPSHOTS")
     required_stock = {"date", "symbol", "close"}
     required_index = {"date", "index", "close"}
-    if stock_history.empty or index_history.empty or membership.empty:
-        return pd.DataFrame()
+    required_membership = {"index", "symbol", "as_of_date", "weight_pct", "weight_method"}
     if not required_stock.issubset(stock_history) or not required_index.issubset(index_history):
         raise ValueError("Stock and index history require date, symbol/index, and close")
+    missing_membership = sorted(required_membership.difference(membership.columns))
+    if missing_membership:
+        audit["missing_membership_columns"] = missing_membership
+        return empty("MEMBERSHIP_SCHEMA_INVALID")
+
     stocks = stock_history.copy()
     indexes = index_history.copy()
     members = membership.copy()
@@ -385,32 +442,58 @@ def build_constituent_features(stock_history: pd.DataFrame, index_history: pd.Da
     stocks = stocks.dropna(subset=["date", "close"]).sort_values(["symbol", "date"])
     indexes = indexes.dropna(subset=["date", "close"]).sort_values(["index", "date"])
     members = members.dropna(subset=["as_of_date"]).sort_values(["index", "symbol", "as_of_date"])
+    audit["stage_rows"] = {
+        "stock_after_date_price_validation": int(len(stocks)),
+        "index_after_date_price_validation": int(len(indexes)),
+        "membership_after_asof_validation": int(len(members)),
+    }
+    audit["membership_groups"] = int(members.groupby(["index", "symbol"]).ngroups)
+    audit["latest_stock_date"] = stocks["date"].max().date().isoformat() if not stocks.empty else None
+    audit["latest_index_date"] = indexes["date"].max().date().isoformat() if not indexes.empty else None
+    audit["latest_membership_as_of_date"] = members["as_of_date"].max().date().isoformat() if not members.empty else None
+    if not stocks.empty and not indexes.empty:
+        audit["latest_aligned_market_data_date"] = min(stocks["date"].max(), indexes["date"].max()).date().isoformat()
+
+    output = []
+    unmatched_symbols = set()
+    unsupported_indexes = set()
     index_key_map = {k.upper(): k for k in INDEX_TICKERS}
+    stock_symbols = set(stocks["symbol"].dropna().unique())
     for (index, symbol), group in members.groupby(["index", "symbol"]):
         idx_key = index_key_map.get(index)
         if not idx_key:
+            unsupported_indexes.add(index)
             continue
         stock = stocks.loc[stocks.symbol.eq(symbol), ["date", "close"]].drop_duplicates("date", keep="last").copy()
-        idx = indexes.loc[indexes["index"].eq(idx_key), ["date", "close"]].drop_duplicates("date", keep="last").copy()
-        if stock.empty or idx.empty:
+        if stock.empty:
+            unmatched_symbols.add(symbol)
             continue
+        audit["matched_stock_symbol_groups"] += 1
+        idx = indexes.loc[indexes["index"].eq(idx_key), ["date", "close"]].drop_duplicates("date", keep="last").copy()
+        if idx.empty:
+            continue
+        audit["matched_index_series_groups"] += 1
         stock["stock_return_1d_pct"] = stock.close.pct_change() * 100
         idx["index_return_1d_pct"] = idx.close.pct_change() * 100
         idx["index_return_5d_pct"] = idx.close.pct_change(5) * 100
-        joined = stock.merge(idx, on="date", how="inner", suffixes=("", "_index"))
-        joined = joined.sort_values("date")
+        joined = stock.merge(idx, on="date", how="inner", suffixes=("", "_index")).sort_values("date")
+        audit["date_overlap_rows"] += int(len(joined))
         if joined.empty:
             continue
+        audit["date_overlap_groups"] += 1
         joined["rolling_corr_60d"] = joined.stock_return_1d_pct.rolling(60, min_periods=min_periods).corr(joined.index_return_1d_pct)
         covariance = joined.stock_return_1d_pct.rolling(60, min_periods=min_periods).cov(joined.index_return_1d_pct)
         variance = joined.index_return_1d_pct.rolling(60, min_periods=min_periods).var()
         joined["rolling_beta_60d"] = covariance / variance.replace(0, np.nan)
-        # As-of merge ensures a constituent/weight snapshot is never applied
-        # before the date on which the system actually observed it.
+        # A dated observation is usable only on/after its actual observation
+        # date. Never backfill a current snapshot into earlier market sessions.
         snapshots = group[["as_of_date", "weight_pct", "weight_method"]].drop_duplicates("as_of_date").sort_values("as_of_date")
         joined = pd.merge_asof(joined.sort_values("date"), snapshots,
                                left_on="date", right_on="as_of_date", direction="backward")
         joined = joined.dropna(subset=["as_of_date"])
+        audit["rows_after_membership_asof"] += int(len(joined))
+        if joined.empty:
+            continue
         joined["index"] = index
         joined["symbol"] = symbol
         joined["weighted_stock_return_contribution_pct"] = joined.stock_return_1d_pct * joined.weight_pct / 100.0
@@ -418,7 +501,32 @@ def build_constituent_features(stock_history: pd.DataFrame, index_history: pd.Da
                               "index_return_1d_pct", "index_return_5d_pct", "stock_return_1d_pct",
                               "rolling_corr_60d", "rolling_beta_60d",
                               "weighted_stock_return_contribution_pct", "as_of_date"]])
-    return pd.concat(output, ignore_index=True) if output else pd.DataFrame()
+
+    audit["unmatched_membership_symbols"] = sorted(unmatched_symbols)[:25]
+    audit["unmatched_membership_symbol_count"] = len(unmatched_symbols)
+    audit["unsupported_membership_indexes"] = sorted(unsupported_indexes)
+    audit["stage_rows"]["date_overlap"] = int(audit["date_overlap_rows"])
+    audit["stage_rows"]["after_membership_asof"] = int(audit["rows_after_membership_asof"])
+    features = pd.concat(output, ignore_index=True) if output else pd.DataFrame(columns=FEATURE_COLUMNS)
+    if not features.empty:
+        return finish(features, None)
+
+    if audit["membership_groups"] == 0:
+        reason = "NO_VALID_DATED_MEMBERSHIP_SNAPSHOTS"
+    elif audit["matched_stock_symbol_groups"] == 0:
+        reason = "NO_MEMBERSHIP_SYMBOLS_MATCH_STOCK_HISTORY"
+    elif audit["matched_index_series_groups"] == 0:
+        reason = "NO_MEMBERSHIP_INDEX_SERIES_MATCH"
+    elif audit["date_overlap_groups"] == 0:
+        reason = "NO_ALIGNED_STOCK_INDEX_SESSIONS"
+    else:
+        membership_date = pd.to_datetime(audit["latest_membership_as_of_date"], errors="coerce")
+        market_date = pd.to_datetime(audit["latest_aligned_market_data_date"], errors="coerce")
+        if pd.notna(membership_date) and pd.notna(market_date) and membership_date > market_date:
+            reason = "MEMBERSHIP_SNAPSHOT_NEWER_THAN_MARKET_DATA"
+        else:
+            reason = "NO_POST_SNAPSHOT_ALIGNED_MARKET_SESSIONS"
+    return finish(features, reason)
 
 
 def run_index_constituent_intelligence(stock_history: pd.DataFrame | None = None) -> dict:
@@ -428,11 +536,16 @@ def run_index_constituent_intelligence(stock_history: pd.DataFrame | None = None
     if stock_history is None:
         stock_history = pd.read_csv(ROOT / "data" / "ohlcv.csv") if (ROOT / "data" / "ohlcv.csv").exists() else pd.DataFrame()
     membership = pd.read_csv(CONSTITUENTS_FILE) if CONSTITUENTS_FILE.exists() else pd.DataFrame(columns=MEMBER_COLUMNS)
-    features = build_constituent_features(stock_history, index_history, membership)
+    feature_diagnostics = {}
+    features = build_constituent_features(stock_history, index_history, membership,
+                                           diagnostics=feature_diagnostics)
     if features.empty:
         features = pd.DataFrame(columns=FEATURE_COLUMNS)
     features.to_csv(FEATURES_FILE, index=False)
     report = {
+        "status": feature_diagnostics.get("status", "BLOCKED"),
+        "feature_blocked_reason": feature_diagnostics.get("blocked_reason"),
+        "feature_diagnostics": feature_diagnostics,
         "updated_at_ist": datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(),
         "index_ohlcv": index_audit,
         "constituents": member_audit,

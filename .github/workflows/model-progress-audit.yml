@@ -90,6 +90,28 @@ jobs:
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
         continue-on-error: true
         run: python -m src.index_constituent_intelligence
+      - name: Publish constituent-feature generation status
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          report_path = Path("data/index_constituent_intelligence_audit.json")
+          print("## Point-in-time constituent-feature generation")
+          if not report_path.is_file():
+              print("- Status: **BLOCKED**")
+              print("- Reason: generator audit artifact was not produced")
+          else:
+              report = json.loads(report_path.read_text(encoding="utf-8"))
+              diag = report.get("feature_diagnostics", {})
+              print(f"- Status: **{report.get('status', 'UNKNOWN')}**")
+              print(f"- Feature rows: **{report.get('feature_rows', 0)}**")
+              print(f"- Blocked reason: `{report.get('feature_blocked_reason') or 'none'}`")
+              print(f"- Latest stock/index dates: {diag.get('latest_stock_date')} / {diag.get('latest_index_date')}")
+              print(f"- Latest membership observation: {diag.get('latest_membership_as_of_date')}")
+              print(f"- Rows after point-in-time membership filter: {diag.get('rows_after_membership_asof', 0)}")
+              print(f"- Unmatched membership symbols: {diag.get('unmatched_membership_symbol_count', 0)}")
+          PY
       - name: Refresh NSE listing-date master and historical coverage audit
         id: listing_refresh
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event_name == 'pull_request'
@@ -215,6 +237,9 @@ jobs:
             data/weekend_data_quality_audit.json
             data/weekend_data_quality_audit.csv
             data/index_feature_validation.json
+            data/index_constituent_intelligence_audit.json
+            data/index_constituent_features.csv
+            data/index_constituents_history.csv
             data/execution_cost_evidence_manifest.csv
           if-no-files-found: warn
           retention-days: 30

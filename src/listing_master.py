@@ -173,7 +173,12 @@ def refresh_from_security_master(client, unresolved: set[str], max_calendar_days
                 return found,{"status":"PASS","source":url,"symbols_found":len(found),"attempted_dates":attempts}
             errors.append({"date":candidate.isoformat(),"error":"Valid file but no requested listing rows parsed"})
         except Exception as exc:
-            errors.append({"date":candidate.isoformat(),"error":str(exc)})
+            message=str(exc)
+            errors.append({"date":candidate.isoformat(),"error":message})
+            lower=message.lower()
+            if any(token in lower for token in ("403","429","timed out","timeout","connection","502","503","504")):
+                attempts.append(candidate.isoformat())
+                break
         attempts.append(candidate.isoformat())
     return [],{"status":"SOURCE_UNAVAILABLE","attempted_dates":attempts,"errors":errors[-5:]}
 

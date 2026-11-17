@@ -98,15 +98,34 @@ def parse_security_master(payload: bytes, requested_symbols: set[str], source_ur
     found=[]
     for line in lines:
         fields=line.strip().split("|")
-        if len(fields)<54 or fields[0].strip().upper().startswith("NEATCM"):
+        if len(fields)<48 or fields[0].strip().upper().startswith("NEATCM"):
             continue
         symbol=fields[1].strip().upper()
         if symbol not in requested_symbols:
             continue
-        # NEATCM CM layout: Name=field 21, Listing Date=field 27,
-        # ISIN Number=field 53 (zero-based positions).
-        item=build(symbol,fields[21],fields[53],fields[27])
-        if item: found.append(item)
+
+        # NSE Masters Data v1.6 (05-May-2025) defines the CM data-record
+        # sequence with the six-entry market-eligibility structure expanded
+        # into pipe fields: Name=15, Listing Date=21, ISIN=47 (zero-based).
+        # Retain the older 54-field layout as a compatibility fallback, but
+        # select a layout only when its date and ISIN both validate.
+        layouts=((15,21,47),(21,27,53))
+        item=None
+        for company_idx, listing_idx, isin_idx in layouts:
+            if len(fields)<=max(company_idx,listing_idx,isin_idx):
+                continue
+            isin=fields[isin_idx].strip().upper()
+            if isin and (len(isin)!=12 or not isin.startswith("IN")):
+                continue
+            try:
+                day=_parse_mii_listing_date(fields[listing_idx])
+            except Exception:
+                continue
+            item=build(symbol,fields[company_idx],isin,day)
+            if item:
+                break
+        if item:
+            found.append(item)
     if not found:
         raise ValueError("NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout")
     return found

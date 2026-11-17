@@ -37,7 +37,7 @@ This document tracks reusable capabilities from `vishwasgarg5/Broker` against th
 - `src/nse_udiff_reconciliation.py`: official NSE UDiFF research ingestion with raw/normalized snapshots, a persisted manifest, and post-write hash/record-count verification under an isolated audit root.
 - `src/nse_universe_observation.py`: official Nifty 50 current-membership observations with raw/normalized provenance, hash verification, and an explicit non-PIT boundary under `audit/broker_universe/`.
 - `src/universe_membership_provenance.py`: strict validator for externally sourced effective-dated membership records; requires publication timestamps and source provenance and rejects overlapping intervals. Validation does not assert historical coverage or PIT readiness.
-- `tests/test_universe_membership_provenance.py`: seven regression tests for required dates, timestamp timezone, invalid intervals, duplicates, overlap and schema fields.
+- `tests/test_universe_membership_provenance.py`: nine regression tests for required dates, timestamp timezone, invalid intervals, duplicates, overlap, HTTPS source URLs and SHA-256 source-document hashes.
 - `tests/test_nse_universe_observation.py`: deterministic tests for exact 50-symbol snapshots, duplicates, missing/tampered files, and the non-PIT boundary.
 - `tests/test_nse_udiff_reconciliation.py`: deterministic ingestion tests.
 - Model Progress Audit workflow: runs the contracts and isolated UDiFF probe and reports source status without mutating canonical OHLCV or paper ledgers.

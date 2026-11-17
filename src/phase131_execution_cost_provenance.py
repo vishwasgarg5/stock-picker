@@ -71,18 +71,20 @@ def _first_recorded(row: pd.Series, names: tuple[str, ...]) -> tuple[float | Non
 
 
 def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]]:
-    """Classify executed rows using recorded costs and independently checked identities."""
+    """Audit every BUY-like candidate; never silently drop rows missing quantity."""
     cost_model = configured_cost_model()
     columns = [
         "row_index", "symbol", "target_date", "recorded_costs", "allocated_capital",
         "recorded_cost_rate", "matches_current_simulation_rate", "cost_field",
         "gross_pnl", "gross_field", "net_pnl", "net_field", "cost_identity_delta",
         "component_total", "component_identity_delta", "component_breakdown_status",
-        "cost_evidence_reference", "status",
+        "cost_evidence_reference", "execution_quantity", "execution_quantity_status", "status",
     ]
     if trades.empty:
         return pd.DataFrame(columns=columns), {
-            "status": "NO_EXECUTED_TRADES", "executed_rows": 0,
+            "status": "NO_EXECUTED_TRADES", "candidate_rows": 0, "executed_rows": 0,
+            "candidate_rows_missing_quantity": 0, "quantity_blocked_rows": 0,
+            "accounting_blocked_rows": 0,
             "configured_cost_model": cost_model, "rows_matching_current_simulation_rate": 0,
             "ledger_cost_rows": 0, "component_verified_rows": 0,
             "source_reference_present_rows": 0, "source_documents_verified": False,
@@ -92,11 +94,11 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
         }
 
     signal = trades.get("signal", pd.Series("BUY", index=trades.index)).astype(str).str.upper().str.strip()
-    quantity = pd.to_numeric(trades.get("quantity", pd.Series(np.nan, index=trades.index)), errors="coerce")
-    shares = pd.to_numeric(trades.get("shares", pd.Series(np.nan, index=trades.index)), errors="coerce")
-    qty = quantity.where(quantity.gt(0), shares)
-    executed = signal.isin(["BUY", "LONG", "EXECUTED"]) & qty.gt(0)
-    rows = trades.loc[executed]
+    candidate = signal.isin(["BUY", "LONG", "EXECUTED"])
+    # Keep all BUY-like candidates in the audit. Positive recorded quantity/shares
+    # establishes an execution row; missing quantity is itself a blocker, not a
+    # reason to silently omit the candidate from accounting coverage.
+    rows = trades.loc[candidate]
     model_rates = [model["rate"] for model in cost_model.get("models", []) if model.get("rate") is not None]
     output = []
 
@@ -105,6 +107,10 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
         gross, gross_field = _first_recorded(row, GROSS_COLUMNS)
         net, net_field = _first_recorded(row, NET_COLUMNS)
         allocated = _number(row, "allocated_capital")
+        quantity_value = _number(row, "quantity")
+        shares_value = _number(row, "shares")
+        execution_quantity = quantity_value if quantity_value is not None and quantity_value > 0 else shares_value
+        quantity_verified = execution_quantity is not None and execution_quantity > 0
         recorded_rate = cost / allocated if cost is not None and allocated is not None and allocated > 0 else None
 
         all_cost_values = [(name, _number(row, name)) for name in COST_COLUMNS]
@@ -133,6 +139,8 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
             status = "BLOCKED_MISSING_RECORDED_ACCOUNTING"
         elif cost < 0:
             status = "FAIL_INVALID_NEGATIVE_COST"
+        elif not quantity_verified:
+            status = "BLOCKED_MISSING_EXECUTION_QUANTITY"
         elif component_verified and evidence_ref:
             status = "REFERENCE_PRESENT_COMPONENTS_RECONCILED"
         elif component_verified:
@@ -162,6 +170,8 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
                 "INCOMPLETE" if not components_complete else "MISMATCH"
             ),
             "cost_evidence_reference": evidence_ref,
+            "execution_quantity": execution_quantity if quantity_verified else None,
+            "execution_quantity_status": "RECORDED_POSITIVE_QUANTITY" if quantity_verified else "MISSING_OR_INVALID_RECORDED_QUANTITY",
             "status": status,
         })
 
@@ -174,13 +184,19 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
         "COMPONENTS_RECONCILED_REFERENCE_MISSING",
     ]).sum())
     mismatch = int(statuses.str.startswith("FAIL_").sum())
-    blocked = int(statuses.eq("BLOCKED_MISSING_RECORDED_ACCOUNTING").sum())
+    accounting_blocked = int(statuses.eq("BLOCKED_MISSING_RECORDED_ACCOUNTING").sum())
+    quantity_blocked = int(detail["execution_quantity_status"].ne("RECORDED_POSITIVE_QUANTITY").sum())
+    blocked = int(statuses.isin(["BLOCKED_MISSING_RECORDED_ACCOUNTING", "BLOCKED_MISSING_EXECUTION_QUANTITY"]).sum())
     ledger_only = int(statuses.eq("LEDGER_ARITHMETIC_ONLY_SOURCE_NOT_ESTABLISHED").sum())
     summary = {
         "status": "NO_EXECUTED_TRADES" if detail.empty else (
             "FAIL" if mismatch else "BLOCKED" if blocked else "REVIEW"
         ),
-        "executed_rows": int(len(detail)),
+        "candidate_rows": int(len(detail)),
+        "executed_rows": int(detail["execution_quantity_status"].eq("RECORDED_POSITIVE_QUANTITY").sum()),
+        "candidate_rows_missing_quantity": quantity_blocked,
+        "quantity_blocked_rows": quantity_blocked,
+        "accounting_blocked_rows": accounting_blocked,
         "configured_cost_model": cost_model,
         "rows_matching_current_simulation_rate": int(detail["matches_current_simulation_rate"].sum()),
         "ledger_cost_rows": int(detail["recorded_costs"].notna().sum()),
@@ -198,8 +214,10 @@ def evaluate_execution_cost_provenance(trades: pd.DataFrame) -> tuple[pd.DataFra
         "policy": (
             "A recorded total that satisfies gross minus costs equals net is arithmetic reconciliation only. "
             "A component breakdown and reference string are reported as supplied, but the referenced document "
-            "is not fetched or authenticated by this audit. The current fixed round-trip simulation rate is "
-            "reported separately and is never applied to historical rows. No rate-based reconstruction or backfill is performed."
+            "is not fetched or authenticated by this audit. BUY-like candidates without positive recorded "
+            "quantity/shares remain visible as blocked rows rather than being excluded. The current fixed "
+            "round-trip simulation rate is reported separately and is never applied to historical rows. "
+            "No rate-based reconstruction or backfill is performed."
         ),
     }
     return detail, summary

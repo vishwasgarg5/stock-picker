@@ -260,7 +260,13 @@ def normalise_constituent_payload(index: str, payload: dict, as_of_date: str | N
             continue
         meta = item.get("meta") if isinstance(item.get("meta"), dict) else {}
         symbol = str(item.get("symbol") or meta.get("symbol") or "").strip().upper()
-        if not symbol or symbol in {index, NSE_INDEX_NAMES.get(index, "").upper(), "NIFTY 50"}:
+        configured_name = NSE_INDEX_NAMES.get(index, "")
+        excluded_names = {index, "NIFTY 50"}
+        if isinstance(configured_name, (list, tuple)):
+            excluded_names.update(str(name).upper() for name in configured_name)
+        else:
+            excluded_names.add(str(configured_name).upper())
+        if not symbol or symbol in excluded_names:
             continue
         ffmc_raw = item.get("ffmc") or item.get("marketCap") or item.get("market_cap")
         try:

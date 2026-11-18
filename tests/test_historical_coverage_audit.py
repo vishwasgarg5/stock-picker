@@ -239,12 +239,15 @@ def test_reit_listing_dates_are_backed_by_official_nse_documents():
     path = Path(__file__).resolve().parents[1] / "data" / "nse_listing_master.csv"
     listing = pd.read_csv(path, dtype=str).set_index("symbol")
     expected = {
-        "BAGMANE": ("2026-05-14", "INE2OVN25015"),
-        "BIRET": ("2021-02-16", "INE0FDU25010"),
-        "EMBASSY": ("2019-04-01", "INE041025011"),
+        "BAGMANE": ("2026-05-14", "INE2OVN25015",
+                    "nsearchives.nseindia.com/corporate/BAGMANE_"),
+        "BIRET": ("2021-02-16", "INE0FDU25010",
+                  "brookfieldindiareit.in/files/annual-report/First-Annual-Report-FY21.pdf"),
+        "EMBASSY": ("2019-04-01", "INE041025011",
+                    "nsearchives.nseindia.com/corporate/EMBASSY_13112020154844_IntimationHYR.pdf"),
     }
-    for symbol, (listing_date, isin) in expected.items():
+    for symbol, (listing_date, isin, source_fragment) in expected.items():
         assert listing.loc[symbol, "listing_date"] == listing_date
         assert listing.loc[symbol, "isin"] == isin
-        assert "nsearchives.nseindia.com" in listing.loc[symbol, "listing_date_source"]
+        assert source_fragment in listing.loc[symbol, "listing_date_source"]
 

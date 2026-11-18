@@ -255,3 +255,26 @@ Run the schema check:
 ```bash
 python -m research_model.data.validate_membership_history research_model/schemas/index_membership_history.csv --source-documents research_model/schemas/historical_source_documents.csv
 ```
+
+
+
+## Authoritative historical evidence-readiness gate
+
+The CI evidence gate is separate from compilation and unit-test success. Run it after generating the reports listed below:
+
+```bash
+python -m research_model.data.evidence_readiness \
+  --report-dir /path/to/audit-reports \
+  --repo-root . \
+  --output evidence-readiness.json
+```
+
+The report directory must contain the OHLCV scan, embedded corporate-action audit, corporate-action ledger validation, identity-source registry validation, captured-source-document validation, security-identity validation, membership snapshot inspection, membership-interval validation, listing eligibility, universe reconciliation, and coverage reconciliation JSON reports. The workflow generates these reports automatically.
+
+The gate returns `READY_FOR_RESEARCH` only when:
+- OHLCV dates, symbols, numeric values, OHLC relationships, CSV structure, and duplicate keys are clean;
+- captured source documents have independently reviewed metadata, their source registry entries are reviewed authoritative, and archived bytes are checked against manifest size and SHA-256;
+- security identity intervals, corporate-action events, and index membership intervals are populated, structurally valid, independently reviewed, and linked to captured evidence;
+- listing eligibility, historical coverage, and universe reconciliation are clear.
+
+An empty template, a structurally valid but unreviewed row, an unchecked archive, or a passing unit-test suite cannot grant readiness. A blocked gate exits with status code 2 and retains its JSON report as a CI artifact. The gate authorizes historical research-data use only; it never authorizes production or live trading. Reviewer metadata is an auditable human attestation, not cryptographic proof that the review occurred.

@@ -61,6 +61,6 @@ Run its structural check:
 python -m research_model.data.validate_identity_history research_model/schemas/security_identity_history.csv
 ```
 
-The validator checks ISIN checksums, date order, required identity and evidence fields, UTC retrieval/review metadata, and overlapping validity intervals for the same ISIN. It always reports `REVIEW_REQUIRED`; it cannot authenticate the source document or verify that the stated interval is true.
+The validator checks ISIN checksums, date order, required identity and evidence fields, UTC retrieval/review metadata, and overlapping validity intervals for the same venue/ISIN. It also rejects concurrent claims where the same venue/symbol/series or non-empty venue/security code maps to different ISINs; sequential reuse after an interval ends is allowed. It always reports `REVIEW_REQUIRED`; it cannot authenticate the source document or verify that the stated interval is true.
 
 A symbol/series change may be represented as consecutive intervals only when an authoritative source establishes the effective dates. Different ISINs are always treated as separate identities. Mergers, demergers, amalgamations, and other successor/predecessor relationships are not inferred or joined by this tool. They require a separately reviewed corporate-reorganization record and explicit methodology before any historical price series or membership history is linked.

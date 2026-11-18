@@ -306,3 +306,29 @@ def test_nse_daily_security_file_variants_have_distinct_source_scopes():
     assert "not a complete BSE master" in interoperability["authority_scope"]
     assert nse_only["source_id"] != interoperability["source_id"]
 
+
+
+def test_rejected_registry_source_requires_review_provenance(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [])
+    write_registry(registry, review_status="REJECTED")
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any(
+        "REJECTED requires reviewer and UTC review timestamp" in error
+        for error in report["errors"]
+    )
+
+
+def test_rejected_registry_source_can_record_reviewer_provenance(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [])
+    write_registry(
+        registry,
+        review_status="REJECTED",
+        reviewed_by="independent-reviewer",
+        reviewed_at_utc="2026-11-18T02:00:00Z",
+    )
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert report["error_count"] == 0

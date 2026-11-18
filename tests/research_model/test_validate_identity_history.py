@@ -10,6 +10,7 @@ from research_model.data.validate_source_archive import REQUIRED_COLUMNS as DOCU
 
 def identity_row(**updates):
     row = {
+        "venue": "NSE", "source_id": "NSE_DAILY_MII_SECURITY_FILE",
         "isin": "INE009A01021", "symbol": "INFY", "series": "EQ",
         "security_code": "500209", "valid_from": "2020-01-01", "valid_to": "2022-12-31",
         "source_name": "Official exchange master", "source_url": "https://example.invalid/master",
@@ -115,6 +116,29 @@ class IdentityHistoryTests(unittest.TestCase):
             report = validate_identity_history(self.write_rows(directory, [row]))
             self.assertEqual(report["structurally_valid_rows"], 0)
             self.assertGreaterEqual(report["error_count"], 3)
+
+
+
+    def test_same_isin_can_have_independent_nse_and_bse_intervals(self):
+        nse = identity_row()
+        bse = identity_row(
+            venue="BSE", source_id="BSE_STANDARD_SECURITY_MASTER_FORMAT",
+            symbol="500209", security_code="500209",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            report = validate_identity_history(self.write_rows(directory, [nse, bse]))
+            self.assertEqual(report["overlapping_intervals"], 0)
+            self.assertEqual(report["structurally_valid_rows"], 2)
+
+    def test_identity_venue_and_source_must_match_manifest(self):
+        with tempfile.TemporaryDirectory() as directory:
+            identity = self.write_rows(directory, [identity_row(venue="BSE")])
+            manifest = self.write_document_manifest(directory)
+            report = validate_identity_history(identity, manifest)
+            self.assertTrue(any(
+                "source_id and venue do not match" in error
+                for error in report["errors"]
+            ))
 
 
 if __name__ == "__main__":

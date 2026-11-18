@@ -100,3 +100,24 @@ The current `data/universe.csv` has 501 rows including the synthetic `DUMMYHEG` 
 The new `research_model.data.inspect_membership` capability labels a single-date file `SNAPSHOT_ONLY_NOT_HISTORICAL_MEMBERSHIP`. Even multiple snapshots are not accepted as continuous membership without explicit effective-from/effective-to intervals. The current evidence cannot support point-in-time index-universe reconstruction or a survivorship-bias-controlled historical backtest.
 
 A reviewed, dated constituent-change source with effective dates is still required. Until then, model training and historical performance claims remain blocked.
+
+
+## Step 5 — deterministic quarter partition capability
+
+`research_model.data.partition_ohlcv` now provides a fail-closed partition writer. It validates every row before writing, rejects duplicate symbol/session keys and invalid corporate-action values, sorts each partition by date then symbol, and retains every source column and row. It emits a JSON manifest containing the source SHA-256 and size, source row/symbol/date coverage, schema, and per-partition row counts, symbol counts, date ranges, and SHA-256 checksums.
+
+The command is dry-run by default. Writing requires an explicit `--apply` flag and a new output directory whose parent already exists; an existing output directory is never overwritten. Writes are staged in a temporary sibling directory and published by atomic rename. The source file is opened read-only and is never copied over or modified by the command.
+
+Example (plan only):
+
+```bash
+python -m research_model.data.partition_ohlcv data/ohlcv.csv --output-root /path/to/new/research_data
+```
+
+Example (write only after the data-governance gates are reviewed):
+
+```bash
+python -m research_model.data.partition_ohlcv data/ohlcv.csv --output-root /path/to/new/research_data --apply
+```
+
+CI tests use small temporary fixtures. CI does not materialize partitions from the repository's historical OHLCV source. The real historical dataset remains unpartitioned until provenance, listing-date exceptions, corporate-action treatment, and point-in-time membership policy have been reviewed.

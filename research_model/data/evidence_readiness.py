@@ -28,6 +28,7 @@ REPORT_FILES = {
     "membership_snapshot": "membership-evidence-audit.json",
     "membership_history_validation": "index-membership-history-validation.json",
     "coverage_reconciliation": "coverage-reconciliation.json",
+    "training_eligibility": "training-eligibility-summary.json",
 }
 
 
@@ -255,6 +256,20 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
     universe = reports["universe_reconciliation"]
     coverage_matches, coverage_detail = _common_symbol_coverage_matches(coverage, universe)
     add("historical_coverage_reconciliation", coverage_matches, coverage_detail)
+
+    eligibility = reports["training_eligibility"]
+    eligibility_valid = (
+        eligibility.get("status") in {"PASS", "REVIEW_REQUIRED"}
+        and eligibility.get("source_row_count", 0) > 0
+        and eligibility.get("eligible_row_count", 0) > 0
+        and eligibility.get("eligible_row_count", 0) + eligibility.get("quarantined_row_count", 0)
+            == eligibility.get("source_row_count", -1)
+        and len(eligibility.get("source_sha256", "")) == 64
+        and len(eligibility.get("eligibility_manifest_sha256", "")) == 64
+    )
+    add("row_level_training_eligibility_manifest", eligibility_valid,
+        f"source_rows={eligibility.get('source_row_count')}; eligible={eligibility.get('eligible_row_count')}; "
+        f"quarantined={eligibility.get('quarantined_row_count')}; manifest_sha256={eligibility.get('eligibility_manifest_sha256')}")
 
     raw_review = reports["raw_symbol_review"]
     add("raw_only_symbol_evidence_review", raw_review.get("status") == "REVIEWED",

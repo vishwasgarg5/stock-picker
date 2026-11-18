@@ -31,7 +31,7 @@ jobs:
       - name: Reconcile fresh OHLCV scan with prior coverage audit
         run: python -m research_model.data.reconcile_coverage --manifest "$RUNNER_TEMP/ohlcv-source-manifest.json" --audit data/historical_coverage_audit.json
       - name: Reconcile raw symbols with reviewed historical universe
-        run: python -m research_model.data.reconcile_universe --ohlcv data/ohlcv.csv --coverage-audit data/historical_coverage_audit.csv --output "$RUNNER_TEMP/historical-universe-reconciliation.json"
+        run: python -m research_model.data.reconcile_universe --ohlcv data/ohlcv.csv --coverage-audit data/historical_coverage_audit.csv --universe data/universe.csv --output "$RUNNER_TEMP/historical-universe-reconciliation.json"
       - name: Upload historical audit artifacts
         uses: actions/upload-artifact@v4
         with:

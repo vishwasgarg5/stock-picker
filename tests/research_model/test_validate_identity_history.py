@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from research_model.data.validate_identity_history import REQUIRED_COLUMNS, validate_identity_history
+from research_model.data.validate_source_archive import REQUIRED_COLUMNS as DOCUMENT_COLUMNS
 
 
 def identity_row(**updates):
@@ -28,6 +29,51 @@ class IdentityHistoryTests(unittest.TestCase):
             writer.writeheader()
             writer.writerows(rows)
         return path
+
+    def write_document_manifest(self, directory, capture_status="INDEPENDENTLY_REVIEWED", digest="b" * 64):
+        path = Path(directory) / "documents.csv"
+        row = {
+            "document_id": "DOC-001", "source_id": "NSE_DAILY_MII_SECURITY_FILE",
+            "venue": "NSE", "source_class": "EXCHANGE_SECURITY_MASTER",
+            "document_title": "Dated NSE security master",
+            "canonical_url": "https://example.invalid/master",
+            "retrieved_url": "https://example.invalid/master",
+            "publication_date": "2023-01-01", "effective_from": "2023-01-01",
+            "effective_to": "", "retrieved_at_utc": "2023-01-02T00:00:00Z",
+            "content_type": "text/csv", "byte_length": "10", "sha256": digest,
+            "archive_path": "nse/master.csv", "evidence_locator": "row 1",
+            "capture_method": "manual", "capture_status": capture_status,
+            "reviewed_by": "reviewer" if capture_status == "INDEPENDENTLY_REVIEWED" else "",
+            "reviewed_at_utc": "2023-01-03T00:00:00Z" if capture_status == "INDEPENDENTLY_REVIEWED" else "",
+            "notes": "",
+        }
+        with path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=DOCUMENT_COLUMNS)
+            writer.writeheader()
+            writer.writerow(row)
+        return path
+
+    def test_identity_must_reference_manifested_independently_reviewed_document(self):
+        with tempfile.TemporaryDirectory() as directory:
+            identity = self.write_rows(directory, [identity_row()])
+            manifest = self.write_document_manifest(directory)
+            report = validate_identity_history(identity, manifest)
+            self.assertEqual(report["error_count"], 0)
+            self.assertTrue(report["source_document_manifest_checked"])
+
+    def test_unreviewed_manifest_document_cannot_support_identity_row(self):
+        with tempfile.TemporaryDirectory() as directory:
+            identity = self.write_rows(directory, [identity_row()])
+            manifest = self.write_document_manifest(directory, capture_status="CAPTURED_UNREVIEWED")
+            report = validate_identity_history(identity, manifest)
+            self.assertTrue(any("not independently reviewed" in error for error in report["errors"]))
+
+    def test_identity_document_hash_must_exist_in_manifest(self):
+        with tempfile.TemporaryDirectory() as directory:
+            identity = self.write_rows(directory, [identity_row(source_document_sha256="c" * 64)])
+            manifest = self.write_document_manifest(directory)
+            report = validate_identity_history(identity, manifest)
+            self.assertTrue(any("absent from supplied source-document manifest" in error for error in report["errors"]))
 
     def test_empty_schema_is_review_required_without_errors(self):
         with tempfile.TemporaryDirectory() as directory:

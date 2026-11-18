@@ -224,3 +224,14 @@ The event-ledger contract now requires a checksum-valid ISO 6166 ISIN and the hi
 The header-only `research_model/schemas/security_identity_history.csv` defines source-backed identity intervals with ISIN, historical symbol, series, optional security code, validity dates, and document provenance. `research_model.data.validate_identity_history` validates ISIN checksums, interval ordering, required provenance, UTC timestamps, and overlapping intervals for the same ISIN. It always returns `REVIEW_REQUIRED`; structural validity does not authenticate a source or approve a mapping.
 
 Different ISINs are never automatically joined. Symbol/series changes can be represented only when authoritative evidence supports the effective dates. Mergers, demergers, and successor/predecessor mappings remain out of scope pending separate human review. CI validates the empty schema and runs synthetic tests; no historical identity rows are fabricated.
+
+
+## Step 15 — authoritative identity-source registry
+
+The header-only `research_model/schemas/identity_source_registry.csv` inventories candidate primary sources for later evidence collection. Its validator, `research_model.data.validate_identity_sources`, checks source IDs, venue and source-class enums, HTTPS canonical URLs, stated authority scope, retrieval/effective-date descriptions, and reviewer metadata for entries explicitly marked `REVIEWED_AUTHORITATIVE`.
+
+The registry distinguishes exchange security masters, exchange circulars, listing notices, and issuer regulatory filings. `DISCOVERY_ONLY` is the default. A source review evaluates only the declared source's authority scope; it does not verify any security mapping. The validator always reports `REVIEW_REQUIRED` and `identity_mapping_approval=NOT_GRANTED`, including when a source row is structurally valid.
+
+The source-governance protocol is in [`IDENTITY_SOURCE_REGISTRY.md`](IDENTITY_SOURCE_REGISTRY.md). Preserve downloaded source documents separately, hash their exact bytes, record retrieval time separately from publication/effective dates, and cite precise page/row/circular/filing references. Identity-history rows require their own source-specific evidence and independent human review. Different ISINs must never be automatically linked.
+
+The registry template is intentionally empty. No source has yet been certified and no identity mapping or historical partition generation is authorized.

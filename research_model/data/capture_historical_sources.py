@@ -35,7 +35,7 @@ SOURCES = (
      "https://www.bseindia.com/markets/MarketInfo/DownloadAttach.aspx?attachedId=e99e2ca5-95d7-4173-83da-7774412bbb2d&id=20220531-44",
      "Specification document date and scope require inspection of original PDF"),
     ("NSE_HISTORICAL_MASTERS_DOCUMENTATION", "NSE_HISTORICAL_CM_DATA_NOTE", "NSE-historical-CM-data-note.pdf",
-     "https://nsearchives.nseindia.com/content/press/Data_details_CM.pdf",
+     "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Data_details_CM_1.pdf",
      "Historical archive structure note; does not itself supply a dated master snapshot"),
 )
 

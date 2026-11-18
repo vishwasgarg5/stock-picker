@@ -147,3 +147,16 @@ python -m research_model.data.reconcile_partitions data/ohlcv.csv --archive-root
 ```
 
 A `PASS` means exact CSV field-value preservation against the specific source file hash recorded in the manifest. It does not prove that the source itself is economically correct, that corporate actions are complete, or that historical membership is unbiased. Tests use small temporary fixtures only; CI does not create partitions from the committed historical source.
+
+
+## Step 8 — fail-closed listing-date eligibility
+
+`research_model.data.listing_eligibility` turns the reviewed coverage-audit listing statuses into explicit row-level decisions. Missing listing evidence and unknown listing dates are ineligible. Rows before a verified listing date are held out. Rows on or after a verified listing date may be eligible even when the first observed bar starts later; that gap remains a coverage-review warning, not proof of missing trades. Symbols with a pre-listing anomaly retain a provenance warning even after pre-listing rows are held out.
+
+Run the audit summary:
+
+```bash
+python -m research_model.data.listing_eligibility data/historical_coverage_audit.csv
+```
+
+This policy does not establish listing dates independently; it consumes the existing reviewed audit. Unknown listing dates remain blocked until authoritative evidence is supplied. It also does not reconstruct historical index membership. A passing listing-date decision is necessary but not sufficient for historical model eligibility.

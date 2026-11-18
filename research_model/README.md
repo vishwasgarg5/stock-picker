@@ -307,7 +307,7 @@ The next validation layer must define the research target and return basis expli
 
 `research_model.validation.target_contract` defines required configuration for a forward-return target without choosing a return basis implicitly:
 
-- `split_adjusted_price`: dividends are explicitly excluded.
-- `cash_dividend_inclusive`: cash dividends are included under the explicitly named `cash_received_no_reinvestment` convention and independently verified corporate-action evidence is required.
+- `split_adjusted_price`: dividends are explicitly excluded, and split-adjustment evidence must be independently verified.
+- `cash_dividend_inclusive`: cash dividends are included under the explicitly named `cash_received_no_reinvestment` convention, with independently verified split and dividend evidence required.
 
 Every contract must also declare the horizon in sessions, decision-price field, entry-price field, exit-price field, and target-end date field. There are no defaults for these semantics. The contract is declarative only: it does not calculate labels and always reports training authorization as false. Dividend-inclusive labels remain blocked until event dates, amounts, and adjustment basis are independently verified. A configured contract is not proof that the source data meets it.

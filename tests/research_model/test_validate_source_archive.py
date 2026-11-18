@@ -95,7 +95,7 @@ def test_unsafe_archive_path_is_rejected(tmp_path):
 def test_publication_and_effective_dates_are_separate_from_retrieval_time(tmp_path):
     manifest = tmp_path / "documents.csv"
     write_manifest(manifest, [make_row(
-        publication_date="2026-11-18", effective_from="2026-11-19",
+        publication_date="2026-11-18", effective_from="2026-11-19", effective_to="2026-11-19",
         retrieved_at_utc="2026-11-18T01:02:03Z",
     )])
     report = validate_source_archive(manifest)

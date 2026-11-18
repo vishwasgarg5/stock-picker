@@ -91,7 +91,7 @@ def test_manifest_observation_must_match_source_symbol_and_date(tmp_path):
     rows = list(csv.DictReader(manifest.open(encoding="utf-8", newline="")))
     rows[0]["symbol"] = "WRONG"
     with manifest.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator="\\n")
+        writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     payload = json.loads(summary.read_text())

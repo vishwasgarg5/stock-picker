@@ -125,7 +125,9 @@ def main():
             detail_parser = PageParser()
             detail_parser.feed(page_text)
             detail_pages.append({
+                "requested_url": url,
                 "url": actual,
+                "redirected": actual != url,
                 "bytes": len(body),
                 "sha256": hashlib.sha256(body).hexdigest(),
                 "observed_links": sorted({
@@ -174,6 +176,10 @@ def main():
                 "report_card_download_handler_contexts": [
                     source[max(0, match.start() - 900):min(len(source), match.end() + 1900)]
                     for match in list(re.finditer(r"reportDownloadIconDaily", source, re.I))[:8]
+                ],
+                "download_link_assignment_contexts": [
+                    source[max(0, match.start() - 700):min(len(source), match.end() + 1100)]
+                    for match in list(re.finditer(r"downloadLink", source, re.I))[:20]
                 ],
             })
 

@@ -115,6 +115,8 @@ NSE circular **MSD67344 dated 28-Mar-2025** (Circular 13/2025) clarifies that th
 
 The circular states that the BSE-exclusive records are provisioned at NSE for the alternative-trading-venue arrangement, effective 01-Apr-2025. It describes a BSE-exclusive symbol suffix ($) and a dedicated permitted-to-trade indicator. This is **not** evidence that the combined file is a complete BSE master or a substitute for BSE's own dated scrip master. Its purpose and population are specific to the interoperability arrangement.
 
+The source registry now assigns separate source IDs to these populations: `NSE_DAILY_MII_SECURITY_FILE` is reserved for the NSE-listed-only variant, while `NSE_DAILY_MII_BSE_INTEROPERABILITY_FILE` is reserved for the combined NSE-listed plus BSE-exclusive variant. When capturing a dated file, select the source ID matching the exact report variant; do not use the generic catalogue page as evidence that the populations are interchangeable.
+
 Consequences for this project:
 
 - Treat the combined file as a separate NSE-published interoperability snapshot, not as the BSE venue's authoritative master.

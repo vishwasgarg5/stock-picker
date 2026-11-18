@@ -12,7 +12,7 @@ from typing import Any
 REQUIRED = {
     "symbol", "raw_row_count", "first_observed_date", "last_observed_date",
     "in_current_universe", "historical_disposition", "source_document_id",
-    "reviewed_by", "reviewed_at_utc", "review_notes",
+    "source_document_sha256", "reviewed_by", "reviewed_at_utc", "review_notes",
 }
 DISPOSITIONS = {"PENDING", "INCLUDE_IN_HISTORICAL_UNIVERSE", "EXCLUDE_FROM_RESEARCH_WITH_EVIDENCE"}
 
@@ -78,8 +78,12 @@ def validate_raw_symbol_review(
         else:
             if (document.get("capture_status") or "").strip().upper() != "INDEPENDENTLY_REVIEWED":
                 errors.append(f"{symbol}: source document must be independently reviewed")
-            if not re.fullmatch(r"[0-9a-fA-F]{64}", (document.get("sha256") or "").strip()):
+            document_digest = (document.get("sha256") or "").strip().lower()
+            ledger_digest = (row.get("source_document_sha256") or "").strip().lower()
+            if not re.fullmatch(r"[0-9a-f]{64}", document_digest):
                 errors.append(f"{symbol}: source document must have a valid SHA-256 digest")
+            if ledger_digest != document_digest:
+                errors.append(f"{symbol}: source_document_sha256 must match the referenced document manifest digest")
             if not (document.get("archive_path") or "").strip():
                 errors.append(f"{symbol}: source document must have an archive_path")
         if not (row.get("reviewed_by") or "").strip():

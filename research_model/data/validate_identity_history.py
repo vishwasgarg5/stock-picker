@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 REQUIRED_COLUMNS = (
-    "isin", "symbol", "series", "security_code", "valid_from", "valid_to",
+    "venue", "source_id", "isin", "symbol", "series", "security_code", "valid_from", "valid_to",
     "source_name", "source_url", "source_document_sha256", "retrieved_at_utc",
     "evidence_reference", "verification_status", "reviewed_by", "reviewed_at_utc",
 )
@@ -77,6 +77,7 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
     errors: list[str] = []
     reviewed_document_hashes: dict[str, set[str]] | None = None
     source_document_urls: dict[str, set[str]] = {}
+    source_document_metadata: dict[str, list[dict[str, str]]] = defaultdict(list)
     if source_documents is not None:
         reviewed_document_hashes = defaultdict(set)
         with Path(source_documents).open("r", encoding="utf-8-sig", newline="") as manifest_handle:
@@ -88,14 +89,24 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
                         (document.get("canonical_url") or "").strip(),
                         (document.get("retrieved_url") or "").strip(),
                     })
+                    source_document_metadata[digest].append({
+                        "source_id": (document.get("source_id") or "").strip(),
+                        "venue": (document.get("venue") or "").strip().upper(),
+                    })
     missing = [name for name in REQUIRED_COLUMNS if name not in columns]
     if missing:
         errors.append("missing required columns: " + ", ".join(missing))
 
-    intervals: dict[str, list[tuple[date, date | None, int]]] = defaultdict(list)
+    intervals: dict[tuple[str, str], list[tuple[date, date | None, int]]] = defaultdict(list)
     valid_rows = 0
     for number, row in enumerate(rows, start=2):
         before = len(errors)
+        venue = (row.get("venue") or "").strip().upper()
+        source_id = (row.get("source_id") or "").strip()
+        if venue not in {"NSE", "BSE"}:
+            errors.append(f"row {number}: venue must be NSE or BSE")
+        if not source_id:
+            errors.append(f"row {number}: missing source_id")
         isin = (row.get("isin") or "").strip().upper()
         symbol = (row.get("symbol") or "").strip().upper()
         series = (row.get("series") or "").strip().upper()
@@ -124,6 +135,11 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
                 errors.append(f"row {number}: source_document_sha256 is absent from supplied source-document manifest")
             elif "INDEPENDENTLY_REVIEWED" not in document_statuses:
                 errors.append(f"row {number}: referenced source document is not independently reviewed")
+            if digest in source_document_metadata and not any(
+                item["source_id"] == source_id and item["venue"] == venue
+                for item in source_document_metadata[digest]
+            ):
+                errors.append(f"row {number}: source_id and venue do not match the referenced source-document manifest entry")
         parse_utc(row.get("retrieved_at_utc", ""), "retrieved_at_utc", number, errors)
         if not (row.get("retrieved_at_utc") or "").strip():
             errors.append(f"row {number}: missing retrieved_at_utc")
@@ -146,19 +162,19 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
                 errors.append(f"row {number}: source_url does not match the referenced source-document manifest entry")
 
         if start and valid_isin(isin):
-            intervals[isin].append((start, end, number))
+            intervals[(venue, isin)].append((start, end, number))
         if len(errors) == before:
             valid_rows += 1
 
     overlap_count = 0
-    for isin, entries in intervals.items():
+    for (venue, isin), entries in intervals.items():
         entries.sort(key=lambda item: item[0])
         previous_end: date | None = None
         previous_row: int | None = None
         for start, end, row_number in entries:
             if previous_row is not None and (previous_end is None or start <= previous_end):
                 errors.append(
-                    f"row {row_number}: overlapping validity interval for ISIN {isin} "
+                    f"row {row_number}: overlapping validity interval for {venue} ISIN {isin} "
                     f"with row {previous_row}"
                 )
                 overlap_count += 1
@@ -175,7 +191,7 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
         "structurally_valid_rows": valid_rows,
         "isin_count": len(intervals),
         "overlapping_intervals": overlap_count,
-        "identity_policy": "SAME_ISIN_INTERVALS_ONLY; DIFFERENT_ISINS_NEVER_AUTO_LINKED",
+        "identity_policy": "VENUE_SCOPED_ISIN_INTERVALS; DIFFERENT_VENUES_REMAIN_DISTINCT; DIFFERENT_ISINS_NEVER_AUTO_LINKED",
         "source_document_manifest": Path(source_documents).as_posix() if source_documents is not None else None,
         "source_document_manifest_checked": source_documents is not None,
         "independent_verification": "NOT_PERFORMED_BY_THIS_VALIDATOR",

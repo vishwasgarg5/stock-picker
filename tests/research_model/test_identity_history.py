@@ -81,3 +81,24 @@ def test_rejects_source_url_mismatch(tmp_path):
     report = validate(tmp_path, IDENTITY, manifest_row(canonical_url="https://example.test/other.csv",
                                                        retrieved_url="https://example.test/other.csv"))
     assert any("source_url does not match" in error for error in report["errors"])
+
+
+def test_manifest_fields_cannot_be_combined_across_duplicate_digest_rows(tmp_path):
+    identity_path = write_csv(tmp_path / "identity.csv", list(REQUIRED_COLUMNS), IDENTITY)
+    manifest_path = tmp_path / "manifest.csv"
+    columns = ["sha256", "capture_status", "source_id", "venue", "canonical_url", "retrieved_url"]
+    rows = [
+        manifest_row(capture_status="DISCOVERY_ONLY"),
+        manifest_row(source_id="OTHER_SOURCE",
+                     canonical_url="https://example.test/other.csv",
+                     retrieved_url="https://example.test/other.csv"),
+    ]
+    with manifest_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    report = validate_identity_history(identity_path, manifest_path)
+    assert report["error_count"] > 0
+    assert any("source_id and venue do not match" in error for error in report["errors"])
+    assert any("not independently reviewed" in error for error in report["errors"])

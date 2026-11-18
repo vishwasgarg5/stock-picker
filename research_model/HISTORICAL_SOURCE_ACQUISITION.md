@@ -166,3 +166,34 @@ No listing-date audit CSV, source registry status, document manifest, or identit
 ### BAGMANE identifier cross-check clarification — 18-Nov-2026
 
 The earlier registry note flagged an apparent ISIN character discrepancy between extracted text from CML74171 and the issuer half-yearly report. A fresh indexed-text cross-check of the CML74204 annexure and the NSE-filed half-yearly report now renders the same ISIN, `INE2OVN25015`; the CML74204 annexure also renders series `RR`. This removes the basis for treating the text extracts as a confirmed conflict, but it does **not** clear the evidence gate: the official NSE PDF must still be captured byte-for-byte and the relevant annexure/report pages visually checked by an independent reviewer. No identity-history row or listing-date audit value is approved by this clarification.
+
+
+## Step 1 execution checkpoint — 18-Nov-2026
+
+### Verified repository state
+
+The current PR-head CI run (Research Model CI #247) completed the source-registry, source-document-manifest, and archive-validation stages successfully. The evidence-readiness report from the same run records:
+
+- Source registry: 20 rows; structural validation errors: 0.
+- Captured historical source documents: 0.
+- Byte-verified archived documents: 0.
+- Source authority independently reviewed: false.
+- Historical source-document manifest: header-only; no document is represented as captured.
+- Training eligibility remains 0 of 958,975 source observations; this checkpoint does not change training authorization.
+
+These are separate states: a structurally valid candidate-source registry is not evidence that a document was obtained, and a document hash would establish byte integrity only—not authority or correctness.
+
+### First acquisition batch (priority order)
+
+1. **NSE daily dissemination circular MSD60315** — https://nsearchives.nseindia.com/content/circulars/MSD60315.pdf. Capture the original PDF to establish the daily CM MII security-file dissemination process from 05-Feb-2024. This is process evidence, not a dated security-master snapshot.
+2. **NSE Masters Data specification** — https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE_MasterData_Technical_Specifications.pdf. Capture the original specification and record its version/date and relevant field definitions. It does not provide entitlement to vendor SFTP data.
+3. **BSE standardized security-master format** — https://www.bseindia.com/markets/MarketInfo/DownloadAttach.aspx?attachedId=e99e2ca5-95d7-4173-83da-7774412bbb2d&id=20220531-44. Capture the original specification; do not treat its filename convention as proof that a dated snapshot is publicly retrievable.
+4. **NSE historical CM data dissemination note** — https://nsearchives.nseindia.com/content/press/Data_details_CM.pdf. Capture the original note to document the described historical Masters archive structure. It does not prove that a particular historical master file is accessible.
+
+### Capture status and next gate
+
+No original PDF bytes were available to archive and hash during this repository-only execution. Therefore no manifest rows have been added, no source has been promoted from `DISCOVERY_ONLY`, and no reviewer fields have been populated. This is intentional fail-closed behavior; do not substitute indexed text, a landing page, a guessed download URL, or a manually reconstructed PDF for original bytes.
+
+To complete the capture portion of Step 1, obtain the four originals through the official links using an authorized browser/session and place the unmodified files in the controlled archive root described above. For each file, record the actual retrieval URL, UTC retrieval time, MIME type, byte length, SHA-256, publication/effective-date semantics, and exact evidence locator. Then add manifest rows with `CAPTURED_UNREVIEWED`. Only after a separate human review may source/document statuses be advanced.
+
+**Step 1 status: IN PROGRESS — candidate-source inventory and validation are established; original-document capture and independent review remain outstanding.**

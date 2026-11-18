@@ -29,9 +29,7 @@ TERMS = re.compile(
     re.I,
 )
 ENDPOINT = re.compile(
-    r"""(?P<q>["'`])(?P<path>(?:https?://[^"'\s`]+|/[^"'\s`]+|"
-    r""" + r"""(?:api|reports?)[^"'\s`]*)"""
-    r""" + r""")(?:\1)""",
+    r"""(?P<q>["'`])(?P<path>(?:https?://[^"'\\s`]+|/[^"'\\s`]+|(?:api|reports?)[^"'\\s`]*))(?P=q)""",
     re.I,
 )
 

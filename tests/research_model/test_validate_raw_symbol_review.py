@@ -50,6 +50,25 @@ class RawSymbolReviewTests(unittest.TestCase):
             report = validate_raw_symbol_review(diagnostic, ledger, documents)
             self.assertEqual(report["status"], "REVIEWED")
 
+    def test_unreviewed_source_document_cannot_support_disposition(self):
+        with tempfile.TemporaryDirectory() as directory:
+            diagnostic, ledger, documents = self._fixtures(Path(directory))
+            with documents.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.writer(handle)
+                writer.writerow(["document_id", "capture_status", "sha256", "archive_path"])
+                writer.writerow(["DOC-1", "CAPTURED", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "archive/doc.html"])
+            with ledger.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.writer(handle)
+                writer.writerow(["symbol", "raw_row_count", "first_observed_date",
+                    "last_observed_date", "in_current_universe", "historical_disposition",
+                    "source_document_id", "reviewed_by", "reviewed_at_utc", "review_notes"])
+                writer.writerow(["AAA", "2", "2024-01-01", "2024-01-02", "false",
+                    "EXCLUDE_FROM_RESEARCH_WITH_EVIDENCE", "DOC-1", "reviewer",
+                    "2026-11-18T08:00:00Z", "Evidence"])
+            report = validate_raw_symbol_review(diagnostic, ledger, documents)
+            self.assertEqual(report["status"], "REVIEW_REQUIRED")
+            self.assertTrue(any("independently reviewed" in error for error in report["errors"]))
+
     def test_stale_counts_and_missing_document_are_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             diagnostic, ledger, documents = self._fixtures(Path(directory))

@@ -19,12 +19,12 @@ def test_raw_only_symbols_are_profiled_without_being_promoted_or_dropped(tmp_pat
         {"date": "2021-03-04", "symbol": "OLDCO"},
         {"date": "2022-05-06", "symbol": "CURRENT"},
     ])
-    write(universe, ["symbol"], [{"symbol": "CURRENT"}])
+    write(universe, ["symbol"], [{"symbol": "CURRENT"}, {"symbol": "DUMMY_PLACEHOLDER"}])
     write(audit, ["symbol"], [{"symbol": "CURRENT"}])
 
     result = diagnose_raw_symbol_history(ohlcv, universe, audit)
     assert result["status"] == "REVIEW_REQUIRED"
-    assert result["raw_row_count"] == 3
+    assert result["raw_row_count"] == 3\n    assert result["current_universe_symbol_count"] == 1
     assert result["raw_only_symbol_count"] == 1
     assert result["raw_only_symbols"] == [{
         "symbol": "OLDCO",

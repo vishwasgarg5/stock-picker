@@ -10,7 +10,7 @@
   "status": "SCORED",
   "source_record_type": "simulated_outcome_ledger",
   "source_path": "data/paper_trades.csv",
-  "rows": 380,
+  "rows": 390,
   "field_presence": {
     "symbol": true,
     "entry_price": true,
@@ -23,25 +23,25 @@
     "status": true
   },
   "field_non_null_counts": {
-    "symbol": 380,
-    "entry_price": 224,
-    "exit_price": 224,
-    "entry_date": 380,
-    "exit_date": 5,
-    "quantity": 300,
-    "pnl": 380,
-    "exit_reason": 75,
-    "status": 380
+    "symbol": 390,
+    "entry_price": 229,
+    "exit_price": 229,
+    "entry_date": 390,
+    "exit_date": 10,
+    "quantity": 310,
+    "pnl": 390,
+    "exit_reason": 80,
+    "status": 390
   },
   "field_completeness_pct": {
     "symbol": 100.0,
-    "entry_price": 58.9474,
-    "exit_price": 58.9474,
+    "entry_price": 58.7179,
+    "exit_price": 58.7179,
     "entry_date": 100.0,
-    "exit_date": 1.3158,
-    "quantity": 78.9474,
+    "exit_date": 2.5641,
+    "quantity": 79.4872,
     "pnl": 100.0,
-    "exit_reason": 19.7368,
+    "exit_reason": 20.5128,
     "status": 100.0
   },
   "missing_core_fields": [],
@@ -52,10 +52,10 @@
   "entry_after_exit_rows": 0,
   "duplicate_symbol_entry_date_rows": 0,
   "status_counts": {
-    "BUY": 224,
-    "SKIP": 156
+    "BUY": 229,
+    "SKIP": 161
   },
-  "closed_trade_rows_detected": 224,
+  "closed_trade_rows_detected": 229,
   "closed_rows_missing_exit_price": 0,
   "exit_date_recorded": true,
   "exit_date_semantics": "Not stored in this simulated same-session outcome ledger; target_date is the outcome session, not an inferred broker exit timestamp.",

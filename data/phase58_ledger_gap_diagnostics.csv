@@ -214,3 +214,8 @@ row_index,symbol,target_date,missing_quantity,missing_entry_price,missing_exit_p
 372,BANKINDIA,2026-11-17,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
 373,LICHSGFIN,2026-11-17,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
 374,NAVINFLUOR,2026-11-17,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
+380,MAHABANK,2026-11-18,False,False,False,False,False,False,,True,False,FIELDS_PRESENT
+381,MOTILALOFS,2026-11-18,False,False,False,False,False,False,,True,False,FIELDS_PRESENT
+382,BANKINDIA,2026-11-18,False,False,False,False,False,False,,True,False,FIELDS_PRESENT
+383,LICHSGFIN,2026-11-18,False,False,False,False,False,False,,True,False,FIELDS_PRESENT
+384,PNB,2026-11-18,False,False,False,False,False,False,,True,False,FIELDS_PRESENT

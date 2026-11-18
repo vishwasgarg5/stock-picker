@@ -5,17 +5,17 @@
   "symbols_without_history": 0,
   "symbols_training_ready_50_sessions": 499,
   "history_start": "2018-01-01",
-  "history_end": "2026-11-17",
-  "total_valid_rows": 915478,
+  "history_end": "2026-11-18",
+  "total_valid_rows": 915978,
   "minimum_training_sessions": 50,
   "depth_bands": {
-    "1y": 488,
+    "1y": 489,
     "3y": 436,
     "5y": 404,
-    "8y": 356
+    "8y": 357
   },
-  "median_observed_sessions": 2198,
-  "median_history_years": 8.72,
+  "median_observed_sessions": 2199,
+  "median_history_years": 8.73,
   "missing_universe_symbols": [],
   "symbols_with_verified_listing_date": 497,
   "symbols_without_verified_listing_date": [
@@ -51,6 +51,7 @@
     "security_master_fallback": {
       "status": "SOURCE_UNAVAILABLE",
       "attempted_dates": [
+        "2026-11-18",
         "2026-11-17",
         "2026-11-16",
         "2026-11-15",
@@ -59,10 +60,13 @@
         "2026-11-12",
         "2026-11-11",
         "2026-11-10",
-        "2026-11-09",
-        "2026-11-08"
+        "2026-11-09"
       ],
       "errors": [
+        {
+          "date": "2026-11-13",
+          "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
+        },
         {
           "date": "2026-11-12",
           "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
@@ -77,10 +81,6 @@
         },
         {
           "date": "2026-11-09",
-          "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
-        },
-        {
-          "date": "2026-11-08",
           "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
         }
       ]

@@ -1,3 +1,4 @@
 diagnostic_reason,rows
-phase4_ineligible,202
-confidence_percentile,136
+phase4_ineligible,207
+confidence_percentile,140
+phase2_not_selected,1

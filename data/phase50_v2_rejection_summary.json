@@ -1,40 +1,46 @@
 {
   "phase": 50,
-  "candidate_rows": 340,
+  "candidate_rows": 350,
   "signal_counts": {
-    "SKIP": 338,
+    "SKIP": 348,
     "BUY": 2
   },
   "reason_counts": [
     {
       "source": "no_trade_reason",
       "reason": "phase4_ineligible",
-      "rows": 202,
-      "pct_of_candidate_rows": 59.411764705882355
+      "rows": 207,
+      "pct_of_candidate_rows": 59.14285714285714
     },
     {
       "source": "no_trade_reason",
       "reason": "confidence_percentile",
-      "rows": 136,
+      "rows": 140,
       "pct_of_candidate_rows": 40.0
+    },
+    {
+      "source": "no_trade_reason",
+      "reason": "phase2_not_selected",
+      "rows": 1,
+      "pct_of_candidate_rows": 0.2857142857142857
     },
     {
       "source": "phase4_reject_reason",
       "reason": "minimum_expected_return",
-      "rows": 154,
-      "pct_of_candidate_rows": 45.294117647058826
+      "rows": 161,
+      "pct_of_candidate_rows": 46.0
     },
     {
       "source": "phase4_reject_reason",
       "reason": "phase4_confidence_floor",
-      "rows": 33,
-      "pct_of_candidate_rows": 9.705882352941178
+      "rows": 34,
+      "pct_of_candidate_rows": 9.714285714285714
     },
     {
       "source": "phase4_reject_reason",
       "reason": "symbol_cooldown",
-      "rows": 15,
-      "pct_of_candidate_rows": 4.411764705882353
+      "rows": 12,
+      "pct_of_candidate_rows": 3.428571428571429
     }
   ],
   "interpretation": "Reasons are observed telemetry only. Do not weaken selection or risk gates based on counts alone.",

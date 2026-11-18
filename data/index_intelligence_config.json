@@ -1,55 +1,55 @@
 {
   "version": "index_intelligence_v3",
   "market_regime": "BULL",
-  "risk_multiplier": 1.0,
+  "risk_multiplier": 0.8,
   "news_sentiment": "BULLISH",
-  "news_score": 0.5599999999999999,
-  "market_reason": "General market: Why is market rising today? Sensex jumps 700 pts, Nifty above 25,450 as explosive rally continues. 4 facto - The Economic Times",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMirwJBVV95cUxQXzJVdlVHNlpXQXh0ZXpfekxzVHF1SnpqTVZOWWUxMzhZbjNBYU1KczlHdXp0VFY0MUpKZnVBZHBQZGhiT3BBb1h0VG0tWVJSdzJOQ29RZGRtby0xSFRtX1dQZEdCNHpjZlhHdWJrUFpocENaUVZQYTFJS3NsVkFNZFppb1otTEVPR1ZmUUZ5UklBeFc0TFBXVzloYmtLcDZ6UnlvQVRtdXlqaDdIX2RYeWl2X0FHTThwc0Vfc25PckgwbjdaUFp4aWdBbDBjc2N6am82ZzR2dDBNQ2hoWno2RUZuY19PcjZGZk1XM3Fnb0FDTWhGNXJMMHdFR0VaYmpJam9fbUdRRkFjbDJwUnVDOERCdlpvdUFnWXlzSVhWYnhQYWVXRFl2SlJZTGNzTWvSAaoCQVVfeXFMT0ptMG5DM2JDdXl5UmhlXy1qV3Y0Ni1vbXFsRERmaFdjS19PaVhzVXl1V2JleG9relphekI2SkpSYWNRblQ2Vjk2dDh5SXhXRjRUN3Y5emtXX290cG5rSkItQkdvbmVZZ1JjUTdDTU9icG5pQzE2RGFBVlM4TVpIanRNMmdRcFZxcV9OS3RNUUxrUW1kQ1EyUl9rVnhWbzUtNE1PckVTR3dENXpLWkM4RV90RjJOWDJtSjh4ajQybXVzTW1PLURUOVd6UFZWLTlQd1NKZlZpYjJHNkNaOHJlYzlQeUV6ZUVIRFk1ZTFyVElFdjVTQXVDclNlenFlRGFKUXhJZ2h2WVd0VG5YNGZTdTF0S0lKRGFQYVcycEt3MktjU2Z3UmNZNzBkUQ?oc=5",
-  "news_headline": "General market: Why is market rising today? Sensex jumps 700 pts, Nifty above 25,450 as explosive rally continues. 4 facto - The Economic Times",
+  "news_score": 0.16,
+  "market_reason": "FII / DII flows: Nifty, Sensex extend rally on FII inflows; Bank Nifty hits fresh 52-week high - Big News Network.com",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPZnpIcHlldHpFbmpacjFaQVBxYk5xS1liM2dHcmV2NDZjNDRQeG5xR3EtVFJVN0hleDRBVy1vVHdpNlV6aDg2YVNhaWxrWmtQdGFKc1dDejZFLTRnUGJ3OTZLblhhZU9rQnJTTGpSaU5fYWtUa3lmcXFKeUxWdjB0WnpHNlNCWVVZZklCM1I0eWNGMlFNWTV5VHY4TFQ4U2s2VFNnSDJoNDNxbnlkLVpINjM0MWNlckQ4U3BUN0F3?oc=5",
+  "news_headline": "FII / DII flows: Nifty, Sensex extend rally on FII inflows; Bank Nifty hits fresh 52-week high - Big News Network.com",
   "news_reasons": [
-    {
-      "event": "General market",
-      "impact": 1.0,
-      "headline": "Why is market rising today? Sensex jumps 700 pts, Nifty above 25,450 as explosive rally continues. 4 facto - The Economic Times",
-      "url": "https://news.google.com/rss/articles/CBMirwJBVV95cUxQXzJVdlVHNlpXQXh0ZXpfekxzVHF1SnpqTVZOWWUxMzhZbjNBYU1KczlHdXp0VFY0MUpKZnVBZHBQZGhiT3BBb1h0VG0tWVJSdzJOQ29RZGRtby0xSFRtX1dQZEdCNHpjZlhHdWJrUFpocENaUVZQYTFJS3NsVkFNZFppb1otTEVPR1ZmUUZ5UklBeFc0TFBXVzloYmtLcDZ6UnlvQVRtdXlqaDdIX2RYeWl2X0FHTThwc0Vfc25PckgwbjdaUFp4aWdBbDBjc2N6am82ZzR2dDBNQ2hoWno2RUZuY19PcjZGZk1XM3Fnb0FDTWhGNXJMMHdFR0VaYmpJam9fbUdRRkFjbDJwUnVDOERCdlpvdUFnWXlzSVhWYnhQYWVXRFl2SlJZTGNzTWvSAaoCQVVfeXFMT0ptMG5DM2JDdXl5UmhlXy1qV3Y0Ni1vbXFsRERmaFdjS19PaVhzVXl1V2JleG9relphekI2SkpSYWNRblQ2Vjk2dDh5SXhXRjRUN3Y5emtXX290cG5rSkItQkdvbmVZZ1JjUTdDTU9icG5pQzE2RGFBVlM4TVpIanRNMmdRcFZxcV9OS3RNUUxrUW1kQ1EyUl9rVnhWbzUtNE1PckVTR3dENXpLWkM4RV90RjJOWDJtSjh4ajQybXVzTW1PLURUOVd6UFZWLTlQd1NKZlZpYjJHNkNaOHJlYzlQeUV6ZUVIRFk1ZTFyVElFdjVTQXVDclNlenFlRGFKUXhJZ2h2WVd0VG5YNGZTdTF0S0lKRGFQYVcycEt3MktjU2Z3UmNZNzBkUQ?oc=5"
-    },
-    {
-      "event": "General market",
-      "impact": 1.0,
-      "headline": "Market wrap, Nov 17: NIFTY50 ends at 25,387, SENSEX closes 427 pts higher as banking stocks power gains; check factors - Upstox",
-      "url": "https://news.google.com/rss/articles/CBMihAJBVV95cUxNd1d6T0hfN0w5d3VsTTVzTV9xZXJHV0VvY184OFU3Y21rS1kwdkZVWjlMUHlVeHdjNEpxZmxmdHo5QnVaRTkxaTBKbzJUdHlzMVF0MGlMNHdfOVRWXy1UME5TSmtZQW1iZV9aelRjUVdoaEtEbjRnamZidDNpS1pxN0NkRnloM1BKRVlRMTZHOGEyb1p4YjV6RmVRMG1PNnlWck02d2U4U1lJbE5UU2pBajNNdmp2NWl6U0puQ09ZOEVKd0pkSlBNM2lxVkRnSkdwVDg1SlByTlRVc3BTdXoxRWwyQm1xWXIzQUh2V0RlbTVKUFhEUTVXUUNucTgyeU1UTlloMg?oc=5"
-    },
     {
       "event": "FII / DII flows",
       "impact": 0.8,
-      "headline": "Nifty, Sensex extend rally on FII inflows; Bank Nifty hits fresh 52-week high - bfsi.economictimes.indiatimes.com",
-      "url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxQcnlSLXZNT1NBNFVlYTJCdHBERHAybmZXU1JqcHBNQU5XeTlwa3hzY3lLTGcwYUNDZU1OWFViVUVYazBiSDhwb2RIcDV0MmFYZ1pHZVItUnc4dE1tTW4zc1VEMXBLMXltSFdHRlRla29rVTBkc1ZUalNBRG43WjNMdXJxcjZ5bU1GYkFjdk5ON2F3OEh5a2R1WHFyUDdFekcyNGZUUWJMLU1YRXFfdjc4UzdfRnFSeTVkalNDM1dGQVRfYTJ3Q0ZpQ3JvUDZUQWxSUHfSAdcBQVVfeXFMTmFvQ1YzMV9pNno4WjZMNmJwYzZmNjE2MlBCY1pteExWR013SG53ai12STY0emlGNnJkaEh6RE1NdXRLdG1Tb1NOMkFpUElyV1c4ZEJOOF9hWjJKMlV0ekZ0aEI2S1QweHFUWVdNLWNnWVNnY1RSNlNsOWU5Nml1YXZwMlVGSEU3d0NRbUhhY0p1MWJzcVhMRzZUVVFXckxlZEJuWlkzclpwaXhmamJleHVOUWRiOWFOM2JROE1JcmNFMmV2SVVKZVVDMF92MlVuT1JuX3ZUVHc?oc=5"
+      "headline": "Nifty, Sensex extend rally on FII inflows; Bank Nifty hits fresh 52-week high - Big News Network.com",
+      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPZnpIcHlldHpFbmpacjFaQVBxYk5xS1liM2dHcmV2NDZjNDRQeG5xR3EtVFJVN0hleDRBVy1vVHdpNlV6aDg2YVNhaWxrWmtQdGFKc1dDejZFLTRnUGJ3OTZLblhhZU9rQnJTTGpSaU5fYWtUa3lmcXFKeUxWdjB0WnpHNlNCWVVZZklCM1I0eWNGMlFNWTV5VHY4TFQ4U2s2VFNnSDJoNDNxbnlkLVpINjM0MWNlckQ4U3BUN0F3?oc=5"
     },
     {
-      "event": "Crude oil",
+      "event": "US / global markets",
+      "impact": 0.7,
+      "headline": "NSE Nifty 50 Could Open Strong as Nasdaq Futures Jumps on Positive Nvidia Quarterly Results - TopNews",
+      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxPNmNtY3RPUlI4YkdybkwwQjVOYTNvWGQ2ckF2TVFsUUFEQ2VoTWRNd3Jyc0NYU1dTRklMS0JsU3ZEVlY1aXRNeTZhS3o2THEzaXR3VG9YaUhrd2VWLTNYZlVySTBqbEhpRkR6MEoybkFudWhPQ0xJb0NLemt3aWhYMkdqX0FJazQ5eXRPbWNKRTRQYmdybXlBVVVfOThjc1lmN2lsYmZFME5wUVlrMklMTlFR?oc=5"
+    },
+    {
+      "event": "US / global markets",
+      "impact": -0.7,
+      "headline": "Sensex Today Tanks 502 Points | Nifty Below 25,250 | Nifty IT Index Down 1.2% - Equitymaster",
+      "url": "https://news.google.com/rss/articles/CBMizgFBVV95cUxOZGhYaTdsZFVaUC1LUGtmeXlNbmM1Y0N1RUxrem8yQnpqbDhnOHgtZ0YzYVdyMjNBdGVRNHkybEtxYlJadlFWV1RwUnV2dm9GbVFSR3FaMDQtY3RBakJLYVBMM21abjctNEdOY1Z2RU4wNWFiUDR5LWY3aEd4ZXdia0ktYWdHeTgxWGZqV3VFU3ltWm4xTjFlMDdwVkQ0aWZKc3pXMGhYZGhVOUZPa01ZeXI3RUIwLXJsRTFMUHpSekJ0ZW9jSV9VMTlleTdCUQ?oc=5"
+    },
+    {
+      "event": "General market",
       "impact": -0.35,
-      "headline": "Stock Markets Today: Sensex, Nifty Gain as Foreign Funds Pour In, Crude Oil Prices Cool - Rediff",
-      "url": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxNck1NenlyMTFWZGhRQVoyS1RsUl9WN0RMMjlWRnZDVFVkcXVqSUlxMnlPTmZiNWdJOS1CUS1JVjNpSFNjZHRqdDdDbDVheFRTOTI1dHpMZHBSS05lb2I2LVBXUTQ2Y2g4a3dLQmhuUm5YLXUydGFWdVhQM3d1TFVQTl9kT2pWVDlVUlpGb003eGVqVnlSNjkxT3BaWUkwSmlCN2R4NEJyTEUyX3BEd2dnZmVZQ2NyeGZIRmN4MHBFaks0NWtIZnJKTXpfbjNFdFRnOGJUdjhDRkg5Y1JIbTI3S2V30gHkAUFVX3lxTFAzdDRaWUVWbWtJQVhCa2xndkpwSTVmemtHLS1GdHlYb1JSNVFTTlB1d0YxTmI4YWVYUHc5RW5ydTNfM0luRFItRTFndlRqWmt5bmV5ZXRnTkN6RUxBRDQ3VzZaWmlVVXNiR0p6UW9lNmNCMXVnS2JnWU1vWG9aTlVIdEhHcGJrNHctSWNPd2tpTVJ5Q09jcXdSNVUzX1pqdDg2THplbWFqNm4zTHNTQVVsN1FuZEJaZ3pveXFkWUZjaGI3UFprbEZ1NlRmS3Zsd0JsRlRKMmN6dW9ocWZSMGViWWxfWA?oc=5"
+      "headline": "BSE SENSEX Today: Sensex Falls to 81,592.45 as Nifty Ends at 25,144, Snapping a Winning Streak - BBN Times",
+      "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPcWhfcXNmcy03Y2JVZVlqS2wzTVFUU2NnTWJmbVJLQkZBbHhoTlkxb0x4X1R4MGNZNk5OM25YYW1NN0JWQ25FclJCX1pUaEVadE9XaFdiVmM1eFZvSTM0N0lCNzFDRkNSQnF3MmJDc3I2OXNOTFB0N19wbXdMeUdNYzZZZGlMQV9NUk9QRG41MjZ5ZkMzY1hLWkt5ODJjTDlMQW5RbEF4MXRtUmtxUzBTVGNjRDVFVWxZX0VwRENNT0FqQXo1Z2c?oc=5"
     },
     {
-      "event": "Earnings / growth",
+      "event": "FII / DII flows",
       "impact": 0.35,
-      "headline": "Morgan Stanley projects Sensex to hit 95,000 by 2027, driven by strong earnings - Rediff",
-      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxPeUxia3FuQVgzNmpwZF85Z1o3SjY5TVQtbUY3WEJiY3lrOGNiYTNnb0JtUWY3U2hMZnpma1BTTFdqU25kZ09QaEVVTl9YX2ZIX3ZDY0txZWp2YWpCcFJSbENBVGpyX1poTXprUFcwVkIwVm9EQmJiT293SzUxSkNQbHZoWmQ5LUtmYjNoTG9jYjV2SDlocWVMcEhqN0s2X3F2Z0J6NG5GNXc1ZTRDeDR3MmJyQWtKYVk4NnVSNVFLM1BISFBoWWJSY9IBywFBVV95cUxOazQyMXB1Q1RnLUk4WWFrQ0kyWHZpbHA2RS1qZk91RjdHcDZRSXlwSjRKY05LanNqLUFiZjJEdElsU1NEM0tBVVd1NU05Rk0xT3pVZHZvNUd1VUtKeXVIanNDODU1SDE3eFA0V01YRW9XX1B2U3JtUXFyX2hwdHBDSUNHLXI4cXFkSUZMeWNpajlyeWJFZ0Q0VTJYUkoyZmNCYjlkZ2RIT3d2cUZZMHZCR1hoUEx5T2VaMmphWk0xczMyUFc3ZXVzU2taSQ?oc=5"
+      "headline": "Nifty above 25,000: Can FII buying sustain rally? Jay Thakkar explains, recommends 3 stocks - ET Now",
+      "url": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQN2xHQ04wTzI4NngwQkNMbExiUjhXb2lSaEdvcnczY3NBUm5QakJNcnJrZDZrX1dXNklYMWotWDctSnVxZG5NSEZzWHd0c3NHVmNkU2VWT1ZPRjJHdUt3RER1VV9tYk5QQTQ2cmpyUXZhNjVGWldaUHNjeFpMUmIwVHhGQXEyS2ZYOXhQSkNRYW5yQjZyTmcxUGxpdjJLOHJVeFpheHNwa1FWUGdjazhJNFFQRlJac2ZVeEJmR0QtOUFVUVlSazFJdWZDbExpQmJBMUE5LXBB0gHbAUFVX3lxTE1DQmMtb1RLOHUxUGlNRDBreHRhTjEzbUFIQmR2VnpCejNQUXJTdkVxc1o0VmFUOGR1aFVwSTExOUtmX29ubEJBZjNyVVljZE82clVXOTFsSzdmQ3VCVVJaRXpvNFdGOTBFYnFnd0FkOVN5bVU3MUk5cl9jWUtIQkh0OGJMTnl1cVBqVms3MjBjdTlLUGppV2lHMGdzRjBBVkNYU0d5dkRMM0xQQkdnT0V5R2RtX3RIVXB1MXo3eURfWlRxNEloSUxqaFRLYWNOZzc2aWNIMDBCNzNDQQ?oc=5"
     }
   ],
-  "market_intelligence_score": 74.52954838709678,
-  "risk_level": "RISK_ON",
-  "market_confidence": 0.7707659354838711,
+  "market_intelligence_score": 61.19777213395878,
+  "risk_level": "NEUTRAL",
+  "market_confidence": 0.6507799492056291,
   "data_quality": "HIGH",
   "index_data_available": true,
-  "breadth_pct_above_sma20": 70.96774193548387,
+  "breadth_pct_above_sma20": 63.946869070208734,
   "sector_news_impacts": {
-    "airlines": 3.0,
-    "paints": 2.4000000000000004,
-    "chemicals": 1.7999999999999998,
-    "tyres": 1.7999999999999998,
-    "oil & gas": -2.4000000000000004
+    "airlines": 1.0,
+    "paints": 0.8,
+    "chemicals": 0.6,
+    "tyres": 0.6,
+    "oil & gas": -0.8
   }
 }

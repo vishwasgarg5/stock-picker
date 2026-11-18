@@ -71,6 +71,7 @@ telegram_sent.csv,68,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_sent.csv,69,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_sent.csv,70,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_sent.csv,71,TELEGRAM_API_CONFIRMED,True,False,True
+telegram_sent.csv,72,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_evening_sent.csv,0,LEGACY_UNVERIFIED,True,False,True
 telegram_evening_sent.csv,1,LEGACY_UNVERIFIED,True,False,True
 telegram_evening_sent.csv,2,LEGACY_UNVERIFIED,True,False,True

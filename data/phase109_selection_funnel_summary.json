@@ -8,35 +8,36 @@
   "automatic_promotion": false,
   "missing_facts_inferred": false,
   "status": "SCORED",
-  "v2_rows": 340,
+  "v2_rows": 350,
   "buy_rows": 2,
-  "skip_rows": 338,
+  "skip_rows": 348,
   "skip_rows_without_reason": 0,
   "skip_reason_counts": {
-    "phase4_ineligible": 202,
-    "confidence_percentile": 136
+    "phase4_ineligible": 207,
+    "confidence_percentile": 140,
+    "phase2_not_selected": 1
   },
   "phase4_reject_reason_counts": {
-    "minimum_expected_return": 154,
-    "phase4_confidence_floor": 33,
-    "symbol_cooldown": 15
+    "minimum_expected_return": 161,
+    "phase4_confidence_floor": 34,
+    "symbol_cooldown": 12
   },
   "zero_buy_bottleneck": "BUY_ROWS_PRESENT",
   "confidence_column_diagnostics": {
     "confidence_pct": {
-      "non_null_rows": 340,
+      "non_null_rows": 350,
       "min": 0.1,
       "median": 0.55,
       "max": 1.0
     },
     "confidence_v3": {
-      "non_null_rows": 340,
-      "min": 16.78632478632479,
-      "median": 49.74425574425574,
-      "max": 84.13675213675214
+      "non_null_rows": 350,
+      "min": 15.907573812580232,
+      "median": 49.45905923344948,
+      "max": 84.15176151761517
     },
     "confidence_score": {
-      "non_null_rows": 340,
+      "non_null_rows": 350,
       "min": 0.0,
       "median": 34.650586816878764,
       "max": 95.0
@@ -45,16 +46,16 @@
   "gate_overlap_diagnostics": {
     "source": "persisted_selection_funnel",
     "shadow_confidence_percentile_threshold": 0.5,
-    "confidence_gate_input_rows": 340,
-    "confidence_gate_output_rows": 204,
-    "confidence_gate_rejected_rows": 136,
-    "phase2_gate_input_rows": 204,
-    "phase2_gate_output_rows": 204,
-    "phase2_gate_rejected_rows": 0,
-    "phase4_eligibility_input_rows": 204,
+    "confidence_gate_input_rows": 350,
+    "confidence_gate_output_rows": 210,
+    "confidence_gate_rejected_rows": 140,
+    "phase2_gate_input_rows": 210,
+    "phase2_gate_output_rows": 209,
+    "phase2_gate_rejected_rows": 1,
+    "phase4_eligibility_input_rows": 209,
     "phase4_eligibility_output_rows": 2,
-    "phase4_eligibility_rejected_rows": 202,
-    "confidence_pct_non_null_rows": 340,
+    "phase4_eligibility_rejected_rows": 207,
+    "confidence_pct_non_null_rows": 350,
     "confidence_pct_missing_rows": 0,
     "phase2_flag_persisted_in_decision_ledger": false,
     "phase2_flag_missing_or_invalid_rows": null,
@@ -71,81 +72,81 @@
   "funnel_stages": [
     {
       "stage": "predictions_loaded",
-      "input_rows": 390,
-      "output_rows": 390,
+      "input_rows": 400,
+      "output_rows": 400,
       "rejected_rows": 0,
       "detail": "Raw prediction rows loaded",
       "unclassified_rows": 0
     },
     {
       "stage": "phase2_join",
-      "input_rows": 390,
-      "output_rows": 390,
+      "input_rows": 400,
+      "output_rows": 400,
       "rejected_rows": 0,
       "detail": "Rows with a matching Phase-2 record; unmatched rows are missing metadata, not explicit rejections",
       "unclassified_rows": 0
     },
     {
       "stage": "actual_data_join_and_validation",
-      "input_rows": 390,
-      "output_rows": 340,
+      "input_rows": 400,
+      "output_rows": 350,
       "rejected_rows": 50,
       "detail": "Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history",
       "unclassified_rows": 0
     },
     {
       "stage": "confidence_percentile_gate",
-      "input_rows": 340,
-      "output_rows": 204,
-      "rejected_rows": 136,
+      "input_rows": 350,
+      "output_rows": 210,
+      "rejected_rows": 140,
       "detail": "Required percentile >= 0.50",
       "unclassified_rows": 0
     },
     {
       "stage": "phase2_metadata_coverage",
-      "input_rows": 204,
-      "output_rows": 204,
+      "input_rows": 210,
+      "output_rows": 210,
       "rejected_rows": 0,
       "detail": "Only matched Phase-2 records can be classified as selected or explicitly rejected",
       "unclassified_rows": 0
     },
     {
       "stage": "phase2_selected_gate",
-      "input_rows": 204,
-      "output_rows": 204,
-      "rejected_rows": 0,
+      "input_rows": 210,
+      "output_rows": 209,
+      "rejected_rows": 1,
       "detail": "Phase 2 selected flag equals 1 among matched records",
       "unclassified_rows": 0
     },
     {
       "stage": "phase4_reject:minimum_expected_return",
-      "input_rows": 154,
+      "input_rows": 161,
       "output_rows": 0,
-      "rejected_rows": 154,
-      "detail": "154 candidates rejected for minimum_expected_return; diagnostic only",
+      "rejected_rows": 161,
+      "detail": "161 candidates rejected for minimum_expected_return; diagnostic only",
       "unclassified_rows": 0
     },
     {
       "stage": "phase4_reject:phase4_confidence_floor",
-      "input_rows": 33,
+      "input_rows": 34,
       "output_rows": 0,
-      "rejected_rows": 33,
-      "detail": "33 candidates rejected for phase4_confidence_floor; diagnostic only",
+      "rejected_rows": 34,
+      "detail": "34 candidates rejected for phase4_confidence_floor; diagnostic only",
       "unclassified_rows": 0
     },
     {
       "stage": "phase4_reject:symbol_cooldown",
-      "input_rows": 15,
+      "input_rows": 12,
       "output_rows": 0,
-      "rejected_rows": 15,
-      "detail": "15 candidates rejected for symbol_cooldown; diagnostic only",
+      "rejected_rows": 12,
+      "detail": "12 candidates rejected for symbol_cooldown; diagnostic only",
       "unclassified_rows": 0
     },
     {
       "stage": "phase4_eligibility_gate",
-      "input_rows": 204,
+      "input_rows": 209,
       "output_rows": 2,
-      "rejected_rows": 202,
+      "rejected_rows": 207,
       "detail": "phase4_eligible flag true",
       "unclassified_rows": 0
     },

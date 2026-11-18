@@ -60,7 +60,7 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
         with Path(source_registry).open("r", encoding="utf-8-sig", newline="") as registry_handle:
             registry_reader = csv.DictReader(registry_handle)
             registry_columns = set(registry_reader.fieldnames or [])
-            required_registry_columns = {"source_id", "venue", "source_class", "canonical_url"}
+            required_registry_columns = {"source_id", "venue", "source_class", "canonical_url", "review_status", "reviewed_by", "reviewed_at_utc"}
             missing_registry_columns = sorted(required_registry_columns - registry_columns)
             if missing_registry_columns:
                 registry_errors.append(
@@ -79,6 +79,9 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
                     "venue": (item.get("venue") or "").strip().upper(),
                     "source_class": (item.get("source_class") or "").strip().upper(),
                     "canonical_url": (item.get("canonical_url") or "").strip(),
+                    "review_status": (item.get("review_status") or "").strip().upper(),
+                    "reviewed_by": (item.get("reviewed_by") or "").strip(),
+                    "reviewed_at_utc": (item.get("reviewed_at_utc") or "").strip(),
                 }
     root = Path(archive_root).resolve() if archive_root is not None else None
     with manifest.open("r", encoding="utf-8-sig", newline="") as handle:
@@ -178,6 +181,16 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
                     byte_verified += 1
 
         status = (row.get("capture_status") or "").strip().upper()
+        if status == "INDEPENDENTLY_REVIEWED" and registered_sources is not None and source_id in registered_sources:
+            registered = registered_sources[source_id]
+            if registered["review_status"] != "REVIEWED_AUTHORITATIVE":
+                errors.append(
+                    f"row {line}: independently reviewed document requires REVIEWED_AUTHORITATIVE source registry entry"
+                )
+            if not registered["reviewed_by"] or not _utc(registered["reviewed_at_utc"]):
+                errors.append(
+                    f"row {line}: authoritative source registry entry requires reviewer and UTC review timestamp"
+                )
         if status not in CAPTURE_STATUSES:
             errors.append(f"row {line}: invalid capture_status")
         reviewer, reviewed_at = (row.get("reviewed_by") or "").strip(), (row.get("reviewed_at_utc") or "").strip()

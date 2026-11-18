@@ -23,6 +23,7 @@ REPORT_FILES = {
     "identity_source_validation": "identity-source-registry-validation.json",
     "source_document_validation": "historical-source-document-validation.json",
     "universe_reconciliation": "historical-universe-reconciliation.json",
+    "raw_symbol_review": "raw-symbol-review-validation.json",
     "listing_eligibility": "listing-eligibility-audit.json",
     "membership_snapshot": "membership-evidence-audit.json",
     "membership_history_validation": "index-membership-history-validation.json",
@@ -198,6 +199,11 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
     coverage = reports["coverage_reconciliation"]
     add("historical_coverage_reconciliation", coverage.get("status") == "MATCH",
         f"status={coverage.get('status')}; differences={coverage.get('differences')}")
+
+    raw_review = reports["raw_symbol_review"]
+    add("raw_only_symbol_evidence_review", raw_review.get("status") == "REVIEWED",
+        f"status={raw_review.get('status')}; pending={len(raw_review.get('pending_symbols', []))}; "
+        f"errors={raw_review.get('error_count')}")
 
     universe = reports["universe_reconciliation"]
     add("universe_reconciliation", universe.get("status") == "MATCH",

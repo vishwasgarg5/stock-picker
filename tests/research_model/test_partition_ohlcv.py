@@ -78,5 +78,31 @@ class PartitionOhlcvTests(unittest.TestCase):
             partition_ohlcv(self.source, self.output)
 
 
+
+    def test_partitioning_reports_disk_backed_streaming_strategy(self):
+        result = partition_ohlcv(self.source, self.output)
+        self.assertEqual(result["partition_strategy"], "DISK_BACKED_SQLITE_STREAMING")
+
+    def test_timestamp_date_is_rejected_before_partitioning(self):
+        with self.source.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=self.columns, lineterminator="\\n")
+            writer.writeheader()
+            row = dict(self.rows[0])
+            row["date"] = "2024-04-02T00:00:00Z"
+            writer.writerow(row)
+        with self.assertRaisesRegex(ValueError, "date is not a valid canonical"):
+            partition_ohlcv(self.source, self.output)
+
+    def test_missing_symbol_is_rejected_before_partitioning(self):
+        with self.source.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=self.columns, lineterminator="\\n")
+            writer.writeheader()
+            row = dict(self.rows[0])
+            row["symbol"] = ""
+            writer.writerow(row)
+        with self.assertRaisesRegex(ValueError, "symbol is empty"):
+            partition_ohlcv(self.source, self.output)
+
+
 if __name__ == "__main__":
     unittest.main()

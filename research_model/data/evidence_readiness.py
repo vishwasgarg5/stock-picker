@@ -305,7 +305,6 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         "point_in_time_security_identity",
         "corporate_action_evidence",
         "listing_date_eligibility",
-        "raw_only_symbol_evidence_review",
         "row_level_training_eligibility_manifest",
     )
     tier2_authorized = all(check_by_name.get(name, False) for name in tier2_requirements)

@@ -132,7 +132,7 @@ def main() -> None:
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     result = verify_training_eligibility(args.source, args.manifest, args.summary)
-    Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+    Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2, sort_keys=True))
     if result["status"] != "PASS":
         raise SystemExit(1)

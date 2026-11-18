@@ -55,6 +55,7 @@ def _add_listing_coverage(detail: pd.DataFrame, valid: pd.DataFrame, listing_mas
                 "listing_to_first_bar_gap_sessions": None, "history_starts_at_first_possible_session": None,
                 "coverage_window_start": None, "coverage_window_expected_sessions": None,
                 "coverage_window_observed_sessions": None, "coverage_window_sessions_without_ohlcv": None,
+                "coverage_window_first_bar_gap_sessions": None,
                 "listing_history_status": "LISTING_DATE_UNKNOWN"}
         if listing is not None:
             if pd.isna(first) or pd.isna(last):
@@ -76,7 +77,8 @@ def _add_listing_coverage(detail: pd.DataFrame, valid: pd.DataFrame, listing_mas
                     "expected_sessions_since_listing": int(len(since_listing)),
                     "observed_sessions_since_listing": int(len(observed_since_listing)),
                     "calendar_sessions_without_ohlcv_since_listing": int(max(0,len(since_listing)-len(observed_since_listing))),
-                    "listing_to_first_bar_gap_sessions": int(len(leading)),
+                    "listing_to_first_bar_gap_sessions": int(len(since_listing[since_listing < first])),
+                    "coverage_window_first_bar_gap_sessions": int(len(leading)),
                     "history_starts_at_first_possible_session": aligned,
                     "coverage_window_start": coverage_start.date().isoformat(),
                     "coverage_window_expected_sessions": int(len(coverage_expected)),

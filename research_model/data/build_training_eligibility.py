@@ -10,6 +10,7 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -89,11 +90,14 @@ def build_training_eligibility(
     for review in raw_review:
         symbol = review.get("symbol", "").strip()
         document = documents_by_id.get(review.get("source_document_id", "").strip(), {})
+        review_digest = review.get("source_document_sha256", "").strip().lower()
+        document_digest = document.get("sha256", "").strip().lower()
         disposition_verified = (
-            review.get("historical_disposition", "").strip().upper() == "INCLUDE_VERIFIED"
+            review.get("historical_disposition", "").strip().upper() == "INCLUDE_IN_HISTORICAL_UNIVERSE"
             and bool(document)
-            and document.get("capture_status", "").upper() == "INDEPENDENTLY_REVIEWED"
-            and len(document.get("sha256", "")) == 64
+            and document.get("capture_status", "").strip().upper() == "INDEPENDENTLY_REVIEWED"
+            and bool(re.fullmatch(r"[0-9a-f]{64}", document_digest))
+            and review_digest == document_digest
             and bool(document.get("archive_path", "").strip())
             and bool(review.get("reviewed_by", "").strip())
             and _utc(review.get("reviewed_at_utc", ""))

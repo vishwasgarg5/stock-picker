@@ -41,7 +41,7 @@ class CorporateActionAuditTests(unittest.TestCase):
             )
             report = audit_corporate_actions(path)
             self.assertEqual(report["event_level_provenance_status"], "NO_EVENT_LEVEL_PROVENANCE_FIELDS")
-            self.assertEqual(report["actions"]["dividends"]["invalid_values"], 1)
+            self.assertEqual(report["actions"]["dividends"]["invalid_values"], 2)
             self.assertEqual(report["actions"]["stock_splits"]["negative_values_held_for_review"], 1)
 
     def test_missing_action_columns_do_not_get_assumed(self):

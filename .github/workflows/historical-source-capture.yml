@@ -1,0 +1,54 @@
+name: Capture Historical Primary-Source Documents
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * 1"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: historical-source-capture-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  capture-official-documents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Capture allowlisted official PDFs
+        run: python -m research_model.data.capture_historical_sources
+      - name: Validate captured bytes and provenance manifest
+        run: |
+          python -m research_model.data.validate_source_archive \
+            research_model/schemas/historical_source_documents.csv \
+            --source-registry research_model/schemas/identity_source_registry.csv \
+            --archive-root research_data/source_documents \
+            --output "${{ runner.temp }}/source-capture-validation.json"
+      - name: Publish capture report
+        if: always()
+        run: |
+          if [ -f "${{ runner.temp }}/source-capture-validation.json" ]; then
+            cat "${{ runner.temp }}/source-capture-validation.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Commit newly captured immutable source files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research_data/source_documents research_model/schemas/historical_source_documents.csv
+          if git diff --cached --quiet; then
+            echo "No new source documents; repository unchanged."
+          else
+            git commit -m "data: capture official historical source documents"
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi

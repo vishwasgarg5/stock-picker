@@ -190,13 +190,13 @@ These are counts of embedded non-zero values, not counts of verified exchange ev
 The empty template at `research_model/schemas/corporate_action_events.csv` defines a separate event ledger. It intentionally contains a header only; no historical events have been fabricated or inferred from the embedded OHLCV columns.
 
 The validator `research_model.data.validate_action_ledger` checks:
-- event identity: symbol, action type, and ex-date, with duplicate keys rejected;
+- event identity: checksum-valid ISO 6166 ISIN, historical symbol, historical series, optional exchange security code, action type, and ex-date; duplicate keys are rejected by ISIN/action type/ex-date;
 - action-specific fields: positive cash amount plus currency for dividends, or positive integer numerator/denominator for splits;
 - separate announcement, ex-, record-, and payment-date fields (the ex-date is the event key; other dates are optional when not evidenced);
 - source name, source URL, SHA-256 of the source document, UTC retrieval timestamp, and a stable evidence reference;
 - reviewer identity and UTC review timestamp when a record claims `INDEPENDENTLY_VERIFIED`.
 
-For splits, the ratio convention is `new shares / old shares` (numerator / denominator). Dividend amounts must be accompanied by currency. The ledger does not infer missing dates, split ratios, currencies, or source references from OHLCV values.
+For splits, the ratio convention is `new shares / old shares` (numerator / denominator). Dividend amounts must be accompanied by currency. The ledger does not infer missing dates, split ratios, currencies, ISINs, historical symbols/series, or source references from OHLCV values. ISIN is checksum-validated and is the stable event-key identity; historical symbol and series are retained for audit. Corporate reorganizations and successor/predecessor identifier links remain unresolved and out of scope.
 
 Run the structural check:
 
@@ -212,3 +212,8 @@ The validator always reports `REVIEW_REQUIRED`, even when every row is structura
 The collection and human-review procedure is documented in [`CORPORATE_ACTION_EVIDENCE.md`](CORPORATE_ACTION_EVIDENCE.md). It defines a primary-source hierarchy, byte-preserving document capture, SHA-256 and evidence references, separate event dates, conflict handling, and the requirement for independent review. It also records an important limitation of the current ledger: symbol/action/ex-date is not a durable instrument identity key. Add ISIN and historical symbol/series identity before attempting multi-year event reconciliation.
 
 The public source links in that protocol are discovery references, not event evidence. No events have been added to the header-only ledger, and no embedded OHLCV values have been promoted to verified events. The corporate-action gate remains `REVIEW_REQUIRED`.
+
+
+## Step 12 — stable security identity in the event ledger
+
+The event-ledger contract now requires a checksum-valid ISO 6166 ISIN and the historical symbol and series as observed in the source evidence; an exchange security code is optional. Duplicate event keys are based on ISIN, action type, and ex-date rather than the mutable symbol. The validator reports this identity key explicitly. Tests cover valid and invalid ISIN checksums, required historical symbol/series, and duplicate event keys. This is not a corporate-reorganization mapping: mergers, demergers, and ISIN succession remain unresolved and must not be joined automatically. The ledger template remains header-only.

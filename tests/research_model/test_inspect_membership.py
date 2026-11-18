@@ -50,12 +50,13 @@ class InspectMembershipTests(unittest.TestCase):
             path.write_text(
                 "index,symbol,as_of_date,weight_method,source\n"
                 "NIFTY50,AAA,2026-11-17T00:00:00Z,OFFICIAL,exchange\n"
-                "NIFTY50,,2026-11-17,OFFICIAL,exchange\n",
+                "NIFTY50,,2026-11-17,OFFICIAL,exchange\n"
+                "NIFTY50,CCC, 2026-11-18 ,OFFICIAL,exchange\n",
                 encoding="utf-8",
             )
             report = inspect_membership_file(path)
             self.assertEqual(report["status"], "BLOCKED_INVALID_MEMBERSHIP_ROWS")
-            self.assertEqual(report["invalid_row_count"], 2)
+            self.assertEqual(report["invalid_row_count"], 3)
             self.assertEqual(report["snapshot_count"], 0)
 
 

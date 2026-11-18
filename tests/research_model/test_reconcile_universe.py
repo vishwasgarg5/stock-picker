@@ -90,5 +90,35 @@ class ReconcileUniverseTests(unittest.TestCase):
             self.assertFalse(result["input_modified"])
 
 
+    def test_reports_per_symbol_row_count_drift_without_mutating_sources(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            ohlcv, audit, universe = root / "ohlcv.csv", root / "audit.csv", root / "universe.csv"
+            ohlcv.write_text(
+                "date,symbol\\n2024-01-01,AAA\\n2024-01-02,AAA\\n2024-01-03,BBB\\n",
+                encoding="utf-8",
+            )
+            audit.write_text(
+                "symbol,listing_history_status,first_date,listing_date,observed_sessions\\n"
+                "AAA,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-01,2024-01-01,1\\n"
+                "BBB,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-03,2024-01-03,1\\n",
+                encoding="utf-8",
+            )
+            universe.write_text("symbol\\nAAA\\nBBB\\n", encoding="utf-8")
+
+            result = reconcile_universe(ohlcv, audit, universe)
+
+            self.assertEqual(result["status"], "REVIEW_REQUIRED")
+            self.assertEqual(result["coverage_audit_observed_row_count"], 2)
+            self.assertEqual(result["raw_ohlcv_row_count"], 3)
+            self.assertEqual(result["common_symbol_row_count_mismatch_count"], 1)
+            self.assertEqual(result["common_symbol_row_count_mismatches"], [
+                {"symbol": "AAA", "raw_rows": 2, "audit_rows": 1, "difference": 1}
+            ])
+            self.assertEqual(result["common_symbol_row_count_difference_total"], 1)
+            self.assertFalse(result["input_modified"])
+
+
+
 if __name__ == "__main__":
     unittest.main()

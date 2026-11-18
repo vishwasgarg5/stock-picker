@@ -83,3 +83,20 @@ def test_summary_count_tampering_is_detected(tmp_path):
     result = verify_training_eligibility(source, manifest, summary)
     assert result["status"] == "FAIL"
     assert any("quarantined_row_count" in error for error in result["errors"])
+
+
+
+def test_manifest_observation_must_match_source_symbol_and_date(tmp_path):
+    source, manifest, summary = fixture(tmp_path)
+    rows = list(csv.DictReader(manifest.open(encoding="utf-8", newline="")))
+    rows[0]["symbol"] = "WRONG"
+    with manifest.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator="\\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    payload = json.loads(summary.read_text())
+    payload["eligibility_manifest_sha256"] = hashlib.sha256(manifest.read_bytes()).hexdigest()
+    summary.write_text(json.dumps(payload), encoding="utf-8")
+    result = verify_training_eligibility(source, manifest, summary)
+    assert result["status"] == "FAIL"
+    assert any("symbol does not match source" in error for error in result["errors"])

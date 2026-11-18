@@ -4,7 +4,7 @@
 
 The acquisition manifest at `schemas/historical_source_documents.csv` records exact source-document provenance for later point-in-time identity review. It is deliberately separate from the identity-source registry: a registry entry describes a candidate source; a document row describes one captured artifact. Neither approves a security mapping.
 
-No live scraping, scheduled download, guessed archive URL, or automatic source certification is part of this capability. Capture only documents actually obtained from a source you are authorized to access. The committed manifest remains header-only until genuine documents are captured.
+Automated retrieval is limited to the exact HTTPS URLs in the capture script's allowlist and matching registry entries. No guessed archive URL, unrestricted scraping, or automatic source certification is permitted. The GitHub Actions workflow captures only genuine server responses and leaves every new document in CAPTURED_UNREVIEWED status until independent review.
 
 ## Capture procedure
 

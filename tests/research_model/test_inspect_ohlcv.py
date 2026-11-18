@@ -42,5 +42,21 @@ class InspectOhlcvTests(unittest.TestCase):
                 inspect_ohlcv_file(path)
 
 
+
+    def test_rejects_date_prefixes_and_counts_missing_symbols(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "malformed.csv"
+            path.write_text(
+                "date,symbol,open,high,low,close,volume\n"
+                "2024-01-01T00:00:00Z,AAA,10,11,9,10,100\n"
+                "2024-01-02,,10,11,9,10,100\n",
+                encoding="utf-8",
+            )
+            report = inspect_ohlcv_file(path)
+            self.assertEqual(report["invalid_dates"], 1)
+            self.assertEqual(report["invalid_symbols"], 1)
+            self.assertEqual(report["symbol_count"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

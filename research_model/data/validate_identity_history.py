@@ -76,6 +76,7 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
         rows = list(reader)
     errors: list[str] = []
     reviewed_document_hashes: dict[str, set[str]] | None = None
+    source_document_urls: dict[str, set[str]] = {}
     if source_documents is not None:
         reviewed_document_hashes = defaultdict(set)
         with Path(source_documents).open("r", encoding="utf-8-sig", newline="") as manifest_handle:
@@ -83,6 +84,10 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
                 digest = (document.get("sha256") or "").strip().lower()
                 if digest:
                     reviewed_document_hashes[digest].add((document.get("capture_status") or "").strip().upper())
+                    source_document_urls.setdefault(digest, set()).update({
+                        (document.get("canonical_url") or "").strip(),
+                        (document.get("retrieved_url") or "").strip(),
+                    })
     missing = [name for name in REQUIRED_COLUMNS if name not in columns]
     if missing:
         errors.append("missing required columns: " + ", ".join(missing))
@@ -137,17 +142,8 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
             errors.append(f"row {number}: reviewer metadata requires INDEPENDENTLY_VERIFIED")
 
         if reviewed_document_hashes is not None and SHA_RE.fullmatch(digest):
-            if digest in reviewed_document_hashes and source_url:
-                # The manifest is the capture record; URL matching is checked against its
-                # canonical/retrieved URL fields to prevent a detached provenance citation.
-                with Path(source_documents).open("r", encoding="utf-8-sig", newline="") as manifest_handle:
-                    matching_documents = [doc for doc in csv.DictReader(manifest_handle)
-                        if (doc.get("sha256") or "").strip().lower() == digest]
-                if matching_documents and not any(source_url in {
-                    (doc.get("canonical_url") or "").strip(),
-                    (doc.get("retrieved_url") or "").strip(),
-                } for doc in matching_documents):
-                    errors.append(f"row {number}: source_url does not match the referenced source-document manifest entry")
+            if digest in reviewed_document_hashes and source_url not in source_document_urls.get(digest, set()):
+                errors.append(f"row {number}: source_url does not match the referenced source-document manifest entry")
 
         if start and valid_isin(isin):
             intervals[isin].append((start, end, number))

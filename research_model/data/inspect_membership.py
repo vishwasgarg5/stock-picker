@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 from collections import Counter
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,8 @@ def inspect_membership_file(path: str | Path) -> dict[str, Any]:
     symbols: set[str] = set()
     methods: Counter[str] = Counter()
     duplicate_keys = 0
+    invalid_rows = 0
+    errors: list[str] = []
     seen: set[tuple[str, str, str]] = set()
     rows = 0
 
@@ -31,25 +34,54 @@ def inspect_membership_file(path: str | Path) -> dict[str, Any]:
         missing = sorted(REQUIRED_COLUMNS - set(columns))
         if missing:
             raise ValueError(f"Membership source missing required columns: {missing}")
+        if len(columns) != len(set(columns)):
+            raise ValueError("Membership source contains duplicate column names")
         for row in reader:
             rows += 1
+            line = rows + 1
+            row_errors: list[str] = []
+            if None in row:
+                row_errors.append("extra CSV fields")
             index = (row.get("index") or "").strip().upper()
             symbol = (row.get("symbol") or "").strip().upper()
-            as_of_date = (row.get("as_of_date") or "").strip()
+            raw_date = (row.get("as_of_date") or "").strip()
             method = (row.get("weight_method") or "").strip()
-            if not index or not symbol or not as_of_date:
+            evidence_source = (row.get("source") or "").strip()
+            if not index:
+                row_errors.append("missing index")
+            if not symbol:
+                row_errors.append("missing symbol")
+            try:
+                parsed = date.fromisoformat(raw_date)
+                if parsed.isoformat() != raw_date:
+                    raise ValueError
+            except ValueError:
+                row_errors.append("invalid or non-canonical as_of_date")
+                parsed = None
+            if not method:
+                row_errors.append("missing weight_method")
+            if not evidence_source:
+                row_errors.append("missing source")
+            if row_errors:
+                invalid_rows += 1
+                errors.extend(f"row {line}: {message}" for message in row_errors)
                 continue
-            dates.add(as_of_date)
+
+            assert parsed is not None
+            dates.add(parsed.isoformat())
             indexes.add(index)
             symbols.add(symbol)
-            methods[method or "UNSPECIFIED"] += 1
-            key = (index, symbol, as_of_date)
+            methods[method] += 1
+            key = (index, symbol, parsed.isoformat())
             if key in seen:
                 duplicate_keys += 1
+                errors.append(f"row {line}: duplicate index/symbol/date key {key}")
             seen.add(key)
 
     ordered_dates = sorted(dates)
-    if not ordered_dates:
+    if invalid_rows or duplicate_keys:
+        status = "BLOCKED_INVALID_MEMBERSHIP_ROWS"
+    elif not ordered_dates:
         status = "BLOCKED_NO_VALID_MEMBERSHIP_DATES"
     elif len(ordered_dates) == 1:
         status = "SNAPSHOT_ONLY_NOT_HISTORICAL_MEMBERSHIP"
@@ -59,6 +91,10 @@ def inspect_membership_file(path: str | Path) -> dict[str, Any]:
         "status": status,
         "source_path": source.as_posix(),
         "row_count": rows,
+        "valid_row_count": rows - invalid_rows,
+        "invalid_row_count": invalid_rows,
+        "errors": errors[:200],
+        "errors_truncated": len(errors) > 200,
         "distinct_as_of_dates": ordered_dates,
         "snapshot_count": len(ordered_dates),
         "index_count": len(indexes),

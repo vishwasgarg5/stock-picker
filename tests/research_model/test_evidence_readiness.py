@@ -58,6 +58,11 @@ def test_empty_evidence_manifests_never_pass_readiness(tmp_path):
             "eligible_row_count": 0, "quarantined_row_count": 10,
             "source_sha256": "a" * 64, "eligibility_manifest_sha256": "b" * 64,
         },
+        "training_eligibility_validation": {
+            "status": "PASS", "error_count": 0, "source_row_count": 10,
+            "eligible_row_count": 0, "quarantined_row_count": 10,
+            "source_sha256": "a" * 64, "manifest_sha256": "b" * 64,
+        },
     }
     for key, filename in REPORT_FILES.items():
         (reports / filename).write_text(json.dumps(values[key]), encoding="utf-8")

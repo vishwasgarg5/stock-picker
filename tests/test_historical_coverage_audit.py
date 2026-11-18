@@ -232,3 +232,19 @@ def test_official_equity_listing_csv_rejects_unknown_schema():
     import pytest
     with pytest.raises(ValueError, match="Symbol/Date of Listing"):
         parse_equity_listing_csv("Ticker,Name\nAAA,AAA Limited\n", {"AAA"}, "official-source")
+
+def test_reit_listing_dates_are_backed_by_official_nse_documents():
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[1] / "data" / "nse_listing_master.csv"
+    listing = pd.read_csv(path, dtype=str).set_index("symbol")
+    expected = {
+        "BAGMANE": ("2026-05-14", "INE2OVN25015"),
+        "BIRET": ("2021-02-16", "INE0FDU25010"),
+        "EMBASSY": ("2019-04-01", "INE041025011"),
+    }
+    for symbol, (listing_date, isin) in expected.items():
+        assert listing.loc[symbol, "listing_date"] == listing_date
+        assert listing.loc[symbol, "isin"] == isin
+        assert "nsearchives.nseindia.com" in listing.loc[symbol, "listing_date_source"]
+

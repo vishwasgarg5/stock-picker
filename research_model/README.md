@@ -134,3 +134,16 @@ python -m research_model.data.verify_partitions /path/to/new/research_data
 ```
 
 The verifier does not modify the archive or source. Its tests deliberately alter a partition, alter manifest counts, and remove a partition to confirm that integrity failures are detected. This verifies internal archive consistency; it does not establish that source prices, listing dates, corporate actions, or historical index membership are economically correct.
+
+
+## Step 7 — exact source-to-partition reconciliation
+
+`research_model.data.reconcile_partitions` compares the original source CSV with every materialized partition row. It first runs the independent archive verifier, then checks that the source file SHA-256 and schema match the archive manifest. A temporary disk-backed SQLite index matches rows by date/symbol and compares every original CSV field exactly; matched rows are removed from the index, so missing, extra, duplicate, or changed rows fail closed without loading the full source dataset into memory.
+
+Run it after partition creation:
+
+```bash
+python -m research_model.data.reconcile_partitions data/ohlcv.csv --archive-root /path/to/new/research_data
+```
+
+A `PASS` means exact CSV field-value preservation against the specific source file hash recorded in the manifest. It does not prove that the source itself is economically correct, that corporate actions are complete, or that historical membership is unbiased. Tests use small temporary fixtures only; CI does not create partitions from the committed historical source.

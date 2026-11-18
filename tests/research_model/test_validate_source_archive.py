@@ -85,6 +85,16 @@ def test_missing_archived_document_is_rejected(tmp_path):
     assert any("document is missing" in error for error in report["errors"])
 
 
+def test_duplicate_archive_paths_are_rejected(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    write_manifest(manifest, [
+        make_row(document_id="DOC-1"),
+        make_row(document_id="DOC-2"),
+    ])
+    report = validate_source_archive(manifest)
+    assert any("duplicate archive_path" in error for error in report["errors"])
+
+
 def test_unsafe_archive_path_is_rejected(tmp_path):
     manifest = tmp_path / "documents.csv"
     write_manifest(manifest, [make_row(archive_path="../outside.csv")])

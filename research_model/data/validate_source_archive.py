@@ -28,6 +28,7 @@ SOURCE_CLASSES = {
     "ISSUER_REGULATORY_FILING", "OTHER_PRIMARY_SOURCE",
 }
 CAPTURE_STATUSES = {"CAPTURED_UNREVIEWED", "INDEPENDENTLY_REVIEWED", "REJECTED"}
+REGISTRY_REVIEW_STATUSES = {"DISCOVERY_ONLY", "REVIEWED_AUTHORITATIVE", "REJECTED"}
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -75,13 +76,37 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
                 if registry_id in registered_sources:
                     registry_errors.append(f"source registry row {registry_line}: duplicate source_id {registry_id}")
                     continue
+                source_venue = (item.get("venue") or "").strip().upper()
+                source_class = (item.get("source_class") or "").strip().upper()
+                canonical_url = (item.get("canonical_url") or "").strip()
+                review_status = (item.get("review_status") or "").strip().upper()
+                reviewed_by = (item.get("reviewed_by") or "").strip()
+                reviewed_at_utc = (item.get("reviewed_at_utc") or "").strip()
+                if source_venue not in VENUES:
+                    registry_errors.append(f"source registry row {registry_line}: invalid venue")
+                if source_class not in SOURCE_CLASSES:
+                    registry_errors.append(f"source registry row {registry_line}: invalid source_class")
+                parsed_url = urlparse(canonical_url)
+                if parsed_url.scheme != "https" or not parsed_url.netloc:
+                    registry_errors.append(f"source registry row {registry_line}: canonical_url must be an absolute HTTPS URL")
+                if review_status not in REGISTRY_REVIEW_STATUSES:
+                    registry_errors.append(f"source registry row {registry_line}: invalid review_status")
+                if review_status == "REVIEWED_AUTHORITATIVE":
+                    if not reviewed_by or not _utc(reviewed_at_utc):
+                        registry_errors.append(
+                            f"source registry row {registry_line}: REVIEWED_AUTHORITATIVE requires reviewer and UTC review timestamp"
+                        )
+                elif reviewed_by or reviewed_at_utc:
+                    registry_errors.append(
+                        f"source registry row {registry_line}: reviewer metadata requires REVIEWED_AUTHORITATIVE"
+                    )
                 registered_sources[registry_id] = {
-                    "venue": (item.get("venue") or "").strip().upper(),
-                    "source_class": (item.get("source_class") or "").strip().upper(),
-                    "canonical_url": (item.get("canonical_url") or "").strip(),
-                    "review_status": (item.get("review_status") or "").strip().upper(),
-                    "reviewed_by": (item.get("reviewed_by") or "").strip(),
-                    "reviewed_at_utc": (item.get("reviewed_at_utc") or "").strip(),
+                    "venue": source_venue,
+                    "source_class": source_class,
+                    "canonical_url": canonical_url,
+                    "review_status": review_status,
+                    "reviewed_by": reviewed_by,
+                    "reviewed_at_utc": reviewed_at_utc,
                 }
     root = Path(archive_root).resolve() if archive_root is not None else None
     with manifest.open("r", encoding="utf-8-sig", newline="") as handle:

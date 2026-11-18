@@ -311,3 +311,10 @@ The next validation layer must define the research target and return basis expli
 - `cash_dividend_inclusive`: cash dividends are included under the explicitly named `cash_received_no_reinvestment` convention, with independently verified split and dividend evidence required.
 
 Every contract must also declare the horizon in sessions, decision-price field, entry-price field, exit-price field, and target-end date field. There are no defaults for these semantics. The contract is declarative only: it does not calculate labels and always reports training authorization as false. Dividend-inclusive labels remain blocked until event dates, amounts, and adjustment basis are independently verified. A configured contract is not proof that the source data meets it.
+
+
+## Step 19 — explicit forward-label generation (split-adjusted price only)
+
+`research_model.validation.forward_labels.generate_forward_labels` now builds deterministic forward returns from caller-supplied rows. It groups by symbol, sorts observations chronologically, rejects duplicate symbol/date keys and non-finite/non-positive prices, uses the configured entry price on the decision row and exit price exactly `horizon_sessions` observations later, and emits the actual target-end date for purged walk-forward validation. Incomplete trailing horizons are omitted. It never joins observations across symbols.
+
+Only the `split_adjusted_price` basis is implemented; dividends are excluded. Cash-dividend-inclusive generation is explicitly rejected until a separately evidenced cash-flow/entitlement schedule exists. The output labels itself as caller-supplied, not evidence-verified. The contract's evidence status is a required declaration, not proof that inputs were independently verified. This function does not load repository OHLCV, modify data, authorize training, or establish model performance. Synthetic tests exercise the calculation and fail-closed cases; the historical dataset remains 958,975 rows quarantined and training remains unauthorized.

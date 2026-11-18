@@ -91,14 +91,14 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
                     registry_errors.append(f"source registry row {registry_line}: canonical_url must be an absolute HTTPS URL")
                 if review_status not in REGISTRY_REVIEW_STATUSES:
                     registry_errors.append(f"source registry row {registry_line}: invalid review_status")
-                if review_status == "REVIEWED_AUTHORITATIVE":
+                if review_status in {"REVIEWED_AUTHORITATIVE", "REJECTED"}:
                     if not reviewed_by or not _utc(reviewed_at_utc):
                         registry_errors.append(
-                            f"source registry row {registry_line}: REVIEWED_AUTHORITATIVE requires reviewer and UTC review timestamp"
+                            f"source registry row {registry_line}: {review_status} requires reviewer and UTC review timestamp"
                         )
                 elif reviewed_by or reviewed_at_utc:
                     registry_errors.append(
-                        f"source registry row {registry_line}: reviewer metadata requires REVIEWED_AUTHORITATIVE"
+                        f"source registry row {registry_line}: DISCOVERY_ONLY must not contain reviewer metadata"
                     )
                 registered_sources[registry_id] = {
                     "venue": source_venue,

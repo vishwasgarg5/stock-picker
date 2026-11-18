@@ -21,8 +21,10 @@ def base_contract(**overrides):
     return TargetContract(**values)
 
 
-def test_price_only_contract_must_explicitly_exclude_dividends():
-    contract = base_contract()
+def test_price_only_contract_requires_verified_splits_and_excludes_dividends():
+    with pytest.raises(ValueError, match="independently verified"):
+        base_contract()
+    contract = base_contract(corporate_action_evidence="INDEPENDENTLY_VERIFIED")
     result = validate_target_contract(contract)
     assert result["return_basis"] == "split_adjusted_price"
     assert result["dividend_treatment"] == "excluded"

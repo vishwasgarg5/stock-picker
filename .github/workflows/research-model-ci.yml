@@ -32,6 +32,8 @@ jobs:
         run: python -m research_model.data.audit_corporate_actions data/ohlcv.csv --output "$RUNNER_TEMP/corporate-action-audit.json"
       - name: Validate empty corporate-action event ledger schema
         run: python -m research_model.data.validate_action_ledger research_model/schemas/corporate_action_events.csv --output "$RUNNER_TEMP/corporate-action-ledger-validation.json"
+      - name: Validate empty point-in-time security identity history schema
+        run: python -m research_model.data.validate_identity_history research_model/schemas/security_identity_history.csv --output "$RUNNER_TEMP/security-identity-history-validation.json"
       - name: Reconcile fresh OHLCV scan with prior coverage audit
         run: python -m research_model.data.reconcile_coverage --manifest "$RUNNER_TEMP/ohlcv-source-manifest.json" --audit data/historical_coverage_audit.json
       - name: Reconcile raw symbols with reviewed historical universe
@@ -48,6 +50,7 @@ jobs:
             ${{ runner.temp }}/ohlcv-source-manifest.json
             ${{ runner.temp }}/corporate-action-audit.json
             ${{ runner.temp }}/corporate-action-ledger-validation.json
+            ${{ runner.temp }}/security-identity-history-validation.json
             ${{ runner.temp }}/historical-universe-reconciliation.json
             ${{ runner.temp }}/listing-eligibility-audit.json
             ${{ runner.temp }}/membership-evidence-audit.json

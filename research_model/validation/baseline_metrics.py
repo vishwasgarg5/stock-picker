@@ -59,15 +59,6 @@ def evaluate_zero_return_baseline(
         raise ValueError("folds cannot be empty")
 
     parsed: dict[int, tuple[float, float]] = {}
-    for index, row in enumerate(rows):
-        if actual_column not in row or prediction_column not in row:
-            raise ValueError(
-                f"row {index}: required {actual_column!r} and {prediction_column!r}"
-            )
-        parsed[index] = (
-            _finite_number(row[actual_column], field=actual_column, row_index=index),
-            _finite_number(row[prediction_column], field=prediction_column, row_index=index),
-        )
 
     seen_test_indices: set[int] = set()
     fold_results: list[dict[str, Any]] = []
@@ -89,6 +80,16 @@ def evaluate_zero_return_baseline(
                 raise ValueError(f"fold {fold_position}: overlapping/duplicate test index {index}")
             local_seen.add(index)
             seen_test_indices.add(index)
+            if index not in parsed:
+                row = rows[index]
+                if actual_column not in row or prediction_column not in row:
+                    raise ValueError(
+                        f"test row {index}: required {actual_column!r} and {prediction_column!r}"
+                    )
+                parsed[index] = (
+                    _finite_number(row[actual_column], field=actual_column, row_index=index),
+                    _finite_number(row[prediction_column], field=prediction_column, row_index=index),
+                )
             target, prediction = parsed[index]
             actual.append(target)
             predictions.append(prediction)

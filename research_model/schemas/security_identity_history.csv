@@ -1,1 +1,1 @@
-isin,symbol,series,security_code,valid_from,valid_to,source_name,source_url,source_document_sha256,retrieved_at_utc,evidence_reference,verification_status,reviewed_by,reviewed_at_utc
+venue,source_id,isin,symbol,series,security_code,valid_from,valid_to,source_name,source_url,source_document_sha256,retrieved_at_utc,evidence_reference,verification_status,reviewed_by,reviewed_at_utc

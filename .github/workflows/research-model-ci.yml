@@ -121,6 +121,7 @@ jobs:
               f"- Blocked: {report['blocked_checks']}/{report['check_count']}",
               f"- Tier 1 structural exploration: {report['readiness_tiers']['tier1_structural_exploration_authorized']}",
               f"- Tier 2 reduced-universe training: {report['readiness_tiers']['tier2_reduced_universe_training_authorized']}",
+              f"- Tier 2 missing requirements: {', '.join(report['readiness_tiers']['tier2_missing_requirements'])}",
               f"- Tier 3 promotion evidence: {report['readiness_tiers']['tier3_promotion_evidence_authorized']}",
               f"- Training authorized: {report['training_authorized']}",
               f"- Production authorized: {report['production_authorized']}",

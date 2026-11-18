@@ -33,7 +33,7 @@ def _expected_sessions(start: pd.Timestamp, end: pd.Timestamp) -> pd.DatetimeInd
 
 
 def _add_listing_coverage(detail: pd.DataFrame, valid: pd.DataFrame, listing_master: pd.DataFrame | None) -> pd.DataFrame:
-    """Measure history from verified listing dates; never infer a listing date from OHLCV."""
+    """Measure listing coverage with one calendar build and one symbol-date grouping."""
     listing_map = {}
     if listing_master is not None and not listing_master.empty and {"symbol", "listing_date"}.issubset(listing_master.columns):
         lm = listing_master[["symbol", "listing_date"]].copy()
@@ -41,22 +41,42 @@ def _add_listing_coverage(detail: pd.DataFrame, valid: pd.DataFrame, listing_mas
         lm["listing_date"] = pd.to_datetime(lm["listing_date"], errors="coerce").dt.tz_localize(None).dt.normalize()
         lm = lm.dropna(subset=["listing_date"]).drop_duplicates("symbol", keep="last")
         listing_map = dict(zip(lm["symbol"], lm["listing_date"]))
+
+    # Build the NSE session index once for the entire audited interval. The prior
+    # per-symbol implementation rebuilt calendars and rescanned all OHLCV rows
+    # for every symbol, making a 958k-row audit needlessly expensive.
+    normalized = valid[["symbol", "date"]].copy()
+    normalized["symbol"] = normalized["symbol"].astype(str).str.upper().str.strip()
+    normalized["_audit_date"] = pd.to_datetime(normalized["date"], errors="coerce").dt.tz_localize(None).dt.normalize()
+    symbol_dates = {
+        symbol: pd.DatetimeIndex(group["_audit_date"].dropna().unique())
+        for symbol, group in normalized.groupby("symbol", sort=False)
+    }
+    data_window_start = normalized["_audit_date"].dropna().min() if not normalized.empty else None
+    last_dates = pd.to_datetime(detail.get("last_date"), errors="coerce").dropna()
+    calendar_sessions = pd.DatetimeIndex([])
+    if listing_map and not last_dates.empty:
+        calendar_start = min(listing_map.values())
+        calendar_end = last_dates.max()
+        if calendar_start <= calendar_end:
+            calendar_sessions = _expected_sessions(calendar_start, calendar_end)
+
     additions = []
-    # Listing-to-first-bar gaps are only measurable inside the retained OHLCV
-    # source window. Earlier sessions are not evidence of missing bars here.
-    data_window_start = pd.to_datetime(valid["date"], errors="coerce").dropna().min() if not valid.empty else None
     for row in detail.to_dict("records"):
         symbol = str(row["symbol"]).upper()
         listing = listing_map.get(symbol)
-        first, last = pd.to_datetime(row.get("first_date"), errors="coerce"), pd.to_datetime(row.get("last_date"), errors="coerce")
-        item = {"listing_date": listing.date().isoformat() if listing is not None else None,
-                "listing_expected_start": None, "expected_sessions_since_listing": None,
-                "observed_sessions_since_listing": None, "calendar_sessions_without_ohlcv_since_listing": None,
-                "listing_to_first_bar_gap_sessions": None, "history_starts_at_first_possible_session": None,
-                "coverage_window_start": None, "coverage_window_expected_sessions": None,
-                "coverage_window_observed_sessions": None, "coverage_window_sessions_without_ohlcv": None,
-                "coverage_window_first_bar_gap_sessions": None,
-                "listing_history_status": "LISTING_DATE_UNKNOWN"}
+        first = pd.to_datetime(row.get("first_date"), errors="coerce")
+        last = pd.to_datetime(row.get("last_date"), errors="coerce")
+        item = {
+            "listing_date": listing.date().isoformat() if listing is not None else None,
+            "listing_expected_start": None, "expected_sessions_since_listing": None,
+            "observed_sessions_since_listing": None, "calendar_sessions_without_ohlcv_since_listing": None,
+            "listing_to_first_bar_gap_sessions": None, "history_starts_at_first_possible_session": None,
+            "coverage_window_start": None, "coverage_window_expected_sessions": None,
+            "coverage_window_observed_sessions": None, "coverage_window_sessions_without_ohlcv": None,
+            "coverage_window_first_bar_gap_sessions": None,
+            "listing_history_status": "LISTING_DATE_UNKNOWN",
+        }
         if listing is not None:
             if pd.isna(first) or pd.isna(last):
                 item["listing_history_status"] = "NO_HISTORY_SINCE_LISTING"
@@ -65,29 +85,30 @@ def _add_listing_coverage(detail: pd.DataFrame, valid: pd.DataFrame, listing_mas
             elif last < listing:
                 item["listing_history_status"] = "NO_POST_LISTING_HISTORY"
             else:
-                since_listing = _expected_sessions(listing, last)
-                dates = pd.to_datetime(valid.loc[valid["symbol"].astype(str).str.upper().eq(symbol), "date"], errors="coerce").dropna()
-                observed_since_listing = pd.DatetimeIndex(dates.dt.tz_localize(None).dt.normalize().unique()).intersection(since_listing)
+                sessions = calendar_sessions[(calendar_sessions >= listing) & (calendar_sessions <= last)]
                 coverage_start = max(listing, data_window_start) if data_window_start is not None else listing
-                coverage_expected = _expected_sessions(coverage_start, last)
-                observed_in_window = pd.DatetimeIndex(dates.dt.tz_localize(None).dt.normalize().unique()).intersection(coverage_expected)
+                coverage_expected = calendar_sessions[(calendar_sessions >= coverage_start) & (calendar_sessions <= last)]
+                dates = symbol_dates.get(symbol, pd.DatetimeIndex([]))
+                observed_since_listing = dates.intersection(sessions)
+                observed_in_window = dates.intersection(coverage_expected)
                 leading = coverage_expected[coverage_expected < first]
                 aligned = bool(len(coverage_expected) and first.normalize() == coverage_expected[0])
-                item.update({"listing_expected_start": since_listing[0].date().isoformat() if len(since_listing) else None,
-                    "expected_sessions_since_listing": int(len(since_listing)),
+                item.update({
+                    "listing_expected_start": sessions[0].date().isoformat() if len(sessions) else None,
+                    "expected_sessions_since_listing": int(len(sessions)),
                     "observed_sessions_since_listing": int(len(observed_since_listing)),
-                    "calendar_sessions_without_ohlcv_since_listing": int(max(0,len(since_listing)-len(observed_since_listing))),
-                    "listing_to_first_bar_gap_sessions": int(len(since_listing[since_listing < first])),
+                    "calendar_sessions_without_ohlcv_since_listing": int(max(0, len(sessions) - len(observed_since_listing))),
+                    "listing_to_first_bar_gap_sessions": int(len(sessions[sessions < first])),
                     "coverage_window_first_bar_gap_sessions": int(len(leading)),
                     "history_starts_at_first_possible_session": aligned,
                     "coverage_window_start": coverage_start.date().isoformat(),
                     "coverage_window_expected_sessions": int(len(coverage_expected)),
                     "coverage_window_observed_sessions": int(len(observed_in_window)),
-                    "coverage_window_sessions_without_ohlcv": int(max(0, len(coverage_expected)-len(observed_in_window))),
-                    "listing_history_status": "STARTS_AT_FIRST_POSSIBLE_SESSION" if aligned else "STARTS_AFTER_LISTING_DATE_REVIEW"})
+                    "coverage_window_sessions_without_ohlcv": int(max(0, len(coverage_expected) - len(observed_in_window))),
+                    "listing_history_status": "STARTS_AT_FIRST_POSSIBLE_SESSION" if aligned else "STARTS_AFTER_LISTING_DATE_REVIEW",
+                })
         additions.append(item)
-    return pd.concat([detail.reset_index(drop=True),pd.DataFrame(additions)],axis=1)
-
+    return pd.concat([detail.reset_index(drop=True), pd.DataFrame(additions)], axis=1)
 
 def audit_history(
     universe: pd.DataFrame,

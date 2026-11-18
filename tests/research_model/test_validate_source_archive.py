@@ -145,10 +145,10 @@ def write_registry(path, **overrides):
     }
     row.update(overrides)
     path.write_text(
-        "source_id,venue,source_class,canonical_url\\n"
+        "source_id,venue,source_class,canonical_url\n"
         + ",".join(row[field] for field in (
             "source_id", "venue", "source_class", "canonical_url"
-        )) + "\\n",
+        )) + "\n",
         encoding="utf-8",
     )
 
@@ -195,9 +195,9 @@ def test_duplicate_registry_source_ids_are_rejected(tmp_path):
     registry = tmp_path / "registry.csv"
     write_manifest(manifest, [make_row()])
     registry.write_text(
-        "source_id,venue,source_class,canonical_url\\n"
-        "NSE_CM_MASTER,NSE,EXCHANGE_SECURITY_MASTER,https://example.com/master\\n"
-        "NSE_CM_MASTER,NSE,EXCHANGE_SECURITY_MASTER,https://example.com/master\\n",
+        "source_id,venue,source_class,canonical_url\n"
+        "NSE_CM_MASTER,NSE,EXCHANGE_SECURITY_MASTER,https://example.com/master\n"
+        "NSE_CM_MASTER,NSE,EXCHANGE_SECURITY_MASTER,https://example.com/master\n",
         encoding="utf-8",
     )
     report = validate_source_archive(manifest, source_registry=registry)

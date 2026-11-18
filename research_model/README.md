@@ -205,3 +205,10 @@ python -m research_model.data.validate_action_ledger research_model/schemas/corp
 ```
 
 The validator always reports `REVIEW_REQUIRED`, even when every row is structurally valid. A URL, document hash, and self-asserted review status are not proof that the source is authoritative or that an event is correct. Independent human review of the cited source document remains mandatory. This contract does not yet reconcile ledger events against embedded OHLCV values: the source's embedded date and value semantics have not been established, so a comparison would risk a false match or false mismatch. CI validates the empty schema and tests synthetic fixtures only; the actual event ledger remains empty pending authoritative evidence.
+
+
+## Step 11 — authoritative corporate-action evidence protocol
+
+The collection and human-review procedure is documented in [`CORPORATE_ACTION_EVIDENCE.md`](CORPORATE_ACTION_EVIDENCE.md). It defines a primary-source hierarchy, byte-preserving document capture, SHA-256 and evidence references, separate event dates, conflict handling, and the requirement for independent review. It also records an important limitation of the current ledger: symbol/action/ex-date is not a durable instrument identity key. Add ISIN and historical symbol/series identity before attempting multi-year event reconciliation.
+
+The public source links in that protocol are discovery references, not event evidence. No events have been added to the header-only ledger, and no embedded OHLCV values have been promoted to verified events. The corporate-action gate remains `REVIEW_REQUIRED`.

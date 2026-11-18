@@ -29,7 +29,7 @@ TERMS = re.compile(
     re.I,
 )
 ENDPOINT = re.compile(
-    r"""(?P<q>["'`])(?P<path>(?:https?://[^"'\\s`]+|/[^"'\\s`]+|(?:api|reports?)[^"'\\s`]*))(?P=q)""",
+    r"""(?P<q>["'`])(?P<path>(?:https?://[^"'\s`]+|/[^"'\s`]+|(?:api|reports?)[^"'\s`]*))(?P=q)""",
     re.I,
 )
 
@@ -89,7 +89,7 @@ def snippets(source: str, pattern: re.Pattern[str], limit: int = 80) -> list[str
     seen = set()
     for match in pattern.finditer(source):
         item = source[max(0, match.start() - 220):min(len(source), match.end() + 320)]
-        item = re.sub(r"\\s+", " ", item).strip()
+        item = re.sub(r"\s+", " ", item).strip()
         if item not in seen:
             seen.add(item)
             found.append(item[:650])

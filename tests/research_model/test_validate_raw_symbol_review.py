@@ -33,7 +33,7 @@ class RawSymbolReviewTests(unittest.TestCase):
     def _write_ledger(self, path, disposition="PENDING", document_id="", digest="",
                       reviewer="", reviewed_at="", notes=""):
         with path.open("w", newline="", encoding="utf-8") as handle:
-            writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator="\\n")
+            writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator="\n")
             writer.writeheader()
             writer.writerow({
                 "symbol": "AAA", "raw_row_count": "2",
@@ -96,7 +96,7 @@ class RawSymbolReviewTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             diagnostic, ledger, documents = self._fixtures(Path(directory))
             with ledger.open("w", newline="", encoding="utf-8") as handle:
-                writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator="\\n")
+                writer = csv.DictWriter(handle, fieldnames=FIELDS, lineterminator="\n")
                 writer.writeheader()
                 writer.writerow({
                     "symbol": "AAA", "raw_row_count": "3",

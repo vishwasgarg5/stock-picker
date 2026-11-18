@@ -43,6 +43,8 @@ jobs:
         run: python -m research_model.data.reconcile_coverage --manifest "$RUNNER_TEMP/ohlcv-source-manifest.json" --audit data/historical_coverage_audit.json > "$RUNNER_TEMP/coverage-reconciliation.json"
       - name: Reconcile raw symbols with reviewed historical universe
         run: python -m research_model.data.reconcile_universe --ohlcv data/ohlcv.csv --coverage-audit data/historical_coverage_audit.csv --universe data/universe.csv --output "$RUNNER_TEMP/historical-universe-reconciliation.json"
+      - name: Diagnose raw-only OHLCV symbol history without changing source data
+        run: python -m research_model.data.diagnose_raw_symbol_history --ohlcv data/ohlcv.csv --universe data/universe.csv --coverage-audit data/historical_coverage_audit.csv --output "$RUNNER_TEMP/raw-symbol-history-diagnostic.json"
       - name: Audit fail-closed listing-date eligibility
         run: python -m research_model.data.listing_eligibility data/historical_coverage_audit.csv > "$RUNNER_TEMP/listing-eligibility-audit.json"
       - name: Inspect index constituent membership evidence
@@ -64,6 +66,7 @@ jobs:
             ${{ runner.temp }}/identity-source-registry-validation.json
             ${{ runner.temp }}/historical-source-document-validation.json
             ${{ runner.temp }}/historical-universe-reconciliation.json
+            ${{ runner.temp }}/raw-symbol-history-diagnostic.json
             ${{ runner.temp }}/listing-eligibility-audit.json
             ${{ runner.temp }}/membership-evidence-audit.json
             ${{ runner.temp }}/index-membership-history-validation.json

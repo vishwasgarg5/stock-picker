@@ -48,6 +48,10 @@ jobs:
       - name: Validate evidence-backed raw-only symbol review ledger
         continue-on-error: true
         run: python -m research_model.data.validate_raw_symbol_review --diagnostic "$RUNNER_TEMP/raw-symbol-history-diagnostic.json" --ledger research_model/schemas/raw_only_symbol_review.csv --source-documents research_model/schemas/historical_source_documents.csv --output "$RUNNER_TEMP/raw-symbol-review-validation.json"
+      - name: Install listing coverage audit dependencies
+        run: python -m pip install pandas pandas-market-calendars
+      - name: Run listing coverage regression tests
+        run: python -m pytest -q tests/test_historical_coverage_audit.py
       - name: Rebuild listing coverage within retained OHLCV source window
         run: python -m research_model.data.rebuild_listing_coverage --universe data/universe.csv --ohlcv data/ohlcv.csv --listing-master data/nse_listing_master.csv --output-csv "$RUNNER_TEMP/recomputed-historical-coverage-audit.csv" --output-summary "$RUNNER_TEMP/recomputed-historical-coverage-summary.json"
       - name: Audit fail-closed listing-date eligibility

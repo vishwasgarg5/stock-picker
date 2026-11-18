@@ -14,19 +14,19 @@ from pathlib import Path
 from typing import Any
 
 
-def _symbols(path: Path) -> set[str]:
+def _symbols(path: Path, *, exclude_synthetic: bool = False) -> set[str]:
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
         if not reader.fieldnames or "symbol" not in reader.fieldnames:
             raise ValueError(f"{path} must contain a symbol column")
-        return {(row.get("symbol") or "").strip() for row in reader if (row.get("symbol") or "").strip()}
+        values = {(row.get("symbol") or "").strip() for row in reader if (row.get("symbol") or "").strip()}\n        if exclude_synthetic:\n            values = {symbol for symbol in values if not symbol.upper().startswith("DUMMY")}\n        return values
 
 
 def diagnose_raw_symbol_history(
     ohlcv_path: str | Path, universe_path: str | Path, coverage_path: str | Path
 ) -> dict[str, Any]:
     raw_path = Path(ohlcv_path)
-    current_universe = _symbols(Path(universe_path))
+    current_universe = _symbols(Path(universe_path), exclude_synthetic=True)
     audited_symbols = _symbols(Path(coverage_path))
     counts: Counter[str] = Counter()
     first: dict[str, str] = {}

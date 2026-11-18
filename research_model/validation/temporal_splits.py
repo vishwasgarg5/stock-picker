@@ -5,15 +5,20 @@ row order and avoid coupling this capability to a dataframe library.
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any, Mapping, Sequence
 
 
 def _as_date(value: Any, *, field: str, row_index: int) -> date:
     try:
+        if isinstance(value, datetime):
+            return value.date()
         if isinstance(value, date):
             return value
-        return date.fromisoformat(str(value)[:10])
+        text = str(value)
+        if len(text) < 10:
+            raise ValueError("date must contain YYYY-MM-DD")
+        return date.fromisoformat(text[:10])
     except (TypeError, ValueError) as exc:
         raise ValueError(f"row {row_index}: invalid {field} date {value!r}") from exc
 

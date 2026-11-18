@@ -33,7 +33,7 @@ jobs:
       - name: Validate empty corporate-action event ledger schema
         run: python -m research_model.data.validate_action_ledger research_model/schemas/corporate_action_events.csv --output "$RUNNER_TEMP/corporate-action-ledger-validation.json"
       - name: Validate empty point-in-time security identity history schema
-        run: python -m research_model.data.validate_identity_history research_model/schemas/security_identity_history.csv --output "$RUNNER_TEMP/security-identity-history-validation.json"
+        run: python -m research_model.data.validate_identity_history research_model/schemas/security_identity_history.csv --source-documents research_model/schemas/historical_source_documents.csv --output "$RUNNER_TEMP/security-identity-history-validation.json"
       - name: Validate identity source registry schema
         run: python -m research_model.data.validate_identity_sources research_model/schemas/identity_source_registry.csv --output "$RUNNER_TEMP/identity-source-registry-validation.json"
       - name: Validate historical source document acquisition manifest

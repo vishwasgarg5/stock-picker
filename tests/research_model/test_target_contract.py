@@ -58,3 +58,13 @@ def test_invalid_horizon_fails_closed(horizon):
 def test_unknown_return_basis_fails_closed():
     with pytest.raises(ValueError, match="unsupported return_basis"):
         base_contract(return_basis="adjusted_total_return")
+
+
+def test_non_integer_horizon_fails_closed():
+    with pytest.raises(ValueError, match="positive integer"):
+        base_contract(horizon_sessions="5")
+
+
+def test_missing_price_field_fails_closed():
+    with pytest.raises(ValueError, match="entry_price_field"):
+        base_contract(entry_price_field=None)

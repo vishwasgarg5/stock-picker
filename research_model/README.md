@@ -89,3 +89,14 @@ The isolated research package now has its own standard-library implementation at
 - does not treat dividends as splits or silently alter prices for dividends.
 
 This is deliberately a split-adjusted price series, **not** a dividend-reinvested total-return series. Dividend-aware labels and returns need a separately specified cash-flow convention and verified action dates/amounts before implementation. The new module is isolated and does not import or modify V1.
+
+
+## Step 4 — point-in-time membership gate
+
+The committed `data/index_constituents_history.csv` has 994 records across 11 indices and 500 unique symbols, but only one `as_of_date`: 2026-11-17. Its weights are marked `ESTIMATED_FFMC_PROXY`. It is therefore a current snapshot, not a historical membership timeline and not a source of exact historical index weights.
+
+The current `data/universe.csv` has 501 rows including the synthetic `DUMMYHEG` entry. The existing V1 `load_universe` explicitly excludes `DUMMY*` entries, leaving 500 core symbols. The isolated universe reconciliation records the file-level discrepancy; it does not include the dummy symbol as a tradable stock.
+
+The new `research_model.data.inspect_membership` capability labels a single-date file `SNAPSHOT_ONLY_NOT_HISTORICAL_MEMBERSHIP`. Even multiple snapshots are not accepted as continuous membership without explicit effective-from/effective-to intervals. The current evidence cannot support point-in-time index-universe reconstruction or a survivorship-bias-controlled historical backtest.
+
+A reviewed, dated constituent-change source with effective dates is still required. Until then, model training and historical performance claims remain blocked.

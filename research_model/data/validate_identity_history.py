@@ -94,6 +94,7 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
         errors.append("missing required columns: " + ", ".join(missing))
 
     intervals: dict[tuple[str, str], list[tuple[date, date | None, int]]] = defaultdict(list)
+    symbol_intervals: dict[tuple[str, str, str], list[tuple[date, date | None, int, str]]] = defaultdict(list)
     valid_rows = 0
     for number, row in enumerate(rows, start=2):
         before = len(errors)
@@ -163,24 +164,54 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
 
         if start and valid_isin(isin):
             intervals[(venue, isin)].append((start, end, number))
+        if start and venue in {"NSE", "BSE"} and symbol and series:
+            symbol_intervals[(venue, symbol, series)].append((start, end, number, isin))
         if len(errors) == before:
             valid_rows += 1
 
+    def count_overlaps(entries: list[tuple[date, date | None, int]]) -> list[tuple[int, int]]:
+        """Return row pairs whose inclusive validity intervals overlap."""
+        ordered = sorted(entries, key=lambda item: item[0])
+        overlaps: list[tuple[int, int]] = []
+        active: list[tuple[date | None, int]] = []
+        for start, end, row_number in ordered:
+            active = [
+                (active_end, active_row)
+                for active_end, active_row in active
+                if active_end is None or active_end >= start
+            ]
+            overlaps.extend((row_number, active_row) for _, active_row in active)
+            active.append((end, row_number))
+        return overlaps
+
     overlap_count = 0
+    isin_overlap_count = 0
     for (venue, isin), entries in intervals.items():
-        entries.sort(key=lambda item: item[0])
-        previous_end: date | None = None
-        previous_row: int | None = None
-        for start, end, row_number in entries:
-            if previous_row is not None and (previous_end is None or start <= previous_end):
+        for current_row, previous_row in count_overlaps(entries):
+            errors.append(
+                f"row {current_row}: overlapping validity interval for {venue} ISIN {isin} "
+                f"with row {previous_row}"
+            )
+            overlap_count += 1
+            isin_overlap_count += 1
+
+    symbol_overlap_count = 0
+    for (venue, symbol, series), entries in symbol_intervals.items():
+        # A venue/symbol/series tuple must resolve to at most one ISIN on any
+        # date. Different ISINs are never joined; ambiguous concurrent claims
+        # are rejected rather than silently choosing one.
+        interval_rows = [(start, end, row_number) for start, end, row_number, _ in entries]
+        for current_row, previous_row in count_overlaps(interval_rows):
+            current_isin = next(item[3] for item in entries if item[2] == current_row)
+            previous_isin = next(item[3] for item in entries if item[2] == previous_row)
+            if current_isin != previous_isin:
                 errors.append(
-                    f"row {row_number}: overlapping validity interval for {venue} ISIN {isin} "
-                    f"with row {previous_row}"
+                    f"row {current_row}: overlapping symbol/series identity for {venue} "
+                    f"{symbol}.{series} maps to different ISINs {current_isin} and "
+                    f"{previous_isin} (row {previous_row})"
                 )
                 overlap_count += 1
-            if previous_row is None or previous_end is not None and (end is None or end > previous_end):
-                previous_end = end
-                previous_row = row_number
+                symbol_overlap_count += 1
 
     return {
         "status": "REVIEW_REQUIRED",
@@ -193,6 +224,8 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
         # Backward-compatible alias; counts are venue/ISIN pairs, not global ISINs.
         "isin_count": len(intervals),
         "overlapping_intervals": overlap_count,
+        "overlapping_venue_isin_intervals": isin_overlap_count,
+        "overlapping_venue_symbol_series_intervals": symbol_overlap_count,
         "identity_policy": "VENUE_SCOPED_ISIN_INTERVALS; DIFFERENT_VENUES_REMAIN_DISTINCT; DIFFERENT_ISINS_NEVER_AUTO_LINKED",
         "source_document_manifest": Path(source_documents).as_posix() if source_documents is not None else None,
         "source_document_manifest_checked": source_documents is not None,

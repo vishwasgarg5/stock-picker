@@ -291,6 +291,7 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         "corporate_action_evidence",
         "listing_date_eligibility",
         "raw_only_symbol_evidence_review",
+        "row_level_training_eligibility_manifest",
     )
     tier2_authorized = all(check_by_name.get(name, False) for name in tier2_requirements)
 
@@ -303,6 +304,9 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
             "tier1_structural_exploration_authorized": tier1_authorized,
             "tier2_reduced_universe_training_authorized": tier2_authorized,
             "tier3_promotion_evidence_authorized": tier3_authorized,
+            "tier2_missing_requirements": [
+                name for name in tier2_requirements if not check_by_name.get(name, False)
+            ],
         },
         "approval_scope": "HISTORICAL_RESEARCH_DATA_ONLY_NOT_PRODUCTION_OR_LIVE_TRADING",
         "check_count": len(checks),

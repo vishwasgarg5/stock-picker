@@ -34,9 +34,9 @@ class CorporateActionAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "ohlcv.csv"
             path.write_text(
-                "date,symbol,dividends,stock_splits\\n"
-                "2024-01-01,AAA,NaN,-1\\n"
-                "2024-01-02,BBB,abc,0\\n",
+                "date,symbol,dividends,stock_splits\n"
+                "2024-01-01,AAA,NaN,-1\n"
+                "2024-01-02,BBB,abc,0\n",
                 encoding="utf-8",
             )
             report = audit_corporate_actions(path)
@@ -47,7 +47,7 @@ class CorporateActionAuditTests(unittest.TestCase):
     def test_missing_action_columns_do_not_get_assumed(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "other.csv"
-            path.write_text("date,symbol\\n2024-01-01,AAA\\n", encoding="utf-8")
+            path.write_text("date,symbol\n2024-01-01,AAA\n", encoding="utf-8")
             report = audit_corporate_actions(path)
             self.assertEqual(report["action_columns_missing"], ["dividends", "stock_splits"])
             self.assertEqual(report["actions"], {})

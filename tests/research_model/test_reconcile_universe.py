@@ -95,16 +95,16 @@ class ReconcileUniverseTests(unittest.TestCase):
             root = Path(directory)
             ohlcv, audit, universe = root / "ohlcv.csv", root / "audit.csv", root / "universe.csv"
             ohlcv.write_text(
-                "date,symbol\\n2024-01-01,AAA\\n2024-01-02,AAA\\n2024-01-03,BBB\\n",
+                "date,symbol\n2024-01-01,AAA\n2024-01-02,AAA\n2024-01-03,BBB\n",
                 encoding="utf-8",
             )
             audit.write_text(
-                "symbol,listing_history_status,first_date,listing_date,observed_sessions\\n"
-                "AAA,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-01,2024-01-01,1\\n"
-                "BBB,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-03,2024-01-03,1\\n",
+                "symbol,listing_history_status,first_date,listing_date,observed_sessions\n"
+                "AAA,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-01,2024-01-01,1\n"
+                "BBB,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-03,2024-01-03,1\n",
                 encoding="utf-8",
             )
-            universe.write_text("symbol\\nAAA\\nBBB\\n", encoding="utf-8")
+            universe.write_text("symbol\nAAA\nBBB\n", encoding="utf-8")
 
             result = reconcile_universe(ohlcv, audit, universe)
 

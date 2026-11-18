@@ -64,3 +64,14 @@ The pull-request CI runs the same scan and uploads the full per-symbol manifest 
 The repository's existing `data/historical_coverage_audit.json` reports a prior snapshot of 915,478 valid OHLCV rows across 500 symbols, covering 2018-01-01 through 2026-11-17. It marks the audit `REVIEW_REQUIRED`: 497 symbols have verified listing dates, 3 do not, and 6 have data preceding their listing dates. This is inherited audit evidence, not a fresh validation by the new research package.
 
 The new source scan must be reconciled with that evidence before historical partitions are generated. The listing/provenance exceptions and corporate-action treatment remain open data-governance gates. Do not train on these inputs until they are resolved or explicitly excluded under a reviewed policy.
+
+
+The first full scan on the PR branch found:
+- 958,475 rows and 528 symbols;
+- date range 2018-01-01 through 2026-11-17;
+- zero invalid dates, invalid numeric rows, inconsistent OHLC rows, or duplicate symbol/date keys;
+- `dividends` and `stock_splits` are present.
+
+This differs from the prior coverage audit (915,478 rows and a 500-symbol universe). The reconciliation capability reports both values and marks the result `REVIEW_REQUIRED`; it does not rewrite the old audit or assume that the additional rows/symbols are valid for any particular model universe.
+
+The source scan is a structural/data-integrity check only. It does not prove adjusted-price correctness, point-in-time membership, survivorship-bias control, or listing provenance.

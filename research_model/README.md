@@ -160,3 +160,18 @@ python -m research_model.data.listing_eligibility data/historical_coverage_audit
 ```
 
 This policy does not establish listing dates independently; it consumes the existing reviewed audit. Unknown listing dates remain blocked until authoritative evidence is supplied. It also does not reconstruct historical index membership. A passing listing-date decision is necessary but not sufficient for historical model eligibility.
+
+
+## Step 9 — embedded corporate-action audit (provenance gate)
+
+`research_model.data.audit_corporate_actions` performs a read-only inventory of the `dividends` and `stock_splits` fields in the raw OHLCV CSV. It reports non-zero event-row counts, unique symbols, date ranges, common values, malformed/negative values, and recognizable provenance columns and their observed values.
+
+The audit is intentionally fail-closed: its status remains `REVIEW_REQUIRED`, and it never describes embedded values as exchange-verified. A populated source/vendor column is metadata, not proof of authenticity. A source file with no event-level provenance fields is explicitly labeled `NO_EVENT_LEVEL_PROVENANCE_FIELDS`. No separate corporate-action event file was found in the repository's tracked `data/` directory during this review.
+
+Run the audit:
+
+```bash
+python -m research_model.data.audit_corporate_actions data/ohlcv.csv --output corporate-action-audit.json
+```
+
+CI uploads the report with the other historical-data audit artifacts. Until event dates, ratios/amounts, source identity, and adjustment conventions are independently verified, do not use these values to certify split-adjusted prices or dividend-inclusive returns. Negative values are held for review. Dividends remain cash-event metadata; no reinvestment or total-return convention is assumed. The audit does not alter source data or generate adjusted datasets.

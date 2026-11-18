@@ -1,0 +1,160 @@
+name: Isolated Research Model Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "research_model/**"
+      - "common/**"
+      - "src/historical_coverage_audit.py"
+      - "tests/research_model/**"
+      - "tests/test_historical_coverage_audit.py"
+      - "data/ohlcv.csv"
+      - "data/universe.csv"
+      - "data/nse_listing_master.csv"
+      - "data/historical_coverage_audit.*"
+      - "data/index_constituents_history.csv"
+      - ".github/workflows/research-model-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  research-model-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install test dependencies
+        run: python -m pip install pytest
+      - name: Compile isolated research package
+        run: python -m compileall -q research_model tests/research_model
+      - name: Validate automated source-capture registry and manifest contract
+        run: python -m research_model.data.capture_historical_sources --check-only
+      - name: Run isolated data contract tests
+        run: python -m pytest -q tests/research_model
+      - name: Audit committed historical OHLCV without modifying it
+        run: python -m research_model.data.inspect_ohlcv data/ohlcv.csv --output "$RUNNER_TEMP/ohlcv-source-manifest.json"
+      - name: Audit embedded corporate-action fields without modifying source
+        run: python -m research_model.data.audit_corporate_actions data/ohlcv.csv --output "$RUNNER_TEMP/corporate-action-audit.json"
+      - name: Validate corporate-action event ledger
+        run: python -m research_model.data.validate_action_ledger research_model/schemas/corporate_action_events.csv --output "$RUNNER_TEMP/corporate-action-ledger-validation.json"
+      - name: Validate point-in-time security identity history
+        run: python -m research_model.data.validate_identity_history research_model/schemas/security_identity_history.csv --source-documents research_model/schemas/historical_source_documents.csv --output "$RUNNER_TEMP/security-identity-history-validation.json"
+      - name: Validate identity source registry
+        run: python -m research_model.data.validate_identity_sources research_model/schemas/identity_source_registry.csv --output "$RUNNER_TEMP/identity-source-registry-validation.json"
+      - name: Validate captured source documents and archived bytes
+        run: python -m research_model.data.validate_source_archive research_model/schemas/historical_source_documents.csv --source-registry research_model/schemas/identity_source_registry.csv --archive-root research_data/source_documents --output "$RUNNER_TEMP/historical-source-document-validation.json"
+      - name: Reconcile fresh OHLCV scan with prior coverage audit
+        run: python -m research_model.data.reconcile_coverage --manifest "$RUNNER_TEMP/ohlcv-source-manifest.json" --audit data/historical_coverage_audit.json > "$RUNNER_TEMP/coverage-reconciliation.json"
+      - name: Reconcile raw symbols with reviewed historical universe
+        run: python -m research_model.data.reconcile_universe --ohlcv data/ohlcv.csv --coverage-audit data/historical_coverage_audit.csv --universe data/universe.csv --output "$RUNNER_TEMP/historical-universe-reconciliation.json"
+      - name: Diagnose raw-only OHLCV symbol history without changing source data
+        run: python -m research_model.data.diagnose_raw_symbol_history --ohlcv data/ohlcv.csv --universe data/universe.csv --coverage-audit data/historical_coverage_audit.csv --output "$RUNNER_TEMP/raw-symbol-history-diagnostic.json"
+      - name: Validate evidence-backed raw-only symbol review ledger
+        continue-on-error: true
+        run: python -m research_model.data.validate_raw_symbol_review --diagnostic "$RUNNER_TEMP/raw-symbol-history-diagnostic.json" --ledger research_model/schemas/raw_only_symbol_review.csv --source-documents research_model/schemas/historical_source_documents.csv --output "$RUNNER_TEMP/raw-symbol-review-validation.json"
+      - name: Install listing coverage audit dependencies
+        run: python -m pip install pandas pandas-market-calendars requests
+      - name: Run listing coverage regression tests
+        run: python -m pytest -q tests/test_historical_coverage_audit.py
+      - name: Rebuild listing coverage within retained OHLCV source window
+        run: python -m research_model.data.rebuild_listing_coverage --universe data/universe.csv --ohlcv data/ohlcv.csv --listing-master data/nse_listing_master.csv --output-csv "$RUNNER_TEMP/recomputed-historical-coverage-audit.csv" --output-summary "$RUNNER_TEMP/recomputed-historical-coverage-summary.json"
+      - name: Audit fail-closed listing-date eligibility
+        run: python -m research_model.data.listing_eligibility "$RUNNER_TEMP/recomputed-historical-coverage-audit.csv" > "$RUNNER_TEMP/listing-eligibility-audit.json"
+      - name: Build fail-closed row-level training eligibility manifest
+        run: |
+          python -m research_model.data.build_training_eligibility \
+            --ohlcv data/ohlcv.csv \
+            --listing-audit "$RUNNER_TEMP/recomputed-historical-coverage-audit.csv" \
+            --identity-history research_model/schemas/security_identity_history.csv \
+            --source-coverage research_model/schemas/ohlcv_source_coverage.csv \
+            --action-coverage research_model/schemas/corporate_action_coverage.csv \
+            --source-documents research_model/schemas/historical_source_documents.csv \
+            --raw-only-review research_model/schemas/raw_only_symbol_review.csv \
+            --output "$RUNNER_TEMP/training-eligibility.csv" \
+            --summary "$RUNNER_TEMP/training-eligibility-summary.json"
+      - name: Independently verify row-level training eligibility manifest
+        run: |
+          python -m research_model.data.verify_training_eligibility \
+            --source data/ohlcv.csv \
+            --manifest "$RUNNER_TEMP/training-eligibility.csv" \
+            --summary "$RUNNER_TEMP/training-eligibility-summary.json" \
+            --output "$RUNNER_TEMP/training-eligibility-validation.json"
+      - name: Inspect index constituent membership evidence
+        run: python -m research_model.data.inspect_membership data/index_constituents_history.csv --output "$RUNNER_TEMP/membership-evidence-audit.json"
+      - name: Validate evidence-linked point-in-time index membership intervals
+        run: python -m research_model.data.validate_membership_history research_model/schemas/index_membership_history.csv --source-documents research_model/schemas/historical_source_documents.csv --output "$RUNNER_TEMP/index-membership-history-validation.json"
+      - name: Upload historical audit and readiness artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-source-audit
+          path: |
+            ${{ runner.temp }}/ohlcv-source-manifest.json
+            ${{ runner.temp }}/corporate-action-audit.json
+            ${{ runner.temp }}/corporate-action-ledger-validation.json
+            ${{ runner.temp }}/security-identity-history-validation.json
+            ${{ runner.temp }}/identity-source-registry-validation.json
+            ${{ runner.temp }}/historical-source-document-validation.json
+            ${{ runner.temp }}/historical-universe-reconciliation.json
+            ${{ runner.temp }}/raw-symbol-history-diagnostic.json
+            ${{ runner.temp }}/raw-symbol-review-validation.json
+            ${{ runner.temp }}/listing-eligibility-audit.json
+            ${{ runner.temp }}/recomputed-historical-coverage-audit.csv
+            ${{ runner.temp }}/recomputed-historical-coverage-summary.json
+            ${{ runner.temp }}/membership-evidence-audit.json
+            ${{ runner.temp }}/index-membership-history-validation.json
+            ${{ runner.temp }}/coverage-reconciliation.json
+            ${{ runner.temp }}/training-eligibility.csv
+            ${{ runner.temp }}/training-eligibility-summary.json
+            ${{ runner.temp }}/training-eligibility-validation.json
+          if-no-files-found: warn
+
+  evidence-readiness-report:
+    name: Evidence readiness (report only)
+    needs: research-model-tests
+    if: needs.research-model-tests.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Download technical audit reports
+        uses: actions/download-artifact@v4
+        with:
+          name: historical-source-audit
+          path: ${{ runner.temp }}/historical-source-audit
+      - name: Evaluate and publish evidence readiness without failing technical CI
+        run: |
+          python -m research_model.data.evidence_readiness --report-dir "$RUNNER_TEMP/historical-source-audit" --repo-root . --output "$RUNNER_TEMP/evidence-readiness.json" --report-only
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = json.loads(Path(os.environ["RUNNER_TEMP"], "evidence-readiness.json").read_text())
+          lines = [
+              f"## Evidence readiness: {report['status']}",
+              "",
+              f"- Passed: {report['passed_checks']}/{report['check_count']}",
+              f"- Blocked: {report['blocked_checks']}/{report['check_count']}",
+              f"- Tier 1 structural exploration: {report['readiness_tiers']['tier1_structural_exploration_authorized']}",
+              f"- Tier 2 reduced-universe training: {report['readiness_tiers']['tier2_reduced_universe_training_authorized']}",
+              f"- Tier 2 missing requirements: {', '.join(report['readiness_tiers']['tier2_missing_requirements'])}",
+              f"- Tier 3 promotion evidence: {report['readiness_tiers']['tier3_promotion_evidence_authorized']}",
+              f"- Training authorized: {report['training_authorized']}",
+              f"- Production authorized: {report['production_authorized']}",
+              f"- Live trading authorized: {report['live_trading_authorized']}",
+              "",
+          ]
+          for check in report["checks"]:
+              marker = "PASS" if check["passed"] else "BLOCKED"
+              lines.append(f"- **{marker} — {check['name']}**: {check['detail']}")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as handle:
+              handle.write("\n".join(lines) + "\n")
+          PY

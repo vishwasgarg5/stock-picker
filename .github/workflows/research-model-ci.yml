@@ -48,8 +48,10 @@ jobs:
       - name: Validate evidence-backed raw-only symbol review ledger
         continue-on-error: true
         run: python -m research_model.data.validate_raw_symbol_review --diagnostic "$RUNNER_TEMP/raw-symbol-history-diagnostic.json" --ledger research_model/schemas/raw_only_symbol_review.csv --source-documents research_model/schemas/historical_source_documents.csv --output "$RUNNER_TEMP/raw-symbol-review-validation.json"
+      - name: Rebuild listing coverage within retained OHLCV source window
+        run: python -m research_model.data.rebuild_listing_coverage --universe data/universe.csv --ohlcv data/ohlcv.csv --listing-master data/nse_listing_master.csv --output-csv "$RUNNER_TEMP/recomputed-historical-coverage-audit.csv" --output-summary "$RUNNER_TEMP/recomputed-historical-coverage-summary.json"
       - name: Audit fail-closed listing-date eligibility
-        run: python -m research_model.data.listing_eligibility data/historical_coverage_audit.csv > "$RUNNER_TEMP/listing-eligibility-audit.json"
+        run: python -m research_model.data.listing_eligibility "$RUNNER_TEMP/recomputed-historical-coverage-audit.csv" > "$RUNNER_TEMP/listing-eligibility-audit.json"
       - name: Inspect index constituent membership evidence
         run: python -m research_model.data.inspect_membership data/index_constituents_history.csv --output "$RUNNER_TEMP/membership-evidence-audit.json"
       - name: Validate evidence-linked point-in-time index membership intervals
@@ -72,6 +74,8 @@ jobs:
             ${{ runner.temp }}/raw-symbol-history-diagnostic.json
             ${{ runner.temp }}/raw-symbol-review-validation.json
             ${{ runner.temp }}/listing-eligibility-audit.json
+            ${{ runner.temp }}/recomputed-historical-coverage-audit.csv
+            ${{ runner.temp }}/recomputed-historical-coverage-summary.json
             ${{ runner.temp }}/membership-evidence-audit.json
             ${{ runner.temp }}/index-membership-history-validation.json
             ${{ runner.temp }}/coverage-reconciliation.json

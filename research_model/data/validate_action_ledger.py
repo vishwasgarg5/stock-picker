@@ -10,6 +10,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import re
 from collections import Counter
 from datetime import date, datetime, timezone
@@ -17,15 +18,16 @@ from pathlib import Path
 from typing import Any
 
 REQUIRED_COLUMNS = (
-    "symbol", "action_type", "ex_date", "announcement_date", "record_date",
-    "payment_date", "cash_amount", "currency", "split_numerator",
-    "split_denominator", "source_name", "source_url",
-    "source_document_sha256", "retrieved_at_utc", "evidence_reference",
-    "verification_status", "reviewed_by", "reviewed_at_utc",
+    "isin", "symbol", "series", "security_code", "action_type", "ex_date",
+    "announcement_date", "record_date", "payment_date", "cash_amount",
+    "currency", "split_numerator", "split_denominator", "source_name",
+    "source_url", "source_document_sha256", "retrieved_at_utc",
+    "evidence_reference", "verification_status", "reviewed_by", "reviewed_at_utc",
 )
 ACTION_TYPES = {"DIVIDEND", "STOCK_SPLIT"}
 VERIFICATION_STATUSES = {"UNREVIEWED", "PENDING", "INDEPENDENTLY_VERIFIED", "REJECTED"}
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_ISIN = re.compile(r"^[A-Z]{2}[A-Z0-9]{9}[0-9]$")
 
 
 def _parse_date(value: str, field: str, row_number: int, errors: list[str], required: bool = False) -> date | None:
@@ -60,6 +62,21 @@ def _parse_utc(value: str, field: str, row_number: int, errors: list[str], requi
     return parsed
 
 
+def _valid_isin(value: str) -> bool:
+    if not _ISIN.fullmatch(value):
+        return False
+    digits = ""
+    for char in value:
+        digits += str(ord(char) - 55) if char.isalpha() else char
+    total = 0
+    double = False
+    for char in reversed(digits):
+        number = int(char) * (2 if double else 1)
+        total += number // 10 + number % 10
+        double = not double
+    return total % 10 == 0
+
+
 def validate_event_ledger(path: str | Path) -> dict[str, Any]:
     source = Path(path)
     with source.open("r", encoding="utf-8-sig", newline="") as handle:
@@ -80,10 +97,16 @@ def validate_event_ledger(path: str | Path) -> dict[str, Any]:
 
     for row_number, row in enumerate(rows, start=2):
         row_errors_before = len(errors)
+        isin = (row.get("isin") or "").strip().upper()
         symbol = (row.get("symbol") or "").strip().upper()
+        series = (row.get("series") or "").strip().upper()
         action_type = (row.get("action_type") or "").strip().upper()
+        if not _valid_isin(isin):
+            errors.append(f"row {row_number}: isin must be a valid ISO 6166 ISIN with checksum")
         if not symbol:
-            errors.append(f"row {row_number}: missing symbol")
+            errors.append(f"row {row_number}: missing historical symbol")
+        if not series:
+            errors.append(f"row {row_number}: missing historical series")
         if action_type not in ACTION_TYPES:
             errors.append(f"row {row_number}: action_type must be DIVIDEND or STOCK_SPLIT")
         else:
@@ -97,7 +120,7 @@ def validate_event_ledger(path: str | Path) -> dict[str, Any]:
         if action_type == "DIVIDEND":
             try:
                 amount = float((row.get("cash_amount") or "").strip())
-                if not amount > 0 or amount == float("inf") or amount != amount:
+                if not math.isfinite(amount) or amount <= 0:
                     raise ValueError
             except (TypeError, ValueError):
                 errors.append(f"row {row_number}: DIVIDEND requires finite positive cash_amount")
@@ -142,10 +165,10 @@ def validate_event_ledger(path: str | Path) -> dict[str, Any]:
         if verification != "INDEPENDENTLY_VERIFIED" and (reviewed_by or (row.get("reviewed_at_utc") or "").strip()):
             errors.append(f"row {row_number}: reviewer metadata requires INDEPENDENTLY_VERIFIED status")
 
-        if symbol and action_type in ACTION_TYPES and ex_date:
-            key = (symbol, action_type, ex_date.isoformat())
+        if isin and action_type in ACTION_TYPES and ex_date:
+            key = (isin, action_type, ex_date.isoformat())
             if key in seen:
-                errors.append(f"row {row_number}: duplicate symbol/action_type/ex_date {key}")
+                errors.append(f"row {row_number}: duplicate ISIN/action_type/ex_date {key}")
             seen.add(key)
 
         if len(errors) == row_errors_before:
@@ -163,6 +186,8 @@ def validate_event_ledger(path: str | Path) -> dict[str, Any]:
         "verification_status_counts": dict(verification_counts),
         "structurally_valid_rows": structurally_valid,
         "provenance_complete_rows": provenance_complete,
+        "identity_key": "ISIN/action_type/ex_date",
+        "identity_fields": ["isin", "symbol", "series", "security_code"],
         "error_count": len(errors),
         "errors": errors[:200],
         "errors_truncated": len(errors) > 200,
@@ -181,7 +206,7 @@ def main() -> None:
     serialized = json.dumps(report, indent=2, sort_keys=True)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(serialized + "\n", encoding="utf-8")
+        args.output.write_text(serialized + "\\n", encoding="utf-8")
     print(serialized)
 
 

@@ -217,3 +217,10 @@ The public source links in that protocol are discovery references, not event evi
 ## Step 12 — stable security identity in the event ledger
 
 The event-ledger contract now requires a checksum-valid ISO 6166 ISIN and the historical symbol and series as observed in the source evidence; an exchange security code is optional. Duplicate event keys are based on ISIN, action type, and ex-date rather than the mutable symbol. The validator reports this identity key explicitly. Tests cover valid and invalid ISIN checksums, required historical symbol/series, and duplicate event keys. This is not a corporate-reorganization mapping: mergers, demergers, and ISIN succession remain unresolved and must not be joined automatically. The ledger template remains header-only.
+
+
+## Step 13 — point-in-time security identity history
+
+The header-only `research_model/schemas/security_identity_history.csv` defines source-backed identity intervals with ISIN, historical symbol, series, optional security code, validity dates, and document provenance. `research_model.data.validate_identity_history` validates ISIN checksums, interval ordering, required provenance, UTC timestamps, and overlapping intervals for the same ISIN. It always returns `REVIEW_REQUIRED`; structural validity does not authenticate a source or approve a mapping.
+
+Different ISINs are never automatically joined. Symbol/series changes can be represented only when authoritative evidence supports the effective dates. Mergers, demergers, and successor/predecessor mappings remain out of scope pending separate human review. CI validates the empty schema and runs synthetic tests; no historical identity rows are fabricated.

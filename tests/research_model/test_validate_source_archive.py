@@ -121,3 +121,15 @@ def test_duplicate_document_ids_are_rejected(tmp_path):
     write_manifest(manifest, [make_row(), make_row()])
     report = validate_source_archive(manifest)
     assert any("duplicate document_id" in error for error in report["errors"])
+
+
+def test_document_source_id_must_exist_in_supplied_registry(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row(source_id="UNKNOWN_SOURCE")])
+    registry.write_text(
+        "source_id,venue,source_class,source_name,canonical_url,authority_scope,available_fields,effective_date_basis,retrieval_method,review_status,reviewed_by,reviewed_at_utc,notes\\n",
+        encoding="utf-8",
+    )
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any("not present in the supplied source registry" in error for error in report["errors"])

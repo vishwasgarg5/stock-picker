@@ -189,6 +189,8 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
         "row_count": len(rows),
         "required_columns_missing": missing,
         "structurally_valid_rows": valid_rows,
+        "venue_isin_count": len(intervals),
+        # Backward-compatible alias; counts are venue/ISIN pairs, not global ISINs.
         "isin_count": len(intervals),
         "overlapping_intervals": overlap_count,
         "identity_policy": "VENUE_SCOPED_ISIN_INTERVALS; DIFFERENT_VENUES_REMAIN_DISTINCT; DIFFERENT_ISINS_NEVER_AUTO_LINKED",

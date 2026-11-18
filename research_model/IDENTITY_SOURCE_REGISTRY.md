@@ -6,6 +6,29 @@ This capability inventories candidate primary sources from which identity eviden
 may later be collected. A registry row is a discovery and governance record, not
 proof of any security's ISIN, symbol, series, security code, or effective dates.
 
+### Current discovery inventory
+
+The registry contains three candidate routes, all deliberately marked
+`DISCOVERY_ONLY`:
+
+- **NSE historical Masters documentation** — NSE's historical data dissemination
+  document describes a Masters database containing symbol, series, and ISIN
+  reference data. The actual dated master files, schemas, archive paths, and
+  historical coverage still need to be acquired and checked.
+- **NSE daily MII security-file catalogue** — the current All Reports catalogue
+  exposes dated NSE listed-security files, including a combined NSE-listed and
+  BSE-exclusive option. This is a current-snapshot discovery route, not proof
+  that historical snapshots are available or complete.
+- **BSE standardized security-master specification** — the specification defines
+  fields including scrip code, instrument code, group, scrip name, and ISIN.
+  It documents the intended schema; no dated historical BSE master snapshots
+  have yet been acquired or verified.
+
+These entries are source-discovery leads only. They do not establish any
+security-level mapping, historical effective interval, or complete point-in-time
+coverage. Do not change their status to `REVIEWED_AUTHORITATIVE` merely because
+the landing page or format specification is published by an exchange.
+
 ### Source classes
 
 - `EXCHANGE_SECURITY_MASTER`: exchange-published security master snapshots.
@@ -31,8 +54,9 @@ that decision evaluates the source's stated authority scope only.
 
 A registry validator result always remains `REVIEW_REQUIRED`; it cannot authenticate
 a document, establish historical coverage, approve an identity mapping, or authorize
-historical partition generation. The template is intentionally header-only until
-source-specific scope and retrieval procedures are reviewed.
+historical partition generation. The registry is no longer empty, but every current
+entry remains discovery-only until the underlying dated files and source-specific
+retrieval procedures are reviewed.
 
 Run:
 

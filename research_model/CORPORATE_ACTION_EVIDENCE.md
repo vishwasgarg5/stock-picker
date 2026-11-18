@@ -4,7 +4,7 @@
 
 This protocol governs the collection and review of dividend and stock-split events for the isolated research model. It does not certify the embedded `dividends` or `stock_splits` fields in `data/ohlcv.csv`, and it does not authorize partition generation, adjusted-price production, or model training.
 
-The current event ledger remains header-only. Do not populate it from OHLCV non-zero values, search-result snippets, commercial aggregators, inferred price jumps, or unverified vendor exports.
+The current event ledger remains header-only. Its identity columns are ISIN, historical symbol, historical series, and optional exchange security code. Do not populate it from OHLCV non-zero values, search-result snippets, commercial aggregators, inferred price jumps, or unverified vendor exports.
 
 ## Source hierarchy
 
@@ -32,7 +32,7 @@ For every candidate event:
 
 ## Identity, matching, and adjustment cautions
 
-- The current ledger validator keys duplicates by symbol, action type, and ex-date. That is a structural check, **not** a permanent instrument identity model. Before building a multi-year event reconciliation, extend the contract to include ISIN and historical symbol/series identity, with explicit successor/predecessor handling where corporate reorganizations change identifiers.
+- The ledger requires a checksum-valid ISO 6166 ISIN plus the historical symbol and series; an optional security code is retained where the source provides it. Duplicate event keys use ISIN, action type, and ex-date, so a symbol rename does not silently create a second instrument identity. Symbol/series remain as event-date audit fields. This still does not model successor/predecessor relationships across mergers, demergers, or ISIN changes; those events remain out of scope and must be resolved before any cross-identifier history is joined.
 - Do not match ledger events to embedded OHLCV fields until the vendor's date convention, amount/ratio encoding, adjustment state, and completeness are independently established.
 - A split adjustment requires a reviewed event ratio and effective-date convention. Dividend-inclusive total returns require a separately approved cash-flow/reinvestment convention. Do not infer either from price discontinuities.
 - This protocol currently covers dividends and ordinary stock splits only. Other corporate actions remain out of scope and must not be coerced into either supported type.

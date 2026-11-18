@@ -7,6 +7,20 @@ from typing import Mapping
 from .ohlcv_contract import REQUIRED_OHLCV_COLUMNS
 
 
+def parse_canonical_date(value: object) -> date:
+    """Parse a date without accepting timestamps, prefixes, whitespace, or suffixes."""
+    if isinstance(value, datetime):
+        raise ValueError("datetime values are not canonical date-only values")
+    if isinstance(value, date):
+        return value
+    if not isinstance(value, str):
+        raise ValueError("date must be a YYYY-MM-DD string")
+    parsed = date.fromisoformat(value)
+    if parsed.isoformat() != value:
+        raise ValueError("date is not canonical YYYY-MM-DD")
+    return parsed
+
+
 def validate_ohlcv_row(row: Mapping[str, object]) -> list[str]:
     """Return all detected row errors; an empty list means the row is valid."""
     errors: list[str] = []
@@ -15,22 +29,20 @@ def validate_ohlcv_row(row: Mapping[str, object]) -> list[str]:
     if missing:
         return [f"missing required column: {name}" for name in missing]
 
-    raw_date = row["date"]
     try:
-        if isinstance(raw_date, datetime):
-            parsed_date = raw_date.date()
-        elif isinstance(raw_date, date):
-            parsed_date = raw_date
-        else:
-            parsed_date = date.fromisoformat(str(raw_date)[:10])
-        if parsed_date.isoformat() != str(raw_date)[:10]:
-            errors.append("date is not canonical YYYY-MM-DD")
+        parse_canonical_date(row["date"])
     except (TypeError, ValueError):
-        errors.append("date is not a valid YYYY-MM-DD date")
+        errors.append("date is not a valid canonical YYYY-MM-DD date")
 
-    symbol = str(row["symbol"]).strip()
-    if not symbol:
+    raw_symbol = row["symbol"]
+    if raw_symbol is None:
+        errors.append("symbol is missing")
+    elif not isinstance(raw_symbol, str):
+        errors.append("symbol must be a string")
+    elif not raw_symbol.strip():
         errors.append("symbol is empty")
+    elif raw_symbol != raw_symbol.strip():
+        errors.append("symbol contains surrounding whitespace")
 
     numeric: dict[str, float] = {}
     for name in ("open", "high", "low", "close", "volume"):

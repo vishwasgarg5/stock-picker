@@ -30,7 +30,7 @@ jobs:
         run: python -m research_model.data.inspect_ohlcv data/ohlcv.csv --output "$RUNNER_TEMP/ohlcv-source-manifest.json"
       - name: Audit embedded corporate-action fields without modifying source
         run: python -m research_model.data.audit_corporate_actions data/ohlcv.csv --output "$RUNNER_TEMP/corporate-action-audit.json"
-      - name: Reconcile fresh OHLCV scan with prior coverage audit
+      - name: Validate empty corporate-action event ledger schema\n        run: python -m research_model.data.validate_action_ledger research_model/schemas/corporate_action_events.csv --output "$RUNNER_TEMP/corporate-action-ledger-validation.json"\n      - name: Reconcile fresh OHLCV scan with prior coverage audit
         run: python -m research_model.data.reconcile_coverage --manifest "$RUNNER_TEMP/ohlcv-source-manifest.json" --audit data/historical_coverage_audit.json
       - name: Reconcile raw symbols with reviewed historical universe
         run: python -m research_model.data.reconcile_universe --ohlcv data/ohlcv.csv --coverage-audit data/historical_coverage_audit.csv --universe data/universe.csv --output "$RUNNER_TEMP/historical-universe-reconciliation.json"
@@ -44,7 +44,7 @@ jobs:
           name: historical-source-audit
           path: |
             ${{ runner.temp }}/ohlcv-source-manifest.json
-            ${{ runner.temp }}/corporate-action-audit.json
+            ${{ runner.temp }}/corporate-action-audit.json\n            ${{ runner.temp }}/corporate-action-ledger-validation.json
             ${{ runner.temp }}/historical-universe-reconciliation.json
             ${{ runner.temp }}/listing-eligibility-audit.json
             ${{ runner.temp }}/membership-evidence-audit.json

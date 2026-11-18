@@ -110,8 +110,8 @@ class ActionLedgerTests(unittest.TestCase):
                 from research_model.data.validate_action_ledger import main
                 main()
             raw = output.read_bytes()
-            self.assertTrue(raw.endswith(b"\\n"))
-            self.assertFalse(raw.endswith(b"\\\\n"))
+            self.assertTrue(raw.endswith(bytes([10])))
+            self.assertFalse(raw.endswith(bytes([92, 110])))
             parsed = json.loads(raw.decode("utf-8"))
             self.assertEqual(parsed["row_count"], 0)
 

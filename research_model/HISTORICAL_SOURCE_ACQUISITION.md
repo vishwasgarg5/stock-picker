@@ -73,3 +73,34 @@ identity interval. Run the source-archive validator with `--archive-root` separa
 to verify archived bytes.
 
 The capability always reports `REVIEW_REQUIRED`; archive-integrity success is not a source-authority or research-readiness approval.
+
+
+## Exchange archive access findings — 18-Nov-2026
+
+The source-discovery check found an important access distinction. Do not assume that a public report catalogue is a public historical security-master archive.
+
+### NSE
+
+- The [NSE All Reports catalogue](https://www.nseindia.com/all-reports) currently lists a daily CM MII security file named `NSE_CM_security_DDMMYYYY.csv.gz`. This establishes a current daily discovery route; it does not establish that every historical date can be retrieved from the same catalogue.
+- NSE circular [MSD60315 (19-Jan-2024)](https://nsearchives.nseindia.com/content/circulars/MSD60315.pdf) says the CM MII security master file is disseminated daily on the website from 05-Feb-2024, with the above filename pattern. Retain the circular as dissemination-process evidence, not as a security snapshot.
+- NSE Data & Analytics' [Masters Data specification](https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE_MasterData_Technical_Specifications.pdf) describes an EOD security/contract-master product distributed to vendors through SFTP using agreement-period credentials. This is a distinct access channel; do not assume it is anonymously downloadable.
+- NSE's [historical capital-market data dissemination note](https://nsearchives.nseindia.com/content/press/Data_details_CM.pdf) describes a historical-data structure with a Masters directory containing symbols, series and ISINs. It does not by itself provide a verified public URL, entitlement, date range, or downloadable master snapshot.
+
+**Acquisition decision:** the daily website route is a candidate for snapshots from its documented dissemination start date onward. Historical pre-05-Feb-2024 masters require confirmation of the historical-data product's access terms and actual archive availability. No archive URL or file is inferred here.
+
+### BSE
+
+- BSE's [standardized security-master format document](https://www.bseindia.com/markets/MarketInfo/DownloadAttach.aspx?attachedId=e99e2ca5-95d7-4173-83da-7774412bbb2d&id=20220531-44) specifies the filename pattern `BSE_EQ_SCRIP_DDMMYYYY.csv` and fields including scrip code, instrument code, group, scrip name and ISIN.
+- The format specification is not a dated snapshot and does not establish an accessible historical archive route or coverage period.
+
+**Acquisition decision:** locate and verify the official dated BSE files and their access conditions before registering a retrieval URL or capturing data. Do not construct a URL from the filename pattern.
+
+### Required evidence before the next identity milestone
+
+1. Confirm access rights and the official retrieval route separately for each venue and date range.
+2. Obtain at least one actual dated original file per source route; preserve its exact bytes, response metadata, retrieval timestamp and SHA-256.
+3. Inspect the original header/record layout and establish what date the file represents (publication date versus effective date).
+4. Compare a sample against an independent official circular/listing notice before source review.
+5. Only then move the corresponding source-registry entry from `DISCOVERY_ONLY` to review; never upgrade a source based only on a landing page or specification.
+
+At this checkpoint the document manifest remains intentionally header-only. No dated NSE/BSE master snapshot has been acquired by this discovery check, and no security identity row or historical coverage claim is authorized.

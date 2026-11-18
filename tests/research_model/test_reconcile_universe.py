@@ -63,5 +63,32 @@ class ReconcileUniverseTests(unittest.TestCase):
             self.assertEqual(reconcile_universe(ohlcv, audit, universe)["status"], "MATCH")
 
 
+    def test_excludes_synthetic_dummy_rows_from_tradable_universe(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            ohlcv = root / "ohlcv.csv"
+            audit = root / "audit.csv"
+            universe = root / "universe.csv"
+            ohlcv.write_text("date,symbol\\n2024-01-01,AAA\\n", encoding="utf-8")
+            audit.write_text(
+                "symbol,listing_history_status,first_date,listing_date\\n"
+                "AAA,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-01,2024-01-01\\n",
+                encoding="utf-8",
+            )
+            universe.write_text(
+                "symbol,company_name\\nAAA,Alpha\\nDUMMYHEG,Synthetic placeholder\\n",
+                encoding="utf-8",
+            )
+
+            result = reconcile_universe(ohlcv, audit, universe)
+
+            self.assertEqual(result["status"], "MATCH")
+            self.assertEqual(result["current_universe_symbol_count"], 1)
+            self.assertEqual(result["excluded_synthetic_universe_symbols"], ["DUMMYHEG"])
+            self.assertEqual(result["current_universe_missing_ohlcv"], [])
+            self.assertEqual(result["current_universe_not_in_coverage_audit"], [])
+            self.assertFalse(result["input_modified"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -197,3 +197,20 @@ No original PDF bytes were available to archive and hash during this repository-
 To complete the capture portion of Step 1, obtain the four originals through the official links using an authorized browser/session and place the unmodified files in the controlled archive root described above. For each file, record the actual retrieval URL, UTC retrieval time, MIME type, byte length, SHA-256, publication/effective-date semantics, and exact evidence locator. Then add manifest rows with `CAPTURED_UNREVIEWED`. Only after a separate human review may source/document statuses be advanced.
 
 **Step 1 status: IN PROGRESS — candidate-source inventory and validation are established; original-document capture and independent review remain outstanding.**
+
+
+## Automated GitHub acquisition — 18-Nov-2026
+
+The allowlisted capture implementation is `research_model/data/capture_historical_sources.py`; its scheduled/manual GitHub Actions workflow is `.github/workflows/historical-source-capture.yml`.
+
+- The workflow runs weekly (Monday 03:23 UTC) and can also be started with GitHub Actions **Run workflow** on the selected branch. No local upload is required.
+- The script fetches four exact HTTPS URLs already recorded in the source registry: the NSE MSD60315 circular, NSE Masters Data specification, BSE standardized security-master format, and NSE historical CM data note.
+- Redirects are restricted to an explicit NSE/BSE host allowlist. Responses must be PDF bytes (PDF magic header) and are limited to 25 MiB each. HTML/error pages and unapproved redirect hosts are rejected.
+- Original response bytes are written once to `research_data/source_documents/<source-id>/<sha-prefix>-<filename>`. Existing files are never overwritten. The manifest records the actual final retrieval URL, UTC retrieval time, content type, exact byte length, SHA-256, archive path and `CAPTURED_UNREVIEWED` status.
+- The source registry must already contain the exact allowlisted canonical URL and remain `DISCOVERY_ONLY`. The script cannot promote a source or populate reviewer fields.
+- If one source fails, successful captures are still committed and the workflow reports failure after preserving them; a later run skips already-captured document IDs and retries the remaining sources.
+- The standard research CI runs a network-free `--check-only` contract check. Network acquisition is isolated in its own workflow and is not part of pull-request test CI.
+
+NSE circular MSD60315 confirms daily website dissemination of the NSE CM MII security file from 05-Feb-2024 and identifies the report catalogue route. The live catalogue distinguishes the NSE-listed file from the NSE-listed plus BSE-exclusive interoperability variant. The four PDFs captured by this workflow are source-process/specification documents, not a substitute for dated daily security-master snapshots. See the [NSE circular](https://nsearchives.nseindia.com/content/circulars/MSD60315.pdf) and [NSE All Reports catalogue](https://www.nseindia.com/all-reports).
+
+**Operational limitation:** the weekly schedule becomes active automatically only after this workflow is merged into the repository's default branch. Before merge, use Actions → Capture Historical Primary-Source Documents → Run workflow and select this PR branch. This triggers code-based retrieval on GitHub; it does not require uploading files.

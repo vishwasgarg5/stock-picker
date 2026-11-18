@@ -1,6 +1,12 @@
 name: Capture Historical Primary-Source Documents
 
 on:
+  push:
+    branches: [research/clean-model-foundation]
+    paths:
+      - ".github/workflows/historical-source-capture.yml"
+      - "research_model/data/capture_historical_sources.py"
+      - "research_model/schemas/identity_source_registry.csv"
   workflow_dispatch:
   schedule:
     - cron: "23 3 * * 1"

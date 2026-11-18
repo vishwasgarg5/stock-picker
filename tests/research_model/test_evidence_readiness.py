@@ -2,7 +2,11 @@
 
 import json
 
-from research_model.data.evidence_readiness import REPORT_FILES, evaluate_evidence_readiness
+from research_model.data.evidence_readiness import (
+    REPORT_FILES,
+    _common_symbol_coverage_matches,
+    evaluate_evidence_readiness,
+)
 
 
 def test_empty_evidence_manifests_never_pass_readiness(tmp_path):
@@ -60,3 +64,74 @@ def test_empty_evidence_manifests_never_pass_readiness(tmp_path):
     assert result["live_trading_authorized"] is False
     assert result["blocked_checks"] > 0
     assert result["source_row_counts"]["captured_documents"] == 0
+
+
+def test_coverage_reconciliation_accepts_only_explained_raw_only_delta():
+    coverage = {
+        "status": "REVIEW_REQUIRED",
+        "prior_audit_status": "PASS",
+        "differences": {
+            "row_count": {"fresh_scan": 958475, "prior_audit": 915478},
+            "symbol_count": {"fresh_scan": 528, "prior_audit": 500},
+        },
+    }
+    universe = {
+        "raw_ohlcv_symbol_count": 528,
+        "coverage_audit_symbol_count": 500,
+        "raw_only_symbols": [f"RAW{i}" for i in range(28)],
+        "raw_only_row_count": 42997,
+        "audit_only_symbols": [],
+        "common_symbol_row_count_mismatch_count": 0,
+    }
+
+    passed, detail = _common_symbol_coverage_matches(coverage, universe)
+
+    assert passed is True
+    assert "shared-symbol row counts match" in detail
+    assert "separate review" in detail
+
+
+def test_coverage_reconciliation_rejects_unexplained_or_shared_symbol_drift():
+    coverage = {
+        "status": "REVIEW_REQUIRED",
+        "prior_audit_status": "PASS",
+        "differences": {
+            "row_count": {"fresh_scan": 958476, "prior_audit": 915478},
+            "symbol_count": {"fresh_scan": 528, "prior_audit": 500},
+        },
+    }
+    universe = {
+        "raw_ohlcv_symbol_count": 528,
+        "coverage_audit_symbol_count": 500,
+        "raw_only_symbols": [f"RAW{i}" for i in range(28)],
+        "raw_only_row_count": 42997,
+        "audit_only_symbols": [],
+        "common_symbol_row_count_mismatch_count": 0,
+    }
+
+    passed, _ = _common_symbol_coverage_matches(coverage, universe)
+
+    assert passed is False
+
+
+def test_coverage_reconciliation_rejects_any_common_symbol_row_mismatch():
+    coverage = {
+        "status": "REVIEW_REQUIRED",
+        "prior_audit_status": "PASS",
+        "differences": {
+            "row_count": {"fresh_scan": 958475, "prior_audit": 915478},
+            "symbol_count": {"fresh_scan": 528, "prior_audit": 500},
+        },
+    }
+    universe = {
+        "raw_ohlcv_symbol_count": 528,
+        "coverage_audit_symbol_count": 500,
+        "raw_only_symbols": [f"RAW{i}" for i in range(28)],
+        "raw_only_row_count": 42997,
+        "audit_only_symbols": [],
+        "common_symbol_row_count_mismatch_count": 1,
+    }
+
+    passed, _ = _common_symbol_coverage_matches(coverage, universe)
+
+    assert passed is False

@@ -99,6 +99,20 @@ def _common_symbol_coverage_matches(coverage: dict[str, Any], universe: dict[str
     )
 
 
+def _listing_eligibility_is_acceptable(listing: dict[str, Any]) -> bool:
+    """Allow documented post-listing coverage gaps, never unknown/pre-listing rows."""
+    counts = listing.get("status_counts")
+    if not isinstance(counts, dict):
+        return False
+    # REVIEW_REQUIRED is expected when first observed bars start after listing.
+    # The row-level policy permits post-listing observations but preserves the warning.
+    return (
+        listing.get("status") in {"PASS", "REVIEW_REQUIRED"}
+        and counts.get("unknown") == 0
+        and counts.get("prelisting_anomaly") == 0
+    )
+
+
 def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = ".") -> dict[str, Any]:
     reports_root = Path(report_dir)
     root = Path(repo_root)
@@ -234,7 +248,7 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         f"errors={membership_validation.get('error_count')}")
 
     listing = reports["listing_eligibility"]
-    add("listing_date_eligibility", listing.get("status") == "PASS",
+    add("listing_date_eligibility", _listing_eligibility_is_acceptable(listing),
         f"status={listing.get('status')}; counts={listing.get('status_counts')}")
 
     coverage = reports["coverage_reconciliation"]

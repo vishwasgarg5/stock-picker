@@ -82,10 +82,14 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         f"rows={ohlcv.get('row_count')}; errors={ohlcv_errors}")
 
     action_audit = reports["corporate_action_audit"]
-    action_fields_clean = all(
-        action_audit.get(field, {}).get("invalid_values", 0) == 0
-        and action_audit.get(field, {}).get("negative_values_held_for_review", 0) == 0
-        for field in ("dividends", "stock_splits")
+    action_reports = action_audit.get("actions", {})
+    action_fields_clean = (
+        not action_audit.get("action_columns_missing")
+        and all(
+            action_reports.get(field, {}).get("invalid_values", 0) == 0
+            and action_reports.get(field, {}).get("negative_values_held_for_review", 0) == 0
+            for field in ("dividends", "stock_splits")
+        )
     )
     add("embedded_corporate_action_field_integrity", action_fields_clean,
         "embedded action fields contain no malformed or negative values" if action_fields_clean
@@ -152,7 +156,15 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         (row.get("verification_status") or "").strip().upper() == "INDEPENDENTLY_VERIFIED"
         and bool((row.get("reviewed_by") or "").strip())
         and _utc(row.get("reviewed_at_utc") or "")
-        and bool(docs_by_hash.get((row.get("source_document_sha256") or "").strip().lower()))
+        and any(
+            (row.get("source_url") or "").strip() in {
+                (doc.get("canonical_url") or "").strip(),
+                (doc.get("retrieved_url") or "").strip(),
+            }
+            and (registry_by_id.get((doc.get("source_id") or "").strip(), {}).get("source_name") or "").strip()
+                == (row.get("source_name") or "").strip()
+            for doc in docs_by_hash.get((row.get("source_document_sha256") or "").strip().lower(), [])
+        )
         for row in action_rows
     )
     add("corporate_action_evidence", action_validation.get("error_count") == 0

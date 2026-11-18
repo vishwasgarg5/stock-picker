@@ -52,8 +52,12 @@ def _safe_archive_path(value: str) -> bool:
     return bool(value) and not path.is_absolute() and ".." not in path.parts and "\\" not in value
 
 
-def validate_source_archive(csv_path: str | Path, archive_root: str | Path | None = None) -> dict[str, Any]:
+def validate_source_archive(csv_path: str | Path, archive_root: str | Path | None = None, source_registry: str | Path | None = None) -> dict[str, Any]:
     manifest = Path(csv_path)
+    registered_source_ids: set[str] | None = None
+    if source_registry is not None:
+        with Path(source_registry).open("r", encoding="utf-8-sig", newline="") as registry_handle:
+            registered_source_ids = {((item.get("source_id") or "").strip()) for item in csv.DictReader(registry_handle)}
     root = Path(archive_root).resolve() if archive_root is not None else None
     with manifest.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -76,8 +80,11 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
             errors.append(f"row {line}: duplicate document_id {doc_id}")
         seen.add(doc_id)
 
-        if not (row.get("source_id") or "").strip():
+        source_id = (row.get("source_id") or "").strip()
+        if not source_id:
             errors.append(f"row {line}: missing source_id (must reference source registry)")
+        elif registered_source_ids is not None and source_id not in registered_source_ids:
+            errors.append(f"row {line}: source_id is not present in the supplied source registry")
         if (row.get("venue") or "").strip().upper() not in VENUES:
             errors.append(f"row {line}: invalid venue")
         if (row.get("source_class") or "").strip().upper() not in SOURCE_CLASSES:
@@ -145,6 +152,7 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
         "status": "REVIEW_REQUIRED", "manifest_path": manifest.as_posix(),
         "manifest_sha256": hashlib.sha256(manifest.read_bytes()).hexdigest(),
         "archive_root_checked": str(root) if root is not None else None,
+        "source_registry_checked": str(source_registry) if source_registry is not None else None,
         "document_count": len(rows), "required_columns_missing": missing,
         "unique_document_ids": len(seen), "byte_verified_documents": byte_verified,
         "error_count": len(errors), "errors": errors[:200],
@@ -159,9 +167,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("csv_path", type=Path)
     parser.add_argument("--archive-root", type=Path)
+    parser.add_argument("--source-registry", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    report = validate_source_archive(args.csv_path, args.archive_root)
+    report = validate_source_archive(args.csv_path, args.archive_root, args.source_registry)
     serialized = json.dumps(report, indent=2, sort_keys=True)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

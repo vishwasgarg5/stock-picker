@@ -5,6 +5,7 @@ import argparse
 import csv
 import hashlib
 import json
+from itertools import zip_longest
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +20,7 @@ def _sha256(path: Path) -> str:
 
 def verify_training_eligibility(source_path: str | Path, manifest_path: str | Path,
                                 summary_path: str | Path) -> dict[str, Any]:
-    """Recompute hashes and validate every decision without trusting builder output."""
+    """Recompute hashes and compare each manifest observation to its source row."""
     source, manifest, summary_file = map(Path, (source_path, manifest_path, summary_path))
     errors: list[str] = []
     source_hash = _sha256(source)
@@ -27,7 +28,6 @@ def verify_training_eligibility(source_path: str | Path, manifest_path: str | Pa
     summary = json.loads(summary_file.read_text(encoding="utf-8"))
     if not isinstance(summary, dict):
         raise ValueError("training eligibility summary must be a JSON object")
-
     if summary.get("source_sha256") != source_hash:
         errors.append("summary source_sha256 does not match source bytes")
     if summary.get("eligibility_manifest_sha256") != manifest_hash:
@@ -39,27 +39,38 @@ def verify_training_eligibility(source_path: str | Path, manifest_path: str | Pa
         "identity_valid_from", "identity_valid_to", "corporate_action_coverage_sha256",
         "decision", "reason_codes", "source_ohlcv_sha256",
     }
-    source_rows = 0
-    with source.open("r", encoding="utf-8-sig", newline="") as handle:
-        reader = csv.DictReader(handle)
-        if not reader.fieldnames or not {"date", "symbol"}.issubset(reader.fieldnames):
-            errors.append("source OHLCV headers are missing date/symbol")
-        else:
-            source_rows = sum(1 for _ in reader)
-
-    eligible = quarantined = 0
+    eligible = quarantined = source_rows = 0
     seen_numbers: set[int] = set()
-    fields: set[str] = set()
-    with manifest.open("r", encoding="utf-8-sig", newline="") as handle:
-        reader = csv.DictReader(handle)
-        fields = set(reader.fieldnames or [])
+    sentinel = object()
+    with source.open("r", encoding="utf-8-sig", newline="") as source_handle, manifest.open(
+        "r", encoding="utf-8-sig", newline=""
+    ) as manifest_handle:
+        source_reader = csv.DictReader(source_handle)
+        manifest_reader = csv.DictReader(manifest_handle)
+        if not source_reader.fieldnames or not {"date", "symbol"}.issubset(source_reader.fieldnames):
+            errors.append("source OHLCV headers are missing date/symbol")
+        fields = set(manifest_reader.fieldnames or [])
         missing = sorted(required - fields)
         if missing:
             errors.append(f"manifest missing required columns: {missing}")
-        for physical_row, row in enumerate(reader, start=2):
+
+        for physical_row, pair in enumerate(zip_longest(source_reader, manifest_reader, fillvalue=sentinel), start=2):
+            source_row, row = pair
+            if source_row is sentinel:
+                errors.append(f"manifest has an extra row at physical row {physical_row}")
+                continue
+            source_rows += 1
+            if row is sentinel:
+                errors.append(f"manifest is missing source row {physical_row}")
+                continue
+
+            if row.get("date", "") != source_row.get("date", ""):
+                errors.append(f"row {physical_row}: manifest date does not match source observation")
+            if row.get("symbol", "").strip() != source_row.get("symbol", "").strip():
+                errors.append(f"row {physical_row}: manifest symbol does not match source observation")
             try:
                 number = int(row.get("source_row_number", ""))
-            except ValueError:
+            except (TypeError, ValueError):
                 errors.append(f"row {physical_row}: invalid source_row_number")
                 number = -1
             if number in seen_numbers:
@@ -69,6 +80,7 @@ def verify_training_eligibility(source_path: str | Path, manifest_path: str | Pa
                 errors.append(f"row {physical_row}: source_row_number must be sequential and match source row")
             if row.get("source_ohlcv_sha256") != source_hash:
                 errors.append(f"row {physical_row}: source_ohlcv_sha256 mismatch")
+
             decision = row.get("decision", "")
             reasons = [item for item in row.get("reason_codes", "").split(";") if item]
             if decision == "ELIGIBLE":
@@ -90,8 +102,6 @@ def verify_training_eligibility(source_path: str | Path, manifest_path: str | Pa
                 errors.append(f"row {physical_row}: invalid decision {decision!r}")
 
     manifest_rows = eligible + quarantined
-    if manifest_rows != source_rows:
-        errors.append(f"manifest rows {manifest_rows} do not match source rows {source_rows}")
     if summary.get("source_row_count") != source_rows:
         errors.append("summary source_row_count does not match source row count")
     if summary.get("eligible_row_count") != eligible:
@@ -122,7 +132,7 @@ def main() -> None:
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     result = verify_training_eligibility(args.source, args.manifest, args.summary)
-    Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
     print(json.dumps(result, indent=2, sort_keys=True))
     if result["status"] != "PASS":
         raise SystemExit(1)

@@ -60,9 +60,9 @@ jobs:
             git commit -m "data: capture official historical source documents"
             git pull --rebase origin "${{ github.ref_name }}"
             git push origin "HEAD:${{ github.ref_name }}"
+          fi
       - name: Report partial acquisition failure after preserving successful captures
         if: steps.capture.outcome == 'failure'
         run: |
           echo "One or more official sources could not be captured. Any successful captures were committed; inspect the capture step logs and retry." >> "$GITHUB_STEP_SUMMARY"
           exit 1
-          fi

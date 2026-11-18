@@ -27,6 +27,8 @@ jobs:
         with:
           python-version: "3.11"
       - name: Capture allowlisted official PDFs
+        id: capture
+        continue-on-error: true
         run: python -m research_model.data.capture_historical_sources
       - name: Validate captured bytes and provenance manifest
         run: |
@@ -51,4 +53,9 @@ jobs:
           else
             git commit -m "data: capture official historical source documents"
             git push origin "HEAD:${{ github.ref_name }}"
+      - name: Report partial acquisition failure after preserving successful captures
+        if: steps.capture.outcome == 'failure'
+        run: |
+          echo "One or more official sources could not be captured. Any successful captures were committed; inspect the capture step logs and retry." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
           fi

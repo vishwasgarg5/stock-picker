@@ -58,6 +58,7 @@ jobs:
             echo "No new source documents; repository unchanged."
           else
             git commit -m "data: capture official historical source documents"
+            git pull --rebase origin "${{ github.ref_name }}"
             git push origin "HEAD:${{ github.ref_name }}"
       - name: Report partial acquisition failure after preserving successful captures
         if: steps.capture.outcome == 'failure'

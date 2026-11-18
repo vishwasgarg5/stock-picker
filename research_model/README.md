@@ -175,3 +175,12 @@ python -m research_model.data.audit_corporate_actions data/ohlcv.csv --output co
 ```
 
 CI uploads the report with the other historical-data audit artifacts. Until event dates, ratios/amounts, source identity, and adjustment conventions are independently verified, do not use these values to certify split-adjusted prices or dividend-inclusive returns. Negative values are held for review. Dividends remain cash-event metadata; no reinvestment or total-return convention is assumed. The audit does not alter source data or generate adjusted datasets.
+
+
+The CI audit of the current committed source (958,475 rows, 2018-01-01 through 2026-11-17) observed:
+- 4,636 non-zero dividend rows across 432 symbols, from 2018-01-18 through 2026-11-17;
+- 179 non-zero split rows across 136 symbols, from 2018-03-15 through 2026-11-04;
+- zero malformed or negative values in either embedded action field;
+- no event-level provenance columns in the OHLCV source.
+
+These are counts of embedded non-zero values, not counts of verified exchange events. The absence of provenance is the decisive blocker: the current file cannot establish the original source, effective-date semantics, completeness, or whether the values are already adjusted. The CI run therefore succeeds as an audit execution while the report correctly remains `REVIEW_REQUIRED`.

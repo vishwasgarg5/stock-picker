@@ -58,6 +58,8 @@ When supplied, the source registry is used to reject document rows whose source 
 - Do not merge different ISINs or infer successor/predecessor relationships from symbol similarity.
 - No identity mapping, corporate-action event, point-in-time universe membership, or historical partition is authorized by this acquisition contract.
 
+The point-in-time identity ledger is venue-scoped: every row must carry both `venue` (`NSE` or `BSE`) and the exact `source_id`. The same ISIN may therefore have separate NSE and BSE identity intervals without being treated as an overlapping duplicate. When a document manifest is supplied, the validator also requires the identity row's venue and source ID to match the referenced document. This keeps native exchange identity separate from cross-venue interoperability evidence.
+
 For a stricter identity-evidence check, pass the captured-document manifest to the identity validator:
 
 ```bash

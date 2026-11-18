@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-18T12:34:14.742168+00:00",
+  "as_of_utc": "2026-11-18T19:49:25.672090+00:00",
   "phases": [
     77,
     78,
@@ -8,40 +8,40 @@
   ],
   "phase77_delivery": {
     "status": "RECEIPT_AUDIT_INCOMPLETE",
-    "rows": 186,
-    "confirmed": 113,
+    "rows": 190,
+    "confirmed": 117,
     "legacy_unverified": 73,
     "missing_status": 0,
     "duplicates": 6,
-    "confirmed_receipt_pct": 60.75,
+    "confirmed_receipt_pct": 61.58,
     "per_file": {
       "telegram_sent.csv": {
-        "rows": 73,
-        "confirmed": 46,
+        "rows": 74,
+        "confirmed": 47,
         "legacy_unverified": 27,
         "missing_status": 0,
         "duplicate_keys": 6,
         "rows_missing_message_key": 0
       },
       "telegram_evening_sent.csv": {
-        "rows": 40,
-        "confirmed": 22,
+        "rows": 41,
+        "confirmed": 23,
         "legacy_unverified": 18,
         "missing_status": 0,
         "duplicate_keys": 0,
         "rows_missing_message_key": 0
       },
       "telegram_paper_sent.csv": {
-        "rows": 41,
-        "confirmed": 22,
+        "rows": 42,
+        "confirmed": 23,
         "legacy_unverified": 19,
         "missing_status": 0,
         "duplicate_keys": 0,
         "rows_missing_message_key": 0
       },
       "telegram_paper_v2_sent.csv": {
-        "rows": 32,
-        "confirmed": 23,
+        "rows": 33,
+        "confirmed": 24,
         "legacy_unverified": 9,
         "missing_status": 0,
         "duplicate_keys": 0,

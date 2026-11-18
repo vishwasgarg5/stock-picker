@@ -1,30 +1,30 @@
 {
   "version": "index_intelligence_v3",
   "market_regime": "BULL",
-  "risk_multiplier": 0.8,
-  "news_sentiment": "BULLISH",
-  "news_score": 0.16,
-  "market_reason": "FII / DII flows: Nifty, Sensex extend rally on FII inflows; Bank Nifty hits fresh 52-week high - Big News Network.com",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPZnpIcHlldHpFbmpacjFaQVBxYk5xS1liM2dHcmV2NDZjNDRQeG5xR3EtVFJVN0hleDRBVy1vVHdpNlV6aDg2YVNhaWxrWmtQdGFKc1dDejZFLTRnUGJ3OTZLblhhZU9rQnJTTGpSaU5fYWtUa3lmcXFKeUxWdjB0WnpHNlNCWVVZZklCM1I0eWNGMlFNWTV5VHY4TFQ4U2s2VFNnSDJoNDNxbnlkLVpINjM0MWNlckQ4U3BUN0F3?oc=5",
-  "news_headline": "FII / DII flows: Nifty, Sensex extend rally on FII inflows; Bank Nifty hits fresh 52-week high - Big News Network.com",
+  "risk_multiplier": 1.0,
+  "news_sentiment": "BEARISH",
+  "news_score": 0.12,
+  "market_reason": "RBI / rates: Goldman Sachs sees three more RBI rate hikes; feels rupee's worst is over and Nifty at 28,500 - Business Today",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxQQW1fcnkyWm1wZ2IyWnI3MG8xZWtMbmxjRTc4aGZsV2RmRDRPRWNRaGdxMHE2M2hYM0pzY0dlNWJ5NjJFWEl4dG04YjBxeW9Obi1QSEQ1SmI2STlFS0FRZDdhTUMxSEFBdExyUkVwaWgyT01iakllMy0zSllSQ3ltUDNzUjVIenY3cHBmbVYxU3dSNVpxUXhfRTg1cmVIbGlHaWpMUTJSaVhLSmw4eGVNVWxfQUV0Qko0NUpEZkRfdTh5eWZyOF9ZenFLRFF2Y0pBdFYwTkJ6c2g0V2FKblB3M2UxcHNydzlFcW16TG5aVdIB9AFBVV95cUxPMFEyeUxDMGVyUG9DQ2d3VlBTU3BWTzd5RVY2b3Q5UnByLUYxQWNxZlFRWVRIWWxTbjVqS3UtWmRDWDBiTzNQREVpVDEyY3NKLVlkR3Y4Sk5QTEVJQmdEc3NJYnpXRTNzWWthckFHYkZPLUxwdzh5M3NIWml1UTAtUWhIWEo5Y3NPWGZ6d09hVkJad1ZQbUhfV2E3SUZEbzVGaHVoeFhoZ1VGQlBZakFvMFdZNW45SVpQS1E3a0FRMUVxdGI1NGUzYWdKemlMaC1MMTRaWENkNDh3YURuc0VmMm5qdFpUaXI1MXR2MFQ0S2hOa1o4?oc=5",
+  "news_headline": "RBI / rates: Goldman Sachs sees three more RBI rate hikes; feels rupee's worst is over and Nifty at 28,500 - Business Today",
   "news_reasons": [
+    {
+      "event": "RBI / rates",
+      "impact": -0.9,
+      "headline": "Goldman Sachs sees three more RBI rate hikes; feels rupee's worst is over and Nifty at 28,500 - Business Today",
+      "url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxQQW1fcnkyWm1wZ2IyWnI3MG8xZWtMbmxjRTc4aGZsV2RmRDRPRWNRaGdxMHE2M2hYM0pzY0dlNWJ5NjJFWEl4dG04YjBxeW9Obi1QSEQ1SmI2STlFS0FRZDdhTUMxSEFBdExyUkVwaWgyT01iakllMy0zSllSQ3ltUDNzUjVIenY3cHBmbVYxU3dSNVpxUXhfRTg1cmVIbGlHaWpMUTJSaVhLSmw4eGVNVWxfQUV0Qko0NUpEZkRfdTh5eWZyOF9ZenFLRFF2Y0pBdFYwTkJ6c2g0V2FKblB3M2UxcHNydzlFcW16TG5aVdIB9AFBVV95cUxPMFEyeUxDMGVyUG9DQ2d3VlBTU3BWTzd5RVY2b3Q5UnByLUYxQWNxZlFRWVRIWWxTbjVqS3UtWmRDWDBiTzNQREVpVDEyY3NKLVlkR3Y4Sk5QTEVJQmdEc3NJYnpXRTNzWWthckFHYkZPLUxwdzh5M3NIWml1UTAtUWhIWEo5Y3NPWGZ6d09hVkJad1ZQbUhfV2E3SUZEbzVGaHVoeFhoZ1VGQlBZakFvMFdZNW45SVpQS1E3a0FRMUVxdGI1NGUzYWdKemlMaC1MMTRaWENkNDh3YURuc0VmMm5qdFpUaXI1MXR2MFQ0S2hOa1o4?oc=5"
+    },
     {
       "event": "FII / DII flows",
       "impact": 0.8,
-      "headline": "Nifty, Sensex extend rally on FII inflows; Bank Nifty hits fresh 52-week high - Big News Network.com",
-      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxPZnpIcHlldHpFbmpacjFaQVBxYk5xS1liM2dHcmV2NDZjNDRQeG5xR3EtVFJVN0hleDRBVy1vVHdpNlV6aDg2YVNhaWxrWmtQdGFKc1dDejZFLTRnUGJ3OTZLblhhZU9rQnJTTGpSaU5fYWtUa3lmcXFKeUxWdjB0WnpHNlNCWVVZZklCM1I0eWNGMlFNWTV5VHY4TFQ4U2s2VFNnSDJoNDNxbnlkLVpINjM0MWNlckQ4U3BUN0F3?oc=5"
+      "headline": "Indian equities see record $10.6 billion FII inflows in Nov so far; here's why brokerages are bullish - Moneycontrol.com",
+      "url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxOWThRSFEwVnpOSzdnVDZNN0t1TFJXMXZUeDl0ckQ2c1pZRjVvUW43LWZyZjA2a1UtWmR5Z01pbWMzNTNoZENDVjRIbVlSd1BrNEM4QmZnbHZtV01nNi1QZlBfZzFkb3NJMTdyWkp5TjVjWnBHRGxaUVZNamt6R3pNSDhVbnNRY2ozdWI1bW1MeWlOYUo1NG9uc0F2cnFhNy1fNlVhcVRucXZpaERMTXIzUDIyenlKYVh2dTR2amRJUVJYY0gwdnJOVWo4M0ZmTDdfOHhBT3BZSnJralBnMGlMYjQ0ZjZhY2FsSnNrUm93b9IB9AFBVV95cUxNbWZ1X0Zza1hZdXJsbDU4UjNkMkhxSmpma2dkdS1URkVvNkxhWUZHZUk2aVd4dFhRNWJGWkxwdW9DcDNRMV9WSUc5YWo5NEtfNk1QOUVTQWphRUVKOXVaWWstM29kX0VrdTlKZXZkSGk3R19oZ1BzQ1VwUzF1cXdwZzRucmk2R0RyWmM0b1FINHZUcXM0QzJlUGpMWHBrVHRFZ3hfRHRNc2hNcmlwUEtfaGtnYXdhelNENXJqZnlfbEg0TnVIU0g5T3d6UmZ6VWJTV0ZrTkVFeTZIOXhlVVRlRVQyVEE3bXl0WmRoQ2trT211dzN6?oc=5"
     },
     {
       "event": "US / global markets",
       "impact": 0.7,
       "headline": "NSE Nifty 50 Could Open Strong as Nasdaq Futures Jumps on Positive Nvidia Quarterly Results - TopNews",
       "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxPNmNtY3RPUlI4YkdybkwwQjVOYTNvWGQ2ckF2TVFsUUFEQ2VoTWRNd3Jyc0NYU1dTRklMS0JsU3ZEVlY1aXRNeTZhS3o2THEzaXR3VG9YaUhrd2VWLTNYZlVySTBqbEhpRkR6MEoybkFudWhPQ0xJb0NLemt3aWhYMkdqX0FJazQ5eXRPbWNKRTRQYmdybXlBVVVfOThjc1lmN2lsYmZFME5wUVlrMklMTlFR?oc=5"
-    },
-    {
-      "event": "US / global markets",
-      "impact": -0.7,
-      "headline": "Sensex Today Tanks 502 Points | Nifty Below 25,250 | Nifty IT Index Down 1.2% - Equitymaster",
-      "url": "https://news.google.com/rss/articles/CBMizgFBVV95cUxOZGhYaTdsZFVaUC1LUGtmeXlNbmM1Y0N1RUxrem8yQnpqbDhnOHgtZ0YzYVdyMjNBdGVRNHkybEtxYlJadlFWV1RwUnV2dm9GbVFSR3FaMDQtY3RBakJLYVBMM21abjctNEdOY1Z2RU4wNWFiUDR5LWY3aEd4ZXdia0ktYWdHeTgxWGZqV3VFU3ltWm4xTjFlMDdwVkQ0aWZKc3pXMGhYZGhVOUZPa01ZeXI3RUIwLXJsRTFMUHpSekJ0ZW9jSV9VMTlleTdCUQ?oc=5"
     },
     {
       "event": "General market",
@@ -39,9 +39,9 @@
       "url": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQN2xHQ04wTzI4NngwQkNMbExiUjhXb2lSaEdvcnczY3NBUm5QakJNcnJrZDZrX1dXNklYMWotWDctSnVxZG5NSEZzWHd0c3NHVmNkU2VWT1ZPRjJHdUt3RER1VV9tYk5QQTQ2cmpyUXZhNjVGWldaUHNjeFpMUmIwVHhGQXEyS2ZYOXhQSkNRYW5yQjZyTmcxUGxpdjJLOHJVeFpheHNwa1FWUGdjazhJNFFQRlJac2ZVeEJmR0QtOUFVUVlSazFJdWZDbExpQmJBMUE5LXBB0gHbAUFVX3lxTE1DQmMtb1RLOHUxUGlNRDBreHRhTjEzbUFIQmR2VnpCejNQUXJTdkVxc1o0VmFUOGR1aFVwSTExOUtmX29ubEJBZjNyVVljZE82clVXOTFsSzdmQ3VCVVJaRXpvNFdGOTBFYnFnd0FkOVN5bVU3MUk5cl9jWUtIQkh0OGJMTnl1cVBqVms3MjBjdTlLUGppV2lHMGdzRjBBVkNYU0d5dkRMM0xQQkdnT0V5R2RtX3RIVXB1MXo3eURfWlRxNEloSUxqaFRLYWNOZzc2aWNIMDBCNzNDQQ?oc=5"
     }
   ],
-  "market_intelligence_score": 61.19777213395878,
-  "risk_level": "NEUTRAL",
-  "market_confidence": 0.6507799492056291,
+  "market_intelligence_score": 70.84301968380156,
+  "risk_level": "RISK_ON",
+  "market_confidence": 0.7375871771542141,
   "data_quality": "HIGH",
   "index_data_available": true,
   "breadth_pct_above_sma20": 63.946869070208734,
@@ -50,6 +50,10 @@
     "paints": 0.8,
     "chemicals": 0.6,
     "tyres": 0.6,
-    "oil & gas": -0.8
+    "oil & gas": -0.8,
+    "bank": 0.8,
+    "financial": 0.8,
+    "real estate": 0.7,
+    "auto": 0.4
   }
 }

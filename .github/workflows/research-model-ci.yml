@@ -37,7 +37,7 @@ jobs:
       - name: Validate identity source registry schema
         run: python -m research_model.data.validate_identity_sources research_model/schemas/identity_source_registry.csv --output "$RUNNER_TEMP/identity-source-registry-validation.json"
       - name: Validate historical source document acquisition manifest
-        run: python -m research_model.data.validate_source_archive research_model/schemas/historical_source_documents.csv --output "$RUNNER_TEMP/historical-source-document-validation.json"
+        run: python -m research_model.data.validate_source_archive research_model/schemas/historical_source_documents.csv --source-registry research_model/schemas/identity_source_registry.csv --output "$RUNNER_TEMP/historical-source-document-validation.json"
       - name: Reconcile fresh OHLCV scan with prior coverage audit
         run: python -m research_model.data.reconcile_coverage --manifest "$RUNNER_TEMP/ohlcv-source-manifest.json" --audit data/historical_coverage_audit.json
       - name: Reconcile raw symbols with reviewed historical universe

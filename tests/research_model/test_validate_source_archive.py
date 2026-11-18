@@ -133,3 +133,72 @@ def test_document_source_id_must_exist_in_supplied_registry(tmp_path):
     )
     report = validate_source_archive(manifest, source_registry=registry)
     assert any("not present in the supplied source registry" in error for error in report["errors"])
+
+
+
+def write_registry(path, **overrides):
+    row = {
+        "source_id": "NSE_CM_MASTER",
+        "venue": "NSE",
+        "source_class": "EXCHANGE_SECURITY_MASTER",
+        "canonical_url": "https://example.com/master",
+    }
+    row.update(overrides)
+    path.write_text(
+        "source_id,venue,source_class,canonical_url\\n"
+        + ",".join(row[field] for field in (
+            "source_id", "venue", "source_class", "canonical_url"
+        )) + "\\n",
+        encoding="utf-8",
+    )
+
+
+def test_document_metadata_must_match_registered_source(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row()])
+    write_registry(registry)
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert report["error_count"] == 0
+    assert report["registered_source_count"] == 1
+
+
+def test_document_venue_must_match_registered_source(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row(venue="BSE")])
+    write_registry(registry)
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any("venue does not match source registry" in error for error in report["errors"])
+
+
+def test_document_source_class_must_match_registered_source(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row(source_class="EXCHANGE_CIRCULAR")])
+    write_registry(registry)
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any("source_class does not match source registry" in error for error in report["errors"])
+
+
+def test_document_canonical_url_must_match_registered_source(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row(canonical_url="https://example.com/other")])
+    write_registry(registry)
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any("canonical_url does not match source registry" in error for error in report["errors"])
+
+
+def test_duplicate_registry_source_ids_are_rejected(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row()])
+    registry.write_text(
+        "source_id,venue,source_class,canonical_url\\n"
+        "NSE_CM_MASTER,NSE,EXCHANGE_SECURITY_MASTER,https://example.com/master\\n"
+        "NSE_CM_MASTER,NSE,EXCHANGE_SECURITY_MASTER,https://example.com/master\\n",
+        encoding="utf-8",
+    )
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any("duplicate source_id" in error for error in report["errors"])

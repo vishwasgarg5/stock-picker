@@ -186,5 +186,37 @@ class IdentityHistoryTests(unittest.TestCase):
             self.assertEqual(report["error_count"], 0)
 
 
+    def test_same_venue_security_code_cannot_overlap_across_different_isins(self):
+        first = identity_row(
+            isin="INE009A01021", symbol="FIRST", security_code="777001",
+            valid_from="2020-01-01", valid_to="2022-12-31",
+        )
+        second = identity_row(
+            isin="INE115A01026", symbol="SECOND", security_code="777001",
+            valid_from="2022-06-01", valid_to="",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            report = validate_identity_history(self.write_rows(directory, [first, second]))
+            self.assertEqual(report["overlapping_venue_security_code_intervals"], 1)
+            self.assertTrue(any(
+                "overlapping security_code identity" in error
+                for error in report["errors"]
+            ))
+
+    def test_same_venue_security_code_can_be_reused_after_prior_interval_ends(self):
+        first = identity_row(
+            isin="INE009A01021", symbol="FIRST", security_code="777001",
+            valid_from="2020-01-01", valid_to="2022-05-31",
+        )
+        second = identity_row(
+            isin="INE115A01026", symbol="SECOND", security_code="777001",
+            valid_from="2022-06-01", valid_to="",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            report = validate_identity_history(self.write_rows(directory, [first, second]))
+            self.assertEqual(report["overlapping_venue_security_code_intervals"], 0)
+            self.assertEqual(report["error_count"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

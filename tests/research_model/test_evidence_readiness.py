@@ -135,3 +135,46 @@ def test_coverage_reconciliation_rejects_any_common_symbol_row_mismatch():
     passed, _ = _common_symbol_coverage_matches(coverage, universe)
 
     assert passed is False
+
+def test_listing_gate_allows_post_listing_gaps_but_preserves_review_status():
+    from research_model.data.evidence_readiness import _listing_eligibility_is_acceptable
+
+    assert _listing_eligibility_is_acceptable({
+        "status": "REVIEW_REQUIRED",
+        "status_counts": {
+            "verified": 492,
+            "gap_review": 8,
+            "prelisting_anomaly": 0,
+            "unknown": 0,
+        },
+    })
+
+
+def test_listing_gate_still_blocks_prelisting_or_unknown_symbols():
+    from research_model.data.evidence_readiness import _listing_eligibility_is_acceptable
+
+    assert not _listing_eligibility_is_acceptable({
+        "status": "BLOCKED",
+        "status_counts": {
+            "verified": 486,
+            "gap_review": 8,
+            "prelisting_anomaly": 6,
+            "unknown": 0,
+        },
+    })
+    assert not _listing_eligibility_is_acceptable({
+        "status": "BLOCKED",
+        "status_counts": {
+            "verified": 499,
+            "gap_review": 0,
+            "prelisting_anomaly": 0,
+            "unknown": 1,
+        },
+    })
+
+
+def test_listing_gate_rejects_missing_status_counts():
+    from research_model.data.evidence_readiness import _listing_eligibility_is_acceptable
+
+    assert not _listing_eligibility_is_acceptable({"status": "PASS"})
+

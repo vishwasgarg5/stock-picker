@@ -61,6 +61,7 @@ def test_empty_evidence_manifests_never_pass_readiness(tmp_path):
     assert result["status"] == "BLOCKED"
     assert result["readiness_tiers"]["tier1_structural_exploration_authorized"] is True
     assert result["readiness_tiers"]["tier2_reduced_universe_training_authorized"] is False
+    assert "row_level_training_eligibility_manifest" in result["readiness_tiers"]["tier2_missing_requirements"]
     assert result["readiness_tiers"]["tier3_promotion_evidence_authorized"] is False
     assert result["training_authorized"] is False
     assert result["production_authorized"] is False

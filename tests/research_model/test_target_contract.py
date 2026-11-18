@@ -48,7 +48,10 @@ def test_dividend_inclusive_contract_requires_verified_actions_and_policy():
 
 def test_return_basis_cannot_silently_mix_dividend_treatment():
     with pytest.raises(ValueError, match="requires dividend_treatment"):
-        base_contract(dividend_treatment="cash_received_no_reinvestment")
+        base_contract(
+            dividend_treatment="cash_received_no_reinvestment",
+            corporate_action_evidence="INDEPENDENTLY_VERIFIED",
+        )
 
 
 @pytest.mark.parametrize("horizon", [0, -1, True])

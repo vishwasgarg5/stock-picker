@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import Any
 
 
-def reconcile_universe(ohlcv_path: str | Path, audit_csv_path: str | Path) -> dict[str, Any]:
+def reconcile_universe(
+    ohlcv_path: str | Path, audit_csv_path: str | Path, universe_csv_path: str | Path
+) -> dict[str, Any]:
     """Report raw-only and audit-only symbols plus listing-provenance exceptions."""
     raw_counts: Counter[str] = Counter()
     with Path(ohlcv_path).open("r", encoding="utf-8-sig", newline="") as handle:
@@ -45,12 +47,32 @@ def reconcile_universe(ohlcv_path: str | Path, audit_csv_path: str | Path) -> di
                     "listing_date": row.get("listing_date", ""),
                 })
 
+    current_universe: set[str] = set()
+    with Path(universe_csv_path).open("r", encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if not reader.fieldnames or "symbol" not in reader.fieldnames:
+            raise ValueError("Current universe file must contain a symbol column")
+        for row in reader:
+            symbol = (row.get("symbol") or "").strip()
+            if symbol:
+                current_universe.add(symbol)
+
     raw_symbols = set(raw_counts)
     raw_only = sorted(raw_symbols - audit_symbols)
     audit_only = sorted(audit_symbols - raw_symbols)
+    raw_outside_universe = sorted(raw_symbols - current_universe)
+    current_universe_missing_ohlcv = sorted(current_universe - raw_symbols)
+    universe_audit_mismatch = sorted(current_universe ^ audit_symbols)
     return {
-        "status": "MATCH" if raw_symbols == audit_symbols and not unknown and not prelisting else "REVIEW_REQUIRED",
+        "status": "REVIEW_REQUIRED" if (
+            raw_outside_universe or current_universe_missing_ohlcv or universe_audit_mismatch or unknown or prelisting
+        ) else "MATCH",
         "raw_ohlcv_symbol_count": len(raw_symbols),
+        "current_universe_symbol_count": len(current_universe),
+        "current_universe_missing_ohlcv": current_universe_missing_ohlcv,
+        "raw_symbols_outside_current_universe": raw_outside_universe,
+        "current_universe_not_in_coverage_audit": sorted(current_universe - audit_symbols),
+        "coverage_audit_not_in_current_universe": sorted(audit_symbols - current_universe),
         "coverage_audit_symbol_count": len(audit_symbols),
         "raw_ohlcv_row_count": sum(raw_counts.values()),
         "raw_only_symbols": raw_only,
@@ -66,9 +88,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ohlcv", required=True, type=Path)
     parser.add_argument("--coverage-audit", required=True, type=Path)
+    parser.add_argument("--universe", required=True, type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    report = reconcile_universe(args.ohlcv, args.coverage_audit)
+    report = reconcile_universe(args.ohlcv, args.coverage_audit, args.universe)
     serialized = json.dumps(report, indent=2, sort_keys=True)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

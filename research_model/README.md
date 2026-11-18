@@ -184,3 +184,24 @@ The CI audit of the current committed source (958,475 rows, 2018-01-01 through 2
 - no event-level provenance columns in the OHLCV source.
 
 These are counts of embedded non-zero values, not counts of verified exchange events. The absence of provenance is the decisive blocker: the current file cannot establish the original source, effective-date semantics, completeness, or whether the values are already adjusted. The CI run therefore succeeds as an audit execution while the report correctly remains `REVIEW_REQUIRED`.
+
+## Step 10 — evidence-linked corporate-action event ledger
+
+The empty template at `research_model/schemas/corporate_action_events.csv` defines a separate event ledger. It intentionally contains a header only; no historical events have been fabricated or inferred from the embedded OHLCV columns.
+
+The validator `research_model.data.validate_action_ledger` checks:
+- event identity: symbol, action type, and ex-date, with duplicate keys rejected;
+- action-specific fields: positive cash amount plus currency for dividends, or positive integer numerator/denominator for splits;
+- separate announcement, ex-, record-, and payment-date fields (the ex-date is the event key; other dates are optional when not evidenced);
+- source name, source URL, SHA-256 of the source document, UTC retrieval timestamp, and a stable evidence reference;
+- reviewer identity and UTC review timestamp when a record claims `INDEPENDENTLY_VERIFIED`.
+
+For splits, the ratio convention is `new shares / old shares` (numerator / denominator). Dividend amounts must be accompanied by currency. The ledger does not infer missing dates, split ratios, currencies, or source references from OHLCV values.
+
+Run the structural check:
+
+```bash
+python -m research_model.data.validate_action_ledger research_model/schemas/corporate_action_events.csv
+```
+
+The validator always reports `REVIEW_REQUIRED`, even when every row is structurally valid. A URL, document hash, and self-asserted review status are not proof that the source is authoritative or that an event is correct. Independent human review of the cited source document remains mandatory. This contract does not yet reconcile ledger events against embedded OHLCV values: the source's embedded date and value semantics have not been established, so a comparison would risk a false match or false mismatch. CI validates the empty schema and tests synthetic fixtures only; the actual event ledger remains empty pending authoritative evidence.

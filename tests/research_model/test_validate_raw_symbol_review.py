@@ -18,8 +18,8 @@ class RawSymbolReviewTests(unittest.TestCase):
         ]}), encoding="utf-8")
         with documents.open("w", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle)
-            writer.writerow(["document_id"])
-            writer.writerow(["DOC-1"])
+            writer.writerow(["document_id", "capture_status", "sha256", "archive_path"])
+            writer.writerow(["DOC-1", "INDEPENDENTLY_REVIEWED", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "research_model/archive/DOC-1.html"])
         return diagnostic, ledger, documents
 
     def test_blank_template_is_pending_and_cannot_pass(self):

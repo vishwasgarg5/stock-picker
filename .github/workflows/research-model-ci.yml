@@ -6,7 +6,14 @@ on:
     branches: [main]
     paths:
       - "research_model/**"
+      - "src/historical_coverage_audit.py"
       - "tests/research_model/**"
+      - "tests/test_historical_coverage_audit.py"
+      - "data/ohlcv.csv"
+      - "data/universe.csv"
+      - "data/nse_listing_master.csv"
+      - "data/historical_coverage_audit.*"
+      - "data/index_constituents_history.csv"
       - ".github/workflows/research-model-ci.yml"
 
 permissions:

@@ -80,7 +80,7 @@ def test_older_listing_uses_available_ohlcv_window_not_pre_window_calendar():
 
 
 def test_listing_coverage_builds_calendar_once_for_multiple_symbols(monkeypatch):
-    from src import historical_coverage_audit as coverage
+    from common import historical_coverage as coverage
 
     calls = []
     def fake_sessions(start, end):

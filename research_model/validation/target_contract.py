@@ -50,6 +50,11 @@ class TargetContract:
             "UNVERIFIED", "INDEPENDENTLY_VERIFIED"
         }:
             raise ValueError("unsupported corporate_action_evidence status")
+        if self.corporate_action_evidence != "INDEPENDENTLY_VERIFIED":
+            raise ValueError(
+                "split-adjusted targets require independently verified "
+                "corporate-action evidence"
+            )
 
         if self.return_basis == "split_adjusted_price":
             if self.dividend_treatment != "excluded":
@@ -61,11 +66,6 @@ class TargetContract:
                 raise ValueError(
                     "cash_dividend_inclusive requires an explicit cash dividend "
                     "treatment; supported policy is cash_received_no_reinvestment"
-                )
-            if self.corporate_action_evidence != "INDEPENDENTLY_VERIFIED":
-                raise ValueError(
-                    "dividend-inclusive targets require independently verified "
-                    "corporate-action evidence"
                 )
 
 

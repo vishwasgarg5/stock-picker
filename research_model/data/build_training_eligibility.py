@@ -80,11 +80,26 @@ def build_training_eligibility(
     action_coverage = _read_rows(action_coverage_path)
     documents = {r.get("sha256", "").strip().lower(): r for r in _read_rows(documents_path) if r.get("sha256")}
     raw_review = _read_rows(raw_only_review_path)
-    raw_only = {
-        r.get("symbol", "").strip()
-        for r in raw_review
-        if r.get("historical_disposition", "").strip().upper() not in {"INCLUDE_VERIFIED"}
+    documents_by_id = {
+        r.get("document_id", "").strip(): r
+        for r in _read_rows(documents_path)
+        if r.get("document_id", "").strip()
     }
+    raw_only = set()
+    for review in raw_review:
+        symbol = review.get("symbol", "").strip()
+        document = documents_by_id.get(review.get("source_document_id", "").strip(), {})
+        disposition_verified = (
+            review.get("historical_disposition", "").strip().upper() == "INCLUDE_VERIFIED"
+            and bool(document)
+            and document.get("capture_status", "").upper() == "INDEPENDENTLY_REVIEWED"
+            and len(document.get("sha256", "")) == 64
+            and bool(document.get("archive_path", "").strip())
+            and bool(review.get("reviewed_by", "").strip())
+            and _utc(review.get("reviewed_at_utc", ""))
+        )
+        if not disposition_verified:
+            raw_only.add(symbol)
 
     counts: dict[str, int] = {}
     eligible = quarantined = 0

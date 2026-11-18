@@ -73,21 +73,66 @@ def validate_membership_history(
         columns = reader.fieldnames or []
         rows = list(reader)
 
-    errors: list[str] = []
+    errors: list[str] = list(manifest_errors)
     missing = [column for column in REQUIRED_COLUMNS if column not in columns]
     if missing:
         errors.append("missing required columns: " + ", ".join(missing))
 
     documents: dict[str, list[dict[str, str]]] | None = None
+    manifest_errors: list[str] = []
     if source_documents is not None:
         documents = defaultdict(list)
+        required_manifest_columns = {
+            "document_id", "source_id", "sha256", "capture_status",
+            "reviewed_by", "reviewed_at_utc",
+        }
+        seen_document_ids: set[str] = set()
         with Path(source_documents).open("r", encoding="utf-8-sig", newline="") as handle:
-            for item in csv.DictReader(handle):
+            manifest_reader = csv.DictReader(handle)
+            manifest_columns = set(manifest_reader.fieldnames or [])
+            missing_manifest_columns = sorted(required_manifest_columns - manifest_columns)
+            if missing_manifest_columns:
+                manifest_errors.append(
+                    "source-document manifest missing required columns: "
+                    + ", ".join(missing_manifest_columns)
+                )
+            for line, item in enumerate(manifest_reader, start=2):
+                document_id = (item.get("document_id") or "").strip()
+                source_id = (item.get("source_id") or "").strip()
                 digest = (item.get("sha256") or "").strip().lower()
-                if digest:
+                capture_status = (item.get("capture_status") or "").strip().upper()
+                reviewed_by = (item.get("reviewed_by") or "").strip()
+                reviewed_at = (item.get("reviewed_at_utc") or "").strip()
+                row_errors: list[str] = []
+                if not document_id:
+                    row_errors.append("missing document_id")
+                elif document_id in seen_document_ids:
+                    row_errors.append(f"duplicate document_id {document_id}")
+                seen_document_ids.add(document_id)
+                if not source_id:
+                    row_errors.append("missing source_id")
+                if not SHA_RE.fullmatch(digest):
+                    row_errors.append("invalid sha256")
+                if capture_status not in {"CAPTURED_UNREVIEWED", "INDEPENDENTLY_REVIEWED", "REJECTED"}:
+                    row_errors.append("invalid capture_status")
+                if capture_status == "INDEPENDENTLY_REVIEWED":
+                    if not reviewed_by or not _parse_utc(reviewed_at):
+                        row_errors.append(
+                            "INDEPENDENTLY_REVIEWED requires reviewer and UTC review timestamp"
+                        )
+                elif reviewed_by or reviewed_at:
+                    row_errors.append(
+                        "reviewer metadata requires INDEPENDENTLY_REVIEWED"
+                    )
+                manifest_errors.extend(
+                    f"source-document manifest row {line}: {message}"
+                    for message in row_errors
+                )
+                if source_id and SHA_RE.fullmatch(digest):
                     documents[digest].append({
-                        "source_id": (item.get("source_id") or "").strip(),
-                        "capture_status": (item.get("capture_status") or "").strip().upper(),
+                        "source_id": source_id,
+                        "capture_status": capture_status,
+                        "review_metadata_valid": "false" if row_errors else "true",
                     })
 
     by_index_isin: dict[tuple[str, str], list[tuple[date, date | None, int]]] = defaultdict(list)
@@ -134,7 +179,9 @@ def validate_membership_history(
             if not matches:
                 errors.append(f"row {number}: source_id and document hash are absent from supplied source-document manifest")
             elif status == "INDEPENDENTLY_VERIFIED" and not any(
-                item["capture_status"] == "INDEPENDENTLY_REVIEWED" for item in matches
+                item["capture_status"] == "INDEPENDENTLY_REVIEWED"
+                and item["review_metadata_valid"] == "true"
+                for item in matches
             ):
                 errors.append(f"row {number}: independently verified membership requires independently reviewed source document")
 

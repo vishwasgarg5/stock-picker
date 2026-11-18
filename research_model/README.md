@@ -242,3 +242,16 @@ The registry template is intentionally empty. No source has yet been certified a
 The header-only `schemas/historical_source_documents.csv` records each genuinely captured historical security-master document separately from the candidate source registry. The validator `research_model.data.validate_source_archive` checks source/document identifiers, HTTPS provenance URLs, publication/effective dates separately from UTC retrieval time, content type, exact byte length, SHA-256, safe relative archive paths, and independent-review metadata. When given an archive root, it reads the archived bytes and verifies both size and SHA-256.
 
 The acquisition and review procedure is documented in [`HISTORICAL_SOURCE_ACQUISITION.md`](HISTORICAL_SOURCE_ACQUISITION.md). No scraping or downloads are performed by this capability. The template remains empty until real documents are captured. CI validates the empty template and synthetic fixtures only. The validator always reports `REVIEW_REQUIRED`, `source_authority=NOT_ESTABLISHED`, and `identity_mapping_approval=NOT_GRANTED`; byte integrity is not proof of source authority or a valid security mapping. No historical identity rows or partitions are authorized.
+
+
+## Step 11 — evidence-linked point-in-time index membership intervals
+
+The empty template at `research_model/schemas/index_membership_history.csv` defines explicit index/ISIN/symbol validity intervals. The validator `research_model.data.validate_membership_history` checks canonical dates, ISIN checksums, source-document hashes, review metadata, and overlapping interval claims. When a source-document manifest is supplied, an `INDEPENDENTLY_VERIFIED` membership row must bind to a matching source ID and SHA-256 whose captured document is independently reviewed.
+
+This contract deliberately does not convert the existing one-day constituent snapshot or multiple snapshots into continuous membership intervals. The template remains header-only until dated constituent-change evidence is captured and independently reviewed. The validator always reports `REVIEW_REQUIRED` and never grants model approval, even for structurally valid rows.
+
+Run the schema check:
+
+```bash
+python -m research_model.data.validate_membership_history research_model/schemas/index_membership_history.csv --source-documents research_model/schemas/historical_source_documents.csv
+```

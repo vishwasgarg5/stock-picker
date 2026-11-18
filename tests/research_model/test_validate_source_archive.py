@@ -142,12 +142,16 @@ def write_registry(path, **overrides):
         "venue": "NSE",
         "source_class": "EXCHANGE_SECURITY_MASTER",
         "canonical_url": "https://example.com/master",
+        "review_status": "DISCOVERY_ONLY",
+        "reviewed_by": "",
+        "reviewed_at_utc": "",
     }
     row.update(overrides)
     path.write_text(
-        "source_id,venue,source_class,canonical_url\n"
+        "source_id,venue,source_class,canonical_url,review_status,reviewed_by,reviewed_at_utc\n"
         + ",".join(row[field] for field in (
-            "source_id", "venue", "source_class", "canonical_url"
+            "source_id", "venue", "source_class", "canonical_url",
+            "review_status", "reviewed_by", "reviewed_at_utc"
         )) + "\n",
         encoding="utf-8",
     )
@@ -157,7 +161,10 @@ def test_document_metadata_must_match_registered_source(tmp_path):
     manifest = tmp_path / "documents.csv"
     registry = tmp_path / "registry.csv"
     write_manifest(manifest, [make_row()])
-    write_registry(registry)
+    write_registry(
+        registry, review_status="REVIEWED_AUTHORITATIVE",
+        reviewed_by="independent-reviewer", reviewed_at_utc="2026-11-18T02:00:00Z",
+    )
     report = validate_source_archive(manifest, source_registry=registry)
     assert report["error_count"] == 0
     assert report["registered_source_count"] == 1
@@ -202,3 +209,36 @@ def test_duplicate_registry_source_ids_are_rejected(tmp_path):
     )
     report = validate_source_archive(manifest, source_registry=registry)
     assert any("duplicate source_id" in error for error in report["errors"])
+
+
+
+def test_independently_reviewed_document_requires_authoritative_registry_entry(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row(
+        capture_status="INDEPENDENTLY_REVIEWED",
+        reviewed_by="document-reviewer",
+        reviewed_at_utc="2026-11-18T03:00:00Z",
+    )])
+    write_registry(registry)
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any(
+        "requires REVIEWED_AUTHORITATIVE source registry entry" in error
+        for error in report["errors"]
+    )
+
+
+def test_authoritative_registry_entry_requires_reviewer_metadata(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row(
+        capture_status="INDEPENDENTLY_REVIEWED",
+        reviewed_by="document-reviewer",
+        reviewed_at_utc="2026-11-18T03:00:00Z",
+    )])
+    write_registry(registry, review_status="REVIEWED_AUTHORITATIVE")
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any(
+        "requires reviewer and UTC review timestamp" in error
+        for error in report["errors"]
+    )

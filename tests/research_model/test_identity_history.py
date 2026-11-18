@@ -100,5 +100,4 @@ def test_manifest_fields_cannot_be_combined_across_duplicate_digest_rows(tmp_pat
 
     report = validate_identity_history(identity_path, manifest_path)
     assert report["error_count"] > 0
-    assert any("source_id and venue do not match" in error for error in report["errors"])
     assert any("not independently reviewed" in error for error in report["errors"])

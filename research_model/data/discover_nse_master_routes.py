@@ -186,7 +186,7 @@ def main():
                     for match in list(re.finditer(r"filePath|fileActlName", source, re.I))[:30]
                 ],
                 "literal_api_routes": sorted(set(re.findall(
-                    r"""["'](/api/[^"'\\s]+)["']""", source, re.I
+                    r"""["'](/api/[^"'\s]+)["']""", source, re.I
                 )))[:120],
             })
 

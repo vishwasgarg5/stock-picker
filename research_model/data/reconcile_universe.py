@@ -48,14 +48,21 @@ def reconcile_universe(
                 })
 
     current_universe: set[str] = set()
+    excluded_synthetic: set[str] = set()
     with Path(universe_csv_path).open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
         if not reader.fieldnames or "symbol" not in reader.fieldnames:
             raise ValueError("Current universe file must contain a symbol column")
         for row in reader:
             symbol = (row.get("symbol") or "").strip()
-            if symbol:
-                current_universe.add(symbol)
+            if not symbol:
+                continue
+            # Match the established V1 universe policy: DUMMY* rows are
+            # synthetic placeholders, never tradable securities.
+            if symbol.upper().startswith("DUMMY"):
+                excluded_synthetic.add(symbol)
+                continue
+            current_universe.add(symbol)
 
     raw_symbols = set(raw_counts)
     raw_only = sorted(raw_symbols - audit_symbols)
@@ -69,6 +76,7 @@ def reconcile_universe(
         ) else "MATCH",
         "raw_ohlcv_symbol_count": len(raw_symbols),
         "current_universe_symbol_count": len(current_universe),
+        "excluded_synthetic_universe_symbols": sorted(excluded_synthetic),
         "current_universe_missing_ohlcv": current_universe_missing_ohlcv,
         "raw_symbols_outside_current_universe": raw_outside_universe,
         "current_universe_not_in_coverage_audit": sorted(current_universe - audit_symbols),

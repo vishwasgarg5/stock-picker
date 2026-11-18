@@ -107,8 +107,8 @@ def build_training_eligibility(
     output.parent.mkdir(parents=True, exist_ok=True)
     fields = [
         "source_row_number", "date", "symbol", "isin", "venue", "source_id",
-        "source_document_sha256", "identity_valid_from", "identity_valid_to",
-        "corporate_action_coverage_sha256", "decision", "reason_codes",
+        "identity_source_document_sha256", "ohlcv_source_document_sha256",
+        "identity_valid_from", "identity_valid_to", "corporate_action_coverage_sha256", "decision", "reason_codes",
         "source_ohlcv_sha256",
     ]
     with source.open("r", encoding="utf-8-sig", newline="") as src, output.open(
@@ -124,7 +124,7 @@ def build_training_eligibility(
             symbol = (row.get("symbol") or "").strip()
             day_text = (row.get("date") or "").strip()
             reasons: list[str] = []
-            isin = venue = source_id = source_hash_ref = identity_from = identity_to = action_hash = ""
+            isin = venue = source_id = identity_hash_ref = ohlcv_hash_ref = identity_from = identity_to = action_hash = ""
             try:
                 day = date.fromisoformat(day_text)
             except ValueError:
@@ -164,7 +164,7 @@ def build_training_eligibility(
                 if not _reviewed(identity, documents) or identity_doc_hash != identity.get("source_document_sha256", "").lower():
                     reasons.append("IDENTITY_SOURCE_DOCUMENT_NOT_VERIFIED")
                 else:
-                    source_hash_ref = identity_doc_hash
+                    identity_hash_ref = identity_doc_hash
 
                 source_matches = _active(source_coverage, day, "symbol", symbol)
                 source_matches = [
@@ -174,13 +174,14 @@ def build_training_eligibility(
                     and r.get("venue", "").strip()
                     and r.get("source_id", "").strip()
                     and _reviewed(r, documents)
-                    and r.get("source_document_sha256", "").lower() == identity_doc_hash
+                    and len(r.get("source_document_sha256", "").lower()) == 64
                 ]
                 if len(source_matches) != 1:
                     reasons.append("OHLCV_ROW_SOURCE_PROVENANCE_MISSING_OR_AMBIGUOUS")
                 else:
                     venue = source_matches[0]["venue"].strip()
                     source_id = source_matches[0]["source_id"].strip()
+                    ohlcv_hash_ref = source_matches[0]["source_document_sha256"].lower()
 
                 action_matches = _active(action_coverage, day, "isin", isin) if isin else []
                 action_matches = [
@@ -207,7 +208,8 @@ def build_training_eligibility(
                 "isin": isin,
                 "venue": venue,
                 "source_id": source_id,
-                "source_document_sha256": source_hash_ref,
+                "identity_source_document_sha256": identity_hash_ref,
+                "ohlcv_source_document_sha256": ohlcv_hash_ref,
                 "identity_valid_from": identity_from,
                 "identity_valid_to": identity_to,
                 "corporate_action_coverage_sha256": action_hash,

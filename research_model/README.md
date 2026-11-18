@@ -278,3 +278,26 @@ The gate returns `READY_FOR_RESEARCH` only when:
 - listing eligibility, historical coverage, and universe reconciliation are clear.
 
 An empty template, a structurally valid but unreviewed row, an unchecked archive, or a passing unit-test suite cannot grant readiness. A blocked gate exits with status code 2 and retains its JSON report as a CI artifact. The gate authorizes historical research-data use only; it never authorizes production or live trading. Reviewer metadata is an auditable human attestation, not cryptographic proof that the review occurred.
+
+
+## Step 17 — leakage-safe chronological validation splits
+
+The isolated capability at `research_model.validation.temporal_splits` builds expanding walk-forward folds from observation dates and explicit target-end dates. It keeps every symbol observed on the same date in the same test fold, never trains on observations dated on or after a fold's first test date, and purges training rows whose target window reaches the test boundary. A configurable calendar-day embargo adds a further gap before each test window.
+
+The function returns original row indices and fold boundary metadata; it does not fit a model, shuffle data, or infer target semantics. Callers must supply the actual last date consumed by each label in `target_date` (or an explicitly configured label-end column). The current tests use synthetic one-day labels only. The split utility is not evidence that historical labels, security membership, or corporate-action treatment are verified, and it does not authorize training.
+
+Example:
+
+```python
+from research_model.validation.temporal_splits import purged_walk_forward_splits
+
+folds = purged_walk_forward_splits(
+    observations,
+    n_splits=3,
+    embargo_days=2,
+    date_column="date",
+    label_end_column="target_date",
+)
+```
+
+The next validation layer must define the research target and return basis explicitly, then evaluate simple baselines and the candidate model on identical folds with realistic execution costs.

@@ -58,4 +58,18 @@ When supplied, the source registry is used to reject document rows whose source 
 - Do not merge different ISINs or infer successor/predecessor relationships from symbol similarity.
 - No identity mapping, corporate-action event, point-in-time universe membership, or historical partition is authorized by this acquisition contract.
 
+For a stricter identity-evidence check, pass the captured-document manifest to the identity validator:
+
+```bash
+python -m research_model.data.validate_identity_history research_model/schemas/security_identity_history.csv --source-documents research_model/schemas/historical_source_documents.csv
+```
+
+With this option, each identity row's document SHA-256 must exist in the manifest,
+the referenced document must be marked `INDEPENDENTLY_REVIEWED`, and the identity
+row's source URL must match that manifest entry's canonical or retrieval URL. This
+is a provenance-link check only: the validator still does not inspect the archived
+bytes, establish the truth of a mapping, or replace independent review of the
+identity interval. Run the source-archive validator with `--archive-root` separately
+to verify archived bytes.
+
 The capability always reports `REVIEW_REQUIRED`; archive-integrity success is not a source-authority or research-readiness approval.

@@ -79,6 +79,36 @@ def test_older_listing_uses_available_ohlcv_window_not_pre_window_calendar():
     assert row["listing_history_status"] == "STARTS_AT_FIRST_POSSIBLE_SESSION"
 
 
+def test_listing_coverage_builds_calendar_once_for_multiple_symbols(monkeypatch):
+    from src import historical_coverage_audit as coverage
+
+    calls = []
+    def fake_sessions(start, end):
+        calls.append((start, end))
+        return pd.bdate_range(start, end)
+
+    monkeypatch.setattr(coverage, "_expected_sessions", fake_sessions)
+    dates = pd.bdate_range("2024-01-01", periods=5)
+    valid = pd.DataFrame(
+        [{"symbol": symbol, "date": day}
+         for symbol in ("AAA", "BBB") for day in dates]
+    )
+    detail = pd.DataFrame([
+        {"symbol": "AAA", "first_date": dates[0], "last_date": dates[-1]},
+        {"symbol": "BBB", "first_date": dates[0], "last_date": dates[-1]},
+    ])
+    listing = pd.DataFrame({
+        "symbol": ["AAA", "BBB"],
+        "listing_date": ["2024-01-01", "2024-01-01"],
+    })
+
+    result = coverage._add_listing_coverage(detail, valid, listing)
+    assert len(calls) == 1
+    assert result["listing_history_status"].tolist() == [
+        "STARTS_AT_FIRST_POSSIBLE_SESSION", "STARTS_AT_FIRST_POSSIBLE_SESSION"
+    ]
+
+
 def test_listing_date_is_not_inferred_when_missing():
     universe = pd.DataFrame({"symbol": ["NEWCO"]})
     dates = pd.bdate_range("2024-01-01", periods=60)

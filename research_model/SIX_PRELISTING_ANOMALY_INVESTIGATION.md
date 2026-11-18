@@ -103,7 +103,7 @@ Sources:
 
 **Interpretation:** Pre-2020 observations belong to the pre-recommencement Ruchi Soya trading history if genuine. They must not be treated as an uninterrupted price history of the post-capital-reduction security without old/new ISIN, share-capital reduction/consolidation, and adjustment methodology being established. The RUCHI-to-PATANJALI symbol change in 2022 is a separate event and does not by itself prove ISIN continuity.
 
-**Disposition:** Split the timeline into (a) pre-suspension/pre-recommencement RUCHI security, (b) post-2020 recommenced RUCHI security after capital reduction, and (c) PATANJALI symbol/name from 2022-07-13. Obtain exact NSE/BSE suspension, delisting/recommencement, old/new ISIN and dated master records, plus corporate-action terms. No pre-2020 bars may enter the current-security series until relationship and adjustment are independently reviewed.
+**Disposition:** Split the timeline into (a) pre-2020-recommencement RUCHI security, (b) post-2020 recommenced RUCHI security after capital reduction, and (c) PATANJALI symbol/name from 2022-07-13. The exact suspension interval must be established from the original exchange notices. Obtain exact NSE/BSE suspension, delisting/recommencement, old/new ISIN and dated master records, plus corporate-action terms. No pre-2020 bars may enter the current-security series until relationship and adjustment are independently reviewed.
 
 Sources:
 - https://archives.nseindia.com/content/circulars/CML43307.pdf

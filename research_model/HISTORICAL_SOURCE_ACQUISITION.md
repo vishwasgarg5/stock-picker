@@ -46,12 +46,12 @@ Verify actual archived bytes against manifest size and SHA-256:
 python -m research_model.data.validate_source_archive research_model/schemas/historical_source_documents.csv --source-registry research_model/schemas/identity_source_registry.csv --archive-root /path/to/research_data/source_documents
 ```
 
-When supplied, the source registry is used to reject document rows whose source ID is not registered. The validator rejects duplicate document IDs, malformed HTTPS URLs, invalid dates/UTC timestamps, reversed effective intervals, unsafe paths, missing files, byte-length mismatches, and SHA-256 mismatches. It does not fetch URLs or modify source documents. CI uses only the empty template and deterministic synthetic fixtures; it must not download exchange data.
+When supplied, the source registry is used to reject document rows whose source ID is not registered, whose venue/source class/canonical URL disagree with the registry, or whose independently reviewed capture is attached to a source that is not itself marked `REVIEWED_AUTHORITATIVE` with reviewer metadata. The validator rejects duplicate document IDs, malformed HTTPS URLs, invalid dates/UTC timestamps, reversed effective intervals, unsafe paths, missing files, byte-length mismatches, and SHA-256 mismatches. It does not fetch URLs or modify source documents. CI uses only the empty template and deterministic synthetic fixtures; it must not download exchange data.
 
 ## Evidence and approval limits
 
 - A matching SHA-256 proves byte integrity relative to the manifest, not that the source is genuine, complete, or authoritative.
-- A reviewed source registry entry does not prove that a particular archived document supports a particular identity interval.
+- A reviewed source registry entry does not prove that a particular archived document supports a particular identity interval. The validator requires an authoritative reviewed source entry before a document can be marked independently reviewed, but that status still requires a human to inspect the source scope.
 - A reviewed document does not itself validate an ISIN/symbol/series mapping. Every mapping needs a precise document locator, source-specific date semantics, and independent human review.
 - Do not infer effective dates from file names, retrieval dates, or the first/last observation in a dataset.
 - Preserve conflicting documents and record the conflict; do not silently choose one.

@@ -44,6 +44,7 @@ def test_empty_evidence_manifests_never_pass_readiness(tmp_path):
         "source_document_validation": {"error_count": 0, "archive_integrity": "NOT_CHECKED",
                                        "byte_verified_documents": 0},
         "universe_reconciliation": {"status": "MATCH"},
+        "raw_symbol_review": {"status": "REVIEW_REQUIRED", "pending_symbols": ["AAA"], "error_count": 0},
         "listing_eligibility": {"status": "PASS"},
         "membership_snapshot": {"status": "SNAPSHOT_ONLY_NOT_HISTORICAL_MEMBERSHIP"},
         "membership_history_validation": {"error_count": 0, "structurally_valid_rows": 0},

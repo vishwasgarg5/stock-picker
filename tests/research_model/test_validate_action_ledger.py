@@ -80,5 +80,24 @@ class ActionLedgerTests(unittest.TestCase):
             self.assertEqual(report["status"], "REVIEW_REQUIRED")
 
 
+    def test_invalid_isin_checksum_is_rejected(self):
+        row = valid_dividend()
+        row["isin"] = "INE009A01022"
+        with tempfile.TemporaryDirectory() as directory:
+            report = validate_event_ledger(self._write(directory, [row]))
+            self.assertEqual(report["structurally_valid_rows"], 0)
+            self.assertTrue(any("valid ISO 6166 ISIN with checksum" in error for error in report["errors"]))
+
+    def test_historical_symbol_and_series_are_required(self):
+        row = valid_dividend()
+        row["symbol"] = ""
+        row["series"] = ""
+        with tempfile.TemporaryDirectory() as directory:
+            report = validate_event_ledger(self._write(directory, [row]))
+            self.assertEqual(report["structurally_valid_rows"], 0)
+            self.assertTrue(any("missing historical symbol" in error for error in report["errors"]))
+            self.assertTrue(any("missing historical series" in error for error in report["errors"]))
+
+
 if __name__ == "__main__":
     unittest.main()

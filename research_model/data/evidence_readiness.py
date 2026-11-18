@@ -29,6 +29,7 @@ REPORT_FILES = {
     "membership_history_validation": "index-membership-history-validation.json",
     "coverage_reconciliation": "coverage-reconciliation.json",
     "training_eligibility": "training-eligibility-summary.json",
+    "training_eligibility_validation": "training-eligibility-validation.json",
 }
 
 
@@ -267,9 +268,22 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         and len(eligibility.get("source_sha256", "")) == 64
         and len(eligibility.get("eligibility_manifest_sha256", "")) == 64
     )
+    eligibility_validation = reports["training_eligibility_validation"]
+    independently_verified = (
+        eligibility_validation.get("status") == "PASS"
+        and eligibility_validation.get("error_count") == 0
+        and eligibility_validation.get("source_sha256") == eligibility.get("source_sha256")
+        and eligibility_validation.get("manifest_sha256") == eligibility.get("eligibility_manifest_sha256")
+        and eligibility_validation.get("source_row_count") == eligibility.get("source_row_count")
+        and eligibility_validation.get("eligible_row_count") == eligibility.get("eligible_row_count")
+        and eligibility_validation.get("quarantined_row_count") == eligibility.get("quarantined_row_count")
+    )
+    eligibility_valid = eligibility_valid and independently_verified
     add("row_level_training_eligibility_manifest", eligibility_valid,
         f"source_rows={eligibility.get('source_row_count')}; eligible={eligibility.get('eligible_row_count')}; "
-        f"quarantined={eligibility.get('quarantined_row_count')}; manifest_sha256={eligibility.get('eligibility_manifest_sha256')}")
+        f"quarantined={eligibility.get('quarantined_row_count')}; independent_validation={eligibility_validation.get('status')}; "
+        f"validation_errors={eligibility_validation.get('error_count')}; "
+        f"manifest_sha256={eligibility.get('eligibility_manifest_sha256')}")
 
     raw_review = reports["raw_symbol_review"]
     add("raw_only_symbol_evidence_review", raw_review.get("status") == "REVIEWED",

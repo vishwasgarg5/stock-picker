@@ -14,6 +14,7 @@ class ReconcileUniverseTests(unittest.TestCase):
             root = Path(directory)
             ohlcv = root / "ohlcv.csv"
             audit = root / "audit.csv"
+            universe = root / "universe.csv"
             with ohlcv.open("w", newline="", encoding="utf-8") as handle:
                 writer = csv.writer(handle)
                 writer.writerow(["date", "symbol", "open", "high", "low", "close", "volume"])
@@ -31,11 +32,16 @@ class ReconcileUniverseTests(unittest.TestCase):
                     {"symbol": "BBB", "listing_history_status": "DATA_PRECEDES_LISTING_DATE", "first_date": "2020-01-01", "listing_date": "2021-01-01"},
                 ])
 
-            result = reconcile_universe(ohlcv, audit)
+            universe.write_text("symbol,company_name\\nAAA,Alpha\\nBBB,Beta\\n", encoding="utf-8")
+            result = reconcile_universe(ohlcv, audit, universe)
 
             self.assertEqual(result["status"], "REVIEW_REQUIRED")
             self.assertEqual(result["raw_only_symbols"], ["EXTRA"])
             self.assertEqual(result["audit_only_symbols"], ["BBB"])
+            self.assertEqual(result["current_universe_symbol_count"], 2)
+            self.assertEqual(result["raw_symbols_outside_current_universe"], ["EXTRA"])
+            self.assertEqual(result["current_universe_missing_ohlcv"], ["BBB"])
+            self.assertEqual(result["current_universe_not_in_coverage_audit"], [])
             self.assertEqual(result["symbols_without_verified_listing_date"], ["AAA"])
             self.assertEqual(result["data_precedes_listing_date"], [
                 {"symbol": "BBB", "first_date": "2020-01-01", "listing_date": "2021-01-01"}
@@ -47,12 +53,14 @@ class ReconcileUniverseTests(unittest.TestCase):
             root = Path(directory)
             ohlcv = root / "ohlcv.csv"
             audit = root / "audit.csv"
+            universe = root / "universe.csv"
             ohlcv.write_text("date,symbol\n2024-01-01,AAA\n", encoding="utf-8")
             audit.write_text(
                 "symbol,listing_history_status,first_date,listing_date\nAAA,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-01,2024-01-01\n",
                 encoding="utf-8",
             )
-            self.assertEqual(reconcile_universe(ohlcv, audit)["status"], "MATCH")
+            universe.write_text("symbol,company_name\\nAAA,Alpha\\n", encoding="utf-8")
+            self.assertEqual(reconcile_universe(ohlcv, audit, universe)["status"], "MATCH")
 
 
 if __name__ == "__main__":

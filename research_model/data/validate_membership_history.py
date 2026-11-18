@@ -73,7 +73,7 @@ def validate_membership_history(
         columns = reader.fieldnames or []
         rows = list(reader)
 
-    errors: list[str] = list(manifest_errors)
+    errors: list[str] = []
     missing = [column for column in REQUIRED_COLUMNS if column not in columns]
     if missing:
         errors.append("missing required columns: " + ", ".join(missing))
@@ -134,6 +134,8 @@ def validate_membership_history(
                         "capture_status": capture_status,
                         "review_metadata_valid": "false" if row_errors else "true",
                     })
+
+    errors.extend(manifest_errors)
 
     by_index_isin: dict[tuple[str, str], list[tuple[date, date | None, int]]] = defaultdict(list)
     by_index_symbol: dict[tuple[str, str], list[tuple[date, date | None, int, str]]] = defaultdict(list)

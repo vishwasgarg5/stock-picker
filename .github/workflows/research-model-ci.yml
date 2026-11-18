@@ -78,10 +78,10 @@ jobs:
             --summary "$RUNNER_TEMP/training-eligibility-summary.json"
       - name: Independently verify row-level training eligibility manifest
         run: |
-          python -m research_model.data.verify_training_eligibility \\
-            --source data/ohlcv.csv \\
-            --manifest "$RUNNER_TEMP/training-eligibility.csv" \\
-            --summary "$RUNNER_TEMP/training-eligibility-summary.json" \\
+          python -m research_model.data.verify_training_eligibility \
+            --source data/ohlcv.csv \
+            --manifest "$RUNNER_TEMP/training-eligibility.csv" \
+            --summary "$RUNNER_TEMP/training-eligibility-summary.json" \
             --output "$RUNNER_TEMP/training-eligibility-validation.json"
       - name: Inspect index constituent membership evidence
         run: python -m research_model.data.inspect_membership data/index_constituents_history.csv --output "$RUNNER_TEMP/membership-evidence-audit.json"

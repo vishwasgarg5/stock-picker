@@ -26,3 +26,11 @@ jobs:
         run: python -m compileall -q research_model tests/research_model
       - name: Run isolated data contract tests
         run: python -m pytest -q tests/research_model
+      - name: Audit committed historical OHLCV without modifying it
+        run: python -m research_model.data.inspect_ohlcv data/ohlcv.csv --output "$RUNNER_TEMP/ohlcv-source-manifest.json"
+      - name: Upload historical OHLCV source manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-ohlcv-source-manifest
+          path: ${{ runner.temp }}/ohlcv-source-manifest.json
+          if-no-files-found: error

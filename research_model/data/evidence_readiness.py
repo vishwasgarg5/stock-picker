@@ -116,7 +116,7 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         status = (row.get("capture_status") or "").strip().upper()
         reviewed = bool((row.get("reviewed_by") or "").strip()) and _utc(row.get("reviewed_at_utc") or "")
         source_reviewed = (
-            source.get("review_status", "").strip().upper() == "REVIEWED_AUTHORITATIVE"
+            (source.get("review_status") or "").strip().upper() == "REVIEWED_AUTHORITATIVE"
             and bool((source.get("reviewed_by") or "").strip())
             and _utc(source.get("reviewed_at_utc") or "")
         )
@@ -179,8 +179,8 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         and bool((row.get("reviewed_by") or "").strip())
         and _utc(row.get("reviewed_at_utc") or "")
         and any(
-            doc.get("source_id", "").strip() == (row.get("source_id") or "").strip()
-            and doc.get("capture_status", "").strip().upper() == "INDEPENDENTLY_REVIEWED"
+            (doc.get("source_id") or "").strip() == (row.get("source_id") or "").strip()
+            and (doc.get("capture_status") or "").strip().upper() == "INDEPENDENTLY_REVIEWED"
             for doc in docs_by_hash.get((row.get("source_document_sha256") or "").strip().lower(), [])
         )
         for row in membership_rows

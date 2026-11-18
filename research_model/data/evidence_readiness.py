@@ -58,6 +58,48 @@ def _utc(value: str) -> bool:
     return parsed.tzinfo is not None and parsed.utcoffset() == timezone.utc.utcoffset(parsed)
 
 
+def _common_symbol_coverage_matches(coverage: dict[str, Any], universe: dict[str, Any]) -> tuple[bool, str]:
+    """Accept exact shared-symbol coverage while separately blocking raw-only symbols."""
+    if coverage.get("status") == "MATCH":
+        return True, "fresh OHLCV scan matches prior coverage audit"
+    differences = coverage.get("differences") or {}
+    if set(differences) != {"row_count", "symbol_count"}:
+        return False, f"status={coverage.get('status')}; differences={differences}"
+    try:
+        rows, symbols = differences["row_count"], differences["symbol_count"]
+        row_delta = int(rows["fresh_scan"]) - int(rows["prior_audit"])
+        symbol_delta = int(symbols["fresh_scan"]) - int(symbols["prior_audit"])
+        raw_only_rows = int(universe["raw_only_row_count"])
+        raw_only_symbols = universe.get("raw_only_symbols") or []
+        raw_only_count = len(raw_only_symbols)
+        common_mismatches = int(universe["common_symbol_row_count_mismatch_count"])
+        symbol_count_delta = (
+            int(universe["raw_ohlcv_symbol_count"])
+            - int(universe["coverage_audit_symbol_count"])
+        )
+    except (KeyError, TypeError, ValueError):
+        return False, f"coverage/universe reconciliation fields are incomplete; differences={differences}"
+    audit_only = universe.get("audit_only_symbols") or []
+    reconciled = (
+        coverage.get("prior_audit_status") == "PASS"
+        and row_delta == raw_only_rows
+        and symbol_delta == raw_only_count
+        and symbol_count_delta == raw_only_count
+        and common_mismatches == 0
+        and not audit_only
+    )
+    if reconciled:
+        return True, (
+            f"shared-symbol row counts match; {raw_only_count} raw-only symbols "
+            f"account for all {raw_only_rows} excess rows and remain subject to separate review"
+        )
+    return False, (
+        f"status={coverage.get('status')}; differences={differences}; "
+        f"raw_only_symbols={raw_only_count}; raw_only_rows={raw_only_rows}; "
+        f"common_symbol_mismatches={common_mismatches}; audit_only={len(audit_only)}"
+    )
+
+
 def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = ".") -> dict[str, Any]:
     reports_root = Path(report_dir)
     root = Path(repo_root)
@@ -197,15 +239,15 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         f"status={listing.get('status')}; counts={listing.get('status_counts')}")
 
     coverage = reports["coverage_reconciliation"]
-    add("historical_coverage_reconciliation", coverage.get("status") == "MATCH",
-        f"status={coverage.get('status')}; differences={coverage.get('differences')}")
+    universe = reports["universe_reconciliation"]
+    coverage_matches, coverage_detail = _common_symbol_coverage_matches(coverage, universe)
+    add("historical_coverage_reconciliation", coverage_matches, coverage_detail)
 
     raw_review = reports["raw_symbol_review"]
     add("raw_only_symbol_evidence_review", raw_review.get("status") == "REVIEWED",
         f"status={raw_review.get('status')}; pending={len(raw_review.get('pending_symbols', []))}; "
         f"errors={raw_review.get('error_count')}")
 
-    universe = reports["universe_reconciliation"]
     add("universe_reconciliation", universe.get("status") == "MATCH",
         f"status={universe.get('status')}; raw_only={len(universe.get('raw_only_symbols', []))}; "
         f"audit_only={len(universe.get('audit_only_symbols', []))}")

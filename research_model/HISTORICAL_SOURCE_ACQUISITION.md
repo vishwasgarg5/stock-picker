@@ -128,3 +128,16 @@ Consequences for this project:
 - Retain the circular as process/field-semantics evidence; a downloaded dated file is still required for any snapshot-level claim.
 
 Source: [NSE circular MSD67344, 28-Mar-2025](https://nsearchives.nseindia.com/content/circulars/MSD67344.pdf), especially sections A, C and D.
+
+
+### Listing-date evidence leads found — 18-Nov-2026
+
+A focused primary-document search found issuer/exchange-hosted records for all three symbols currently marked `LISTING_DATE_UNKNOWN` in `data/historical_coverage_audit.csv`. These are **candidate evidence leads**, not yet accepted identity-ledger rows: the files have not been captured into the immutable source archive, their bytes have not been hashed in the manifest, and no independent reviewer has approved the mapping.
+
+| Symbol | Candidate listing date | Primary document lead | What it supports | Current treatment |
+|---|---|---|---|---|
+| `BAGMANE` | 2026-05-14 | [NSE listing circular CML74171, 13-May-2026](https://nsearchives.nseindia.com/content/circulars/CML74171.pdf); [Bagmane Prime Office REIT half-yearly report](https://nsearchives.nseindia.com/corporate/BAGMANE_13112026211944_BagmaneREITHalfYearlyReportSeptember302026.pdf) | NSE circular identifies symbol BAGMANE and ISIN INE2OVN25015; issuer report states units commenced trading on NSE and BSE on 14-May-2026 | `DISCOVERY_ONLY`; confirm exact NSE effective date in circular annexure and capture original documents |
+| `BIRET` | 2021-02-16 | [Brookfield India REIT FY2020-21 annual report filed with NSE](https://nsearchives.nseindia.com/corporate/BIRET_26072021174205_SubmissionofIstAnnualReportandIstNoticeofUnitholdersmeeting.pdf); [NSE listing circular CML47340, 15-Feb-2021 (copy located outside NSE archive)](https://www.steelcitynettrade.com/Circulars/Listing%20of%20Units%20of%20Brookfield.pdf) | Issuer annual report explicitly states units were listed on both NSE and BSE on 16-Feb-2021; circular copy states NSE admission effective 16-Feb-2021 | `DISCOVERY_ONLY`; capture official issuer filing and locate the original NSE-hosted circular before independent approval |
+| `EMBASSY` | 2019-04-01 | [Embassy Office Parks REIT FY2019-20 half-yearly report](https://www.embassyofficeparks.com/wp-content/uploads/2026/08/half-yearly-report_fy2019-20-1.pdf) | Issuer report states the REIT listed on NSE and BSE on 01-Apr-2019 | `DISCOVERY_ONLY`; capture original report bytes and independently review |
+
+These records materially narrow the unresolved listing-date research. They do **not** authorize changing `listing_history_status` from `LISTING_DATE_UNKNOWN`, populating `listing_date`, or creating point-in-time security identity intervals. The next gate is document capture plus exact source/document review. In particular, the 2024 Brookfield NSE circular CML62583 is a later additional-issue listing event and must not be mistaken for the original 2021 IPO listing date.

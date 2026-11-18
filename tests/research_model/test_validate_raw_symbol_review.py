@@ -29,9 +29,9 @@ class RawSymbolReviewTests(unittest.TestCase):
                 writer = csv.writer(handle)
                 writer.writerow(["symbol", "raw_row_count", "first_observed_date",
                     "last_observed_date", "in_current_universe", "historical_disposition",
-                    "source_document_id", "reviewed_by", "reviewed_at_utc", "review_notes"])
+                    "source_document_id", "source_document_sha256", "reviewed_by", "reviewed_at_utc", "review_notes"])
                 writer.writerow(["AAA", "2", "2024-01-01", "2024-01-02", "false",
-                    "PENDING", "", "", "", ""])
+                    "PENDING", "", "", "", "", ""])
             report = validate_raw_symbol_review(diagnostic, ledger, documents)
             self.assertEqual(report["status"], "REVIEW_REQUIRED")
             self.assertEqual(report["pending_symbols"], ["AAA"])
@@ -45,7 +45,7 @@ class RawSymbolReviewTests(unittest.TestCase):
                     "last_observed_date", "in_current_universe", "historical_disposition",
                     "source_document_id", "reviewed_by", "reviewed_at_utc", "review_notes"])
                 writer.writerow(["AAA", "2", "2024-01-01", "2024-01-02", "false",
-                    "EXCLUDE_FROM_RESEARCH_WITH_EVIDENCE", "DOC-1", "reviewer",
+                    "EXCLUDE_FROM_RESEARCH_WITH_EVIDENCE", "DOC-1", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "reviewer",
                     "2026-11-18T08:00:00Z", "Exchange archive confirms scope"])
             report = validate_raw_symbol_review(diagnostic, ledger, documents)
             self.assertEqual(report["status"], "REVIEWED")
@@ -78,7 +78,7 @@ class RawSymbolReviewTests(unittest.TestCase):
                     "last_observed_date", "in_current_universe", "historical_disposition",
                     "source_document_id", "reviewed_by", "reviewed_at_utc", "review_notes"])
                 writer.writerow(["AAA", "3", "2024-01-01", "2024-01-02", "false",
-                    "INCLUDE_IN_HISTORICAL_UNIVERSE", "MISSING", "reviewer",
+                    "INCLUDE_IN_HISTORICAL_UNIVERSE", "MISSING", "", "reviewer",
                     "2026-11-18T08:00:00Z", "Evidence"])
             report = validate_raw_symbol_review(diagnostic, ledger, documents)
             self.assertEqual(report["status"], "REVIEW_REQUIRED")

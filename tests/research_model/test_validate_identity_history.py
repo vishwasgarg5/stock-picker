@@ -132,6 +132,16 @@ class IdentityHistoryTests(unittest.TestCase):
             self.assertEqual(report["venue_isin_count"], 2)
             self.assertEqual(report["isin_count"], 2)  # legacy alias
 
+    def test_identity_source_id_must_match_manifest_even_when_venue_matches(self):
+        with tempfile.TemporaryDirectory() as directory:
+            identity = self.write_rows(directory, [identity_row(source_id="BSE_STANDARD_SECURITY_MASTER_FORMAT")])
+            manifest = self.write_document_manifest(directory)
+            report = validate_identity_history(identity, manifest)
+            self.assertTrue(any(
+                "source_id and venue do not match" in error
+                for error in report["errors"]
+            ))
+
     def test_identity_venue_and_source_must_match_manifest(self):
         with tempfile.TemporaryDirectory() as directory:
             identity = self.write_rows(directory, [identity_row(venue="BSE")])

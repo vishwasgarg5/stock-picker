@@ -54,17 +54,39 @@ def _safe_archive_path(value: str) -> bool:
 
 def validate_source_archive(csv_path: str | Path, archive_root: str | Path | None = None, source_registry: str | Path | None = None) -> dict[str, Any]:
     manifest = Path(csv_path)
-    registered_source_ids: set[str] | None = None
+    registered_sources: dict[str, dict[str, str]] | None = None
+    registry_errors: list[str] = []
     if source_registry is not None:
         with Path(source_registry).open("r", encoding="utf-8-sig", newline="") as registry_handle:
-            registered_source_ids = {((item.get("source_id") or "").strip()) for item in csv.DictReader(registry_handle)}
+            registry_reader = csv.DictReader(registry_handle)
+            registry_columns = set(registry_reader.fieldnames or [])
+            required_registry_columns = {"source_id", "venue", "source_class", "canonical_url"}
+            missing_registry_columns = sorted(required_registry_columns - registry_columns)
+            if missing_registry_columns:
+                registry_errors.append(
+                    "source registry missing required columns: " + ", ".join(missing_registry_columns)
+                )
+            registered_sources = {}
+            for registry_line, item in enumerate(registry_reader, start=2):
+                registry_id = (item.get("source_id") or "").strip()
+                if not registry_id:
+                    registry_errors.append(f"source registry row {registry_line}: missing source_id")
+                    continue
+                if registry_id in registered_sources:
+                    registry_errors.append(f"source registry row {registry_line}: duplicate source_id {registry_id}")
+                    continue
+                registered_sources[registry_id] = {
+                    "venue": (item.get("venue") or "").strip().upper(),
+                    "source_class": (item.get("source_class") or "").strip().upper(),
+                    "canonical_url": (item.get("canonical_url") or "").strip(),
+                }
     root = Path(archive_root).resolve() if archive_root is not None else None
     with manifest.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
         columns = reader.fieldnames or []
         rows = list(reader)
 
-    errors: list[str] = []
+    errors: list[str] = list(registry_errors)
     missing = [name for name in REQUIRED_COLUMNS if name not in columns]
     if missing:
         errors.append("missing required columns: " + ", ".join(missing))
@@ -83,8 +105,25 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
         source_id = (row.get("source_id") or "").strip()
         if not source_id:
             errors.append(f"row {line}: missing source_id (must reference source registry)")
-        elif registered_source_ids is not None and source_id not in registered_source_ids:
+        elif registered_sources is not None and source_id not in registered_sources:
             errors.append(f"row {line}: source_id is not present in the supplied source registry")
+        elif registered_sources is not None:
+            registered = registered_sources[source_id]
+            row_venue = (row.get("venue") or "").strip().upper()
+            row_class = (row.get("source_class") or "").strip().upper()
+            row_canonical_url = (row.get("canonical_url") or "").strip()
+            if row_venue != registered["venue"]:
+                errors.append(
+                    f"row {line}: venue does not match source registry for source_id {source_id}"
+                )
+            if row_class != registered["source_class"]:
+                errors.append(
+                    f"row {line}: source_class does not match source registry for source_id {source_id}"
+                )
+            if row_canonical_url != registered["canonical_url"]:
+                errors.append(
+                    f"row {line}: canonical_url does not match source registry for source_id {source_id}"
+                )
         if (row.get("venue") or "").strip().upper() not in VENUES:
             errors.append(f"row {line}: invalid venue")
         if (row.get("source_class") or "").strip().upper() not in SOURCE_CLASSES:
@@ -153,6 +192,7 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
         "manifest_sha256": hashlib.sha256(manifest.read_bytes()).hexdigest(),
         "archive_root_checked": str(root) if root is not None else None,
         "source_registry_checked": str(source_registry) if source_registry is not None else None,
+        "registered_source_count": len(registered_sources) if registered_sources is not None else None,
         "document_count": len(rows), "required_columns_missing": missing,
         "unique_document_ids": len(seen), "byte_verified_documents": byte_verified,
         "error_count": len(errors), "errors": errors[:200],

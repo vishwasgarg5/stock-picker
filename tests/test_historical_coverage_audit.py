@@ -52,13 +52,31 @@ def test_listing_date_sets_each_stock_history_start():
 
 def test_listing_audit_flags_missing_history_at_the_beginning():
     universe = pd.DataFrame({"symbol": ["NEWCO"]})
-    dates = pd.bdate_range("2024-01-15", periods=60)
-    history = pd.DataFrame([{"date": day, "symbol": "NEWCO", "open": 10.0, "high": 11.0,
-        "low": 9.0, "close": 10.5, "volume": 1000} for day in dates])
+    dates = pd.bdate_range("2024-01-01", periods=70)
+    history = pd.DataFrame(
+        [{"date": day, "symbol": "REFERENCE", "open": 10.0, "high": 11.0,
+          "low": 9.0, "close": 10.5, "volume": 1000} for day in dates]
+        + [{"date": day, "symbol": "NEWCO", "open": 10.0, "high": 11.0,
+            "low": 9.0, "close": 10.5, "volume": 1000} for day in dates[10:]]
+    )
     listing = pd.DataFrame({"symbol": ["NEWCO"], "listing_date": ["2024-01-01"]})
     _, detail = audit_history(universe, history, listing)
     assert detail.iloc[0]["listing_to_first_bar_gap_sessions"] > 0
     assert detail.iloc[0]["listing_history_status"] == "STARTS_AFTER_LISTING_DATE_REVIEW"
+
+
+def test_older_listing_uses_available_ohlcv_window_not_pre_window_calendar():
+    universe = pd.DataFrame({"symbol": ["OLDCO"]})
+    dates = pd.bdate_range("2018-01-01", periods=65)
+    history = pd.DataFrame([{"date": day, "symbol": "OLDCO", "open": 10.0, "high": 11.0,
+        "low": 9.0, "close": 10.5, "volume": 1000} for day in dates])
+    listing = pd.DataFrame({"symbol": ["OLDCO"], "listing_date": ["2005-06-01"]})
+    _, detail = audit_history(universe, history, listing)
+    row = detail.iloc[0]
+    assert row["listing_expected_start"] < "2018-01-01"
+    assert row["coverage_window_start"] == "2018-01-01"
+    assert row["coverage_window_sessions_without_ohlcv"] == 0
+    assert row["listing_history_status"] == "STARTS_AT_FIRST_POSSIBLE_SESSION"
 
 
 def test_listing_date_is_not_inferred_when_missing():

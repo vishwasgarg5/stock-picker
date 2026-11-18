@@ -295,6 +295,11 @@ def main() -> None:
     parser.add_argument("--report-dir", required=True, type=Path)
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--report-only",
+        action="store_true",
+        help="publish evidence status without failing technical CI; default remains fail-closed",
+    )
     args = parser.parse_args()
     report = evaluate_evidence_readiness(args.report_dir, args.repo_root)
     serialized = json.dumps(report, indent=2, sort_keys=True)
@@ -302,7 +307,7 @@ def main() -> None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(serialized + "\n", encoding="utf-8")
     print(serialized)
-    if report["status"] != "READY_FOR_RESEARCH":
+    if report["status"] != "READY_FOR_RESEARCH" and not args.report_only:
         raise SystemExit(2)
 
 

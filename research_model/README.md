@@ -45,3 +45,22 @@ Each partition preserves the original `date` and `symbol` columns. Partitioning 
 - No data partition is generated until source coverage, schema, corporate-action treatment, and provenance have been reviewed.
 - No model is considered validated from in-sample metrics.
 - Every reported metric must identify its exact date window and input manifest.
+
+
+## Step 2 — inspect the frozen historical OHLCV source
+
+`research_model.data.inspect_ohlcv` performs a streaming, read-only scan of the committed `data/ohlcv.csv` file. It records the source SHA-256, file size, columns, row count, symbol/date coverage, year-quarter row counts, duplicate symbol/date keys, numeric/price consistency errors, and presence of corporate-action columns. It does not partition or rewrite the source.
+
+Run it from the repository root:
+
+```bash
+python -m research_model.data.inspect_ohlcv data/ohlcv.csv --output ohlcv-source-manifest.json
+```
+
+The pull-request CI runs the same scan and uploads the full per-symbol manifest as a workflow artifact. The JSON summary is printed in the Actions log.
+
+### Existing audit evidence to reconcile
+
+The repository's existing `data/historical_coverage_audit.json` reports a prior snapshot of 915,478 valid OHLCV rows across 500 symbols, covering 2018-01-01 through 2026-11-17. It marks the audit `REVIEW_REQUIRED`: 497 symbols have verified listing dates, 3 do not, and 6 have data preceding their listing dates. This is inherited audit evidence, not a fresh validation by the new research package.
+
+The new source scan must be reconciled with that evidence before historical partitions are generated. The listing/provenance exceptions and corporate-action treatment remain open data-governance gates. Do not train on these inputs until they are resolved or explicitly excluded under a reviewed policy.

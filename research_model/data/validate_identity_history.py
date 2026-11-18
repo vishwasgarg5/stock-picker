@@ -68,13 +68,21 @@ def parse_utc(value: str, field: str, row: int, errors: list[str]) -> datetime |
     return parsed
 
 
-def validate_identity_history(path: str | Path) -> dict[str, Any]:
+def validate_identity_history(path: str | Path, source_documents: str | Path | None = None) -> dict[str, Any]:
     source = Path(path)
     with source.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
         columns = reader.fieldnames or []
         rows = list(reader)
     errors: list[str] = []
+    reviewed_document_hashes: dict[str, set[str]] | None = None
+    if source_documents is not None:
+        reviewed_document_hashes = defaultdict(set)
+        with Path(source_documents).open("r", encoding="utf-8-sig", newline="") as manifest_handle:
+            for document in csv.DictReader(manifest_handle):
+                digest = (document.get("sha256") or "").strip().lower()
+                if digest:
+                    reviewed_document_hashes[digest].add((document.get("capture_status") or "").strip().upper())
     missing = [name for name in REQUIRED_COLUMNS if name not in columns]
     if missing:
         errors.append("missing required columns: " + ", ".join(missing))
@@ -99,11 +107,18 @@ def validate_identity_history(path: str | Path) -> dict[str, Any]:
 
         if not (row.get("source_name") or "").strip():
             errors.append(f"row {number}: missing source_name")
-        if not (row.get("source_url") or "").strip().startswith(("https://", "http://")):
-            errors.append(f"row {number}: source_url must be http(s)")
+        source_url = (row.get("source_url") or "").strip()
+        if not source_url.startswith("https://"):
+            errors.append(f"row {number}: source_url must use HTTPS")
         digest = (row.get("source_document_sha256") or "").strip().lower()
         if not SHA_RE.fullmatch(digest):
             errors.append(f"row {number}: source_document_sha256 must be 64 hex characters")
+        elif reviewed_document_hashes is not None:
+            document_statuses = reviewed_document_hashes.get(digest)
+            if not document_statuses:
+                errors.append(f"row {number}: source_document_sha256 is absent from supplied source-document manifest")
+            elif "INDEPENDENTLY_REVIEWED" not in document_statuses:
+                errors.append(f"row {number}: referenced source document is not independently reviewed")
         parse_utc(row.get("retrieved_at_utc", ""), "retrieved_at_utc", number, errors)
         if not (row.get("retrieved_at_utc") or "").strip():
             errors.append(f"row {number}: missing retrieved_at_utc")
@@ -120,6 +135,19 @@ def validate_identity_history(path: str | Path) -> dict[str, Any]:
             errors.append(f"row {number}: verified identity requires reviewer and UTC review time")
         if status != "INDEPENDENTLY_VERIFIED" and (reviewed_by or reviewed_at_raw):
             errors.append(f"row {number}: reviewer metadata requires INDEPENDENTLY_VERIFIED")
+
+        if reviewed_document_hashes is not None and SHA_RE.fullmatch(digest):
+            if digest in reviewed_document_hashes and source_url:
+                # The manifest is the capture record; URL matching is checked against its
+                # canonical/retrieved URL fields to prevent a detached provenance citation.
+                with Path(source_documents).open("r", encoding="utf-8-sig", newline="") as manifest_handle:
+                    matching_documents = [doc for doc in csv.DictReader(manifest_handle)
+                        if (doc.get("sha256") or "").strip().lower() == digest]
+                if matching_documents and not any(source_url in {
+                    (doc.get("canonical_url") or "").strip(),
+                    (doc.get("retrieved_url") or "").strip(),
+                } for doc in matching_documents):
+                    errors.append(f"row {number}: source_url does not match the referenced source-document manifest entry")
 
         if start and valid_isin(isin):
             intervals[isin].append((start, end, number))
@@ -152,6 +180,8 @@ def validate_identity_history(path: str | Path) -> dict[str, Any]:
         "isin_count": len(intervals),
         "overlapping_intervals": overlap_count,
         "identity_policy": "SAME_ISIN_INTERVALS_ONLY; DIFFERENT_ISINS_NEVER_AUTO_LINKED",
+        "source_document_manifest": Path(source_documents).as_posix() if source_documents is not None else None,
+        "source_document_manifest_checked": source_documents is not None,
         "independent_verification": "NOT_PERFORMED_BY_THIS_VALIDATOR",
         "approval": "HUMAN_REVIEW_REQUIRED_EVEN_IF_STRUCTURALLY_VALID",
         "error_count": len(errors),
@@ -164,9 +194,10 @@ def validate_identity_history(path: str | Path) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("csv_path", type=Path)
+    parser.add_argument("--source-documents", type=Path, help="Optional captured-document manifest to bind identity evidence to reviewed source artifacts")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    report = validate_identity_history(args.csv_path)
+    report = validate_identity_history(args.csv_path, args.source_documents)
     serialized = json.dumps(report, indent=2, sort_keys=True)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

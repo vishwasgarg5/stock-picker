@@ -214,3 +214,34 @@ The allowlisted capture implementation is `research_model/data/capture_historica
 NSE circular MSD60315 confirms daily website dissemination of the NSE CM MII security file from 05-Feb-2024 and identifies the report catalogue route. The live catalogue distinguishes the NSE-listed file from the NSE-listed plus BSE-exclusive interoperability variant. The four PDFs captured by this workflow are source-process/specification documents, not a substitute for dated daily security-master snapshots. See the [NSE circular](https://nsearchives.nseindia.com/content/circulars/MSD60315.pdf) and [NSE All Reports catalogue](https://www.nseindia.com/all-reports).
 
 **Operational limitation:** the weekly schedule becomes active automatically only after this workflow is merged into the repository's default branch. Before merge, use Actions → Capture Historical Primary-Source Documents → Run workflow and select this PR branch. This triggers code-based retrieval on GitHub; it does not require uploading files.
+
+
+## Automated capture verification and content triage — 18-Nov-2026
+
+### GitHub capture run #4
+
+[Capture workflow run #4](https://github.com/vishwasgarg5/stock-picker/actions/runs/44327473647) completed successfully on commit `34dd22c1da89f6949fba0f2a957c6b31837ca32b`. The runner fetched all four official PDF responses, wrote them to the archive, validated the archive, committed the four binary files plus the manifest, and pushed commit `2f6210c9d67446458dac27c6963eab0a43233ca2` to `research/clean-model-foundation`.
+
+The validator reported 4 documents, 4 byte-verified documents, 0 errors, 4 unique document IDs and 20 registered sources. All four manifest entries remain `CAPTURED_UNREVIEWED`. The earlier capture runs #1–#3 failed in the shell commit step because its `if` block lacked a closing `fi`; the fetch and archive validation stages had succeeded. The missing shell terminator was fixed, and run #4 confirms commit/push now succeeds. No PDF download or archive-integrity error remains in run #4.
+
+### Archive inventory
+
+| Document | Bytes | SHA-256 |
+|---|---:|---|
+| NSE MSD60315 circular | 74,473 | `02d851cec85512d10440d47bf5c253545510711504cf53b35f67f3b134b02a35` |
+| NSE Masters Data v1.6 | 817,499 | `a1e45b6de312ebf05298fac8a1c4fbe337b8339b7eb110ac75705925bd05487e` |
+| BSE standardized security-master format | 234,396 | `82db7936e235cb93409c06f60a46de787ad860947ab75bc68b365a866f8055e1` |
+| NSE historical CM data note | 136,529 | `e8ac6bb76e428c1345827bc616faa4c0ff3043fb90e603338cf2599dcb9c2ff9` |
+
+### Content triage based on the original documents
+
+- **NSE MSD60315, dated 19-Jan-2024:** confirms daily website dissemination of CM MII security files using the `NSE_CM_security_ddmmyyyy.csv.gz` naming pattern, effective 05-Feb-2024. It points users to the NSE All Reports catalogue. This is evidence of the publication process, not a historical dated file itself.
+- **NSE Masters Data v1.6, dated 05-May-2025:** specifies CM security-master fields including symbol, series, token, ISIN-related identity context, permitted-to-trade state and listing date. Critically, the specification distinguishes listed-but-not-permitted securities, permitted securities and BSE-exclusive securities. It describes an after-EOD vendor product delivered using authenticated SFTP credentials; this public specification does not grant those credentials or prove public access to all historical daily snapshots.
+- **NSE Historical CM Data Dissemination note:** describes a historical Masters database containing ISIN, symbol, series, name and deleted flag, with month-end snapshot semantics. It explicitly says the Masters snapshot applicable to a month is stored as of the end of the preceding month. It is a discovery route for point-in-time identity evidence, but not itself the dated monthly master data.
+- **BSE standardized security-master format:** the original bytes are captured and hash-verified. Its content-level field and effective-date review is still pending; do not infer field semantics from the title or URL.
+
+The first three documents have had their text/content inspected against the original published PDFs. This is an engineering content triage, **not an independent human source-authority sign-off**. BSE content review and a separate reviewer approval remain open. The documents also do not yet provide the dated historical masters snapshots needed to independently resolve individual security identity intervals.
+
+### Current gate interpretation
+
+Capture and byte integrity are complete for this batch. Source authority, exact document applicability, BSE content review, dated historical identity snapshots and independent reviewer approval are not yet complete. The provenance validator's `REVIEW_REQUIRED` result is therefore correct and must remain fail-closed. Do not mark these four documents `INDEPENDENTLY_REVIEWED`, do not promote registry source status, and do not unlock training on the strength of these specifications alone.

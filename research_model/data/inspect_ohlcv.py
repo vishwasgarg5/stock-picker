@@ -7,11 +7,11 @@ import csv
 import hashlib
 import json
 from collections import Counter
-from datetime import date
 from pathlib import Path
 from typing import Any
 
 from .ohlcv_contract import REQUIRED_OHLCV_COLUMNS
+from .validate_ohlcv import parse_canonical_date
 
 
 def inspect_ohlcv_file(path: str | Path) -> dict[str, Any]:
@@ -28,9 +28,11 @@ def inspect_ohlcv_file(path: str | Path) -> dict[str, Any]:
     row_count = 0
     valid_date_rows = 0
     invalid_dates = 0
+    invalid_symbols = 0
     invalid_numeric_rows = 0
     invalid_ohlc_rows = 0
     duplicate_symbol_dates = 0
+    malformed_rows = 0
     symbols: dict[str, dict[str, Any]] = {}
     quarter_rows: Counter[str] = Counter()
     seen_keys: set[tuple[str, str]] = set()
@@ -42,21 +44,41 @@ def inspect_ohlcv_file(path: str | Path) -> dict[str, Any]:
         missing_columns = [name for name in REQUIRED_OHLCV_COLUMNS if name not in columns]
         if missing_columns:
             raise ValueError(f"OHLCV source missing required columns: {missing_columns}")
+        if len(columns) != len(set(columns)):
+            raise ValueError("OHLCV source contains duplicate column names")
 
         for row in reader:
             row_count += 1
-            symbol = str(row.get("symbol") or "").strip()
-            raw_date = str(row.get("date") or "").strip()
+            if None in row:
+                malformed_rows += 1
+                error_counts["extra_csv_fields"] += 1
+                continue
+
+            raw_symbol = row.get("symbol")
+            if raw_symbol is None or not raw_symbol.strip():
+                invalid_symbols += 1
+                error_counts["missing_or_blank_symbol"] += 1
+                symbol = ""
+            elif raw_symbol != raw_symbol.strip():
+                invalid_symbols += 1
+                error_counts["noncanonical_symbol_whitespace"] += 1
+                symbol = raw_symbol.strip()
+            else:
+                symbol = raw_symbol
+
+            raw_date = row.get("date")
             try:
-                parsed_date = date.fromisoformat(raw_date[:10])
+                parsed_date = parse_canonical_date(raw_date)
                 valid_date_rows += 1
                 quarter = (parsed_date.month - 1) // 3 + 1
                 quarter_rows[f"{parsed_date.year:04d}-Q{quarter}"] += 1
-            except ValueError:
+            except (TypeError, ValueError):
                 invalid_dates += 1
-                error_counts["invalid_date"] += 1
+                error_counts["invalid_or_noncanonical_date"] += 1
                 continue
 
+            if not symbol:
+                continue
             key = (symbol, parsed_date.isoformat())
             if key in seen_keys:
                 duplicate_symbol_dates += 1
@@ -77,7 +99,7 @@ def inspect_ohlcv_file(path: str | Path) -> dict[str, Any]:
             for column in ("open", "high", "low", "close", "volume"):
                 try:
                     value = float(row[column])
-                    if value != value or value in (float("inf"), float("-inf")):
+                    if not __import__("math").isfinite(value):
                         raise ValueError
                     numeric[column] = value
                     if column == "volume" and value < 0:
@@ -112,6 +134,8 @@ def inspect_ohlcv_file(path: str | Path) -> dict[str, Any]:
         "last_date": max(dates) if dates else None,
         "valid_date_rows": valid_date_rows,
         "invalid_dates": invalid_dates,
+        "invalid_symbols": invalid_symbols,
+        "malformed_rows": malformed_rows,
         "invalid_numeric_rows": invalid_numeric_rows,
         "invalid_ohlc_rows": invalid_ohlc_rows,
         "duplicate_symbol_dates": duplicate_symbol_dates,

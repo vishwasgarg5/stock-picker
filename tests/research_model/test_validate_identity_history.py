@@ -129,6 +129,8 @@ class IdentityHistoryTests(unittest.TestCase):
             report = validate_identity_history(self.write_rows(directory, [nse, bse]))
             self.assertEqual(report["overlapping_intervals"], 0)
             self.assertEqual(report["structurally_valid_rows"], 2)
+            self.assertEqual(report["venue_isin_count"], 2)
+            self.assertEqual(report["isin_count"], 2)  # legacy alias
 
     def test_identity_venue_and_source_must_match_manifest(self):
         with tempfile.TemporaryDirectory() as directory:

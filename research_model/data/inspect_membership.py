@@ -42,15 +42,27 @@ def inspect_membership_file(path: str | Path) -> dict[str, Any]:
             row_errors: list[str] = []
             if None in row:
                 row_errors.append("extra CSV fields")
-            index = (row.get("index") or "").strip().upper()
-            symbol = (row.get("symbol") or "").strip().upper()
-            raw_date = (row.get("as_of_date") or "").strip()
-            method = (row.get("weight_method") or "").strip()
-            evidence_source = (row.get("source") or "").strip()
+            raw_index = row.get("index") or ""
+            raw_symbol = row.get("symbol") or ""
+            index = raw_index.strip().upper()
+            symbol = raw_symbol.strip().upper()
+            raw_date = row.get("as_of_date") or ""
+            raw_method = row.get("weight_method") or ""
+            raw_source = row.get("source") or ""
+            method = raw_method.strip()
+            evidence_source = raw_source.strip()
             if not index:
                 row_errors.append("missing index")
+            elif raw_index != raw_index.strip():
+                row_errors.append("index contains surrounding whitespace")
             if not symbol:
                 row_errors.append("missing symbol")
+            elif raw_symbol != raw_symbol.strip():
+                row_errors.append("symbol contains surrounding whitespace")
+            if raw_method != method:
+                row_errors.append("weight_method contains surrounding whitespace")
+            if raw_source != evidence_source:
+                row_errors.append("source contains surrounding whitespace")
             try:
                 parsed = date.fromisoformat(raw_date)
                 if parsed.isoformat() != raw_date:

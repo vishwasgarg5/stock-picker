@@ -1,1 +1,0 @@
-"""Isolated research model package."""

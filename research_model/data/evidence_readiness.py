@@ -266,8 +266,44 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
         f"audit_only={len(universe.get('audit_only_symbols', []))}")
 
     passed = all(item["passed"] for item in checks)
+    check_by_name = {item["name"]: item["passed"] for item in checks}
+
+    # Tier 1 is deliberately limited to structural exploration. It does not
+    # authorize fitting, tuning, calibration, or reporting predictive results.
+    tier1_requirements = (
+        "ohlcv_integrity",
+        "embedded_corporate_action_field_integrity",
+        "source_registry_structure",
+        "historical_coverage_reconciliation",
+    )
+    tier1_authorized = all(check_by_name.get(name, False) for name in tier1_requirements)
+
+    # Tier 2 requires a verified reduced universe. Until a row-level training
+    # eligibility manifest exists and all included observations have captured
+    # source, identity, listing, and corporate-action evidence, training stays
+    # disabled. Review-only universe gaps cannot be silently treated as eligible.
+    tier2_requirements = (
+        "ohlcv_integrity",
+        "embedded_corporate_action_field_integrity",
+        "source_registry_structure",
+        "captured_source_documents",
+        "point_in_time_security_identity",
+        "corporate_action_evidence",
+        "listing_date_eligibility",
+        "raw_only_symbol_evidence_review",
+    )
+    tier2_authorized = all(check_by_name.get(name, False) for name in tier2_requirements)
+
+    # Tier 3 uses the complete evidence gate, including historical membership
+    # and full universe reconciliation. No tier grants production/live authority.
+    tier3_authorized = passed
     return {
         "status": "READY_FOR_RESEARCH" if passed else "BLOCKED",
+        "readiness_tiers": {
+            "tier1_structural_exploration_authorized": tier1_authorized,
+            "tier2_reduced_universe_training_authorized": tier2_authorized,
+            "tier3_promotion_evidence_authorized": tier3_authorized,
+        },
         "approval_scope": "HISTORICAL_RESEARCH_DATA_ONLY_NOT_PRODUCTION_OR_LIVE_TRADING",
         "check_count": len(checks),
         "passed_checks": sum(item["passed"] for item in checks),
@@ -284,7 +320,7 @@ def evaluate_evidence_readiness(report_dir: str | Path, repo_root: str | Path = 
             "Reviewer fields are auditable attestations, not cryptographic proof that an independent review occurred. "
             "The accountable research owner must retain the original documents and review trail."
         ),
-        "training_authorized": passed,
+        "training_authorized": tier2_authorized,
         "production_authorized": False,
         "live_trading_authorized": False,
     }

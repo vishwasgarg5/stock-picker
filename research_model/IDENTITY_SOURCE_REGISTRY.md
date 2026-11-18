@@ -8,26 +8,31 @@ proof of any security's ISIN, symbol, series, security code, or effective dates.
 
 ### Current discovery inventory
 
-The registry contains three candidate routes, all deliberately marked
+The registry contains five candidate sources, all deliberately marked
 `DISCOVERY_ONLY`:
 
-- **NSE historical Masters documentation** — NSE's historical data dissemination
-  document describes a Masters database containing symbol, series, and ISIN
-  reference data. The actual dated master files, schemas, archive paths, and
-  historical coverage still need to be acquired and checked.
-- **NSE daily MII security-file catalogue** — the current All Reports catalogue
-  exposes dated NSE listed-security files, including a combined NSE-listed and
-  BSE-exclusive option. This is a current-snapshot discovery route, not proof
-  that historical snapshots are available or complete.
-- **BSE standardized security-master specification** — the specification defines
-  fields including scrip code, instrument code, group, scrip name, and ISIN.
-  It documents the intended schema; no dated historical BSE master snapshots
-  have yet been acquired or verified.
+- **NSE historical Masters documentation** — describes a Masters database
+  containing symbols, series, and ISINs. It establishes a historical archive
+  discovery route, not the actual coverage of acquired master snapshots.
+- **NSE Masters Data specification v1.6** — describes the capital-market
+  security master structure, including symbol, series, token, and additional
+  instrument fields. A specification is not a dated master snapshot.
+- **NSE daily MII security-file catalogue** — the official All Reports page lists
+  the CM MII security file for NSE-listed securities and a combined
+  NSE-listed/BSE-exclusive option. A current report listing does not prove
+  historical archive availability or completeness.
+- **NSE dissemination circular MSD60315** — states that daily CM MII security
+  master files use the name `NSE_CM_security_ddmmyyyy.csv.gz` and that website
+  dissemination became effective on 05-Feb-2024. The circular is publication
+  process evidence, not the actual daily file.
+- **BSE standardized security-master specification** — defines fields including
+  scrip code, instrument code, group, scrip name, and ISIN. No dated historical
+  BSE master snapshots have yet been acquired or verified.
 
 These entries are source-discovery leads only. They do not establish any
 security-level mapping, historical effective interval, or complete point-in-time
 coverage. Do not change their status to `REVIEWED_AUTHORITATIVE` merely because
-the landing page or format specification is published by an exchange.
+a specification, circular, or landing page is published by an exchange.
 
 ### Source classes
 
@@ -54,9 +59,9 @@ that decision evaluates the source's stated authority scope only.
 
 A registry validator result always remains `REVIEW_REQUIRED`; it cannot authenticate
 a document, establish historical coverage, approve an identity mapping, or authorize
-historical partition generation. The registry is no longer empty, but every current
-entry remains discovery-only until the underlying dated files and source-specific
-retrieval procedures are reviewed.
+historical partition generation. The registry is populated with discovery routes,
+but every current entry remains discovery-only until the underlying dated files
+and source-specific retrieval procedures are reviewed.
 
 Run:
 

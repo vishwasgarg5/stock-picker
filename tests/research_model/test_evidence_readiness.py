@@ -59,6 +59,9 @@ def test_empty_evidence_manifests_never_pass_readiness(tmp_path):
 
     result = evaluate_evidence_readiness(reports, repo)
     assert result["status"] == "BLOCKED"
+    assert result["readiness_tiers"]["tier1_structural_exploration_authorized"] is True
+    assert result["readiness_tiers"]["tier2_reduced_universe_training_authorized"] is False
+    assert result["readiness_tiers"]["tier3_promotion_evidence_authorized"] is False
     assert result["training_authorized"] is False
     assert result["production_authorized"] is False
     assert result["live_trading_authorized"] is False

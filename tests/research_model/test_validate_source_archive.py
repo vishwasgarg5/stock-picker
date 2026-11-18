@@ -242,3 +242,24 @@ def test_authoritative_registry_entry_requires_reviewer_metadata(tmp_path):
         "requires reviewer and UTC review timestamp" in error
         for error in report["errors"]
     )
+
+
+def test_nse_daily_security_file_variants_have_distinct_source_scopes():
+    from pathlib import Path
+
+    registry_path = (
+        Path(__file__).resolve().parents[2]
+        / "research_model" / "schemas" / "identity_source_registry.csv"
+    )
+    with registry_path.open("r", encoding="utf-8-sig", newline="") as handle:
+        sources = {row["source_id"]: row for row in csv.DictReader(handle)}
+
+    nse_only = sources["NSE_DAILY_MII_SECURITY_FILE"]
+    interoperability = sources["NSE_DAILY_MII_BSE_INTEROPERABILITY_FILE"]
+
+    assert nse_only["venue"] == interoperability["venue"] == "NSE"
+    assert nse_only["canonical_url"] == interoperability["canonical_url"]
+    assert "NSE-listed securities variant only" in nse_only["authority_scope"]
+    assert "not a complete BSE master" in interoperability["authority_scope"]
+    assert nse_only["source_id"] != interoperability["source_id"]
+

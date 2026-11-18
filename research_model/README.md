@@ -235,3 +235,10 @@ The registry distinguishes exchange security masters, exchange circulars, listin
 The source-governance protocol is in [`IDENTITY_SOURCE_REGISTRY.md`](IDENTITY_SOURCE_REGISTRY.md). Preserve downloaded source documents separately, hash their exact bytes, record retrieval time separately from publication/effective dates, and cite precise page/row/circular/filing references. Identity-history rows require their own source-specific evidence and independent human review. Different ISINs must never be automatically linked.
 
 The registry template is intentionally empty. No source has yet been certified and no identity mapping or historical partition generation is authorized.
+
+
+## Step 16 — historical security-master document acquisition
+
+The header-only `schemas/historical_source_documents.csv` records each genuinely captured historical security-master document separately from the candidate source registry. The validator `research_model.data.validate_source_archive` checks source/document identifiers, HTTPS provenance URLs, publication/effective dates separately from UTC retrieval time, content type, exact byte length, SHA-256, safe relative archive paths, and independent-review metadata. When given an archive root, it reads the archived bytes and verifies both size and SHA-256.
+
+The acquisition and review procedure is documented in [`HISTORICAL_SOURCE_ACQUISITION.md`](HISTORICAL_SOURCE_ACQUISITION.md). No scraping or downloads are performed by this capability. The template remains empty until real documents are captured. CI validates the empty template and synthetic fixtures only. The validator always reports `REVIEW_REQUIRED`, `source_authority=NOT_ESTABLISHED`, and `identity_mapping_approval=NOT_GRANTED`; byte integrity is not proof of source authority or a valid security mapping. No historical identity rows or partitions are authorized.

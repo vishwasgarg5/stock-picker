@@ -121,3 +121,16 @@ python -m research_model.data.partition_ohlcv data/ohlcv.csv --output-root /path
 ```
 
 CI tests use small temporary fixtures. CI does not materialize partitions from the repository's historical OHLCV source. The real historical dataset remains unpartitioned until provenance, listing-date exceptions, corporate-action treatment, and point-in-time membership policy have been reviewed.
+
+
+## Step 6 — independent partition archive verification
+
+`research_model.data.verify_partitions` independently reads the materialized archive and its manifest. It checks the applied-write marker and manifest version, safe expected paths, every partition SHA-256, exact column schema, OHLCV row validity, corporate-action numeric validity, canonical dates, correct year/quarter placement, deterministic date/symbol ordering, duplicate symbol/session keys, per-partition row counts/symbol counts/date ranges, and aggregate source row/symbol/date coverage.
+
+Run it against an archive root after partition creation:
+
+```bash
+python -m research_model.data.verify_partitions /path/to/new/research_data
+```
+
+The verifier does not modify the archive or source. Its tests deliberately alter a partition, alter manifest counts, and remove a partition to confirm that integrity failures are detected. This verifies internal archive consistency; it does not establish that source prices, listing dates, corporate actions, or historical index membership are economically correct.

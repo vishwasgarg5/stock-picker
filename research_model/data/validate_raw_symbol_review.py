@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -33,7 +34,7 @@ def validate_raw_symbol_review(
         docs_reader = csv.DictReader(handle)
         if not docs_reader.fieldnames or "document_id" not in docs_reader.fieldnames:
             raise ValueError("source document manifest must contain document_id")
-        document_ids = {(row.get("document_id") or "").strip() for row in docs_reader}
+        documents = {(row.get("document_id") or "").strip(): row for row in docs_reader if (row.get("document_id") or "").strip()}
     with Path(ledger_path).open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
         if not reader.fieldnames or not REQUIRED.issubset(reader.fieldnames):
@@ -71,8 +72,16 @@ def validate_raw_symbol_review(
             pending.append(symbol)
             continue
         document_id = (row.get("source_document_id") or "").strip()
-        if not document_id or document_id not in document_ids:
+        document = documents.get(document_id)
+        if document is None:
             errors.append(f"{symbol}: disposition requires a source_document_id in the document manifest")
+        else:
+            if (document.get("capture_status") or "").strip().upper() != "INDEPENDENTLY_REVIEWED":
+                errors.append(f"{symbol}: source document must be independently reviewed")
+            if not re.fullmatch(r"[0-9a-fA-F]{64}", (document.get("sha256") or "").strip()):
+                errors.append(f"{symbol}: source document must have a valid SHA-256 digest")
+            if not (document.get("archive_path") or "").strip():
+                errors.append(f"{symbol}: source document must have an archive_path")
         if not (row.get("reviewed_by") or "").strip():
             errors.append(f"{symbol}: disposition requires reviewed_by")
         if not _utc(row.get("reviewed_at_utc") or ""):

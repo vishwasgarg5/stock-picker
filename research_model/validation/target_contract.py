@@ -31,7 +31,11 @@ class TargetContract:
     def __post_init__(self) -> None:
         if self.return_basis not in {"split_adjusted_price", "cash_dividend_inclusive"}:
             raise ValueError(f"unsupported return_basis: {self.return_basis!r}")
-        if isinstance(self.horizon_sessions, bool) or self.horizon_sessions < 1:
+        if (
+            isinstance(self.horizon_sessions, bool)
+            or not isinstance(self.horizon_sessions, int)
+            or self.horizon_sessions < 1
+        ):
             raise ValueError("horizon_sessions must be a positive integer")
         for name in (
             "decision_price_field",
@@ -39,8 +43,9 @@ class TargetContract:
             "exit_price_field",
             "label_end_field",
         ):
-            if not getattr(self, name).strip():
-                raise ValueError(f"{name} must be non-empty")
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must be a non-empty string")
         if self.corporate_action_evidence not in {
             "UNVERIFIED", "INDEPENDENTLY_VERIFIED"
         }:

@@ -10,6 +10,14 @@ from pathlib import Path
 from typing import Any
 
 
+def _parse_observed_sessions(value: str, symbol: str) -> int:
+    """Parse an exact non-negative integer count; never truncate or coerce."""
+    raw = (value or "").strip()
+    if not raw or not raw.isascii() or not raw.isdecimal():
+        raise ValueError(f"Invalid observed_sessions for {symbol}: {value!r}")
+    return int(raw)
+
+
 def reconcile_universe(
     ohlcv_path: str | Path, audit_csv_path: str | Path, universe_csv_path: str | Path
 ) -> dict[str, Any]:
@@ -39,14 +47,13 @@ def reconcile_universe(
             symbol = (row.get("symbol") or "").strip()
             if not symbol:
                 continue
+            if symbol in audit_symbols:
+                raise ValueError(f"Duplicate symbol in coverage audit: {symbol}")
             audit_symbols.add(symbol)
             if has_observed_counts:
-                try:
-                    audit_counts[symbol] = int(float(row.get("observed_sessions") or "0"))
-                except ValueError as exc:
-                    raise ValueError(
-                        f"Invalid observed_sessions for {symbol}: {row.get('observed_sessions')!r}"
-                    ) from exc
+                audit_counts[symbol] = _parse_observed_sessions(
+                    row.get("observed_sessions") or "", symbol
+                )
             status = (row.get("listing_history_status") or "").strip()
             if status == "LISTING_DATE_UNKNOWN":
                 unknown.append(symbol)

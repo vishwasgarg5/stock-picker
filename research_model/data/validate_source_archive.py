@@ -94,6 +94,7 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
     if missing:
         errors.append("missing required columns: " + ", ".join(missing))
     seen: set[str] = set()
+    seen_archive_paths: set[str] = set()
     byte_verified = 0
 
     for line, row in enumerate(rows, start=2):
@@ -163,6 +164,10 @@ def validate_source_archive(csv_path: str | Path, archive_root: str | Path | Non
             errors.append(f"row {line}: sha256 must be 64 lowercase hexadecimal characters")
 
         relative = (row.get("archive_path") or "").strip()
+        if relative and relative in seen_archive_paths:
+            errors.append(f"row {line}: duplicate archive_path {relative}")
+        if relative:
+            seen_archive_paths.add(relative)
         if not _safe_archive_path(relative):
             errors.append(f"row {line}: archive_path must be a safe relative path")
         elif root is not None:

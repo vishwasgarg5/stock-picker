@@ -9,7 +9,7 @@ from research_model.data.validate_action_ledger import REQUIRED_COLUMNS, validat
 
 def valid_dividend():
     return {
-        "symbol": "AAA", "action_type": "DIVIDEND", "ex_date": "2024-01-10",
+        "isin": "INE009A01021", "symbol": "INFY", "series": "EQ", "security_code": "500209", "action_type": "DIVIDEND", "ex_date": "2024-01-10",
         "announcement_date": "2023-12-20", "record_date": "2024-01-11",
         "payment_date": "2024-01-25", "cash_amount": "2.5", "currency": "INR",
         "split_numerator": "", "split_denominator": "", "source_name": "Exchange filing",
@@ -58,7 +58,7 @@ class ActionLedgerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             report = validate_event_ledger(self._write(directory, [first, second]))
             self.assertEqual(report["structurally_valid_rows"], 1)
-            self.assertTrue(any("duplicate symbol/action_type/ex_date" in error for error in report["errors"]))
+            self.assertTrue(any("duplicate ISIN/action_type/ex_date" in error for error in report["errors"]))
 
     def test_missing_evidence_and_bad_dates_are_rejected(self):
         row = valid_dividend()

@@ -127,5 +127,5 @@ jobs:
               marker = "PASS" if check["passed"] else "BLOCKED"
               lines.append(f"- **{marker} — {check['name']}**: {check['detail']}")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as handle:
-              handle.write("\\n".join(lines) + "\\n")
+              handle.write("\n".join(lines) + "\n")
           PY

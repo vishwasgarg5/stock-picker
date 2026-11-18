@@ -54,7 +54,7 @@ class ReconcilePartitionsTests(unittest.TestCase):
     def test_rehashed_partition_with_changed_value_fails_exact_match(self):
         path = self.archive / "partitioned/ohlcv/year=2024/quarter=Q2/part-000.csv"
         rows = list(csv.DictReader(path.open("r", encoding="utf-8", newline="")))
-        rows[0]["close"] = "21.25"
+        rows[0]["close"] = "31.25"
         with path.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
             writer.writeheader()

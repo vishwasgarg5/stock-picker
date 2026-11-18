@@ -75,3 +75,17 @@ The first full scan on the PR branch found:
 This differs from the prior coverage audit (915,478 rows and a 500-symbol universe). The reconciliation capability reports both values and marks the result `REVIEW_REQUIRED`; it does not rewrite the old audit or assume that the additional rows/symbols are valid for any particular model universe.
 
 The source scan is a structural/data-integrity check only. It does not prove adjusted-price correctness, point-in-time membership, survivorship-bias control, or listing provenance.
+
+
+## Step 3 — corporate-action treatment
+
+The existing V1 pipeline has a split-only adjustment routine: for each symbol it rebases prices before later stock splits and scales historical volume, while retaining raw execution prices. Its tests cover split-adjusted returns. Dividend cash values are preserved as metadata and are not included in that split adjustment.
+
+The isolated research package now has its own standard-library implementation at `research_model/data/corporate_actions.py`. It:
+- retains every raw OHLCV and dividend field;
+- adds separate split-adjusted OHLCV fields;
+- compounds multiple future split ratios per symbol;
+- rejects duplicate symbol/session keys, non-finite or non-positive prices, negative volume, and invalid split ratios;
+- does not treat dividends as splits or silently alter prices for dividends.
+
+This is deliberately a split-adjusted price series, **not** a dividend-reinvested total-return series. Dividend-aware labels and returns need a separately specified cash-flow convention and verified action dates/amounts before implementation. The new module is isolated and does not import or modify V1.

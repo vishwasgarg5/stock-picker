@@ -301,3 +301,13 @@ folds = purged_walk_forward_splits(
 ```
 
 The next validation layer must define the research target and return basis explicitly, then evaluate simple baselines and the candidate model on identical folds with realistic execution costs.
+
+
+## Step 18 — explicit forward-target semantics
+
+`research_model.validation.target_contract` defines required configuration for a forward-return target without choosing a return basis implicitly:
+
+- `split_adjusted_price`: dividends are explicitly excluded.
+- `cash_dividend_inclusive`: cash dividends are included under the explicitly named `cash_received_no_reinvestment` convention and independently verified corporate-action evidence is required.
+
+Every contract must also declare the horizon in sessions, decision-price field, entry-price field, exit-price field, and target-end date field. There are no defaults for these semantics. The contract is declarative only: it does not calculate labels and always reports training authorization as false. Dividend-inclusive labels remain blocked until event dates, amounts, and adjustment basis are independently verified. A configured contract is not proof that the source data meets it.

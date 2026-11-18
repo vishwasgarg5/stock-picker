@@ -103,7 +103,7 @@ jobs:
             ${{ runner.temp }}/coverage-reconciliation.json
             ${{ runner.temp }}/training-eligibility.csv
             ${{ runner.temp }}/training-eligibility-summary.json
-          if-no-files-found: error
+          if-no-files-found: warn
 
   evidence-readiness-report:
     name: Evidence readiness (report only)

@@ -5,7 +5,8 @@ on:
     branches: [research/clean-model-foundation]
     paths:
       - ".github/workflows/historical-source-capture.yml"
-      - "research_model/data/capture_historical_sources.py"\n      - "research_model/data/discover_nse_master_routes.py"
+      - "research_model/data/capture_historical_sources.py"
+      - "research_model/data/discover_nse_master_routes.py"
       - "research_model/schemas/identity_source_registry.csv"
   workflow_dispatch:
   schedule:
@@ -32,7 +33,9 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - name: Discover actual dated NSE master download routes\n        run: python -m research_model.data.discover_nse_master_routes\n      - name: Capture allowlisted official PDFs
+      - name: Discover actual dated NSE master download routes
+        run: python -m research_model.data.discover_nse_master_routes
+      - name: Capture allowlisted official PDFs
         id: capture
         continue-on-error: true
         run: python -m research_model.data.capture_historical_sources

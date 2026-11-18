@@ -60,5 +60,23 @@ class OhlcvValidationTests(unittest.TestCase):
         self.assertTrue(any("missing required column" in x for x in validate_ohlcv_row(row)))
 
 
+
+    def test_date_rejects_timestamp_suffix_and_whitespace(self):
+        for value in ("2024-01-02T00:00:00Z", "2024-01-02garbage", " 2024-01-02", "2024-1-2"):
+            with self.subTest(value=value):
+                self.assertTrue(validate_ohlcv_row({**self.valid_row, "date": value}))
+
+    def test_missing_symbol_is_not_stringified_to_none(self):
+        for value in (None, "", "   "):
+            with self.subTest(value=value):
+                self.assertTrue(any("symbol" in error for error in validate_ohlcv_row(
+                    {**self.valid_row, "symbol": value}
+                )))
+
+    def test_datetime_object_is_not_accepted_as_date_only(self):
+        row = {**self.valid_row, "date": datetime(2024, 1, 2, 12, 0)}
+        self.assertTrue(any("date" in error for error in validate_ohlcv_row(row)))
+
+
 if __name__ == "__main__":
     unittest.main()

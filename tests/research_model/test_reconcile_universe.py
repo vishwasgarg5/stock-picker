@@ -120,5 +120,37 @@ class ReconcileUniverseTests(unittest.TestCase):
 
 
 
+    def test_rejects_fractional_or_negative_observed_session_counts(self):
+        for bad_count in ("1.5", "-1"):
+            with self.subTest(observed_sessions=bad_count), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                ohlcv, audit, universe = root / "ohlcv.csv", root / "audit.csv", root / "universe.csv"
+                ohlcv.write_text("date,symbol\\n2024-01-01,AAA\\n", encoding="utf-8")
+                audit.write_text(
+                    "symbol,listing_history_status,first_date,listing_date,observed_sessions\\n"
+                    f"AAA,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-01,2024-01-01,{bad_count}\\n",
+                    encoding="utf-8",
+                )
+                universe.write_text("symbol\\nAAA\\n", encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "Invalid observed_sessions"):
+                    reconcile_universe(ohlcv, audit, universe)
+
+    def test_rejects_duplicate_symbols_in_coverage_audit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            ohlcv, audit, universe = root / "ohlcv.csv", root / "audit.csv", root / "universe.csv"
+            ohlcv.write_text("date,symbol\\n2024-01-01,AAA\\n", encoding="utf-8")
+            audit.write_text(
+                "symbol,listing_history_status,first_date,listing_date,observed_sessions\\n"
+                "AAA,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-01,2024-01-01,1\\n"
+                "AAA,STARTS_AT_FIRST_POSSIBLE_SESSION,2024-01-01,2024-01-01,2\\n",
+                encoding="utf-8",
+            )
+            universe.write_text("symbol\\nAAA\\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Duplicate symbol"):
+                reconcile_universe(ohlcv, audit, universe)
+
+
+
 if __name__ == "__main__":
     unittest.main()

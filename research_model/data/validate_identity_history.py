@@ -95,6 +95,7 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
 
     intervals: dict[tuple[str, str], list[tuple[date, date | None, int]]] = defaultdict(list)
     symbol_intervals: dict[tuple[str, str, str], list[tuple[date, date | None, int, str]]] = defaultdict(list)
+    security_code_intervals: dict[tuple[str, str], list[tuple[date, date | None, int, str]]] = defaultdict(list)
     valid_rows = 0
     for number, row in enumerate(rows, start=2):
         before = len(errors)
@@ -166,6 +167,9 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
             intervals[(venue, isin)].append((start, end, number))
         if start and venue in {"NSE", "BSE"} and symbol and series:
             symbol_intervals[(venue, symbol, series)].append((start, end, number, isin))
+        security_code = (row.get("security_code") or "").strip()
+        if start and venue in {"NSE", "BSE"} and security_code:
+            security_code_intervals[(venue, security_code)].append((start, end, number, isin))
         if len(errors) == before:
             valid_rows += 1
 
@@ -213,6 +217,21 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
                 overlap_count += 1
                 symbol_overlap_count += 1
 
+    security_code_overlap_count = 0
+    for (venue_code, entries) in security_code_intervals.items():
+        interval_rows = [(start, end, row_number) for start, end, row_number, _ in entries]
+        for current_row, previous_row in count_overlaps(interval_rows):
+            current_isin = next(item[3] for item in entries if item[2] == current_row)
+            previous_isin = next(item[3] for item in entries if item[2] == previous_row)
+            if current_isin != previous_isin:
+                errors.append(
+                    f"row {current_row}: overlapping security_code identity for {venue_code[0]} "
+                    f"code {venue_code[1]} maps to different ISINs {current_isin} and "
+                    f"{previous_isin} (row {previous_row})"
+                )
+                overlap_count += 1
+                security_code_overlap_count += 1
+
     return {
         "status": "REVIEW_REQUIRED",
         "source_path": source.as_posix(),
@@ -226,6 +245,7 @@ def validate_identity_history(path: str | Path, source_documents: str | Path | N
         "overlapping_intervals": overlap_count,
         "overlapping_venue_isin_intervals": isin_overlap_count,
         "overlapping_venue_symbol_series_intervals": symbol_overlap_count,
+        "overlapping_venue_security_code_intervals": security_code_overlap_count,
         "identity_policy": "VENUE_SCOPED_ISIN_INTERVALS; DIFFERENT_VENUES_REMAIN_DISTINCT; DIFFERENT_ISINS_NEVER_AUTO_LINKED",
         "source_document_manifest": Path(source_documents).as_posix() if source_documents is not None else None,
         "source_document_manifest_checked": source_documents is not None,

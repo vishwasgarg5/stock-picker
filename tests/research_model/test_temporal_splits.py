@@ -43,9 +43,13 @@ def test_multiple_symbols_on_same_date_stay_in_same_test_fold():
     rows = rows_for_days(10)
     rows.insert(4, {**rows[4], "symbol": "BBB"})
     folds = purged_walk_forward_splits(rows, n_splits=2, test_size=2)
-    for fold in folds:
-        test_dates = {rows[i]["date"] for i in fold["test_indices"]}
-        assert all(rows[i]["date"] in test_dates for i in fold["test_indices"])
+    duplicate_indices = [i for i, row in enumerate(rows) if row["date"] == rows[4]["date"]]
+    containing_folds = [
+        fold for fold in folds
+        if any(i in fold["test_indices"] for i in duplicate_indices)
+    ]
+    assert len(containing_folds) == 1
+    assert set(duplicate_indices).issubset(set(containing_folds[0]["test_indices"]))
 
 
 @pytest.mark.parametrize(
@@ -69,3 +73,27 @@ def test_invalid_dates_are_rejected():
     rows[0]["date"] = "not-a-date"
     with pytest.raises(ValueError, match="invalid date"):
         purged_walk_forward_splits(rows, n_splits=2, test_size=2)
+
+
+
+def test_datetime_inputs_are_normalized_to_calendar_dates():
+    from datetime import datetime, timezone
+
+    rows = rows_for_days(10)
+    rows[0]["date"] = datetime(2024, 1, 1, 15, 30, tzinfo=timezone.utc)
+    rows[0]["target_date"] = datetime(2024, 1, 2, 15, 30, tzinfo=timezone.utc)
+    folds = purged_walk_forward_splits(rows, n_splits=2, test_size=2)
+    assert folds[0]["train_start"] == "2024-01-01"
+
+
+def test_duplicate_symbol_date_rows_are_assigned_together():
+    rows = rows_for_days(10)
+    rows.insert(4, {**rows[4], "symbol": "BBB"})
+    duplicate_indices = [i for i, row in enumerate(rows) if row["date"] == rows[4]["date"]]
+    folds = purged_walk_forward_splits(rows, n_splits=2, test_size=2)
+    containing_folds = [
+        fold for fold in folds
+        if any(i in fold["test_indices"] for i in duplicate_indices)
+    ]
+    assert len(containing_folds) == 1
+    assert set(duplicate_indices).issubset(set(containing_folds[0]["test_indices"]))

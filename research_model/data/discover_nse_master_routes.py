@@ -108,6 +108,35 @@ def main():
         url for url in hrefs
         if urlparse(url).hostname in ALLOWED_HOSTS and TERMS.search(url)
     })
+    # Follow only the exact report-detail links observed in the official catalogue.
+    detail_urls = sorted({
+        url for url in hrefs
+        if urlparse(url).hostname in ALLOWED_HOSTS
+        and urlparse(url).path in {
+            "/report-detail/eq_security",
+            "/report-detail/fo_eq_security",
+        }
+    })
+    detail_pages = []
+    for url in detail_urls:
+        try:
+            body, actual = get(url, MAX_PAGE)
+            page_text = body.decode("utf-8", errors="replace")
+            detail_parser = PageParser()
+            detail_parser.feed(page_text)
+            detail_pages.append({
+                "url": actual,
+                "bytes": len(body),
+                "sha256": hashlib.sha256(body).hexdigest(),
+                "observed_links": sorted({
+                    urljoin(actual, link) for link in detail_parser.links
+                    if urlparse(urljoin(actual, link)).hostname in ALLOWED_HOSTS
+                }),
+                "contains_mii_label": "MII" in page_text and "Security File" in page_text,
+                "contains_download_handler": "reportDownloadIconDaily" in page_text,
+            })
+        except (OSError, urllib.error.URLError, RuntimeError) as exc:
+            detail_pages.append({"url": url, "error": str(exc)[:240]})
 
     assets = []
     for src in parser.scripts[:MAX_SCRIPTS]:
@@ -142,6 +171,10 @@ def main():
                 "sha256": hashlib.sha256(body).hexdigest(),
                 "endpoint_like_strings": snippets(source, ENDPOINT, 40),
                 "relevant_context": snippets(source, TERMS, 45),
+                "report_card_download_handler_contexts": [
+                    source[max(0, match.start() - 900):min(len(source), match.end() + 1900)]
+                    for match in list(re.finditer(r"reportDownloadIconDaily", source, re.I))[:8]
+                ],
             })
 
     report = {
@@ -149,6 +182,7 @@ def main():
         "catalogue_bytes": len(payload),
         "catalogue_sha256": hashlib.sha256(payload).hexdigest(),
         "catalogue_relevant_links": relevant_links,
+        "observed_report_detail_pages": detail_pages,
         "official_script_count": len(parser.scripts),
         "inline_script_count": len(parser.inline_scripts),
         "scripts_inspected": len(assets),

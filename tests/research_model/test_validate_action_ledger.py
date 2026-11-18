@@ -1,7 +1,10 @@
 """Tests for the evidence-linked corporate-action ledger contract."""
 import csv
+import json
+import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from research_model.data.validate_action_ledger import REQUIRED_COLUMNS, validate_event_ledger
@@ -98,6 +101,19 @@ class ActionLedgerTests(unittest.TestCase):
             self.assertTrue(any("missing historical symbol" in error for error in report["errors"]))
             self.assertTrue(any("missing historical series" in error for error in report["errors"]))
 
+
+    def test_cli_output_file_is_valid_json_with_real_newline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = self._write(directory, [])
+            output = Path(directory) / "report.json"
+            with patch.object(sys, "argv", ["validate_action_ledger", str(source), "--output", str(output)]):
+                from research_model.data.validate_action_ledger import main
+                main()
+            raw = output.read_bytes()
+            self.assertTrue(raw.endswith(b"\\n"))
+            self.assertFalse(raw.endswith(b"\\\\n"))
+            parsed = json.loads(raw.decode("utf-8"))
+            self.assertEqual(parsed["row_count"], 0)
 
 if __name__ == "__main__":
     unittest.main()

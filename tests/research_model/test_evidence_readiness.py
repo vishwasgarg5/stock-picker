@@ -69,7 +69,7 @@ def test_empty_evidence_manifests_never_pass_readiness(tmp_path):
 def test_coverage_reconciliation_accepts_only_explained_raw_only_delta():
     coverage = {
         "status": "REVIEW_REQUIRED",
-        "prior_audit_status": "PASS",
+        "prior_audit_status": "REVIEW_REQUIRED",
         "differences": {
             "row_count": {"fresh_scan": 958475, "prior_audit": 915478},
             "symbol_count": {"fresh_scan": 528, "prior_audit": 500},
@@ -94,7 +94,7 @@ def test_coverage_reconciliation_accepts_only_explained_raw_only_delta():
 def test_coverage_reconciliation_rejects_unexplained_or_shared_symbol_drift():
     coverage = {
         "status": "REVIEW_REQUIRED",
-        "prior_audit_status": "PASS",
+        "prior_audit_status": "REVIEW_REQUIRED",
         "differences": {
             "row_count": {"fresh_scan": 958476, "prior_audit": 915478},
             "symbol_count": {"fresh_scan": 528, "prior_audit": 500},
@@ -117,7 +117,7 @@ def test_coverage_reconciliation_rejects_unexplained_or_shared_symbol_drift():
 def test_coverage_reconciliation_rejects_any_common_symbol_row_mismatch():
     coverage = {
         "status": "REVIEW_REQUIRED",
-        "prior_audit_status": "PASS",
+        "prior_audit_status": "REVIEW_REQUIRED",
         "differences": {
             "row_count": {"fresh_scan": 958475, "prior_audit": 915478},
             "symbol_count": {"fresh_scan": 528, "prior_audit": 500},

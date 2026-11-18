@@ -37,16 +37,16 @@ The original extension may be retained as part of the archive filename. The mani
 Metadata-only structural check:
 
 ```bash
-python -m research_model.data.validate_source_archive research_model/schemas/historical_source_documents.csv
+python -m research_model.data.validate_source_archive research_model/schemas/historical_source_documents.csv --source-registry research_model/schemas/identity_source_registry.csv
 ```
 
 Verify actual archived bytes against manifest size and SHA-256:
 
 ```bash
-python -m research_model.data.validate_source_archive research_model/schemas/historical_source_documents.csv --archive-root /path/to/research_data/source_documents
+python -m research_model.data.validate_source_archive research_model/schemas/historical_source_documents.csv --source-registry research_model/schemas/identity_source_registry.csv --archive-root /path/to/research_data/source_documents
 ```
 
-The validator rejects duplicate document IDs, malformed HTTPS URLs, invalid dates/UTC timestamps, reversed effective intervals, unsafe paths, missing files, byte-length mismatches, and SHA-256 mismatches. It does not fetch URLs or modify source documents. CI uses only the empty template and deterministic synthetic fixtures; it must not download exchange data.
+When supplied, the source registry is used to reject document rows whose source ID is not registered. The validator rejects duplicate document IDs, malformed HTTPS URLs, invalid dates/UTC timestamps, reversed effective intervals, unsafe paths, missing files, byte-length mismatches, and SHA-256 mismatches. It does not fetch URLs or modify source documents. CI uses only the empty template and deterministic synthetic fixtures; it must not download exchange data.
 
 ## Evidence and approval limits
 

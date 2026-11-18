@@ -154,6 +154,12 @@ Sources:
 8. For PATANJALI, DALBHARAT and TECHNOE, complete corporate-reorganisation/adjustment review before stitching predecessor and successor prices.
 9. Keep pre-event bars quarantined from the current-security training series until all identity and adjustment checks pass. Do not delete or rewrite source OHLCV.
 
+## Latest CI status — run #191 (18-Nov-2026)
+
+The latest full research-model workflow completed with 22 of 23 verification steps successful; the final authoritative evidence-readiness gate correctly exited blocked. The fresh 500-symbol source-window rebuild reports 486 `STARTS_AT_FIRST_POSSIBLE_SESSION`, 8 `STARTS_AFTER_LISTING_DATE_REVIEW`, and 6 `DATA_PRECEDES_LISTING_DATE`. This supersedes the earlier PR summary's 484/7/6 counts. The readiness report records 4 passed and 7 blocked checks out of 11. In particular, captured source documents, verified identity intervals, verified corporate-action events, and historical index-membership intervals are all still zero. The 28 raw-only symbols remain pending review. See [workflow run #191](https://github.com/vishwasgarg5/stock-picker/actions/runs/44282253311).
+
+The six investigations in this document explain the likely exchange/event causes, but none has yet been cleared at the identity-evidence or OHLCV-row-provenance level. The six pre-listing classifications must therefore remain blocked; do not convert them to verified solely from event-level public references.
+
 ## Current conclusion
 
 - Six anomaly explanations have been investigated against official exchange/issuer sources.

@@ -35,8 +35,9 @@ def test_empty_evidence_manifests_never_pass_readiness(tmp_path):
         "ohlcv": {"row_count": 10, "invalid_dates": 0, "invalid_symbols": 0,
                   "malformed_rows": 0, "invalid_numeric_rows": 0, "invalid_ohlc_rows": 0,
                   "duplicate_symbol_dates": 0},
-        "corporate_action_audit": {"dividends": {"invalid_values": 0, "negative_values_held_for_review": 0},
-                                  "stock_splits": {"invalid_values": 0, "negative_values_held_for_review": 0}},
+        "corporate_action_audit": {"action_columns_missing": [], "actions": {
+            "dividends": {"invalid_values": 0, "negative_values_held_for_review": 0},
+            "stock_splits": {"invalid_values": 0, "negative_values_held_for_review": 0}}},
         "corporate_action_validation": {"error_count": 0, "structurally_valid_rows": 0},
         "identity_history_validation": {"error_count": 0, "structurally_valid_rows": 0},
         "identity_source_validation": {"error_count": 0},

@@ -49,3 +49,18 @@ Every candidate must end in one of: `PENDING`, `INDEPENDENTLY_VERIFIED`, or `REJ
 - BSE market-data portal describing its corporate-data product and access process: https://marketdata.bseindia.com/
 
 These references establish discovery routes and context only. They do not supply event records for this repository or verify any row in its ledger.
+
+
+## Point-in-time security identity history
+
+The empty template `research_model/schemas/security_identity_history.csv` records the identity that an official source associates with an instrument over a stated validity interval: ISIN, historical symbol, series, optional security code, inclusive `valid_from`/`valid_to` dates, and source-document provenance. An empty template is intentional; no historical mappings are assumed.
+
+Run its structural check:
+
+```bash
+python -m research_model.data.validate_identity_history research_model/schemas/security_identity_history.csv
+```
+
+The validator checks ISIN checksums, date order, required identity and evidence fields, UTC retrieval/review metadata, and overlapping validity intervals for the same ISIN. It always reports `REVIEW_REQUIRED`; it cannot authenticate the source document or verify that the stated interval is true.
+
+A symbol/series change may be represented as consecutive intervals only when an authoritative source establishes the effective dates. Different ISINs are always treated as separate identities. Mergers, demergers, amalgamations, and other successor/predecessor relationships are not inferred or joined by this tool. They require a separately reviewed corporate-reorganization record and explicit methodology before any historical price series or membership history is linked.

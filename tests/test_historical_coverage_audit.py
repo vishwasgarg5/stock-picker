@@ -51,7 +51,7 @@ def test_listing_date_sets_each_stock_history_start():
 
 
 def test_listing_audit_flags_missing_history_at_the_beginning():
-    universe = pd.DataFrame({"symbol": ["NEWCO"]})
+    universe = pd.DataFrame({"symbol": ["NEWCO", "REFERENCE"]})
     dates = pd.bdate_range("2024-01-01", periods=70)
     history = pd.DataFrame(
         [{"date": day, "symbol": "REFERENCE", "open": 10.0, "high": 11.0,

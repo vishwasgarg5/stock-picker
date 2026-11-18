@@ -254,6 +254,39 @@ def test_authoritative_registry_entry_requires_reviewer_metadata(tmp_path):
     )
 
 
+def test_unknown_source_registry_review_status_is_rejected(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row()])
+    write_registry(registry, review_status="APPROVED_BY_MAGIC")
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any("invalid review_status" in error for error in report["errors"])
+
+
+def test_authoritative_registry_requires_valid_utc_review_metadata(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row()])
+    write_registry(
+        registry, review_status="REVIEWED_AUTHORITATIVE",
+        reviewed_by="reviewer", reviewed_at_utc="2026-11-18T02:00:00+05:30",
+    )
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any(
+        "REVIEWED_AUTHORITATIVE requires reviewer and UTC review timestamp" in error
+        for error in report["errors"]
+    )
+
+
+def test_registry_rejects_non_https_canonical_url(tmp_path):
+    manifest = tmp_path / "documents.csv"
+    registry = tmp_path / "registry.csv"
+    write_manifest(manifest, [make_row()])
+    write_registry(registry, canonical_url="http://example.com/master")
+    report = validate_source_archive(manifest, source_registry=registry)
+    assert any("canonical_url must be an absolute HTTPS URL" in error for error in report["errors"])
+
+
 def test_nse_daily_security_file_variants_have_distinct_source_scopes():
     from pathlib import Path
 

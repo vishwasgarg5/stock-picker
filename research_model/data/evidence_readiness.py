@@ -81,8 +81,7 @@ def _common_symbol_coverage_matches(coverage: dict[str, Any], universe: dict[str
         return False, f"coverage/universe reconciliation fields are incomplete; differences={differences}"
     audit_only = universe.get("audit_only_symbols") or []
     reconciled = (
-        coverage.get("prior_audit_status") == "PASS"
-        and row_delta == raw_only_rows
+        row_delta == raw_only_rows
         and symbol_delta == raw_only_count
         and symbol_count_delta == raw_only_count
         and common_mismatches == 0

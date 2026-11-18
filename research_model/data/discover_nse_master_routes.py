@@ -181,6 +181,13 @@ def main():
                     source[max(0, match.start() - 700):min(len(source), match.end() + 1100)]
                     for match in list(re.finditer(r"downloadLink", source, re.I))[:20]
                 ],
+                "file_path_metadata_contexts": [
+                    source[max(0, match.start() - 850):min(len(source), match.end() + 1250)]
+                    for match in list(re.finditer(r"filePath|fileActlName", source, re.I))[:30]
+                ],
+                "literal_api_routes": sorted(set(re.findall(
+                    r"""["'](/api/[^"'\\s]+)["']""", source, re.I
+                )))[:120],
             })
 
     report = {

@@ -1,6 +1,6 @@
 """Small, side-effect-free validators for historical OHLCV rows."""
 
-from datetime import date
+from datetime import date, datetime
 from math import isfinite
 from typing import Mapping
 
@@ -17,7 +17,9 @@ def validate_ohlcv_row(row: Mapping[str, object]) -> list[str]:
 
     raw_date = row["date"]
     try:
-        if isinstance(raw_date, date):
+        if isinstance(raw_date, datetime):
+            parsed_date = raw_date.date()
+        elif isinstance(raw_date, date):
             parsed_date = raw_date
         else:
             parsed_date = date.fromisoformat(str(raw_date)[:10])

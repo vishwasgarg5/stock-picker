@@ -30,9 +30,13 @@ jobs:
         run: python -m research_model.data.inspect_ohlcv data/ohlcv.csv --output "$RUNNER_TEMP/ohlcv-source-manifest.json"
       - name: Reconcile fresh OHLCV scan with prior coverage audit
         run: python -m research_model.data.reconcile_coverage --manifest "$RUNNER_TEMP/ohlcv-source-manifest.json" --audit data/historical_coverage_audit.json
-      - name: Upload historical OHLCV source manifest
+      - name: Reconcile raw symbols with reviewed historical universe
+        run: python -m research_model.data.reconcile_universe --ohlcv data/ohlcv.csv --coverage-audit data/historical_coverage_audit.csv --output "$RUNNER_TEMP/historical-universe-reconciliation.json"
+      - name: Upload historical audit artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: historical-ohlcv-source-manifest
-          path: ${{ runner.temp }}/ohlcv-source-manifest.json
+          name: historical-source-audit
+          path: |
+            ${{ runner.temp }}/ohlcv-source-manifest.json
+            ${{ runner.temp }}/historical-universe-reconciliation.json
           if-no-files-found: error

@@ -141,3 +141,23 @@ A focused primary-document search found issuer/exchange-hosted records for all t
 | `EMBASSY` | 2019-04-01 | [Embassy Office Parks REIT FY2019-20 half-yearly report](https://www.embassyofficeparks.com/wp-content/uploads/2026/08/half-yearly-report_fy2019-20-1.pdf) | Issuer report states the REIT listed on NSE and BSE on 01-Apr-2019 | `DISCOVERY_ONLY`; capture original report bytes and independently review |
 
 These records materially narrow the unresolved listing-date research. They do **not** authorize changing `listing_history_status` from `LISTING_DATE_UNKNOWN`, populating `listing_date`, or creating point-in-time security identity intervals. The next gate is document capture plus exact source/document review. In particular, the 2024 Brookfield NSE circular CML62583 is a later additional-issue listing event and must not be mistaken for the original 2021 IPO listing date.
+
+
+### Follow-up primary-document cross-check — 18-Nov-2026
+
+A second discovery pass distinguished the initial announcement circulars from the actual effective-date notices. These are still discovery leads only: no response bytes have been captured into the immutable archive, no SHA-256 values have been recorded, and no reviewer has approved an identity interval.
+
+| Symbol | Better primary evidence lead | Supported fact | Remaining limitation |
+|---|---|---|---|
+| BAGMANE | NSE circular CML74204 (13-May-2026), https://nsearchives.nseindia.com/content/circulars/CML74204.pdf | Trading commences with effect from 14-May-2026; use the annexure to inspect the symbol, ISIN and exchange security code. | CML74171 is only the forthcoming-listing announcement and explicitly says the listing date will be notified separately. Capture and review CML74204, not CML74171 alone, for the effective date. |
+| BIRET | NSE-filed Brookfield India REIT annual report, https://nsearchives.nseindia.com/corporate/BIRET_26072021174205_SubmissionofIstAnnualReportandIstNoticeofUnitholdersmeeting.pdf | The report states the REIT was listed on BSE and NSE on 16-Feb-2021. | Issuer filing is useful corroboration, but obtain the original NSE admission/listing circular and inspect its annexure for symbol, series, ISIN and effective date before mapping. |
+| EMBASSY | BSE-hosted FY2019-20 annual report, https://www.bseindia.com/bseplus/AnnualReport/542602/5426020319.pdf; NSE-filed financial statement, https://nsearchives.nseindia.com/corporate/listcontract1_1162019134328_IntimationofFinancials31032019CompleteSet_231.pdf | The BSE-hosted report states listing on NSE and BSE on 01-Apr-2019; the NSE filing independently states listing on 01-Apr-2019. | These issuer reports corroborate the date but do not replace venue-specific admission notices or a dated security-master snapshot for symbol/series/ISIN intervals. |
+
+Discovery cross-check references:
+- NSE CML74171: https://nsearchives.nseindia.com/content/circulars/CML74171.pdf (announcement only; date deferred to separate circular).
+- NSE CML74204: https://nsearchives.nseindia.com/content/circulars/CML74204.pdf (effective-date notice).
+- NSE-filed Brookfield annual report: https://nsearchives.nseindia.com/corporate/BIRET_26072021174205_SubmissionofIstAnnualReportandIstNoticeofUnitholdersmeeting.pdf.
+- BSE-hosted Embassy annual report: https://www.bseindia.com/bseplus/AnnualReport/542602/5426020319.pdf.
+- NSE-filed Embassy financial statement: https://nsearchives.nseindia.com/corporate/listcontract1_1162019134328_IntimationofFinancials31032019CompleteSet_231.pdf.
+
+No listing-date audit CSV, source registry status, document manifest, or identity-history row is changed by this discovery note. Treat all three dates as unapproved until the original documents are captured, byte-verified, and independently reviewed. A listing date alone does not establish continuous identity or index membership.

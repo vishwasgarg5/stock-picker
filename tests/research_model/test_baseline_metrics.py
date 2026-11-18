@@ -49,3 +49,15 @@ def test_empty_fold_and_out_of_range_index_rejected():
         evaluate_zero_return_baseline(rows, [{"test_indices": []}])
     with pytest.raises(ValueError, match="out of range"):
         evaluate_zero_return_baseline(rows, [{"test_indices": [1]}])
+
+def test_training_rows_do_not_need_predictions_or_enter_metrics():
+    rows = [
+        {"target_return": 0.9},
+        {"target_return": 0.1, "prediction": 0.08},
+    ]
+    report = evaluate_zero_return_baseline(
+        rows,
+        [{"train_indices": [0], "test_indices": [1]}],
+    )
+    assert report["aggregate"]["model"]["observations"] == 1
+    assert report["aggregate"]["model"]["mean_realized_return"] == pytest.approx(0.1)

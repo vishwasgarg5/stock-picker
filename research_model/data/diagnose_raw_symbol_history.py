@@ -19,7 +19,10 @@ def _symbols(path: Path, *, exclude_synthetic: bool = False) -> set[str]:
         reader = csv.DictReader(handle)
         if not reader.fieldnames or "symbol" not in reader.fieldnames:
             raise ValueError(f"{path} must contain a symbol column")
-        values = {(row.get("symbol") or "").strip() for row in reader if (row.get("symbol") or "").strip()}\n        if exclude_synthetic:\n            values = {symbol for symbol in values if not symbol.upper().startswith("DUMMY")}\n        return values
+        values = {(row.get("symbol") or "").strip() for row in reader if (row.get("symbol") or "").strip()}
+        if exclude_synthetic:
+            values = {symbol for symbol in values if not symbol.upper().startswith("DUMMY")}
+        return values
 
 
 def diagnose_raw_symbol_history(

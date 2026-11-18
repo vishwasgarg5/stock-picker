@@ -122,8 +122,8 @@ def test_raw_only_symbol_release_requires_exact_reviewed_document_binding(tmp_pa
         root.mkdir()
         source = root / "ohlcv.csv"
         source.write_text(
-            "date,symbol,open,high,low,close,volume\\n"
-            "2024-01-02,RAW,10,11,9,10,100\\n",
+            "date,symbol,open,high,low,close,volume\n"
+            "2024-01-02,RAW,10,11,9,10,100\n",
             encoding="utf-8",
         )
         listing = root / "listing.csv"

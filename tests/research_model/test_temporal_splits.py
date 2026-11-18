@@ -41,9 +41,10 @@ def test_embargo_removes_training_labels_inside_calendar_gap():
 
 def test_multiple_symbols_on_same_date_stay_in_same_test_fold():
     rows = rows_for_days(10)
-    rows.insert(4, {**rows[4], "symbol": "BBB"})
+    shared_date = rows[7]["date"]
+    rows.append({**next(row for row in rows if row["date"] == shared_date), "symbol": "BBB"})
     folds = purged_walk_forward_splits(rows, n_splits=2, test_size=2)
-    duplicate_indices = [i for i, row in enumerate(rows) if row["date"] == rows[4]["date"]]
+    duplicate_indices = [i for i, row in enumerate(rows) if row["date"] == shared_date]
     containing_folds = [
         fold for fold in folds
         if any(i in fold["test_indices"] for i in duplicate_indices)
@@ -88,8 +89,9 @@ def test_datetime_inputs_are_normalized_to_calendar_dates():
 
 def test_duplicate_symbol_date_rows_are_assigned_together():
     rows = rows_for_days(10)
-    rows.insert(4, {**rows[4], "symbol": "BBB"})
-    duplicate_indices = [i for i, row in enumerate(rows) if row["date"] == rows[4]["date"]]
+    shared_date = rows[7]["date"]
+    rows.append({**next(row for row in rows if row["date"] == shared_date), "symbol": "BBB"})
+    duplicate_indices = [i for i, row in enumerate(rows) if row["date"] == shared_date]
     folds = purged_walk_forward_splits(rows, n_splits=2, test_size=2)
     containing_folds = [
         fold for fold in folds

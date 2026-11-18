@@ -117,6 +117,34 @@ def test_independently_verified_interval_binds_to_manifest_source_and_hash(tmp_p
     assert report["source_document_manifest_checked"]
 
 
+
+def test_manifest_cannot_claim_review_without_reviewer_metadata(tmp_path):
+    path, docs = tmp_path / "membership.csv", tmp_path / "documents.csv"
+    write_rows(path, [membership_row(
+        verification_status="INDEPENDENTLY_VERIFIED", reviewed_by="reviewer",
+        reviewed_at_utc="2020-01-04T00:00:00Z",
+    )])
+    write_documents(docs)
+    content = docs.read_text(encoding="utf-8")
+    content = content.replace(
+        "reviewer,2020-01-03T00:00:00Z",
+        ",",
+    )
+    docs.write_text(content, encoding="utf-8")
+    report = validate_membership_history(path, docs)
+    assert any("INDEPENDENTLY_REVIEWED requires reviewer" in error for error in report["errors"])
+    assert any("requires independently reviewed source document" in error for error in report["errors"])
+
+
+def test_manifest_rejects_duplicate_document_ids(tmp_path):
+    path, docs = tmp_path / "membership.csv", tmp_path / "documents.csv"
+    write_rows(path, [membership_row()])
+    write_documents(docs)
+    content = docs.read_text(encoding="utf-8")
+    docs.write_text(content + content.splitlines(keepends=True)[1], encoding="utf-8")
+    report = validate_membership_history(path, docs)
+    assert any("duplicate document_id DOC-1" in error for error in report["errors"])
+
 def test_invalid_isin_and_reversed_dates_fail(tmp_path):
     path = tmp_path / "membership.csv"
     write_rows(path, [membership_row(isin="INE009A01022", valid_from="2022-01-01", valid_to="2021-01-01")])

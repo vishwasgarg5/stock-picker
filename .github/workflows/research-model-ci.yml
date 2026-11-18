@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "research_model/**"
+      - "common/**"
       - "src/historical_coverage_audit.py"
       - "tests/research_model/**"
       - "tests/test_historical_coverage_audit.py"

@@ -125,8 +125,15 @@ def inspect_ohlcv_file(path: str | Path) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("csv_path", type=Path)
+    parser.add_argument("--output", type=Path, help="Write the full manifest to this generated path")
     args = parser.parse_args()
-    print(json.dumps(inspect_ohlcv_file(args.csv_path), indent=2, sort_keys=True))
+    report = inspect_ohlcv_file(args.csv_path)
+    serialized = json.dumps(report, indent=2, sort_keys=True)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(serialized + "\\n", encoding="utf-8")
+    summary = {key: value for key, value in report.items() if key != "symbols"}
+    print(json.dumps(summary, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

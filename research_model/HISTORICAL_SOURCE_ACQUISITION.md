@@ -104,3 +104,23 @@ The source-discovery check found an important access distinction. Do not assume 
 5. Only then move the corresponding source-registry entry from `DISCOVERY_ONLY` to review; never upgrade a source based only on a landing page or specification.
 
 At this checkpoint the document manifest remains intentionally header-only. No dated NSE/BSE master snapshot has been acquired by this discovery check, and no security identity row or historical coverage claim is authorized.
+
+
+### Additional NSE clarification — combined NSE/BSE-exclusive file
+
+NSE circular **MSD67344 dated 28-Mar-2025** (Circular 13/2025) clarifies that the All Reports catalogue exposes two distinct MII security-file variants:
+
+- NSE-listed securities; and
+- NSE-listed plus BSE-exclusive securities.
+
+The circular states that the BSE-exclusive records are provisioned at NSE for the alternative-trading-venue arrangement, effective 01-Apr-2025. It describes a BSE-exclusive symbol suffix ($) and a dedicated permitted-to-trade indicator. This is **not** evidence that the combined file is a complete BSE master or a substitute for BSE's own dated scrip master. Its purpose and population are specific to the interoperability arrangement.
+
+Consequences for this project:
+
+- Treat the combined file as a separate NSE-published interoperability snapshot, not as the BSE venue's authoritative master.
+- Do not assume that its BSE-exclusive population covers every BSE-listed security or any date before its effective date.
+- Keep NSE-native identity, BSE-native identity, and cross-venue interoperability eligibility as distinct facts.
+- Never strip the $ suffix or merge a BSE symbol with an NSE symbol without an explicit, dated source mapping.
+- Retain the circular as process/field-semantics evidence; a downloaded dated file is still required for any snapshot-level claim.
+
+Source: [NSE circular MSD67344, 28-Mar-2025](https://nsearchives.nseindia.com/content/circulars/MSD67344.pdf), especially sections A, C and D.

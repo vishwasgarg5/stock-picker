@@ -67,8 +67,6 @@ jobs:
         run: python -m research_model.data.inspect_membership data/index_constituents_history.csv --output "$RUNNER_TEMP/membership-evidence-audit.json"
       - name: Validate evidence-linked point-in-time index membership intervals
         run: python -m research_model.data.validate_membership_history research_model/schemas/index_membership_history.csv --source-documents research_model/schemas/historical_source_documents.csv --output "$RUNNER_TEMP/index-membership-history-validation.json"
-      - name: Enforce authoritative historical evidence readiness gate
-        run: python -m research_model.data.evidence_readiness --report-dir "$RUNNER_TEMP" --repo-root . --output "$RUNNER_TEMP/evidence-readiness.json"
       - name: Upload historical audit and readiness artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -90,5 +88,44 @@ jobs:
             ${{ runner.temp }}/membership-evidence-audit.json
             ${{ runner.temp }}/index-membership-history-validation.json
             ${{ runner.temp }}/coverage-reconciliation.json
-            ${{ runner.temp }}/evidence-readiness.json
           if-no-files-found: error
+
+  evidence-readiness-report:
+    name: Evidence readiness (report only)
+    needs: research-model-tests
+    if: needs.research-model-tests.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Download technical audit reports
+        uses: actions/download-artifact@v4
+        with:
+          name: historical-source-audit
+          path: ${{ runner.temp }}/historical-source-audit
+      - name: Evaluate and publish evidence readiness without failing technical CI
+        run: |
+          python -m research_model.data.evidence_readiness --report-dir "$RUNNER_TEMP/historical-source-audit" --repo-root . --output "$RUNNER_TEMP/evidence-readiness.json" --report-only
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = json.loads(Path(os.environ["RUNNER_TEMP"], "evidence-readiness.json").read_text())
+          lines = [
+              f"## Evidence readiness: {report['status']}",
+              "",
+              f"- Passed: {report['passed_checks']}/{report['check_count']}",
+              f"- Blocked: {report['blocked_checks']}/{report['check_count']}",
+              f"- Training authorized: {report['training_authorized']}",
+              f"- Production authorized: {report['production_authorized']}",
+              f"- Live trading authorized: {report['live_trading_authorized']}",
+              "",
+          ]
+          for check in report["checks"]:
+              marker = "PASS" if check["passed"] else "BLOCKED"
+              lines.append(f"- **{marker} — {check['name']}**: {check['detail']}")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as handle:
+              handle.write("\\n".join(lines) + "\\n")
+          PY

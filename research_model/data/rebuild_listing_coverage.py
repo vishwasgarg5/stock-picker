@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.historical_coverage_audit import audit_history
+from common.historical_coverage import audit_history
 
 
 def main() -> None:

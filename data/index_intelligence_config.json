@@ -1,59 +1,53 @@
 {
   "version": "index_intelligence_v3",
   "market_regime": "BULL",
-  "risk_multiplier": 1.0,
-  "news_sentiment": "BEARISH",
-  "news_score": 0.12,
-  "market_reason": "RBI / rates: Goldman Sachs sees three more RBI rate hikes; feels rupee's worst is over and Nifty at 28,500 - Business Today",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxQQW1fcnkyWm1wZ2IyWnI3MG8xZWtMbmxjRTc4aGZsV2RmRDRPRWNRaGdxMHE2M2hYM0pzY0dlNWJ5NjJFWEl4dG04YjBxeW9Obi1QSEQ1SmI2STlFS0FRZDdhTUMxSEFBdExyUkVwaWgyT01iakllMy0zSllSQ3ltUDNzUjVIenY3cHBmbVYxU3dSNVpxUXhfRTg1cmVIbGlHaWpMUTJSaVhLSmw4eGVNVWxfQUV0Qko0NUpEZkRfdTh5eWZyOF9ZenFLRFF2Y0pBdFYwTkJ6c2g0V2FKblB3M2UxcHNydzlFcW16TG5aVdIB9AFBVV95cUxPMFEyeUxDMGVyUG9DQ2d3VlBTU3BWTzd5RVY2b3Q5UnByLUYxQWNxZlFRWVRIWWxTbjVqS3UtWmRDWDBiTzNQREVpVDEyY3NKLVlkR3Y4Sk5QTEVJQmdEc3NJYnpXRTNzWWthckFHYkZPLUxwdzh5M3NIWml1UTAtUWhIWEo5Y3NPWGZ6d09hVkJad1ZQbUhfV2E3SUZEbzVGaHVoeFhoZ1VGQlBZakFvMFdZNW45SVpQS1E3a0FRMUVxdGI1NGUzYWdKemlMaC1MMTRaWENkNDh3YURuc0VmMm5qdFpUaXI1MXR2MFQ0S2hOa1o4?oc=5",
-  "news_headline": "RBI / rates: Goldman Sachs sees three more RBI rate hikes; feels rupee's worst is over and Nifty at 28,500 - Business Today",
+  "risk_multiplier": 0.8,
+  "news_sentiment": "BULLISH",
+  "news_score": 0.5599999999999999,
+  "market_reason": "General market: Sensex, Nifty surge over 1% as banks, auto stocks drive rally; Bank Nifty hits record high - The Hindu",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxPb3l1NXktMXFUcllEcHJtRXI3Qy1uaGp4MkoxM2kyM25Va3NaU2xteFZ1djdwZDBNejNCZFVrSE9FZU9EVlZHQVVfSlNUNmNDWE04YWFhbW5oYzRkd0p0bkJpMlJrRzFfWUZQNmxPZjNOS3BrRlhYU0tFUnFWMU1DSkt3X01SMzJnc2pZTURWX0ZEUDFDLVBLWUFXVUYzelBhY3RTMVJtaDZNdU9BdnFLVnA5MFpHTGUtN3RlNkFlUk5sSTM5UXIwb1FiNFBreVFhTFNLOS1iNNIB3gFBVV95cUxNbmw3UjdUbklkTHJmOWI4QUZuU0xrdXN4UGhzdXRCRnMwZU55S3p5b3pYVFVhbkY5R2pkNDdzWmZaZDYzbThnbnNMclFuUDk4NE1pLWZMbnJSQ1JWUm9hSkEyZnFzTnNjUFJFcWxFLXljY0ludjNITXZmNFhPdW5NWGs4ZVdYNXBOeHFSQVQ5MGJUbTZCY1JPRnUtR0Fab3g5N0NLbF9pX09YVFYwQjFBRDFrLTdnTHJIaTd1QTY0SVA5d1A3OFdaOFpkaHczWlJkVHU0czRkTUdqeEVqSWc?oc=5",
+  "news_headline": "General market: Sensex, Nifty surge over 1% as banks, auto stocks drive rally; Bank Nifty hits record high - The Hindu",
   "news_reasons": [
     {
-      "event": "RBI / rates",
-      "impact": -0.9,
-      "headline": "Goldman Sachs sees three more RBI rate hikes; feels rupee's worst is over and Nifty at 28,500 - Business Today",
-      "url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxQQW1fcnkyWm1wZ2IyWnI3MG8xZWtMbmxjRTc4aGZsV2RmRDRPRWNRaGdxMHE2M2hYM0pzY0dlNWJ5NjJFWEl4dG04YjBxeW9Obi1QSEQ1SmI2STlFS0FRZDdhTUMxSEFBdExyUkVwaWgyT01iakllMy0zSllSQ3ltUDNzUjVIenY3cHBmbVYxU3dSNVpxUXhfRTg1cmVIbGlHaWpMUTJSaVhLSmw4eGVNVWxfQUV0Qko0NUpEZkRfdTh5eWZyOF9ZenFLRFF2Y0pBdFYwTkJ6c2g0V2FKblB3M2UxcHNydzlFcW16TG5aVdIB9AFBVV95cUxPMFEyeUxDMGVyUG9DQ2d3VlBTU3BWTzd5RVY2b3Q5UnByLUYxQWNxZlFRWVRIWWxTbjVqS3UtWmRDWDBiTzNQREVpVDEyY3NKLVlkR3Y4Sk5QTEVJQmdEc3NJYnpXRTNzWWthckFHYkZPLUxwdzh5M3NIWml1UTAtUWhIWEo5Y3NPWGZ6d09hVkJad1ZQbUhfV2E3SUZEbzVGaHVoeFhoZ1VGQlBZakFvMFdZNW45SVpQS1E3a0FRMUVxdGI1NGUzYWdKemlMaC1MMTRaWENkNDh3YURuc0VmMm5qdFpUaXI1MXR2MFQ0S2hOa1o4?oc=5"
+      "event": "General market",
+      "impact": 1.0,
+      "headline": "Sensex, Nifty surge over 1% as banks, auto stocks drive rally; Bank Nifty hits record high - The Hindu",
+      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxPb3l1NXktMXFUcllEcHJtRXI3Qy1uaGp4MkoxM2kyM25Va3NaU2xteFZ1djdwZDBNejNCZFVrSE9FZU9EVlZHQVVfSlNUNmNDWE04YWFhbW5oYzRkd0p0bkJpMlJrRzFfWUZQNmxPZjNOS3BrRlhYU0tFUnFWMU1DSkt3X01SMzJnc2pZTURWX0ZEUDFDLVBLWUFXVUYzelBhY3RTMVJtaDZNdU9BdnFLVnA5MFpHTGUtN3RlNkFlUk5sSTM5UXIwb1FiNFBreVFhTFNLOS1iNNIB3gFBVV95cUxNbmw3UjdUbklkTHJmOWI4QUZuU0xrdXN4UGhzdXRCRnMwZU55S3p5b3pYVFVhbkY5R2pkNDdzWmZaZDYzbThnbnNMclFuUDk4NE1pLWZMbnJSQ1JWUm9hSkEyZnFzTnNjUFJFcWxFLXljY0ludjNITXZmNFhPdW5NWGs4ZVdYNXBOeHFSQVQ5MGJUbTZCY1JPRnUtR0Fab3g5N0NLbF9pX09YVFYwQjFBRDFrLTdnTHJIaTd1QTY0SVA5d1A3OFdaOFpkaHczWlJkVHU0czRkTUdqeEVqSWc?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": 1.0,
+      "headline": "Bank Nifty Gains Over 8,500 Points in 15 Sessions: How Much Higher Can It Go? - NiftyTrader",
+      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE8zWWdTTW1vaFctZi1kWXE4ODFmczRvLVBXbjFob0VSYUNyM3dhSUlnaHRMSjM5eWp6TlVJQllwajg4TkRxbzdrdGFVZUxudWx5RzE4ZVBZeGhVelZqQTVtaGpjVF9hNUtKZFdHVkVoUU5lSTQzQlBYMQ?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": -1.0,
+      "headline": "D-St set for a negative opening as GIFT Nifty signals weak start - The Economic Times",
+      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQRGpucVl0MUJDTVc3SVlSLWRCMzZNdDM3VVhja2o0dzQ4RkhqU3lyTEVCVTJ3alJlLVgwNlRmNUZiT1B6R1ZZeEtmU1gzWXRQcGJqZXg5eDNEUUlXb08zYU04RmRWT3p6eWJjTVVBZkdSSkVzMEJ6M283THkwcFY1VTNrUU9VdzZPLUQ4SVg2VlN2amNLbWFsamdFaEt3NVByMDZQOHNmRkZxUXgydHBCWVA3SF9hRXJCVU01T01Vek9FZk55SmhRQ3hiVS3SAdIBQVVfeXFMTUZoUnRlVm40Ykdhbko0MzdNa213LTVXRFJuZWlzbm9GemYtOGVmWEtMYWFUSWdDa1NOQlYzUHdSQjNKdTd2NEs2M3pjbzk1Wk12d043WE5XRE52R2lvRHdhYm5uTVRISjRQQ0V3eW5rakFES0VnU09TYmVYM1ZEa0lNeGIxNW5VYXN2MjNIYk9zazlrbmtDQ1dMR05jbUVpSElMWlgwNWhWVUNFcTVIZ3RhQVpxWWlEa1ZMNnV4M0lZVHg1bUZTY2tldzJ5bkVHT2NB?oc=5"
+    },
+    {
+      "event": "General market",
+      "impact": 1.0,
+      "headline": "Sensex Soars 990 Pts; Nifty Reclaims 25,500 on Auto Rally - HDFC Sky",
+      "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNMUh6djg0OUk1UnFQSUxwcXR1WThvTHVqSElaZVdNalNtVnRYTUdvOVhGWWlkWHRDc0U0Zl9RYXltZDdrUWM4N3hNV213YnpTbzVCYzZVSC1IWDJYSGFJOXdVRHo1WldRc3k4NFBINHVyT292QnczUFlvdWYzY3J0ZkJMXzNyUWROLWZHN0Q4OWJJbmtZOFZUZDk1dzJiX0p5dHltNGk3ODJWbHU0ZXVkT1FndFhTZm5GTVNGT3Jyb2w1VzFQbnk1RHh3?oc=5"
     },
     {
       "event": "FII / DII flows",
       "impact": 0.8,
-      "headline": "Indian equities see record $10.6 billion FII inflows in Nov so far; here's why brokerages are bullish - Moneycontrol.com",
-      "url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxOWThRSFEwVnpOSzdnVDZNN0t1TFJXMXZUeDl0ckQ2c1pZRjVvUW43LWZyZjA2a1UtWmR5Z01pbWMzNTNoZENDVjRIbVlSd1BrNEM4QmZnbHZtV01nNi1QZlBfZzFkb3NJMTdyWkp5TjVjWnBHRGxaUVZNamt6R3pNSDhVbnNRY2ozdWI1bW1MeWlOYUo1NG9uc0F2cnFhNy1fNlVhcVRucXZpaERMTXIzUDIyenlKYVh2dTR2amRJUVJYY0gwdnJOVWo4M0ZmTDdfOHhBT3BZSnJralBnMGlMYjQ0ZjZhY2FsSnNrUm93b9IB9AFBVV95cUxNbWZ1X0Zza1hZdXJsbDU4UjNkMkhxSmpma2dkdS1URkVvNkxhWUZHZUk2aVd4dFhRNWJGWkxwdW9DcDNRMV9WSUc5YWo5NEtfNk1QOUVTQWphRUVKOXVaWWstM29kX0VrdTlKZXZkSGk3R19oZ1BzQ1VwUzF1cXdwZzRucmk2R0RyWmM0b1FINHZUcXM0QzJlUGpMWHBrVHRFZ3hfRHRNc2hNcmlwUEtfaGtnYXdhelNENXJqZnlfbEg0TnVIU0g5T3d6UmZ6VWJTV0ZrTkVFeTZIOXhlVVRlRVQyVEE3bXl0WmRoQ2trT211dzN6?oc=5"
-    },
-    {
-      "event": "US / global markets",
-      "impact": 0.7,
-      "headline": "NSE Nifty 50 Could Open Strong as Nasdaq Futures Jumps on Positive Nvidia Quarterly Results - TopNews",
-      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxPNmNtY3RPUlI4YkdybkwwQjVOYTNvWGQ2ckF2TVFsUUFEQ2VoTWRNd3Jyc0NYU1dTRklMS0JsU3ZEVlY1aXRNeTZhS3o2THEzaXR3VG9YaUhrd2VWLTNYZlVySTBqbEhpRkR6MEoybkFudWhPQ0xJb0NLemt3aWhYMkdqX0FJazQ5eXRPbWNKRTRQYmdybXlBVVVfOThjc1lmN2lsYmZFME5wUVlrMklMTlFR?oc=5"
-    },
-    {
-      "event": "General market",
-      "impact": -0.35,
-      "headline": "BSE SENSEX Today: Sensex Falls to 81,592.45 as Nifty Ends at 25,144, Snapping a Winning Streak - BBN Times",
-      "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPcWhfcXNmcy03Y2JVZVlqS2wzTVFUU2NnTWJmbVJLQkZBbHhoTlkxb0x4X1R4MGNZNk5OM25YYW1NN0JWQ25FclJCX1pUaEVadE9XaFdiVmM1eFZvSTM0N0lCNzFDRkNSQnF3MmJDc3I2OXNOTFB0N19wbXdMeUdNYzZZZGlMQV9NUk9QRG41MjZ5ZkMzY1hLWkt5ODJjTDlMQW5RbEF4MXRtUmtxUzBTVGNjRDVFVWxZX0VwRENNT0FqQXo1Z2c?oc=5"
-    },
-    {
-      "event": "FII / DII flows",
-      "impact": 0.35,
-      "headline": "Nifty above 25,000: Can FII buying sustain rally? Jay Thakkar explains, recommends 3 stocks - ET Now",
-      "url": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQN2xHQ04wTzI4NngwQkNMbExiUjhXb2lSaEdvcnczY3NBUm5QakJNcnJrZDZrX1dXNklYMWotWDctSnVxZG5NSEZzWHd0c3NHVmNkU2VWT1ZPRjJHdUt3RER1VV9tYk5QQTQ2cmpyUXZhNjVGWldaUHNjeFpMUmIwVHhGQXEyS2ZYOXhQSkNRYW5yQjZyTmcxUGxpdjJLOHJVeFpheHNwa1FWUGdjazhJNFFQRlJac2ZVeEJmR0QtOUFVUVlSazFJdWZDbExpQmJBMUE5LXBB0gHbAUFVX3lxTE1DQmMtb1RLOHUxUGlNRDBreHRhTjEzbUFIQmR2VnpCejNQUXJTdkVxc1o0VmFUOGR1aFVwSTExOUtmX29ubEJBZjNyVVljZE82clVXOTFsSzdmQ3VCVVJaRXpvNFdGOTBFYnFnd0FkOVN5bVU3MUk5cl9jWUtIQkh0OGJMTnl1cVBqVms3MjBjdTlLUGppV2lHMGdzRjBBVkNYU0d5dkRMM0xQQkdnT0V5R2RtX3RIVXB1MXo3eURfWlRxNEloSUxqaFRLYWNOZzc2aWNIMDBCNzNDQQ?oc=5"
+      "headline": "India draws $13 billion in FII inflows, extends buying streak to 14 sessions - CNBC TV18",
+      "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNOFJvbG5yb0JBSjVlbHF0VEFYNzBsUGg5Sk5Lb2dzaVp4ZUEzbHpWb0Z6WWRZVlZ2R3ZYTXZnTnRIVXVhS1ZTQTNTWXFDM3FNZi1sMThNQkxMdHBqTk1RQUd1Si02ZXdKNFNhMV9DT2pFRVN6S0NNdklCakpGZnZNeFpfM1VvTFF0eVdibTVNbV95SHJ1Nm1ZbF9TRFBXclZzZFExVFd5eUp0anFMd04xb1JrajcxT25Gek9nY0JvQkZqVTJzb2VuWkJLa9IB0AFBVV95cUxNZGU3bUdhSy1HYmx6a0RBRERHamNpc3JLeGJEeFgybTFtZVp3ZkFtNnNBV0p1ZGpJTXBZQXpHTkxZR2Z4enFzZ3RuMEs4UU5HcnJZdHB5NEw0YklYT1NfRVBvOERFUk9VVGk4T3FwQ0szbXFtMGF2ZGxBSFlDTFlnZVlaeTlCckg0d09xQVhBdDNpRER5U29nX0xOZWk3RVhodWY2clh5RzJnRWg5NzMwT2RFVG1sRG5iT2JpaUNrVm15SzhlRlprNTVJMWJrRGhj?oc=5"
     }
   ],
-  "market_intelligence_score": 70.84301968380156,
-  "risk_level": "RISK_ON",
-  "market_confidence": 0.7375871771542141,
+  "market_intelligence_score": 61.83777213395878,
+  "risk_level": "NEUTRAL",
+  "market_confidence": 0.6565399492056291,
   "data_quality": "HIGH",
   "index_data_available": true,
   "breadth_pct_above_sma20": 63.946869070208734,
   "sector_news_impacts": {
-    "airlines": 1.0,
-    "paints": 0.8,
-    "chemicals": 0.6,
-    "tyres": 0.6,
-    "oil & gas": -0.8,
-    "bank": 0.8,
-    "financial": 0.8,
-    "real estate": 0.7,
-    "auto": 0.4
+    "information technology": 1.2,
+    "it": 1.2,
+    "pharma": 0.6
   }
 }

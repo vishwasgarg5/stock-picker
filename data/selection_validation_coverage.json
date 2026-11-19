@@ -92,7 +92,7 @@
   ],
   "missing_candidate_session_count": 35,
   "duplicate_candidate_vintage_keys": 0,
-  "history_rows": 958975,
+  "history_rows": 958978,
   "matched_candidate_rows": 80,
   "candidate_rows_without_actual_close": 20,
   "minimum_sessions_required": 12,

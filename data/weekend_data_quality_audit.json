@@ -1,0 +1,2924 @@
+{
+  "status": "REVIEW_REQUIRED",
+  "market_data_refresh": {
+    "symbols_requested": 500,
+    "rows_before": 958978,
+    "rows_after": 959977,
+    "rows_added_or_refreshed": 999,
+    "latest_completed_session": "2026-11-20",
+    "latest_session_fresh_symbols": 500,
+    "latest_session_coverage_pct": 100.0,
+    "fundamental_symbols_refreshed": 500,
+    "fundamentals_source": "Yahoo Finance via src.pipeline.update_fundamentals",
+    "source": "Yahoo Finance via src.pipeline.update_history",
+    "status": "PASS"
+  },
+  "historical_coverage": {
+    "status": "REVIEW_REQUIRED",
+    "universe_symbols": 500,
+    "symbols_with_history": 500,
+    "symbols_without_history": 0,
+    "symbols_training_ready_50_sessions": 499,
+    "history_start": "2018-01-01",
+    "history_end": "2026-11-20",
+    "total_valid_rows": 916980,
+    "minimum_training_sessions": 50,
+    "depth_bands": {
+      "1y": 489,
+      "3y": 436,
+      "5y": 404,
+      "8y": 357
+    },
+    "median_observed_sessions": 2201,
+    "median_history_years": 8.73,
+    "missing_universe_symbols": [],
+    "symbols_with_verified_listing_date": 497,
+    "symbols_without_verified_listing_date": [
+      "BAGMANE",
+      "BIRET",
+      "EMBASSY"
+    ],
+    "listing_history_status_counts": {
+      "STARTS_AFTER_LISTING_DATE_REVIEW": 350,
+      "STARTS_AT_FIRST_POSSIBLE_SESSION": 141,
+      "DATA_PRECEDES_LISTING_DATE": 6,
+      "LISTING_DATE_UNKNOWN": 3
+    },
+    "invalid_or_excluded_rows": 0,
+    "calendar": "NSE exchange sessions",
+    "note": "History is measured from verified NSE listing dates where available. Pre-listing dates are excluded; calendar sessions without OHLCV are review indicators, not proof of missing trades because a security may not trade every session.",
+    "listing_master_refresh": {
+      "status": "PARTIAL",
+      "symbols_requested": 500,
+      "symbols_cached": 497,
+      "symbols_fetched": 0,
+      "symbols_from_security_master": 0,
+      "symbols_unresolved": [
+        "BAGMANE",
+        "BIRET",
+        "EMBASSY"
+      ],
+      "lookup_failures": {
+        "BAGMANE": "403 Client Error: Forbidden for url: https://www.nseindia.com/api/quote-equity?symbol=BAGMANE",
+        "BIRET": "403 Client Error: Forbidden for url: https://www.nseindia.com/api/quote-equity?symbol=BIRET",
+        "EMBASSY": "403 Client Error: Forbidden for url: https://www.nseindia.com/api/quote-equity?symbol=EMBASSY"
+      },
+      "security_master_fallback": {
+        "status": "SOURCE_UNAVAILABLE",
+        "attempted_dates": [
+          "2026-11-21",
+          "2026-11-20",
+          "2026-11-19",
+          "2026-11-18",
+          "2026-11-17",
+          "2026-11-16",
+          "2026-11-15",
+          "2026-11-14",
+          "2026-11-13",
+          "2026-11-12"
+        ],
+        "errors": [
+          {
+            "date": "2026-11-16",
+            "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
+          },
+          {
+            "date": "2026-11-15",
+            "error": "404 Client Error: Not Found for url: https://nsearchives.nseindia.com/content/cm/NSE_CM_security_15112026.csv.gz"
+          },
+          {
+            "date": "2026-11-14",
+            "error": "404 Client Error: Not Found for url: https://nsearchives.nseindia.com/content/cm/NSE_CM_security_14112026.csv.gz"
+          },
+          {
+            "date": "2026-11-13",
+            "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
+          },
+          {
+            "date": "2026-11-12",
+            "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
+          }
+        ]
+      },
+      "equity_listing_fallback": {
+        "status": "SOURCE_UNAVAILABLE",
+        "attempted_sources": [
+          "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+          "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+        ],
+        "symbols_requested": 3,
+        "errors": [
+          {
+            "source": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+            "error": "CSV parsed but no requested symbols matched"
+          },
+          {
+            "source": "https://archives.nseindia.com/content/equities/EQUITY_L.csv",
+            "error": "403 Client Error: Forbidden for url: https://archives.nseindia.com/content/equities/EQUITY_L.csv"
+          }
+        ]
+      },
+      "source": "NSE official quote-equity API, daily MII CM security master, and Securities available for Equity segment CSV",
+      "cache_file": "data/nse_listing_master.csv"
+    },
+    "listing_master_file": "data/nse_listing_master.csv",
+    "detail_file": "data/historical_coverage_audit.csv"
+  },
+  "files_audited": 222,
+  "audit_roots": [
+    "data/",
+    "models/"
+  ],
+  "model_artifacts_audited": 93,
+  "files_with_issues": 67,
+  "model_artifacts_with_issues": 32,
+  "repair_policy": "Only OHLCV is refreshed from Yahoo Finance. Missing values in predictions, rankings, confidence, validation and other derived artifacts are reported, not guessed or imputed; regenerate them through their owning pipeline after checking upstream inputs.",
+  "files": [
+    {
+      "file": "data/advanced_promotion_gate.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 4,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/advanced_selection_config.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/advanced_selection_summary.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/confidence_analysis.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 4,
+      "columns": 13,
+      "missing_cells": 5,
+      "missing_by_column": {
+        "close_mape_pct": 1,
+        "direction_accuracy_pct": 1,
+        "mfe_pct": 1,
+        "mae_pct": 1,
+        "profitable_close_pct": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/confidence_validation.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 5,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/confidence_validation_summary.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 10,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/dashboard_data.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "missing_values": 1
+    },
+    {
+      "file": "data/directional_model_validation.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 2077,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/directional_model_validation_summary.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 20,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/evaluations.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 390,
+      "columns": 34,
+      "missing_cells": 360,
+      "missing_by_column": {
+        "split_ratio": 360
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/execution_cost_evidence_manifest.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 0,
+      "columns": 14,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/feature_stability.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 18,
+      "columns": 7,
+      "missing_cells": 54,
+      "missing_by_column": {
+        "mean_correlation": 18,
+        "min_correlation": 18,
+        "max_correlation": 18
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/fundamentals.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 500,
+      "columns": 11,
+      "missing_cells": 151,
+      "missing_by_column": {
+        "sector": 3,
+        "returnOnEquity": 38,
+        "profitMargins": 3,
+        "revenueGrowth": 3,
+        "earningsGrowth": 36,
+        "trailingPE": 24,
+        "priceToBook": 1,
+        "debtToEquity": 40,
+        "dividendYield": 3
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/fundamentals_history.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 16529,
+      "columns": 11,
+      "missing_cells": 15606,
+      "missing_by_column": {
+        "sector": 429,
+        "returnOnEquity": 10678,
+        "profitMargins": 125,
+        "revenueGrowth": 125,
+        "earningsGrowth": 1436,
+        "trailingPE": 814,
+        "priceToBook": 93,
+        "debtToEquity": 1394,
+        "dividendYield": 512
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/historical_coverage_audit.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 500,
+      "columns": 22,
+      "missing_cells": 57,
+      "missing_by_column": {
+        "listing_date": 3,
+        "listing_expected_start": 9,
+        "expected_sessions_since_listing": 9,
+        "observed_sessions_since_listing": 9,
+        "calendar_sessions_without_ohlcv_since_listing": 9,
+        "listing_to_first_bar_gap_sessions": 9,
+        "history_starts_at_first_possible_session": 9
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/historical_coverage_audit.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/historical_gap_repair_details.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 130,
+      "columns": 3,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/historical_listing_provenance.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 25,
+      "columns": 9,
+      "missing_cells": 102,
+      "missing_by_column": {
+        "predecessor_symbol": 22,
+        "evidence_start_date": 22,
+        "evidence_end_date": 20,
+        "evidence_exchange": 19,
+        "evidence_url": 19
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/historical_recovery_run.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/index_constituent_features.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 1989,
+      "columns": 12,
+      "missing_cells": 6,
+      "missing_by_column": {
+        "rolling_corr_60d": 3,
+        "rolling_beta_60d": 3
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/index_constituent_intelligence_audit.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/index_constituents_history.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 2982,
+      "columns": 7,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/index_intelligence_config.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/index_intelligence_summary.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 5,
+      "columns": 22,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/index_ohlcv.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 50130,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/integration_check.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/model_governance.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/model_governance_summary.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 1,
+      "columns": 61,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "safety_failures": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/model_manifest.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/model_selection.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 13,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/new_listing_model_status.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 4,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/new_listings.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 0,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/new_listings_history.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 0,
+      "columns": 5,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/nse_listing_master.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 497,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/nse_market_calendar.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/nse_market_calendar_audit.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/ohlcv.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 959977,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/paper_trades.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 390,
+      "columns": 33,
+      "missing_cells": 6703,
+      "missing_by_column": {
+        "entry_price": 161,
+        "exit_price": 161,
+        "exit_reason": 310,
+        "target_pct": 320,
+        "stop_pct": 320,
+        "pnl_per_share": 320,
+        "return_pct": 161,
+        "entry_probability": 320,
+        "model_learned": 320,
+        "shares": 310,
+        "allocated_capital": 310,
+        "costs": 300,
+        "gross_profit_loss": 300,
+        "prediction_date": 70,
+        "score": 70,
+        "position_value": 70,
+        "reference_price": 80,
+        "quantity": 80,
+        "planned_capital": 80,
+        "pre_split_quantity": 360,
+        "split_ratio": 360,
+        "accounting_reconciliation_status": 20,
+        "exit_reason_record_status": 20,
+        "exit_date": 380,
+        "ledger_schema_version": 370,
+        "record_created_at_utc": 370,
+        "cost_model": 370,
+        "no_trade_reason": 390
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/paper_trades_v2.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 350,
+      "columns": 31,
+      "missing_cells": 4033,
+      "missing_by_column": {
+        "expected_return_pct": 348,
+        "risk_reward": 348,
+        "stop_distance_pct": 348,
+        "entry_price": 348,
+        "exit_price": 348,
+        "return_pct": 348,
+        "trade_quality_probability": 298,
+        "no_trade_reason": 2,
+        "index_risk_multiplier": 110,
+        "phase4_reject_reason": 143,
+        "phase4_score": 348,
+        "phase4_weight": 348,
+        "phase4_stop_atr_multiplier": 348,
+        "phase4_target_stop_multiple": 348
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/paper_trading_learning.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 71,
+      "columns": 18,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/performance_audit.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 51,
+      "columns": 4,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "value": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/performance_audit_summary.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 3,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/performance_history.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 39,
+      "columns": 41,
+      "missing_cells": 312,
+      "missing_by_column": {
+        "net_pnl": 39,
+        "sessions_summary": 39,
+        "total_return_pct": 39,
+        "max_drawdown_pct": 39,
+        "avg_trade_return_pct": 39,
+        "profit_factor": 39,
+        "learning_rows": 39,
+        "learned_model_active": 39
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase100_walk_forward_challenger.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 390,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase100_walk_forward_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase101_v1_paper_performance_daily.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 39,
+      "columns": 5,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase101_v2_paper_performance_daily.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 2,
+      "columns": 5,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase101_v2_selection_outcomes.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 7,
+      "columns": 8,
+      "missing_cells": 9,
+      "missing_by_column": {
+        "signal_group": 5,
+        "confidence_bucket": 2,
+        "mean_confidence_score": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase102_v1_loss_attribution_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase102_v1_loss_by_exit_reason.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 6,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase102_v1_loss_by_symbol.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 88,
+      "columns": 9,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "profit_factor": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase102_v2_high_confidence_skips.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 70,
+      "columns": 12,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase102_v2_rejection_reason_outcomes.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 3,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase102_v2_rejection_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase103_forecast_evidence_summary.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase103_forecast_session_evidence.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 39,
+      "columns": 10,
+      "missing_cells": 6,
+      "missing_by_column": {
+        "rolling_5_session_close_mape_pct": 2,
+        "rolling_5_session_baseline_mape_pct": 2,
+        "rolling_5_session_direction_accuracy_pct": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase104_loss_concentration_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase104_v1_loss_concentration_by_exit_reason.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 6,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase104_v1_loss_concentration_by_session.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 39,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase104_v1_loss_concentration_by_symbol.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 88,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase105_exit_attribution_by_reason.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 6,
+      "columns": 10,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase105_exit_attribution_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase106_trade_lifecycle_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase107_pnl_reconciliation_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase108_loss_by_exit_reason.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 6,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase108_loss_by_session.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 39,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase108_loss_by_symbol.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 88,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase108_loss_concentration_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase109_selection_funnel_summary.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "missing_values": 3
+    },
+    {
+      "file": "data/phase110_forecast_accuracy_summary.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase111_chronological_replay_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase112_market_intelligence_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase113_sustained_evidence_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase114_promotion_readiness_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase115_shadow_monitoring_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase116_shrinkage_calibration_by_session.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 39,
+      "columns": 13,
+      "missing_cells": 2,
+      "missing_by_column": {
+        "latest_training_target_date": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase116_shrinkage_calibration_summary.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase117_bias_correction_by_session.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 39,
+      "columns": 12,
+      "missing_cells": 2,
+      "missing_by_column": {
+        "latest_training_target_date": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase117_bias_correction_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase118_forecast_error_diagnosis.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase118_forecast_errors_by_regime.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 3,
+      "columns": 7,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase118_forecast_errors_by_symbol.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 60,
+      "columns": 7,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase119_prospective_validation.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase119_prospective_validation_by_session.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 20,
+      "columns": 16,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase120_forecast_stability_by_regime.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 3,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase120_forecast_stability_by_session.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 39,
+      "columns": 15,
+      "missing_cells": 2,
+      "missing_by_column": {
+        "latest_training_target_date": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase120_forecast_stability_by_symbol.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 60,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase120_forecast_stability_summary.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase121_forecast_underfit_diagnosis.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase122_challenger_decision.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase123_magnitude_calibration_decision.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase124_feature_signal_decision.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase125_feature_ablation_decision.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase126_objective_target_decision.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase1_historical_ledger_repair_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase20_accuracy_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase20_error_slices.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 32,
+      "columns": 8,
+      "missing_cells": 2,
+      "missing_by_column": {
+        "bucket": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase20_feature_stability.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 11,
+      "columns": 7,
+      "missing_cells": 2,
+      "missing_by_column": {
+        "median_correlation": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase20_symbol_stability.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 128,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase21_26_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase21_direction_calibration.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 5,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase22_leakage_audit.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 6,
+      "columns": 4,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase23_matched_evidence.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 10,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase25_drift_monitor.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 2,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase26_news_impact.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 2,
+      "columns": 7,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase27_data_integrity.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 9,
+      "columns": 4,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase27_data_quality_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase27_regime_accuracy.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 2,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase28_30_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase28_data_quality.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 16,
+      "columns": 5,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase29_dataset_audit.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 2,
+      "columns": 12,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase2_dashboard.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 1,
+      "columns": 42,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {
+        "return_lift_ci_low_pct": 1,
+        "phase4_bootstrap_ci_low_pct": 1,
+        "phase4_bootstrap_ci_high_pct": 1
+      },
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase2_dashboard.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "missing_values": 3
+    },
+    {
+      "file": "data/phase2_optimized_candidates.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 450,
+      "columns": 64,
+      "missing_cells": 10916,
+      "missing_by_column": {
+        "prediction_spread": 40,
+        "technical_score": 40,
+        "fundamental_score": 40,
+        "confidence_score": 40,
+        "selection_method": 40,
+        "selected": 40,
+        "recent_close_error": 443,
+        "selection_penalty": 440,
+        "selection_priority": 440,
+        "listing_age_days": 450,
+        "listing_status": 130,
+        "listing_confidence_factor": 130,
+        "adjusted_confidence_score": 130,
+        "confidence_calibration_version": 140,
+        "direction_probability": 190,
+        "direction_score_model": 190,
+        "return_20d": 160,
+        "volatility20": 160,
+        "close_sma20_gap": 160,
+        "confidence_tier": 160,
+        "risk_level": 160,
+        "index_risk_multiplier": 160,
+        "market_intelligence_score": 160,
+        "sector_news_score": 160,
+        "stock_news_score": 160,
+        "stock_news_count": 160,
+        "stock_news_reason": 449,
+        "adaptive_selection_score": 160,
+        "risk_budget_weight": 160,
+        "risk_budget_value": 160,
+        "selection_explanation": 160,
+        "total_score": 400,
+        "risk_off_defensive_score": 400,
+        "risk_off_selection_score": 400,
+        "trade_quality_probability": 400,
+        "recent_symbol_return_pct": 414,
+        "recent_symbol_win_rate": 400,
+        "recent_symbol_error_pct": 400,
+        "quality_adjustment": 400,
+        "ranking_model_status": 410,
+        "direction_model_status": 410,
+        "confidence_score_semantics": 410,
+        "news_context_status": 410,
+        "news_context_error": 450
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase2_performance_summary.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 19,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase2_state.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase30_accuracy_metrics.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 160,
+      "columns": 10,
+      "missing_cells": 124,
+      "missing_by_column": {
+        "target_date": 4,
+        "direction_accuracy_pct": 120
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase31_chronological_comparison.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 35,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase31_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase32_selection_funnel_report.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 13,
+      "columns": 5,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "rejected_rows": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase32_v2_selection_funnel.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 13,
+      "columns": 5,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "rejected_rows": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase33_chronological_prediction_scores.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 390,
+      "columns": 23,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase33_prediction_summary.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase34_regime_accuracy.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 4,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase35_trading_costs_and_returns.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 2,
+      "columns": 17,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase35_v1_incomplete_ledger_rows.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 140,
+      "columns": 10,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase36_promotion_gate.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase37_data_reliability.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 6,
+      "columns": 4,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase38_news_source_audit.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 6,
+      "columns": 4,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase39_prediction_drift.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 39,
+      "columns": 8,
+      "missing_cells": 4,
+      "missing_by_column": {
+        "rolling_5_session_close_mape_pct": 2,
+        "rolling_5_session_direction_accuracy_pct": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase40_dashboard.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase41_43_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase41_v2_funnel_audit.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 13,
+      "columns": 6,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "rejected_rows": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase42_selected_vs_rejected.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 2,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase43_threshold_sensitivity.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 8,
+      "columns": 10,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase48_52_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "missing_values": 2
+    },
+    {
+      "file": "data/phase48_ledger_reconciliation.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 222,
+      "columns": 12,
+      "missing_cells": 420,
+      "missing_by_column": {
+        "recorded_costs": 140,
+        "net_pnl": 140,
+        "reconciliation_delta": 140
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase49_forecast_accuracy.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 39,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase49_forecast_by_symbol.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 128,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase4_candidates.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 128,
+      "columns": 15,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase4_config.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "missing_values": 2
+    },
+    {
+      "file": "data/phase4_performance_summary.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 1,
+      "columns": 17,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {
+        "bootstrap_ci_low_pct": 1,
+        "bootstrap_ci_high_pct": 1
+      },
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase50_v2_rejection_reasons.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 6,
+      "columns": 3,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase50_v2_rejection_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase51_return_stress.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 6,
+      "columns": 6,
+      "missing_cells": 9,
+      "missing_by_column": {
+        "recorded_net_pnl": 3,
+        "recorded_costs": 3,
+        "stressed_net_pnl": 3
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase52_promotion_gate.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase58_62_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase58_ledger_gap_diagnostics.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 220,
+      "columns": 13,
+      "missing_cells": 80,
+      "missing_by_column": {
+        "missing_fields": 80
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase59_forecast_by_date.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 39,
+      "columns": 5,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase59_forecast_by_symbol.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 128,
+      "columns": 5,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase60_v2_rejection_breakdown.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 5,
+      "columns": 3,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase63_72_readiness_summary.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 5,
+      "columns": 46,
+      "missing_cells": 174,
+      "missing_by_column": {
+        "target_date": 4,
+        "rows_for_target_date": 4,
+        "top10_rows": 4,
+        "top10_complete": 4,
+        "invalid_price_rows": 4,
+        "invalid_ohlc_rows": 4,
+        "duplicate_symbol_rows": 4,
+        "ranked_candidates_are_not_buy_approval": 4,
+        "scored_rows": 4,
+        "unique_dates": 4,
+        "model_close_mape_pct": 4,
+        "baseline_close_mape_pct": 4,
+        "error_delta_pct_points": 4,
+        "beats_baseline": 4,
+        "directional_accuracy_pct": 4,
+        "recent_5_sessions": 4,
+        "recent_5_sessions_scored_rows": 4,
+        "recent_5_sessions_model_close_mape_pct": 4,
+        "recent_5_sessions_baseline_close_mape_pct": 4,
+        "recent_5_sessions_error_delta_pct_points": 4,
+        "recent_5_sessions_beats_baseline": 4,
+        "recent_5_sessions_directional_accuracy_pct": 4,
+        "same_scored_rows_for_comparison": 4,
+        "production_model_changed": 4,
+        "rows": 2,
+        "executed_rows": 4,
+        "incomplete_executed_rows": 4,
+        "net_pnl_reconciliation_mismatch_rows": 4,
+        "unknown_values_imputed": 4,
+        "net_pnl_claim_safe": 4,
+        "rows_with_usable_message_keys": 4,
+        "api_confirmed_rows": 4,
+        "duplicate_message_keys": 4,
+        "human_read_receipt_proven": 4,
+        "duplicate_definition": 4,
+        "unique_sessions": 4,
+        "buy_rows": 4,
+        "skip_rows": 4,
+        "skip_rows_without_reason": 4,
+        "existing_promotion_safe": 4,
+        "promotion_ready": 4,
+        "production_champion": 4,
+        "v2_mode": 4,
+        "automatic_promotion": 4
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase63_72_readiness_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase73_76_diagnostics.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 3,
+      "columns": 21,
+      "missing_cells": 37,
+      "missing_by_column": {
+        "rows": 1,
+        "buy_rows": 2,
+        "skip_rows": 2,
+        "missing_skip_reasons": 2,
+        "production_filters_changed": 2,
+        "thresholds_deployed": 2,
+        "scored_rows": 2,
+        "target_dates": 2,
+        "directional_accuracy_pct": 2,
+        "recent_5_directional_accuracy_pct": 2,
+        "production_model_changed": 2,
+        "method": 2,
+        "path": 2,
+        "bytes": 2,
+        "size_mb": 2,
+        "duplicate_symbol_date_keys": 2,
+        "recommended_action": 2,
+        "storage_changed": 2,
+        "source_file_modified": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase73_76_diagnostics.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase73_v2_zero_buy_breakdown.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 18,
+      "columns": 3,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase74_direction_by_date.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 39,
+      "columns": 3,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase77_80_diagnostics.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase77_telegram_delivery_audit.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 191,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase78_v2_funnel_audit.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 13,
+      "columns": 6,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "rejected_rows": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase79_forecast_evidence.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 39,
+      "columns": 5,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase81_84_diagnostics.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase81_receipt_reconciliation.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 191,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase82_v2_funnel_detail.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 13,
+      "columns": 7,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "rejected_rows": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase83_forecast_by_date.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 39,
+      "columns": 5,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase85_88_diagnostics.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase85_receipt_anomalies.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 191,
+      "columns": 7,
+      "missing_cells": 73,
+      "missing_by_column": {
+        "telegram_message_id": 73
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase86_receipt_schema_readiness.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 4,
+      "columns": 10,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase87_rolling_forecast_windows.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 35,
+      "columns": 7,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase89_92_diagnostics.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase89_receipt_reconciliation.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 191,
+      "columns": 10,
+      "missing_cells": 73,
+      "missing_by_column": {
+        "telegram_message_id": 73
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase90_symbol_forecast_diagnostics.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 128,
+      "columns": 7,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase91_v2_funnel_snapshot.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 13,
+      "columns": 5,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "rejected_rows": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase91_v2_rejection_reasons.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 3,
+      "columns": 2,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase93_96_diagnostics.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "missing_values": 1
+    },
+    {
+      "file": "data/phase93_receipt_forensics.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 185,
+      "columns": 11,
+      "missing_cells": 397,
+      "missing_by_column": {
+        "message_ids": 72,
+        "first_confirmed_utc": 72,
+        "last_confirmed_utc": 72,
+        "elapsed_seconds": 181
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase94_forecast_error_segments.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 130,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase95_v2_earliest_rejection.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 13,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase97_forecast_quality_by_segment.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 39,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase97_forecast_quality_by_symbol.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 128,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase97_forecast_quality_summary.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "missing_values": 1
+    },
+    {
+      "file": "data/phase98_101_quality_summary.json",
+      "type": "json",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase98_forecast_root_cause_by_segment.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 8,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase98_forecast_root_cause_by_symbol.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 128,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/phase98_forecast_root_cause_summary.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase99_feature_integrity_summary.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/phase99_feature_summary_by_symbol.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 528,
+      "columns": 16,
+      "missing_cells": 4,
+      "missing_by_column": {
+        "ret_5_mean": 1,
+        "ret_20_mean": 1,
+        "volatility_20_mean": 1,
+        "volume_ratio_20_mean": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/portfolio_comparison.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 17,
+      "columns": 3,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/portfolio_comparison_summary.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 14,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/portfolio_daily.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 39,
+      "columns": 14,
+      "missing_cells": 312,
+      "missing_by_column": {
+        "winners": 39,
+        "losers": 39,
+        "gross_pnl": 39,
+        "costs": 39,
+        "net_pnl": 39,
+        "peak_value": 39,
+        "drawdown_pct": 39,
+        "win_rate_pct": 39
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/portfolio_v2_daily.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 35,
+      "columns": 10,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/prediction_candidates.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 20,
+      "columns": 44,
+      "missing_cells": 100,
+      "missing_by_column": {
+        "direction_probability": 20,
+        "direction_score_model": 20,
+        "listing_age_days": 20,
+        "news_context_error": 20,
+        "stock_news_reason": 20
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/prediction_candidates_history.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 100,
+      "columns": 56,
+      "missing_cells": 2220,
+      "missing_by_column": {
+        "recent_close_error": 100,
+        "selection_penalty": 100,
+        "selection_priority": 100,
+        "listing_age_days": 100,
+        "listing_status": 20,
+        "listing_confidence_factor": 20,
+        "adjusted_confidence_score": 20,
+        "confidence_calibration_version": 20,
+        "direction_probability": 60,
+        "direction_score_model": 60,
+        "return_20d": 20,
+        "volatility20": 20,
+        "close_sma20_gap": 20,
+        "confidence_tier": 20,
+        "risk_level": 20,
+        "index_risk_multiplier": 20,
+        "market_intelligence_score": 20,
+        "sector_news_score": 20,
+        "stock_news_score": 20,
+        "stock_news_count": 20,
+        "stock_news_reason": 100,
+        "adaptive_selection_score": 20,
+        "risk_budget_weight": 20,
+        "risk_budget_value": 20,
+        "selection_explanation": 20,
+        "total_score": 100,
+        "risk_off_defensive_score": 100,
+        "risk_off_selection_score": 100,
+        "trade_quality_probability": 100,
+        "recent_symbol_return_pct": 100,
+        "recent_symbol_win_rate": 100,
+        "recent_symbol_error_pct": 100,
+        "repeat_loss_penalty": 100,
+        "quality_adjustment": 100,
+        "ranking_model_status": 60,
+        "direction_model_status": 60,
+        "confidence_score_semantics": 60,
+        "news_context_status": 60,
+        "news_context_error": 100
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/prediction_outcomes.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 400,
+      "columns": 23,
+      "missing_cells": 4800,
+      "missing_by_column": {
+        "3m_target_date": 400,
+        "3m_actual_close": 400,
+        "3m_return_pct": 400,
+        "6m_target_date": 400,
+        "6m_actual_close": 400,
+        "6m_return_pct": 400,
+        "9m_target_date": 400,
+        "9m_actual_close": 400,
+        "9m_return_pct": 400,
+        "12m_target_date": 400,
+        "12m_actual_close": 400,
+        "12m_return_pct": 400
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/predictions.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 400,
+      "columns": 56,
+      "missing_cells": 10206,
+      "missing_by_column": {
+        "prediction_spread": 40,
+        "technical_score": 40,
+        "fundamental_score": 40,
+        "confidence_score": 40,
+        "selection_method": 40,
+        "selected": 40,
+        "recent_close_error": 393,
+        "selection_penalty": 390,
+        "selection_priority": 390,
+        "listing_age_days": 400,
+        "listing_status": 120,
+        "listing_confidence_factor": 120,
+        "adjusted_confidence_score": 120,
+        "confidence_calibration_version": 130,
+        "direction_probability": 160,
+        "direction_score_model": 160,
+        "return_20d": 150,
+        "volatility20": 150,
+        "close_sma20_gap": 150,
+        "confidence_tier": 150,
+        "risk_level": 150,
+        "index_risk_multiplier": 150,
+        "market_intelligence_score": 150,
+        "sector_news_score": 150,
+        "stock_news_score": 150,
+        "stock_news_count": 150,
+        "stock_news_reason": 399,
+        "adaptive_selection_score": 150,
+        "risk_budget_weight": 150,
+        "risk_budget_value": 150,
+        "selection_explanation": 150,
+        "total_score": 350,
+        "risk_off_defensive_score": 350,
+        "risk_off_selection_score": 350,
+        "trade_quality_probability": 350,
+        "recent_symbol_return_pct": 364,
+        "recent_symbol_win_rate": 350,
+        "recent_symbol_error_pct": 350,
+        "repeat_loss_penalty": 350,
+        "quality_adjustment": 350,
+        "ranking_model_status": 380,
+        "direction_model_status": 380,
+        "confidence_score_semantics": 380,
+        "news_context_status": 380,
+        "news_context_error": 400
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/ranking_model_validation.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 645,
+      "columns": 8,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/ranking_model_validation_summary.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 18,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/ranking_validation.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 3,
+      "columns": 13,
+      "missing_cells": 6,
+      "missing_by_column": {
+        "top10_vs_next10_return_diff_pct": 2,
+        "top10_vs_next10_profitable_diff_pct": 2,
+        "top10_outperformed_next10": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/rankings.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 499,
+      "columns": 96,
+      "missing_cells": 140,
+      "missing_by_column": {
+        "returnOnEquity": 37,
+        "profitMargins": 2,
+        "revenueGrowth": 2,
+        "earningsGrowth": 35,
+        "trailingPE": 23,
+        "debtToEquity": 39,
+        "dividendYield": 2
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/regime_performance.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 2,
+      "columns": 3,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/regime_validation.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 24,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/selection_validation.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 18,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/selection_validation_coverage.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "PASS",
+      "missing_values": 0
+    },
+    {
+      "file": "data/stock_stability.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 128,
+      "columns": 7,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/strategy_ab_comparison.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 1,
+      "columns": 32,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "v1_max_drawdown_pct": 1
+      },
+      "non_finite_by_column": {
+        "return_lift_ci_low_pct": 1,
+        "phase4_bootstrap_ci_low_pct": 1
+      },
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/strategy_ab_report.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 1,
+      "columns": 15,
+      "missing_cells": 1,
+      "missing_by_column": {
+        "v1_max_drawdown_pct": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/strategy_ab_sessions.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 35,
+      "columns": 11,
+      "missing_cells": 35,
+      "missing_by_column": {
+        "v1_drawdown_pct": 35
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/strategy_promotion_history.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 77,
+      "columns": 32,
+      "missing_cells": 232,
+      "missing_by_column": {
+        "v1_max_drawdown_pct": 72,
+        "confidence_promoted": 6,
+        "phase2_enabled": 8,
+        "phase2_direction_lift_pct": 8,
+        "phase2_shadow_return_lift_pct": 8,
+        "return_lift_ci_low_pct": 9,
+        "directional_promoted": 10,
+        "governance_safe": 10,
+        "governance_bootstrap_ci_low_pct": 10,
+        "governance_drift_status": 10,
+        "phase4_safe": 11,
+        "phase4_regime": 11,
+        "phase4_confidence_floor_percentile": 11,
+        "phase4_min_expected_return_pct": 11,
+        "phase4_bootstrap_ci_low_pct": 11,
+        "advanced_promotion_eligible": 13,
+        "advanced_promotion_checks": 13
+      },
+      "non_finite_by_column": {
+        "return_lift_ci_low_pct": 68,
+        "phase4_bootstrap_ci_low_pct": 66
+      },
+      "duplicate_rows": 20
+    },
+    {
+      "file": "data/strategy_state.json",
+      "type": "json",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "missing_values": 3
+    },
+    {
+      "file": "data/system_health.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 1,
+      "columns": 11,
+      "missing_cells": 2,
+      "missing_by_column": {
+        "warnings": 1,
+        "failures": 1
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/target_threshold_diagnostics.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 4,
+      "columns": 6,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/telegram_evening_sent.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 41,
+      "columns": 5,
+      "missing_cells": 36,
+      "missing_by_column": {
+        "telegram_message_id": 18,
+        "telegram_date_utc": 18
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/telegram_paper_sent.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 42,
+      "columns": 5,
+      "missing_cells": 38,
+      "missing_by_column": {
+        "telegram_message_id": 19,
+        "telegram_date_utc": 19
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/telegram_paper_v2_sent.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 33,
+      "columns": 5,
+      "missing_cells": 18,
+      "missing_by_column": {
+        "telegram_message_id": 9,
+        "telegram_date_utc": 9
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/telegram_sent.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 76,
+      "columns": 5,
+      "missing_cells": 54,
+      "missing_by_column": {
+        "telegram_message_id": 27,
+        "telegram_date_utc": 27
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/telegram_weekly_sent.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 1,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/trade_quality_validation.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 46,
+      "columns": 16,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/trade_quality_validation_summary.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 9,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/trading_strategy_metrics.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "PASS",
+      "rows": 1,
+      "columns": 13,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/universe.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "PASS",
+      "rows": 501,
+      "columns": 2,
+      "missing_cells": 0,
+      "missing_by_column": {},
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/walk_forward_evaluations.csv",
+      "type": "csv",
+      "scope": "MODEL",
+      "status": "ISSUES_FOUND",
+      "rows": 240,
+      "columns": 30,
+      "missing_cells": 240,
+      "missing_by_column": {
+        "baseline_close_direction_correct": 240
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    },
+    {
+      "file": "data/walk_forward_summary.csv",
+      "type": "csv",
+      "scope": "COLLECTED_DATA",
+      "status": "ISSUES_FOUND",
+      "rows": 24,
+      "columns": 24,
+      "missing_cells": 72,
+      "missing_by_column": {
+        "baseline_close_direction_accuracy": 24,
+        "baseline_close_direction_accuracy_pct": 24,
+        "close_direction_delta_pct_points": 24
+      },
+      "non_finite_by_column": {},
+      "duplicate_rows": 0
+    }
+  ]
+}

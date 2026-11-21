@@ -1,0 +1,223 @@
+file,type,scope,status,rows,columns,missing_cells,missing_by_column,non_finite_by_column,duplicate_rows,missing_values
+data/advanced_promotion_gate.csv,csv,COLLECTED_DATA,PASS,1.0,4.0,0.0,{},{},0.0,
+data/advanced_selection_config.json,json,MODEL,PASS,,,,,,,0.0
+data/advanced_selection_summary.csv,csv,MODEL,PASS,1.0,6.0,0.0,{},{},0.0,
+data/confidence_analysis.csv,csv,MODEL,ISSUES_FOUND,4.0,13.0,5.0,"{'close_mape_pct': 1, 'direction_accuracy_pct': 1, 'mfe_pct': 1, 'mae_pct': 1, 'profitable_close_pct': 1}",{},0.0,
+data/confidence_validation.csv,csv,MODEL,PASS,5.0,8.0,0.0,{},{},0.0,
+data/confidence_validation_summary.csv,csv,MODEL,PASS,1.0,10.0,0.0,{},{},0.0,
+data/dashboard_data.json,json,COLLECTED_DATA,ISSUES_FOUND,,,,,,,1.0
+data/directional_model_validation.csv,csv,MODEL,PASS,2077.0,9.0,0.0,{},{},0.0,
+data/directional_model_validation_summary.csv,csv,MODEL,PASS,1.0,20.0,0.0,{},{},0.0,
+data/evaluations.csv,csv,MODEL,ISSUES_FOUND,390.0,34.0,360.0,{'split_ratio': 360},{},0.0,
+data/execution_cost_evidence_manifest.csv,csv,COLLECTED_DATA,PASS,0.0,14.0,0.0,{},{},0.0,
+data/feature_stability.csv,csv,MODEL,ISSUES_FOUND,18.0,7.0,54.0,"{'mean_correlation': 18, 'min_correlation': 18, 'max_correlation': 18}",{},0.0,
+data/fundamentals.csv,csv,COLLECTED_DATA,ISSUES_FOUND,500.0,11.0,151.0,"{'sector': 3, 'returnOnEquity': 38, 'profitMargins': 3, 'revenueGrowth': 3, 'earningsGrowth': 36, 'trailingPE': 24, 'priceToBook': 1, 'debtToEquity': 40, 'dividendYield': 3}",{},0.0,
+data/fundamentals_history.csv,csv,COLLECTED_DATA,ISSUES_FOUND,16529.0,11.0,15606.0,"{'sector': 429, 'returnOnEquity': 10678, 'profitMargins': 125, 'revenueGrowth': 125, 'earningsGrowth': 1436, 'trailingPE': 814, 'priceToBook': 93, 'debtToEquity': 1394, 'dividendYield': 512}",{},0.0,
+data/historical_coverage_audit.csv,csv,COLLECTED_DATA,ISSUES_FOUND,500.0,22.0,57.0,"{'listing_date': 3, 'listing_expected_start': 9, 'expected_sessions_since_listing': 9, 'observed_sessions_since_listing': 9, 'calendar_sessions_without_ohlcv_since_listing': 9, 'listing_to_first_bar_gap_sessions': 9, 'history_starts_at_first_possible_session': 9}",{},0.0,
+data/historical_coverage_audit.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/historical_gap_repair_details.csv,csv,COLLECTED_DATA,PASS,130.0,3.0,0.0,{},{},0.0,
+data/historical_listing_provenance.csv,csv,COLLECTED_DATA,ISSUES_FOUND,25.0,9.0,102.0,"{'predecessor_symbol': 22, 'evidence_start_date': 22, 'evidence_end_date': 20, 'evidence_exchange': 19, 'evidence_url': 19}",{},0.0,
+data/historical_recovery_run.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/index_constituent_features.csv,csv,MODEL,ISSUES_FOUND,1989.0,12.0,6.0,"{'rolling_corr_60d': 3, 'rolling_beta_60d': 3}",{},0.0,
+data/index_constituent_intelligence_audit.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/index_constituents_history.csv,csv,COLLECTED_DATA,PASS,2982.0,7.0,0.0,{},{},0.0,
+data/index_intelligence_config.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/index_intelligence_summary.csv,csv,COLLECTED_DATA,PASS,5.0,22.0,0.0,{},{},0.0,
+data/index_ohlcv.csv,csv,COLLECTED_DATA,PASS,50130.0,9.0,0.0,{},{},0.0,
+data/integration_check.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/model_governance.json,json,MODEL,PASS,,,,,,,0.0
+data/model_governance_summary.csv,csv,MODEL,ISSUES_FOUND,1.0,61.0,1.0,{'safety_failures': 1},{},0.0,
+data/model_manifest.json,json,MODEL,PASS,,,,,,,0.0
+data/model_selection.csv,csv,MODEL,PASS,1.0,13.0,0.0,{},{},0.0,
+data/new_listing_model_status.csv,csv,MODEL,PASS,1.0,4.0,0.0,{},{},0.0,
+data/new_listings.csv,csv,COLLECTED_DATA,PASS,0.0,6.0,0.0,{},{},0.0,
+data/new_listings_history.csv,csv,COLLECTED_DATA,PASS,0.0,5.0,0.0,{},{},0.0,
+data/nse_listing_master.csv,csv,COLLECTED_DATA,PASS,497.0,6.0,0.0,{},{},0.0,
+data/nse_market_calendar.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/nse_market_calendar_audit.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/ohlcv.csv,csv,COLLECTED_DATA,PASS,959977.0,9.0,0.0,{},{},0.0,
+data/paper_trades.csv,csv,COLLECTED_DATA,ISSUES_FOUND,390.0,33.0,6703.0,"{'entry_price': 161, 'exit_price': 161, 'exit_reason': 310, 'target_pct': 320, 'stop_pct': 320, 'pnl_per_share': 320, 'return_pct': 161, 'entry_probability': 320, 'model_learned': 320, 'shares': 310, 'allocated_capital': 310, 'costs': 300, 'gross_profit_loss': 300, 'prediction_date': 70, 'score': 70, 'position_value': 70, 'reference_price': 80, 'quantity': 80, 'planned_capital': 80, 'pre_split_quantity': 360, 'split_ratio': 360, 'accounting_reconciliation_status': 20, 'exit_reason_record_status': 20, 'exit_date': 380, 'ledger_schema_version': 370, 'record_created_at_utc': 370, 'cost_model': 370, 'no_trade_reason': 390}",{},0.0,
+data/paper_trades_v2.csv,csv,COLLECTED_DATA,ISSUES_FOUND,350.0,31.0,4033.0,"{'expected_return_pct': 348, 'risk_reward': 348, 'stop_distance_pct': 348, 'entry_price': 348, 'exit_price': 348, 'return_pct': 348, 'trade_quality_probability': 298, 'no_trade_reason': 2, 'index_risk_multiplier': 110, 'phase4_reject_reason': 143, 'phase4_score': 348, 'phase4_weight': 348, 'phase4_stop_atr_multiplier': 348, 'phase4_target_stop_multiple': 348}",{},0.0,
+data/paper_trading_learning.csv,csv,COLLECTED_DATA,PASS,71.0,18.0,0.0,{},{},0.0,
+data/performance_audit.csv,csv,MODEL,ISSUES_FOUND,51.0,4.0,1.0,{'value': 1},{},0.0,
+data/performance_audit_summary.csv,csv,MODEL,PASS,1.0,3.0,0.0,{},{},0.0,
+data/performance_history.csv,csv,MODEL,ISSUES_FOUND,39.0,41.0,312.0,"{'net_pnl': 39, 'sessions_summary': 39, 'total_return_pct': 39, 'max_drawdown_pct': 39, 'avg_trade_return_pct': 39, 'profit_factor': 39, 'learning_rows': 39, 'learned_model_active': 39}",{},0.0,
+data/phase100_walk_forward_challenger.csv,csv,COLLECTED_DATA,PASS,390.0,9.0,0.0,{},{},0.0,
+data/phase100_walk_forward_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase101_v1_paper_performance_daily.csv,csv,MODEL,PASS,39.0,5.0,0.0,{},{},0.0,
+data/phase101_v2_paper_performance_daily.csv,csv,MODEL,PASS,2.0,5.0,0.0,{},{},0.0,
+data/phase101_v2_selection_outcomes.csv,csv,MODEL,ISSUES_FOUND,7.0,8.0,9.0,"{'signal_group': 5, 'confidence_bucket': 2, 'mean_confidence_score': 2}",{},0.0,
+data/phase102_v1_loss_attribution_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase102_v1_loss_by_exit_reason.csv,csv,COLLECTED_DATA,PASS,6.0,9.0,0.0,{},{},0.0,
+data/phase102_v1_loss_by_symbol.csv,csv,COLLECTED_DATA,ISSUES_FOUND,88.0,9.0,1.0,{'profit_factor': 1},{},0.0,
+data/phase102_v2_high_confidence_skips.csv,csv,MODEL,PASS,70.0,12.0,0.0,{},{},0.0,
+data/phase102_v2_rejection_reason_outcomes.csv,csv,COLLECTED_DATA,PASS,3.0,6.0,0.0,{},{},0.0,
+data/phase102_v2_rejection_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase103_forecast_evidence_summary.json,json,MODEL,PASS,,,,,,,0.0
+data/phase103_forecast_session_evidence.csv,csv,MODEL,ISSUES_FOUND,39.0,10.0,6.0,"{'rolling_5_session_close_mape_pct': 2, 'rolling_5_session_baseline_mape_pct': 2, 'rolling_5_session_direction_accuracy_pct': 2}",{},0.0,
+data/phase104_loss_concentration_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase104_v1_loss_concentration_by_exit_reason.csv,csv,COLLECTED_DATA,PASS,6.0,9.0,0.0,{},{},0.0,
+data/phase104_v1_loss_concentration_by_session.csv,csv,COLLECTED_DATA,PASS,39.0,9.0,0.0,{},{},0.0,
+data/phase104_v1_loss_concentration_by_symbol.csv,csv,COLLECTED_DATA,PASS,88.0,9.0,0.0,{},{},0.0,
+data/phase105_exit_attribution_by_reason.csv,csv,COLLECTED_DATA,PASS,6.0,10.0,0.0,{},{},0.0,
+data/phase105_exit_attribution_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase106_trade_lifecycle_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase107_pnl_reconciliation_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase108_loss_by_exit_reason.csv,csv,COLLECTED_DATA,PASS,6.0,6.0,0.0,{},{},0.0,
+data/phase108_loss_by_session.csv,csv,COLLECTED_DATA,PASS,39.0,6.0,0.0,{},{},0.0,
+data/phase108_loss_by_symbol.csv,csv,COLLECTED_DATA,PASS,88.0,6.0,0.0,{},{},0.0,
+data/phase108_loss_concentration_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase109_selection_funnel_summary.json,json,MODEL,ISSUES_FOUND,,,,,,,3.0
+data/phase110_forecast_accuracy_summary.json,json,MODEL,PASS,,,,,,,0.0
+data/phase111_chronological_replay_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase112_market_intelligence_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase113_sustained_evidence_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase114_promotion_readiness_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase115_shadow_monitoring_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase116_shrinkage_calibration_by_session.csv,csv,MODEL,ISSUES_FOUND,39.0,13.0,2.0,{'latest_training_target_date': 2},{},0.0,
+data/phase116_shrinkage_calibration_summary.json,json,MODEL,PASS,,,,,,,0.0
+data/phase117_bias_correction_by_session.csv,csv,COLLECTED_DATA,ISSUES_FOUND,39.0,12.0,2.0,{'latest_training_target_date': 2},{},0.0,
+data/phase117_bias_correction_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase118_forecast_error_diagnosis.json,json,MODEL,PASS,,,,,,,0.0
+data/phase118_forecast_errors_by_regime.csv,csv,MODEL,PASS,3.0,7.0,0.0,{},{},0.0,
+data/phase118_forecast_errors_by_symbol.csv,csv,MODEL,PASS,60.0,7.0,0.0,{},{},0.0,
+data/phase119_prospective_validation.json,json,MODEL,PASS,,,,,,,0.0
+data/phase119_prospective_validation_by_session.csv,csv,MODEL,PASS,20.0,16.0,0.0,{},{},0.0,
+data/phase120_forecast_stability_by_regime.csv,csv,MODEL,PASS,3.0,9.0,0.0,{},{},0.0,
+data/phase120_forecast_stability_by_session.csv,csv,MODEL,ISSUES_FOUND,39.0,15.0,2.0,{'latest_training_target_date': 2},{},0.0,
+data/phase120_forecast_stability_by_symbol.csv,csv,MODEL,PASS,60.0,9.0,0.0,{},{},0.0,
+data/phase120_forecast_stability_summary.json,json,MODEL,PASS,,,,,,,0.0
+data/phase121_forecast_underfit_diagnosis.json,json,MODEL,PASS,,,,,,,0.0
+data/phase122_challenger_decision.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase123_magnitude_calibration_decision.json,json,MODEL,PASS,,,,,,,0.0
+data/phase124_feature_signal_decision.json,json,MODEL,PASS,,,,,,,0.0
+data/phase125_feature_ablation_decision.json,json,MODEL,PASS,,,,,,,0.0
+data/phase126_objective_target_decision.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase1_historical_ledger_repair_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase20_accuracy_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase20_error_slices.csv,csv,COLLECTED_DATA,ISSUES_FOUND,32.0,8.0,2.0,{'bucket': 2},{},0.0,
+data/phase20_feature_stability.csv,csv,MODEL,ISSUES_FOUND,11.0,7.0,2.0,{'median_correlation': 2},{},0.0,
+data/phase20_symbol_stability.csv,csv,COLLECTED_DATA,PASS,128.0,8.0,0.0,{},{},0.0,
+data/phase21_26_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase21_direction_calibration.csv,csv,MODEL,PASS,5.0,8.0,0.0,{},{},0.0,
+data/phase22_leakage_audit.csv,csv,COLLECTED_DATA,PASS,6.0,4.0,0.0,{},{},0.0,
+data/phase23_matched_evidence.csv,csv,COLLECTED_DATA,PASS,1.0,10.0,0.0,{},{},0.0,
+data/phase25_drift_monitor.csv,csv,COLLECTED_DATA,PASS,2.0,8.0,0.0,{},{},0.0,
+data/phase26_news_impact.csv,csv,COLLECTED_DATA,PASS,2.0,7.0,0.0,{},{},0.0,
+data/phase27_data_integrity.csv,csv,COLLECTED_DATA,PASS,9.0,4.0,0.0,{},{},0.0,
+data/phase27_data_quality_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase27_regime_accuracy.csv,csv,MODEL,PASS,2.0,8.0,0.0,{},{},0.0,
+data/phase28_30_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase28_data_quality.csv,csv,COLLECTED_DATA,PASS,16.0,5.0,0.0,{},{},0.0,
+data/phase29_dataset_audit.csv,csv,COLLECTED_DATA,PASS,2.0,12.0,0.0,{},{},0.0,
+data/phase2_dashboard.csv,csv,COLLECTED_DATA,ISSUES_FOUND,1.0,42.0,0.0,{},"{'return_lift_ci_low_pct': 1, 'phase4_bootstrap_ci_low_pct': 1, 'phase4_bootstrap_ci_high_pct': 1}",0.0,
+data/phase2_dashboard.json,json,COLLECTED_DATA,ISSUES_FOUND,,,,,,,3.0
+data/phase2_optimized_candidates.csv,csv,MODEL,ISSUES_FOUND,450.0,64.0,10916.0,"{'prediction_spread': 40, 'technical_score': 40, 'fundamental_score': 40, 'confidence_score': 40, 'selection_method': 40, 'selected': 40, 'recent_close_error': 443, 'selection_penalty': 440, 'selection_priority': 440, 'listing_age_days': 450, 'listing_status': 130, 'listing_confidence_factor': 130, 'adjusted_confidence_score': 130, 'confidence_calibration_version': 140, 'direction_probability': 190, 'direction_score_model': 190, 'return_20d': 160, 'volatility20': 160, 'close_sma20_gap': 160, 'confidence_tier': 160, 'risk_level': 160, 'index_risk_multiplier': 160, 'market_intelligence_score': 160, 'sector_news_score': 160, 'stock_news_score': 160, 'stock_news_count': 160, 'stock_news_reason': 449, 'adaptive_selection_score': 160, 'risk_budget_weight': 160, 'risk_budget_value': 160, 'selection_explanation': 160, 'total_score': 400, 'risk_off_defensive_score': 400, 'risk_off_selection_score': 400, 'trade_quality_probability': 400, 'recent_symbol_return_pct': 414, 'recent_symbol_win_rate': 400, 'recent_symbol_error_pct': 400, 'quality_adjustment': 400, 'ranking_model_status': 410, 'direction_model_status': 410, 'confidence_score_semantics': 410, 'news_context_status': 410, 'news_context_error': 450}",{},0.0,
+data/phase2_performance_summary.csv,csv,MODEL,PASS,1.0,19.0,0.0,{},{},0.0,
+data/phase2_state.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase30_accuracy_metrics.csv,csv,COLLECTED_DATA,ISSUES_FOUND,160.0,10.0,124.0,"{'target_date': 4, 'direction_accuracy_pct': 120}",{},0.0,
+data/phase31_chronological_comparison.csv,csv,COLLECTED_DATA,PASS,35.0,8.0,0.0,{},{},0.0,
+data/phase31_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase32_selection_funnel_report.csv,csv,MODEL,ISSUES_FOUND,13.0,5.0,1.0,{'rejected_rows': 1},{},0.0,
+data/phase32_v2_selection_funnel.csv,csv,MODEL,ISSUES_FOUND,13.0,5.0,1.0,{'rejected_rows': 1},{},0.0,
+data/phase33_chronological_prediction_scores.csv,csv,MODEL,PASS,390.0,23.0,0.0,{},{},0.0,
+data/phase33_prediction_summary.json,json,MODEL,PASS,,,,,,,0.0
+data/phase34_regime_accuracy.csv,csv,MODEL,PASS,1.0,4.0,0.0,{},{},0.0,
+data/phase35_trading_costs_and_returns.csv,csv,COLLECTED_DATA,PASS,2.0,17.0,0.0,{},{},0.0,
+data/phase35_v1_incomplete_ledger_rows.csv,csv,COLLECTED_DATA,PASS,140.0,10.0,0.0,{},{},0.0,
+data/phase36_promotion_gate.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase37_data_reliability.csv,csv,COLLECTED_DATA,PASS,6.0,4.0,0.0,{},{},0.0,
+data/phase38_news_source_audit.csv,csv,COLLECTED_DATA,PASS,6.0,4.0,0.0,{},{},0.0,
+data/phase39_prediction_drift.csv,csv,MODEL,ISSUES_FOUND,39.0,8.0,4.0,"{'rolling_5_session_close_mape_pct': 2, 'rolling_5_session_direction_accuracy_pct': 2}",{},0.0,
+data/phase40_dashboard.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase41_43_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase41_v2_funnel_audit.csv,csv,COLLECTED_DATA,ISSUES_FOUND,13.0,6.0,1.0,{'rejected_rows': 1},{},0.0,
+data/phase42_selected_vs_rejected.csv,csv,COLLECTED_DATA,PASS,2.0,8.0,0.0,{},{},0.0,
+data/phase43_threshold_sensitivity.csv,csv,COLLECTED_DATA,PASS,8.0,10.0,0.0,{},{},0.0,
+data/phase48_52_summary.json,json,COLLECTED_DATA,ISSUES_FOUND,,,,,,,2.0
+data/phase48_ledger_reconciliation.csv,csv,COLLECTED_DATA,ISSUES_FOUND,222.0,12.0,420.0,"{'recorded_costs': 140, 'net_pnl': 140, 'reconciliation_delta': 140}",{},0.0,
+data/phase49_forecast_accuracy.csv,csv,MODEL,PASS,39.0,9.0,0.0,{},{},0.0,
+data/phase49_forecast_by_symbol.csv,csv,MODEL,PASS,128.0,8.0,0.0,{},{},0.0,
+data/phase4_candidates.csv,csv,MODEL,PASS,128.0,15.0,0.0,{},{},0.0,
+data/phase4_config.json,json,COLLECTED_DATA,ISSUES_FOUND,,,,,,,2.0
+data/phase4_performance_summary.csv,csv,MODEL,ISSUES_FOUND,1.0,17.0,0.0,{},"{'bootstrap_ci_low_pct': 1, 'bootstrap_ci_high_pct': 1}",0.0,
+data/phase50_v2_rejection_reasons.csv,csv,COLLECTED_DATA,PASS,6.0,3.0,0.0,{},{},0.0,
+data/phase50_v2_rejection_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase51_return_stress.csv,csv,COLLECTED_DATA,ISSUES_FOUND,6.0,6.0,9.0,"{'recorded_net_pnl': 3, 'recorded_costs': 3, 'stressed_net_pnl': 3}",{},0.0,
+data/phase52_promotion_gate.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase58_62_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase58_ledger_gap_diagnostics.csv,csv,COLLECTED_DATA,ISSUES_FOUND,220.0,13.0,80.0,{'missing_fields': 80},{},0.0,
+data/phase59_forecast_by_date.csv,csv,MODEL,PASS,39.0,5.0,0.0,{},{},0.0,
+data/phase59_forecast_by_symbol.csv,csv,MODEL,PASS,128.0,5.0,0.0,{},{},0.0,
+data/phase60_v2_rejection_breakdown.csv,csv,COLLECTED_DATA,PASS,5.0,3.0,0.0,{},{},0.0,
+data/phase63_72_readiness_summary.csv,csv,COLLECTED_DATA,ISSUES_FOUND,5.0,46.0,174.0,"{'target_date': 4, 'rows_for_target_date': 4, 'top10_rows': 4, 'top10_complete': 4, 'invalid_price_rows': 4, 'invalid_ohlc_rows': 4, 'duplicate_symbol_rows': 4, 'ranked_candidates_are_not_buy_approval': 4, 'scored_rows': 4, 'unique_dates': 4, 'model_close_mape_pct': 4, 'baseline_close_mape_pct': 4, 'error_delta_pct_points': 4, 'beats_baseline': 4, 'directional_accuracy_pct': 4, 'recent_5_sessions': 4, 'recent_5_sessions_scored_rows': 4, 'recent_5_sessions_model_close_mape_pct': 4, 'recent_5_sessions_baseline_close_mape_pct': 4, 'recent_5_sessions_error_delta_pct_points': 4, 'recent_5_sessions_beats_baseline': 4, 'recent_5_sessions_directional_accuracy_pct': 4, 'same_scored_rows_for_comparison': 4, 'production_model_changed': 4, 'rows': 2, 'executed_rows': 4, 'incomplete_executed_rows': 4, 'net_pnl_reconciliation_mismatch_rows': 4, 'unknown_values_imputed': 4, 'net_pnl_claim_safe': 4, 'rows_with_usable_message_keys': 4, 'api_confirmed_rows': 4, 'duplicate_message_keys': 4, 'human_read_receipt_proven': 4, 'duplicate_definition': 4, 'unique_sessions': 4, 'buy_rows': 4, 'skip_rows': 4, 'skip_rows_without_reason': 4, 'existing_promotion_safe': 4, 'promotion_ready': 4, 'production_champion': 4, 'v2_mode': 4, 'automatic_promotion': 4}",{},0.0,
+data/phase63_72_readiness_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase73_76_diagnostics.csv,csv,COLLECTED_DATA,ISSUES_FOUND,3.0,21.0,37.0,"{'rows': 1, 'buy_rows': 2, 'skip_rows': 2, 'missing_skip_reasons': 2, 'production_filters_changed': 2, 'thresholds_deployed': 2, 'scored_rows': 2, 'target_dates': 2, 'directional_accuracy_pct': 2, 'recent_5_directional_accuracy_pct': 2, 'production_model_changed': 2, 'method': 2, 'path': 2, 'bytes': 2, 'size_mb': 2, 'duplicate_symbol_date_keys': 2, 'recommended_action': 2, 'storage_changed': 2, 'source_file_modified': 2}",{},0.0,
+data/phase73_76_diagnostics.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase73_v2_zero_buy_breakdown.csv,csv,COLLECTED_DATA,PASS,18.0,3.0,0.0,{},{},0.0,
+data/phase74_direction_by_date.csv,csv,MODEL,PASS,39.0,3.0,0.0,{},{},0.0,
+data/phase77_80_diagnostics.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase77_telegram_delivery_audit.csv,csv,COLLECTED_DATA,PASS,191.0,6.0,0.0,{},{},0.0,
+data/phase78_v2_funnel_audit.csv,csv,COLLECTED_DATA,ISSUES_FOUND,13.0,6.0,1.0,{'rejected_rows': 1},{},0.0,
+data/phase79_forecast_evidence.csv,csv,MODEL,PASS,39.0,5.0,0.0,{},{},0.0,
+data/phase81_84_diagnostics.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase81_receipt_reconciliation.csv,csv,COLLECTED_DATA,PASS,191.0,6.0,0.0,{},{},0.0,
+data/phase82_v2_funnel_detail.csv,csv,COLLECTED_DATA,ISSUES_FOUND,13.0,7.0,1.0,{'rejected_rows': 1},{},0.0,
+data/phase83_forecast_by_date.csv,csv,MODEL,PASS,39.0,5.0,0.0,{},{},0.0,
+data/phase85_88_diagnostics.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase85_receipt_anomalies.csv,csv,COLLECTED_DATA,ISSUES_FOUND,191.0,7.0,73.0,{'telegram_message_id': 73},{},0.0,
+data/phase86_receipt_schema_readiness.csv,csv,COLLECTED_DATA,PASS,4.0,10.0,0.0,{},{},0.0,
+data/phase87_rolling_forecast_windows.csv,csv,MODEL,PASS,35.0,7.0,0.0,{},{},0.0,
+data/phase89_92_diagnostics.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase89_receipt_reconciliation.csv,csv,COLLECTED_DATA,ISSUES_FOUND,191.0,10.0,73.0,{'telegram_message_id': 73},{},0.0,
+data/phase90_symbol_forecast_diagnostics.csv,csv,MODEL,PASS,128.0,7.0,0.0,{},{},0.0,
+data/phase91_v2_funnel_snapshot.csv,csv,COLLECTED_DATA,ISSUES_FOUND,13.0,5.0,1.0,{'rejected_rows': 1},{},0.0,
+data/phase91_v2_rejection_reasons.csv,csv,COLLECTED_DATA,PASS,3.0,2.0,0.0,{},{},0.0,
+data/phase93_96_diagnostics.json,json,COLLECTED_DATA,ISSUES_FOUND,,,,,,,1.0
+data/phase93_receipt_forensics.csv,csv,COLLECTED_DATA,ISSUES_FOUND,185.0,11.0,397.0,"{'message_ids': 72, 'first_confirmed_utc': 72, 'last_confirmed_utc': 72, 'elapsed_seconds': 181}",{},0.0,
+data/phase94_forecast_error_segments.csv,csv,MODEL,PASS,130.0,8.0,0.0,{},{},0.0,
+data/phase95_v2_earliest_rejection.csv,csv,COLLECTED_DATA,PASS,13.0,8.0,0.0,{},{},0.0,
+data/phase97_forecast_quality_by_segment.csv,csv,MODEL,PASS,39.0,8.0,0.0,{},{},0.0,
+data/phase97_forecast_quality_by_symbol.csv,csv,MODEL,PASS,128.0,9.0,0.0,{},{},0.0,
+data/phase97_forecast_quality_summary.json,json,MODEL,ISSUES_FOUND,,,,,,,1.0
+data/phase98_101_quality_summary.json,json,COLLECTED_DATA,PASS,,,,,,,0.0
+data/phase98_forecast_root_cause_by_segment.csv,csv,MODEL,PASS,8.0,6.0,0.0,{},{},0.0,
+data/phase98_forecast_root_cause_by_symbol.csv,csv,MODEL,PASS,128.0,6.0,0.0,{},{},0.0,
+data/phase98_forecast_root_cause_summary.json,json,MODEL,PASS,,,,,,,0.0
+data/phase99_feature_integrity_summary.json,json,MODEL,PASS,,,,,,,0.0
+data/phase99_feature_summary_by_symbol.csv,csv,MODEL,ISSUES_FOUND,528.0,16.0,4.0,"{'ret_5_mean': 1, 'ret_20_mean': 1, 'volatility_20_mean': 1, 'volume_ratio_20_mean': 1}",{},0.0,
+data/portfolio_comparison.csv,csv,COLLECTED_DATA,PASS,17.0,3.0,0.0,{},{},0.0,
+data/portfolio_comparison_summary.csv,csv,COLLECTED_DATA,PASS,1.0,14.0,0.0,{},{},0.0,
+data/portfolio_daily.csv,csv,COLLECTED_DATA,ISSUES_FOUND,39.0,14.0,312.0,"{'winners': 39, 'losers': 39, 'gross_pnl': 39, 'costs': 39, 'net_pnl': 39, 'peak_value': 39, 'drawdown_pct': 39, 'win_rate_pct': 39}",{},0.0,
+data/portfolio_v2_daily.csv,csv,COLLECTED_DATA,PASS,35.0,10.0,0.0,{},{},0.0,
+data/prediction_candidates.csv,csv,MODEL,ISSUES_FOUND,20.0,44.0,100.0,"{'direction_probability': 20, 'direction_score_model': 20, 'listing_age_days': 20, 'news_context_error': 20, 'stock_news_reason': 20}",{},0.0,
+data/prediction_candidates_history.csv,csv,MODEL,ISSUES_FOUND,100.0,56.0,2220.0,"{'recent_close_error': 100, 'selection_penalty': 100, 'selection_priority': 100, 'listing_age_days': 100, 'listing_status': 20, 'listing_confidence_factor': 20, 'adjusted_confidence_score': 20, 'confidence_calibration_version': 20, 'direction_probability': 60, 'direction_score_model': 60, 'return_20d': 20, 'volatility20': 20, 'close_sma20_gap': 20, 'confidence_tier': 20, 'risk_level': 20, 'index_risk_multiplier': 20, 'market_intelligence_score': 20, 'sector_news_score': 20, 'stock_news_score': 20, 'stock_news_count': 20, 'stock_news_reason': 100, 'adaptive_selection_score': 20, 'risk_budget_weight': 20, 'risk_budget_value': 20, 'selection_explanation': 20, 'total_score': 100, 'risk_off_defensive_score': 100, 'risk_off_selection_score': 100, 'trade_quality_probability': 100, 'recent_symbol_return_pct': 100, 'recent_symbol_win_rate': 100, 'recent_symbol_error_pct': 100, 'repeat_loss_penalty': 100, 'quality_adjustment': 100, 'ranking_model_status': 60, 'direction_model_status': 60, 'confidence_score_semantics': 60, 'news_context_status': 60, 'news_context_error': 100}",{},0.0,
+data/prediction_outcomes.csv,csv,MODEL,ISSUES_FOUND,400.0,23.0,4800.0,"{'3m_target_date': 400, '3m_actual_close': 400, '3m_return_pct': 400, '6m_target_date': 400, '6m_actual_close': 400, '6m_return_pct': 400, '9m_target_date': 400, '9m_actual_close': 400, '9m_return_pct': 400, '12m_target_date': 400, '12m_actual_close': 400, '12m_return_pct': 400}",{},0.0,
+data/predictions.csv,csv,MODEL,ISSUES_FOUND,400.0,56.0,10206.0,"{'prediction_spread': 40, 'technical_score': 40, 'fundamental_score': 40, 'confidence_score': 40, 'selection_method': 40, 'selected': 40, 'recent_close_error': 393, 'selection_penalty': 390, 'selection_priority': 390, 'listing_age_days': 400, 'listing_status': 120, 'listing_confidence_factor': 120, 'adjusted_confidence_score': 120, 'confidence_calibration_version': 130, 'direction_probability': 160, 'direction_score_model': 160, 'return_20d': 150, 'volatility20': 150, 'close_sma20_gap': 150, 'confidence_tier': 150, 'risk_level': 150, 'index_risk_multiplier': 150, 'market_intelligence_score': 150, 'sector_news_score': 150, 'stock_news_score': 150, 'stock_news_count': 150, 'stock_news_reason': 399, 'adaptive_selection_score': 150, 'risk_budget_weight': 150, 'risk_budget_value': 150, 'selection_explanation': 150, 'total_score': 350, 'risk_off_defensive_score': 350, 'risk_off_selection_score': 350, 'trade_quality_probability': 350, 'recent_symbol_return_pct': 364, 'recent_symbol_win_rate': 350, 'recent_symbol_error_pct': 350, 'repeat_loss_penalty': 350, 'quality_adjustment': 350, 'ranking_model_status': 380, 'direction_model_status': 380, 'confidence_score_semantics': 380, 'news_context_status': 380, 'news_context_error': 400}",{},0.0,
+data/ranking_model_validation.csv,csv,MODEL,PASS,645.0,8.0,0.0,{},{},0.0,
+data/ranking_model_validation_summary.csv,csv,MODEL,PASS,1.0,18.0,0.0,{},{},0.0,
+data/ranking_validation.csv,csv,MODEL,ISSUES_FOUND,3.0,13.0,6.0,"{'top10_vs_next10_return_diff_pct': 2, 'top10_vs_next10_profitable_diff_pct': 2, 'top10_outperformed_next10': 2}",{},0.0,
+data/rankings.csv,csv,MODEL,ISSUES_FOUND,499.0,96.0,140.0,"{'returnOnEquity': 37, 'profitMargins': 2, 'revenueGrowth': 2, 'earningsGrowth': 35, 'trailingPE': 23, 'debtToEquity': 39, 'dividendYield': 2}",{},0.0,
+data/regime_performance.csv,csv,MODEL,PASS,2.0,3.0,0.0,{},{},0.0,
+data/regime_validation.csv,csv,MODEL,PASS,24.0,6.0,0.0,{},{},0.0,
+data/selection_validation.csv,csv,MODEL,PASS,1.0,18.0,0.0,{},{},0.0,
+data/selection_validation_coverage.json,json,MODEL,PASS,,,,,,,0.0
+data/stock_stability.csv,csv,COLLECTED_DATA,PASS,128.0,7.0,0.0,{},{},0.0,
+data/strategy_ab_comparison.csv,csv,MODEL,ISSUES_FOUND,1.0,32.0,1.0,{'v1_max_drawdown_pct': 1},"{'return_lift_ci_low_pct': 1, 'phase4_bootstrap_ci_low_pct': 1}",0.0,
+data/strategy_ab_report.csv,csv,MODEL,ISSUES_FOUND,1.0,15.0,1.0,{'v1_max_drawdown_pct': 1},{},0.0,
+data/strategy_ab_sessions.csv,csv,MODEL,ISSUES_FOUND,35.0,11.0,35.0,{'v1_drawdown_pct': 35},{},0.0,
+data/strategy_promotion_history.csv,csv,MODEL,ISSUES_FOUND,77.0,32.0,232.0,"{'v1_max_drawdown_pct': 72, 'confidence_promoted': 6, 'phase2_enabled': 8, 'phase2_direction_lift_pct': 8, 'phase2_shadow_return_lift_pct': 8, 'return_lift_ci_low_pct': 9, 'directional_promoted': 10, 'governance_safe': 10, 'governance_bootstrap_ci_low_pct': 10, 'governance_drift_status': 10, 'phase4_safe': 11, 'phase4_regime': 11, 'phase4_confidence_floor_percentile': 11, 'phase4_min_expected_return_pct': 11, 'phase4_bootstrap_ci_low_pct': 11, 'advanced_promotion_eligible': 13, 'advanced_promotion_checks': 13}","{'return_lift_ci_low_pct': 68, 'phase4_bootstrap_ci_low_pct': 66}",20.0,
+data/strategy_state.json,json,MODEL,ISSUES_FOUND,,,,,,,3.0
+data/system_health.csv,csv,COLLECTED_DATA,ISSUES_FOUND,1.0,11.0,2.0,"{'warnings': 1, 'failures': 1}",{},0.0,
+data/target_threshold_diagnostics.csv,csv,COLLECTED_DATA,PASS,4.0,6.0,0.0,{},{},0.0,
+data/telegram_evening_sent.csv,csv,COLLECTED_DATA,ISSUES_FOUND,41.0,5.0,36.0,"{'telegram_message_id': 18, 'telegram_date_utc': 18}",{},0.0,
+data/telegram_paper_sent.csv,csv,COLLECTED_DATA,ISSUES_FOUND,42.0,5.0,38.0,"{'telegram_message_id': 19, 'telegram_date_utc': 19}",{},0.0,
+data/telegram_paper_v2_sent.csv,csv,COLLECTED_DATA,ISSUES_FOUND,33.0,5.0,18.0,"{'telegram_message_id': 9, 'telegram_date_utc': 9}",{},0.0,
+data/telegram_sent.csv,csv,COLLECTED_DATA,ISSUES_FOUND,76.0,5.0,54.0,"{'telegram_message_id': 27, 'telegram_date_utc': 27}",{},0.0,
+data/telegram_weekly_sent.csv,csv,COLLECTED_DATA,PASS,1.0,1.0,0.0,{},{},0.0,
+data/trade_quality_validation.csv,csv,MODEL,PASS,46.0,16.0,0.0,{},{},0.0,
+data/trade_quality_validation_summary.csv,csv,MODEL,PASS,1.0,9.0,0.0,{},{},0.0,
+data/trading_strategy_metrics.csv,csv,MODEL,PASS,1.0,13.0,0.0,{},{},0.0,
+data/universe.csv,csv,COLLECTED_DATA,PASS,501.0,2.0,0.0,{},{},0.0,
+data/walk_forward_evaluations.csv,csv,MODEL,ISSUES_FOUND,240.0,30.0,240.0,{'baseline_close_direction_correct': 240},{},0.0,
+data/walk_forward_summary.csv,csv,COLLECTED_DATA,ISSUES_FOUND,24.0,24.0,72.0,"{'baseline_close_direction_accuracy': 24, 'baseline_close_direction_accuracy_pct': 24, 'close_direction_delta_pct_points': 24}",{},0.0,

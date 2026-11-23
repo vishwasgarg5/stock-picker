@@ -3,7 +3,7 @@
   "exchange": "NSE",
   "segment": "CM",
   "timezone": "Asia/Kolkata",
-  "updated_at_utc": "2026-11-22T17:59:41.209964+00:00",
+  "updated_at_utc": "2026-11-23T22:11:02.202597+00:00",
   "source": "https://www.nseindia.com/api/holiday-master?type=trading",
   "source_page": "https://www.nseindia.com/resources/exchange-communication-holidays",
   "holidays": [

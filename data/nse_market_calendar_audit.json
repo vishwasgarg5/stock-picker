@@ -1,6 +1,6 @@
 {
   "status": "REFRESHED",
-  "refreshed_at_utc": "2026-11-22T17:59:41.229187+00:00",
+  "refreshed_at_utc": "2026-11-23T22:11:02.202983+00:00",
   "source": "https://www.nseindia.com/api/holiday-master?type=trading",
   "holiday_count": 20,
   "special_session_count": 1

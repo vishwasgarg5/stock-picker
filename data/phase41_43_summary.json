@@ -14,17 +14,17 @@
   },
   "phase42_candidate_quality": {
     "status": "DESCRIPTIVE_ONLY",
-    "matched_rows": 430,
-    "selected_rows": 390,
-    "rejected_rows": 40,
+    "matched_rows": 450,
+    "selected_rows": 400,
+    "rejected_rows": 50,
     "method": "realized target-date close versus saved base close; descriptive association, not causal selector lift",
     "production_settings_changed": false
   },
   "phase43_threshold_sensitivity": {
     "status": "SENSITIVITY_ONLY",
     "experiments": 8,
-    "holdout_rows": 140,
-    "holdout_target_dates": 11,
+    "holdout_rows": 160,
+    "holdout_target_dates": 12,
     "holdout_start_date": "2026-10-30",
     "method": "fixed confidence percentile grid on saved predictions; chronological holdout; no model refit",
     "production_settings_changed": false,

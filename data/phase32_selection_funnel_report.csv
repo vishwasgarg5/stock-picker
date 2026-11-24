@@ -1,14 +1,14 @@
 stage,input_rows,output_rows,rejected_rows,detail
-predictions_loaded,400,400,0.0,Raw prediction rows loaded
-phase2_join,400,400,,"Rows with a matching Phase-2 record; unmatched rows are missing metadata, not explicit rejections"
-actual_data_join_and_validation,400,350,50.0,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history
-confidence_percentile_gate,350,210,140.0,Required percentile >= 0.50
-phase2_metadata_coverage,210,210,0.0,Only matched Phase-2 records can be classified as selected or explicitly rejected
-phase2_selected_gate,210,209,1.0,Phase 2 selected flag equals 1 among matched records
-phase4_reject:minimum_expected_return,161,0,161.0,161 candidates rejected for minimum_expected_return; diagnostic only
-phase4_reject:phase4_confidence_floor,34,0,34.0,34 candidates rejected for phase4_confidence_floor; diagnostic only
-phase4_reject:symbol_cooldown,12,0,12.0,12 candidates rejected for symbol_cooldown; diagnostic only
-phase4_eligibility_gate,209,2,207.0,phase4_eligible flag true
+predictions_loaded,410,410,0.0,Raw prediction rows loaded
+phase2_join,410,410,,"Rows with a matching Phase-2 record; unmatched rows are missing metadata, not explicit rejections"
+actual_data_join_and_validation,410,360,50.0,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history
+confidence_percentile_gate,360,216,144.0,Required percentile >= 0.50
+phase2_metadata_coverage,216,216,0.0,Only matched Phase-2 records can be classified as selected or explicitly rejected
+phase2_selected_gate,216,214,2.0,Phase 2 selected flag equals 1 among matched records
+phase4_reject:minimum_expected_return,170,0,170.0,170 candidates rejected for minimum_expected_return; diagnostic only
+phase4_reject:phase4_confidence_floor,35,0,35.0,35 candidates rejected for phase4_confidence_floor; diagnostic only
+phase4_reject:symbol_cooldown,7,0,7.0,7 candidates rejected for symbol_cooldown; diagnostic only
+phase4_eligibility_gate,214,2,212.0,phase4_eligible flag true
 atr_sanity_gate,2,2,0.0,ATR percent <= 8.00; missing ATR is currently allowed
 daily_trade_cap,2,2,0.0,Maximum 5 selected rows per target date
 whole_share_sizing_gate,2,2,0.0,BUY rows must afford at least one whole share at the recorded reference price

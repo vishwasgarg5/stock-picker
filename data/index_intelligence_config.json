@@ -3,51 +3,53 @@
   "market_regime": "BULL",
   "risk_multiplier": 0.8,
   "news_sentiment": "BULLISH",
-  "news_score": 0.5599999999999999,
-  "market_reason": "General market: Sensex, Nifty surge over 1% as banks, auto stocks drive rally; Bank Nifty hits record high - The Hindu",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxPb3l1NXktMXFUcllEcHJtRXI3Qy1uaGp4MkoxM2kyM25Va3NaU2xteFZ1djdwZDBNejNCZFVrSE9FZU9EVlZHQVVfSlNUNmNDWE04YWFhbW5oYzRkd0p0bkJpMlJrRzFfWUZQNmxPZjNOS3BrRlhYU0tFUnFWMU1DSkt3X01SMzJnc2pZTURWX0ZEUDFDLVBLWUFXVUYzelBhY3RTMVJtaDZNdU9BdnFLVnA5MFpHTGUtN3RlNkFlUk5sSTM5UXIwb1FiNFBreVFhTFNLOS1iNNIB3gFBVV95cUxNbmw3UjdUbklkTHJmOWI4QUZuU0xrdXN4UGhzdXRCRnMwZU55S3p5b3pYVFVhbkY5R2pkNDdzWmZaZDYzbThnbnNMclFuUDk4NE1pLWZMbnJSQ1JWUm9hSkEyZnFzTnNjUFJFcWxFLXljY0ludjNITXZmNFhPdW5NWGs4ZVdYNXBOeHFSQVQ5MGJUbTZCY1JPRnUtR0Fab3g5N0NLbF9pX09YVFYwQjFBRDFrLTdnTHJIaTd1QTY0SVA5d1A3OFdaOFpkaHczWlJkVHU0czRkTUdqeEVqSWc?oc=5",
-  "news_headline": "General market: Sensex, Nifty surge over 1% as banks, auto stocks drive rally; Bank Nifty hits record high - The Hindu",
+  "news_score": 0.69,
+  "market_reason": "General market: Investors become richer by Rs 34.61 lakh cr this month as markets rally sharply by nearly 11% - MillenniumPost",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNMExWWWlrdW04dWNUZm5SX2lTdXJzYk42aDZGRmx0MTJnUjdjSjRMU3hyWERTdWZKdUtOMjlnMC1wUGlQTUY0MGZFMUhkNHYtb2NFb25TNjdQWWhOUkZWcUQzQ2Vwc1RDMjlmemtUeHBJM3psbXc2UG1jZWRfUjR3Z2lFWXlrYTNEb3N3S1RLRzVFQ3FMaTVQVlpWUzFFSUVTX3B6TGtZdDBjY0ljTjUzODBmR2cweGtydEVwMHd4Q3BBRE1mRjVSSmZacGNHOElTTFh1MXUydWTSAdgBQVVfeXFMTTBMVllpa3VtOHVjVGZuUl9pU3Vyc2JONmg2RkZsdDEyZ1I3Y0o0TFN4clhEU3VmSnVLTjI5ZzAtcFBpUE1GNDBmRTFIZDR2LW9jRW9uUzY3UFloTlJGVnFEM0NlcHNUQzI5ZnprVHhwSTN6bG13NlBtY2VkX1I0d2dpRVl5a2EzRG9zd0tUS0c1RUNxTGk1UFZaVlMxRUlFU19wekxrWXQwY2NJY041MzgwZkdnMHhrcnRFcDB3eENwQURNZkY1UkpmWnBjRzhJU0xYdTF1MnVk?oc=5",
+  "news_headline": "General market: Investors become richer by Rs 34.61 lakh cr this month as markets rally sharply by nearly 11% - MillenniumPost",
   "news_reasons": [
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Sensex, Nifty surge over 1% as banks, auto stocks drive rally; Bank Nifty hits record high - The Hindu",
-      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxPb3l1NXktMXFUcllEcHJtRXI3Qy1uaGp4MkoxM2kyM25Va3NaU2xteFZ1djdwZDBNejNCZFVrSE9FZU9EVlZHQVVfSlNUNmNDWE04YWFhbW5oYzRkd0p0bkJpMlJrRzFfWUZQNmxPZjNOS3BrRlhYU0tFUnFWMU1DSkt3X01SMzJnc2pZTURWX0ZEUDFDLVBLWUFXVUYzelBhY3RTMVJtaDZNdU9BdnFLVnA5MFpHTGUtN3RlNkFlUk5sSTM5UXIwb1FiNFBreVFhTFNLOS1iNNIB3gFBVV95cUxNbmw3UjdUbklkTHJmOWI4QUZuU0xrdXN4UGhzdXRCRnMwZU55S3p5b3pYVFVhbkY5R2pkNDdzWmZaZDYzbThnbnNMclFuUDk4NE1pLWZMbnJSQ1JWUm9hSkEyZnFzTnNjUFJFcWxFLXljY0ludjNITXZmNFhPdW5NWGs4ZVdYNXBOeHFSQVQ5MGJUbTZCY1JPRnUtR0Fab3g5N0NLbF9pX09YVFYwQjFBRDFrLTdnTHJIaTd1QTY0SVA5d1A3OFdaOFpkaHczWlJkVHU0czRkTUdqeEVqSWc?oc=5"
+      "headline": "Investors become richer by Rs 34.61 lakh cr this month as markets rally sharply by nearly 11% - MillenniumPost",
+      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNMExWWWlrdW04dWNUZm5SX2lTdXJzYk42aDZGRmx0MTJnUjdjSjRMU3hyWERTdWZKdUtOMjlnMC1wUGlQTUY0MGZFMUhkNHYtb2NFb25TNjdQWWhOUkZWcUQzQ2Vwc1RDMjlmemtUeHBJM3psbXc2UG1jZWRfUjR3Z2lFWXlrYTNEb3N3S1RLRzVFQ3FMaTVQVlpWUzFFSUVTX3B6TGtZdDBjY0ljTjUzODBmR2cweGtydEVwMHd4Q3BBRE1mRjVSSmZacGNHOElTTFh1MXUydWTSAdgBQVVfeXFMTTBMVllpa3VtOHVjVGZuUl9pU3Vyc2JONmg2RkZsdDEyZ1I3Y0o0TFN4clhEU3VmSnVLTjI5ZzAtcFBpUE1GNDBmRTFIZDR2LW9jRW9uUzY3UFloTlJGVnFEM0NlcHNUQzI5ZnprVHhwSTN6bG13NlBtY2VkX1I0d2dpRVl5a2EzRG9zd0tUS0c1RUNxTGk1UFZaVlMxRUlFU19wekxrWXQwY2NJY041MzgwZkdnMHhrcnRFcDB3eENwQURNZkY1UkpmWnBjRzhJU0xYdTF1MnVk?oc=5"
     },
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Bank Nifty Gains Over 8,500 Points in 15 Sessions: How Much Higher Can It Go? - NiftyTrader",
-      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE8zWWdTTW1vaFctZi1kWXE4ODFmczRvLVBXbjFob0VSYUNyM3dhSUlnaHRMSjM5eWp6TlVJQllwajg4TkRxbzdrdGFVZUxudWx5RzE4ZVBZeGhVelZqQTVtaGpjVF9hNUtKZFdHVkVoUU5lSTQzQlBYMQ?oc=5"
-    },
-    {
-      "event": "General market",
-      "impact": -1.0,
-      "headline": "D-St set for a negative opening as GIFT Nifty signals weak start - The Economic Times",
-      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxQRGpucVl0MUJDTVc3SVlSLWRCMzZNdDM3VVhja2o0dzQ4RkhqU3lyTEVCVTJ3alJlLVgwNlRmNUZiT1B6R1ZZeEtmU1gzWXRQcGJqZXg5eDNEUUlXb08zYU04RmRWT3p6eWJjTVVBZkdSSkVzMEJ6M283THkwcFY1VTNrUU9VdzZPLUQ4SVg2VlN2amNLbWFsamdFaEt3NVByMDZQOHNmRkZxUXgydHBCWVA3SF9hRXJCVU01T01Vek9FZk55SmhRQ3hiVS3SAdIBQVVfeXFMTUZoUnRlVm40Ykdhbko0MzdNa213LTVXRFJuZWlzbm9GemYtOGVmWEtMYWFUSWdDa1NOQlYzUHdSQjNKdTd2NEs2M3pjbzk1Wk12d043WE5XRE52R2lvRHdhYm5uTVRISjRQQ0V3eW5rakFES0VnU09TYmVYM1ZEa0lNeGIxNW5VYXN2MjNIYk9zazlrbmtDQ1dMR05jbUVpSElMWlgwNWhWVUNFcTVIZ3RhQVpxWWlEa1ZMNnV4M0lZVHg1bUZTY2tldzJ5bkVHT2NB?oc=5"
+      "headline": "Asian Markets Rally: KOSPI Jumps 7.5%, Taiwan Gains 9.1% as Nvidia Soars - NiftyTrader",
+      "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxNTFZuRnJaQkpoNWNqV3JoQVhFcG1RX1BvcmhGZU51SEh1WWpZNXNsUDFCczRxYkpITS1YZ2RCdmZWaHJMeHlwLUUxMGE5czlTZ3lWOFh6WjZLRXotZmlMLUw4dEhDa3NxajlJR0NDeXd0ZVJiekNITFdqdFVMR2NTdThqaG41dUpS?oc=5"
     },
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Sensex Soars 990 Pts; Nifty Reclaims 25,500 on Auto Rally - HDFC Sky",
-      "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxNMUh6djg0OUk1UnFQSUxwcXR1WThvTHVqSElaZVdNalNtVnRYTUdvOVhGWWlkWHRDc0U0Zl9RYXltZDdrUWM4N3hNV213YnpTbzVCYzZVSC1IWDJYSGFJOXdVRHo1WldRc3k4NFBINHVyT292QnczUFlvdWYzY3J0ZkJMXzNyUWROLWZHN0Q4OWJJbmtZOFZUZDk1dzJiX0p5dHltNGk3ODJWbHU0ZXVkT1FndFhTZm5GTVNGT3Jyb2w1VzFQbnk1RHh3?oc=5"
+      "headline": "Investors mint Rs 34.61 lakh cr in November as markets rally nearly 11% - The Economic Times",
+      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPVzVpYWdMTW9scWhpdTN5TkY1QnA0TnljQ1JOeEdUNWMzQjd2MF9CYjBSLVF5VVl2azRXVzIxR0FEZS1lTmthOFlGZWI5WHp1elNMbmNiQWtwN1ZrblhSNzItRl80bE13aWxKeGwtWE5LSUQzeXZ1NGRTRzlOc2gwMFRLVW9rbTIzNGYzcmREZVg1YTVESm1hMG5yS0RuTDBld2hLWUV6a3M2UlhVZHA1dV92SFFocFZGem1namszanV2ejlaY3ZIOXhhWll2QjVYeVMwUVBlb2V3OUVo0gHiAUFVX3lxTE9aNWtPNmJaVnZrMUlTYWp3ZHk2SjF5OFV5ZzhaeHMwWHJNVWlmaUgtY2h4ZWVBZm9UNFhNbFhJSmNTeUxjNm05ckcwampleE5Ud0FjT183WjBSSVA1TkVRNEhLNHRyNHFDS1F1cWtuejhzWTB0QkZxSDJoaVRKLWd2OGE0N0FDU0tXdkNBYXVCYmtNZk9SNjllUjZvZUF4ZXNvTU1VeWN2ZlBsMlROMHFxa2EtWE5DbXptMlpBVDE5NzN1VVJyX3ktMkFWLTFRXy0xb2dRS0gxSXZFelB2LWtwYkE?oc=5"
+    },
+    {
+      "event": "Earnings / growth",
+      "impact": 0.8,
+      "headline": "Indian Stocks Rally 21% From October Lows, but After Q2 Results Now Trade 14% Above the S&P 500 - NiftyTrader",
+      "url": "https://news.google.com/rss/articles/CBMie0FVX3lxTE9EN0UzLXhJeDdzSlpKaWU0eDQ4MjhkV05qZ1VJVFRwM19zTDBUQnhWWnlSZElUS29kSWR1Z3hNSXBzZUVySjZlQnh1WVdETUM1SUJReVEtNzdyOURmTTFMeXdQcUlEdXFsQ29ERi12UWdycDNqMzk1SnZpaw?oc=5"
     },
     {
       "event": "FII / DII flows",
-      "impact": 0.8,
-      "headline": "India draws $13 billion in FII inflows, extends buying streak to 14 sessions - CNBC TV18",
-      "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNOFJvbG5yb0JBSjVlbHF0VEFYNzBsUGg5Sk5Lb2dzaVp4ZUEzbHpWb0Z6WWRZVlZ2R3ZYTXZnTnRIVXVhS1ZTQTNTWXFDM3FNZi1sMThNQkxMdHBqTk1RQUd1Si02ZXdKNFNhMV9DT2pFRVN6S0NNdklCakpGZnZNeFpfM1VvTFF0eVdibTVNbV95SHJ1Nm1ZbF9TRFBXclZzZFExVFd5eUp0anFMd04xb1JrajcxT25Gek9nY0JvQkZqVTJzb2VuWkJLa9IB0AFBVV95cUxNZGU3bUdhSy1HYmx6a0RBRERHamNpc3JLeGJEeFgybTFtZVp3ZkFtNnNBV0p1ZGpJTXBZQXpHTkxZR2Z4enFzZ3RuMEs4UU5HcnJZdHB5NEw0YklYT1NfRVBvOERFUk9VVGk4T3FwQ0szbXFtMGF2ZGxBSFlDTFlnZVlaeTlCckg0d09xQVhBdDNpRER5U29nX0xOZWk3RVhodWY2clh5RzJnRWg5NzMwT2RFVG1sRG5iT2JpaUNrVm15SzhlRlprNTVJMWJrRGhj?oc=5"
+      "impact": -0.35,
+      "headline": "FIIs Invest \u20b95,672.99 Crore as 16-Session Buying Streak Continues Despite Sensex and Nifty Decline - Kotak Neo",
+      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOWEFCN1VkNFBaZjNLOHJuY05jY25kRDJaYWRDa0QwMkVlX3VRZXhJczdnRklOLWhlUlM3SEFTWjl0MkpHRXZzcmFzd0pUZjNUeVYxWGp5aEhRMW54RFVkbzlydXVzRGtrMWV0TWpiRUMwck1NckptUi02NUNYT1g1OE8xMmFZUk5heWMyS01kV1RMVk1uUmpDVmIwQ2YyNEs3VGQ5R0VrMmtaZ1NORGRuc1lCVW8xTmd1RXpFSHVqNXUyV1NCOW03QmNLSUg?oc=5"
     }
   ],
-  "market_intelligence_score": 61.83777213395878,
+  "market_intelligence_score": 61.52550853889943,
   "risk_level": "NEUTRAL",
-  "market_confidence": 0.6565399492056291,
+  "market_confidence": 0.6537295768500949,
   "data_quality": "HIGH",
   "index_data_available": true,
-  "breadth_pct_above_sma20": 63.946869070208734,
+  "breadth_pct_above_sma20": 59.58254269449716,
   "sector_news_impacts": {
-    "information technology": 1.2,
-    "it": 1.2,
-    "pharma": 0.6
+    "airlines": 2.0,
+    "paints": 1.6,
+    "chemicals": 1.2,
+    "tyres": 1.2,
+    "oil & gas": -1.6
   }
 }

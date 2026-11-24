@@ -9,9 +9,9 @@
   "missing_facts_inferred": false,
   "status": "BLOCKED",
   "source": "data/paper_trades.csv",
-  "buy_rows": 229,
+  "buy_rows": 234,
   "missing_columns": [],
-  "complete_rows": 80,
+  "complete_rows": 85,
   "incomplete_rows": 149,
   "missing_values_by_field": {
     "entry_price": 0,
@@ -190,13 +190,13 @@
     }
   ],
   "first_complete_session": "2026-09-18",
-  "last_complete_session": "2026-11-18",
+  "last_complete_session": "2026-11-19",
   "first_incomplete_session": "2026-09-29",
   "last_incomplete_session": "2026-11-16",
   "record_vintage_classification": "EXPLICIT_METADATA_WHEN_AVAILABLE; OTHERWISE_UNCLASSIFIED",
   "record_vintage_counts": {
     "UNCLASSIFIED_NO_EXPLICIT_METADATA": 219,
-    "SCHEMA_VERSIONED:3.0": 10
+    "SCHEMA_VERSIONED:3.0": 15
   },
   "incomplete_rows_by_record_vintage": {
     "UNCLASSIFIED_NO_EXPLICIT_METADATA": 149
@@ -211,9 +211,9 @@
   "costs_subtracted_again": false,
   "fixed_share_source_evidence": {
     "status": "GROSS_SOURCE_EVIDENCE_PARTIAL",
-    "candidate_rows": 150,
+    "candidate_rows": 155,
     "validated_rows": 140,
-    "mismatch_rows": 10,
+    "mismatch_rows": 15,
     "invalid_or_incomplete_source_rows": 79,
     "invalid_or_incomplete_source_rows_by_reason": {
       "MISSING_OR_NON_FINITE_REQUIRED_VALUE": 75,
@@ -526,6 +526,14 @@
       },
       {
         "target_date": "2026-11-18",
+        "buy_rows": 5,
+        "candidate_rows": 5,
+        "validated_rows": 0,
+        "mismatch_rows": 5,
+        "invalid_or_incomplete_source_rows": 0
+      },
+      {
+        "target_date": "2026-11-19",
         "buy_rows": 5,
         "candidate_rows": 5,
         "validated_rows": 0,

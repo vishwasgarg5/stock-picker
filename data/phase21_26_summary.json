@@ -7,10 +7,10 @@
     25,
     26
   ],
-  "as_of": "2026-11-19",
+  "as_of": "2026-11-24",
   "phase21": {
     "calibration_buckets": 5,
-    "evaluation_rows": 390
+    "evaluation_rows": 400
   },
   "phase22": {
     "checks": 6,
@@ -18,15 +18,15 @@
     "status": "CHECKS_PASS"
   },
   "phase23": {
-    "matched_sessions": 35,
-    "v1_trade_count": 390,
-    "v2_trade_count": 350,
+    "matched_sessions": 36,
+    "v1_trade_count": 400,
+    "v2_trade_count": 360,
     "evidence_gate": "EVIDENCE_SUFFICIENT_FOR_REVIEW",
     "production_champion": "V1"
   },
   "phase24": {
     "status": "INCREMENTAL_HISTORY_MERGE_ALREADY_USED_BY_PIPELINE",
-    "history_rows": 958978,
+    "history_rows": 960477,
     "duplicate_date_symbol_rows": 0
   },
   "phase25": {

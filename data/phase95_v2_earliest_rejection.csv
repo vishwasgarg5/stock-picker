@@ -1,14 +1,14 @@
 stage,input_rows,output_rows,rejected_rows,detail,stage_order,retention_pct,is_earliest_rejection
-predictions_loaded,400,400,0,Raw prediction rows loaded,1,100.0,False
-phase2_join,400,400,0,"Rows with a matching Phase-2 record; unmatched rows are missing metadata, not explicit rejections",2,100.0,False
-actual_data_join_and_validation,400,350,50,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history,3,87.5,True
-confidence_percentile_gate,350,210,140,Required percentile >= 0.50,4,60.0,False
-phase2_metadata_coverage,210,210,0,Only matched Phase-2 records can be classified as selected or explicitly rejected,5,100.0,False
-phase2_selected_gate,210,209,1,Phase 2 selected flag equals 1 among matched records,6,99.52,False
-phase4_reject:minimum_expected_return,161,0,161,161 candidates rejected for minimum_expected_return; diagnostic only,7,0.0,False
-phase4_reject:phase4_confidence_floor,34,0,34,34 candidates rejected for phase4_confidence_floor; diagnostic only,8,0.0,False
-phase4_reject:symbol_cooldown,12,0,12,12 candidates rejected for symbol_cooldown; diagnostic only,9,0.0,False
-phase4_eligibility_gate,209,2,207,phase4_eligible flag true,10,0.96,False
+predictions_loaded,410,410,0,Raw prediction rows loaded,1,100.0,False
+phase2_join,410,410,0,"Rows with a matching Phase-2 record; unmatched rows are missing metadata, not explicit rejections",2,100.0,False
+actual_data_join_and_validation,410,360,50,Matched OHLC actuals; valid dates/prices/confidence; target date not beyond available history,3,87.8,True
+confidence_percentile_gate,360,216,144,Required percentile >= 0.50,4,60.0,False
+phase2_metadata_coverage,216,216,0,Only matched Phase-2 records can be classified as selected or explicitly rejected,5,100.0,False
+phase2_selected_gate,216,214,2,Phase 2 selected flag equals 1 among matched records,6,99.07,False
+phase4_reject:minimum_expected_return,170,0,170,170 candidates rejected for minimum_expected_return; diagnostic only,7,0.0,False
+phase4_reject:phase4_confidence_floor,35,0,35,35 candidates rejected for phase4_confidence_floor; diagnostic only,8,0.0,False
+phase4_reject:symbol_cooldown,7,0,7,7 candidates rejected for symbol_cooldown; diagnostic only,9,0.0,False
+phase4_eligibility_gate,214,2,212,phase4_eligible flag true,10,0.93,False
 atr_sanity_gate,2,2,0,ATR percent <= 8.00; missing ATR is currently allowed,11,100.0,False
 daily_trade_cap,2,2,0,Maximum 5 selected rows per target date,12,100.0,False
 whole_share_sizing_gate,2,2,0,BUY rows must afford at least one whole share at the recorded reference price,13,100.0,False

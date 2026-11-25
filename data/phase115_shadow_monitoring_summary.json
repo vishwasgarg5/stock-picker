@@ -16,7 +16,7 @@
     "109_funnel": "SCORED",
     "110_forecast": "SCORED",
     "111_replay": "INSUFFICIENT_EVIDENCE",
-    "112_market": "SCORED",
+    "112_market": "STALE_DATA",
     "113_sustained": "INSUFFICIENT_EVIDENCE",
     "114_gate": "INSUFFICIENT_EVIDENCE"
   },

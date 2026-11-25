@@ -1,5 +1,5 @@
 symbol,first_date,last_date,observed_sessions,expected_sessions,missing_sessions,session_coverage_pct,history_years,at_least_1y,at_least_3y,at_least_5y,at_least_8y,training_ready_50_sessions,status,listing_date,listing_expected_start,expected_sessions_since_listing,observed_sessions_since_listing,calendar_sessions_without_ohlcv_since_listing,listing_to_first_bar_gap_sessions,history_starts_at_first_possible_session,listing_history_status
-BAGMANE,2026-11-16,2026-11-23,6,6,0,100.0,0.02,False,False,False,False,False,INSUFFICIENT_HISTORY,,,,,,,,LISTING_DATE_UNKNOWN
+BAGMANE,2026-11-16,2026-11-25,7,7,0,100.0,0.03,False,False,False,False,False,INSUFFICIENT_HISTORY,,,,,,,,LISTING_DATE_UNKNOWN
 VAML,2026-06-15,2026-11-23,114,111,0,100.0,0.45,False,False,False,False,True,PASS,2026-06-15,2026-06-15,111.0,111.0,0.0,0.0,True,STARTS_AT_FIRST_POSSIBLE_SESSION
 VEDPOWER,2026-06-15,2026-11-23,114,111,0,100.0,0.45,False,False,False,False,True,PASS,2026-06-15,2026-06-15,111.0,111.0,0.0,0.0,True,STARTS_AT_FIRST_POSSIBLE_SESSION
 VISL,2026-06-15,2026-11-23,114,111,0,100.0,0.45,False,False,False,False,True,PASS,2026-06-15,2026-06-15,111.0,111.0,0.0,0.0,True,STARTS_AT_FIRST_POSSIBLE_SESSION

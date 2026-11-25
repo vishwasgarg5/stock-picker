@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-24T21:40:25.335367+00:00",
+  "as_of_utc": "2026-11-25T20:54:55.709896+00:00",
   "phases": [
     73,
     74,
@@ -37,13 +37,13 @@
   "phase76_storage_audit": {
     "status": "ABOVE_GITHUB_RECOMMENDED_SIZE",
     "path": "data/ohlcv.csv",
-    "bytes": 89694346,
+    "bytes": 89694457,
     "size_mb": 85.54,
-    "rows": 960477,
+    "rows": 960478,
     "duplicate_symbol_date_keys": 0,
     "date_span": {
       "first": "2018-01-01",
-      "last": "2026-11-23"
+      "last": "2026-11-25"
     },
     "recommended_action": "Plan and test a staged compressed/partitioned storage migration with rollback; do not replace the source file in this diagnostic.",
     "storage_changed": false,

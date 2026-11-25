@@ -5,8 +5,8 @@
   "symbols_without_history": 0,
   "symbols_training_ready_50_sessions": 499,
   "history_start": "2018-01-01",
-  "history_end": "2026-11-23",
-  "total_valid_rows": 917480,
+  "history_end": "2026-11-25",
+  "total_valid_rows": 917481,
   "minimum_training_sessions": 50,
   "depth_bands": {
     "1y": 489,
@@ -51,6 +51,7 @@
     "security_master_fallback": {
       "status": "SOURCE_UNAVAILABLE",
       "attempted_dates": [
+        "2026-11-25",
         "2026-11-24",
         "2026-11-23",
         "2026-11-22",
@@ -59,10 +60,13 @@
         "2026-11-19",
         "2026-11-18",
         "2026-11-17",
-        "2026-11-16",
-        "2026-11-15"
+        "2026-11-16"
       ],
       "errors": [
+        {
+          "date": "2026-11-20",
+          "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
+        },
         {
           "date": "2026-11-19",
           "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
@@ -78,10 +82,6 @@
         {
           "date": "2026-11-16",
           "error": "NSE MII master has no parseable requested symbols/listing dates; expected named CSV columns or documented NEATCM pipe layout"
-        },
-        {
-          "date": "2026-11-15",
-          "error": "404 Client Error: Not Found for url: https://nsearchives.nseindia.com/content/cm/NSE_CM_security_15112026.csv.gz"
         }
       ]
     },

@@ -2,46 +2,46 @@
   "version": "index_intelligence_v3",
   "market_regime": "BULL",
   "risk_multiplier": 0.8,
-  "news_sentiment": "BULLISH",
-  "news_score": 0.69,
-  "market_reason": "General market: Investors become richer by Rs 34.61 lakh cr this month as markets rally sharply by nearly 11% - MillenniumPost",
-  "market_reason_url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNMExWWWlrdW04dWNUZm5SX2lTdXJzYk42aDZGRmx0MTJnUjdjSjRMU3hyWERTdWZKdUtOMjlnMC1wUGlQTUY0MGZFMUhkNHYtb2NFb25TNjdQWWhOUkZWcUQzQ2Vwc1RDMjlmemtUeHBJM3psbXc2UG1jZWRfUjR3Z2lFWXlrYTNEb3N3S1RLRzVFQ3FMaTVQVlpWUzFFSUVTX3B6TGtZdDBjY0ljTjUzODBmR2cweGtydEVwMHd4Q3BBRE1mRjVSSmZacGNHOElTTFh1MXUydWTSAdgBQVVfeXFMTTBMVllpa3VtOHVjVGZuUl9pU3Vyc2JONmg2RkZsdDEyZ1I3Y0o0TFN4clhEU3VmSnVLTjI5ZzAtcFBpUE1GNDBmRTFIZDR2LW9jRW9uUzY3UFloTlJGVnFEM0NlcHNUQzI5ZnprVHhwSTN6bG13NlBtY2VkX1I0d2dpRVl5a2EzRG9zd0tUS0c1RUNxTGk1UFZaVlMxRUlFU19wekxrWXQwY2NJY041MzgwZkdnMHhrcnRFcDB3eENwQURNZkY1UkpmWnBjRzhJU0xYdTF1MnVk?oc=5",
-  "news_headline": "General market: Investors become richer by Rs 34.61 lakh cr this month as markets rally sharply by nearly 11% - MillenniumPost",
+  "news_sentiment": "BEARISH",
+  "news_score": 0.2,
+  "market_reason": "Crude oil: Sensex, Nifty Surge on Foreign Funds, Lower Crude Oil - Rediff MoneyWiz",
+  "market_reason_url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQakttV0V3NmxqazVKRGVMck43ODF0MWVOT0ZUbHBQQnZoVmVzdWhvZ0gtLXR2U1hUQzRPenhvN24xSlpVazJJak0tcHh1cms0WlllSlVOR1Q0RmhtWk5GRXctSDM0eVhHU21XVTdiS0FWMlpCazU0SEc2QVNDNDN0WHJReTE0dURpQjlLU3BuVGYxbE56ZVN2RW0zVkxCYWJQWXRsNzJ3YjZldnZLcnJj0gG0AUFVX3lxTE1TR1hwY3hhamQwbGRvcnA0aG9vWVppX3lpdU0xaWdhNm5GTWQtQ081X2JGNk1TTlVwVThOT1lsd00wTU83VG4xbFVTejYtVTNGWG1EYWZJWDRyZTRXbDk4S1V1U252M1FvbXFUUXk2bm9fRVdqRFRUUnp3SFRZNjlGRUdWQnpmamtGNU1BUzl2TVI1aHFPY3ZLTDRmbE5sSEloUndsRDVBQURsN3FsV0o5N0NQVw?oc=5",
+  "news_headline": "Crude oil: Sensex, Nifty Surge on Foreign Funds, Lower Crude Oil - Rediff MoneyWiz",
   "news_reasons": [
     {
-      "event": "General market",
-      "impact": 1.0,
-      "headline": "Investors become richer by Rs 34.61 lakh cr this month as markets rally sharply by nearly 11% - MillenniumPost",
-      "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNMExWWWlrdW04dWNUZm5SX2lTdXJzYk42aDZGRmx0MTJnUjdjSjRMU3hyWERTdWZKdUtOMjlnMC1wUGlQTUY0MGZFMUhkNHYtb2NFb25TNjdQWWhOUkZWcUQzQ2Vwc1RDMjlmemtUeHBJM3psbXc2UG1jZWRfUjR3Z2lFWXlrYTNEb3N3S1RLRzVFQ3FMaTVQVlpWUzFFSUVTX3B6TGtZdDBjY0ljTjUzODBmR2cweGtydEVwMHd4Q3BBRE1mRjVSSmZacGNHOElTTFh1MXUydWTSAdgBQVVfeXFMTTBMVllpa3VtOHVjVGZuUl9pU3Vyc2JONmg2RkZsdDEyZ1I3Y0o0TFN4clhEU3VmSnVLTjI5ZzAtcFBpUE1GNDBmRTFIZDR2LW9jRW9uUzY3UFloTlJGVnFEM0NlcHNUQzI5ZnprVHhwSTN6bG13NlBtY2VkX1I0d2dpRVl5a2EzRG9zd0tUS0c1RUNxTGk1UFZaVlMxRUlFU19wekxrWXQwY2NJY041MzgwZkdnMHhrcnRFcDB3eENwQURNZkY1UkpmWnBjRzhJU0xYdTF1MnVk?oc=5"
+      "event": "Crude oil",
+      "impact": -1.0,
+      "headline": "Sensex, Nifty Surge on Foreign Funds, Lower Crude Oil - Rediff MoneyWiz",
+      "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQakttV0V3NmxqazVKRGVMck43ODF0MWVOT0ZUbHBQQnZoVmVzdWhvZ0gtLXR2U1hUQzRPenhvN24xSlpVazJJak0tcHh1cms0WlllSlVOR1Q0RmhtWk5GRXctSDM0eVhHU21XVTdiS0FWMlpCazU0SEc2QVNDNDN0WHJReTE0dURpQjlLU3BuVGYxbE56ZVN2RW0zVkxCYWJQWXRsNzJ3YjZldnZLcnJj0gG0AUFVX3lxTE1TR1hwY3hhamQwbGRvcnA0aG9vWVppX3lpdU0xaWdhNm5GTWQtQ081X2JGNk1TTlVwVThOT1lsd00wTU83VG4xbFVTejYtVTNGWG1EYWZJWDRyZTRXbDk4S1V1U252M1FvbXFUUXk2bm9fRVdqRFRUUnp3SFRZNjlGRUdWQnpmamtGNU1BUzl2TVI1aHFPY3ZLTDRmbE5sSEloUndsRDVBQURsN3FsV0o5N0NQVw?oc=5"
+    },
+    {
+      "event": "Crude oil",
+      "impact": -1.0,
+      "headline": "Sensex jumps over 2,000 points: What\u2019s powering India\u2019s market comeback? | Fii | Crude oil - Business Standard",
+      "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxNUUJBZ0pCNnBTN3pCWmhPbkFoTG9TVHlQanZ3eTZWWVpJbnhOQ0dOcFZOaF9uaHRMWXh4MjJ3Ump4YlV6cjZQcjhnQ2NGZ1JySVQwWEVyS3RpY0ItMWI1SktfaWdJZGJkYk5naWRhd29sYkVNS2wyV1JQNmdIY3hSQ1BUMzhOQlllSVkwdmRlWVEtQ2stVG9SbGZsOVRkLWo0YXF1S3JYdjZRZE1qWUQ1NWs5akdtSTFDLUJydWJDbXVUaS1lWmZmWkFvdGZmRklMRVRkaDNubDhnWU9BSno0RU5Qc0RpYU83a2c?oc=5"
     },
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Asian Markets Rally: KOSPI Jumps 7.5%, Taiwan Gains 9.1% as Nvidia Soars - NiftyTrader",
-      "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxNTFZuRnJaQkpoNWNqV3JoQVhFcG1RX1BvcmhGZU51SEh1WWpZNXNsUDFCczRxYkpITS1YZ2RCdmZWaHJMeHlwLUUxMGE5czlTZ3lWOFh6WjZLRXotZmlMLUw4dEhDa3NxajlJR0NDeXd0ZVJiekNITFdqdFVMR2NTdThqaG41dUpS?oc=5"
+      "headline": "Stock market today: Sensex jumps over 2000 points; Nifty50 tops 25,900! Investors richer by Rs 3.84 lakh - The Times of India",
+      "url": "https://news.google.com/rss/articles/CBMihwJBVV95cUxOMjQ2TmNVczFCZWxoZmdFb0piNTluaXRWWDJneFhIM1ZQLXVjSWg3RHlQUmxiZ3h1dWUwb0ZPLTZYejI4Qk1Qa1pZVk9xYTFobVE3VGpUYmFWUFQ5Z1VuWjdQWXZEZ1Y5NXk0QVJINE1feVRraXNzeW1GMUxVazZjZ3VtT1Z4TXZVdFZVQjlJRHkwa2F3LWplRkVOT2dmRlljdWxoTkZ0dGN6a0hKVWZyTHdCNklNNXJvNi1aTjFVU3p3czQxMW5xT0lwcGxUenRyWkdRRFJoNGJGQXF5WGtTY3FSdnpPd3ZDWFVTRmJJSlJORnJVZktGOVhQclZEWU9jeWlaM20yWdIBjAJBVV95cUxOUDdubWFqTlRVZmtOSUV5WWlfb3B3TldSN0NPOU15TDlaT05mWWFaNkt0RDlIMC03d3pCbmtScEdMT0E1dXFmd2NvVS1kbG9ILWpIZDVnZDBVZ0pLUjFhVzVwOWZOb25VcEZfdE94T1B4N2NDdkxqWlh5Vzh1V2FsZElqckw3SXhMTFNIb3lwcEFnVGdiWVVMa3V6em12am1qdGJfbFNhSkFaRHRSRzI3SmdCVVR5VTlCMHktQk1mWVNLRjNNdGtxSkROUHdxTWswSjNhUGRrVzNNZ2FlZ2FySUM4UG9hMUFhY19SLTBMU2w1ckN1NF9fcU4zRFF2VlVqVjlkMFZSeW5YWmNl?oc=5"
     },
     {
       "event": "General market",
       "impact": 1.0,
-      "headline": "Investors mint Rs 34.61 lakh cr in November as markets rally nearly 11% - The Economic Times",
-      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPVzVpYWdMTW9scWhpdTN5TkY1QnA0TnljQ1JOeEdUNWMzQjd2MF9CYjBSLVF5VVl2azRXVzIxR0FEZS1lTmthOFlGZWI5WHp1elNMbmNiQWtwN1ZrblhSNzItRl80bE13aWxKeGwtWE5LSUQzeXZ1NGRTRzlOc2gwMFRLVW9rbTIzNGYzcmREZVg1YTVESm1hMG5yS0RuTDBld2hLWUV6a3M2UlhVZHA1dV92SFFocFZGem1namszanV2ejlaY3ZIOXhhWll2QjVYeVMwUVBlb2V3OUVo0gHiAUFVX3lxTE9aNWtPNmJaVnZrMUlTYWp3ZHk2SjF5OFV5ZzhaeHMwWHJNVWlmaUgtY2h4ZWVBZm9UNFhNbFhJSmNTeUxjNm05ckcwampleE5Ud0FjT183WjBSSVA1TkVRNEhLNHRyNHFDS1F1cWtuejhzWTB0QkZxSDJoaVRKLWd2OGE0N0FDU0tXdkNBYXVCYmtNZk9SNjllUjZvZUF4ZXNvTU1VeWN2ZlBsMlROMHFxa2EtWE5DbXptMlpBVDE5NzN1VVJyX3ktMkFWLTFRXy0xb2dRS0gxSXZFelB2LWtwYkE?oc=5"
+      "headline": "Indian Equities Defy Asian Trend, Sensex Jumps 1,502 Points - Rediff.com",
+      "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxPYUh6R1VPN1N0UXkteEdRNWtxbzE4dFBKdkJmWXh2VHlHU0ZuUFg0NEljcWIwS3lmZG82N2NTNEZ5S014c1pmbl82Yy1hS0FCVDJJNEJyaVdyVzhCMUZxRG5IbnQ5RUloT0FYWHlYbjBYNmN3aXBGc3ZVMEs3ZmVHa0F0eFhRLU1jS3BnZVlsdE52Z21CT1BGU2NNbUJnWVJlX21GaHl1OUhXWDJBRWZ3b1ExSDByNDh4Ri1hOHdHY9IBwgFBVV95cUxOWkFhYmVxbndEbUNSWEZtZGRWTGlnYjJVR3ZzckVSVEczbVNaSnVRTllUcVZhaE53ODRoRkRGS3RSMUplYVF1VVN0Sm9yaDRLYm16dll6YUFqS1pwN3l6blhrdjNQaHZZSkZ1eTlHUHhqLVExeDNKdjdpZko3NHZtMXJiQjIzSDdmYllnR2lkRGpnX1ZsN0lzYy1lY3FTX0tGUEJyRFFUbGdCNmhEcy1Xa2wzbDZOTFF4ckQtd1FNNC13dw?oc=5"
     },
     {
-      "event": "Earnings / growth",
-      "impact": 0.8,
-      "headline": "Indian Stocks Rally 21% From October Lows, but After Q2 Results Now Trade 14% Above the S&P 500 - NiftyTrader",
-      "url": "https://news.google.com/rss/articles/CBMie0FVX3lxTE9EN0UzLXhJeDdzSlpKaWU0eDQ4MjhkV05qZ1VJVFRwM19zTDBUQnhWWnlSZElUS29kSWR1Z3hNSXBzZUVySjZlQnh1WVdETUM1SUJReVEtNzdyOURmTTFMeXdQcUlEdXFsQ29ERi12UWdycDNqMzk1SnZpaw?oc=5"
-    },
-    {
-      "event": "FII / DII flows",
-      "impact": -0.35,
-      "headline": "FIIs Invest \u20b95,672.99 Crore as 16-Session Buying Streak Continues Despite Sensex and Nifty Decline - Kotak Neo",
-      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOWEFCN1VkNFBaZjNLOHJuY05jY25kRDJaYWRDa0QwMkVlX3VRZXhJczdnRklOLWhlUlM3SEFTWjl0MkpHRXZzcmFzd0pUZjNUeVYxWGp5aEhRMW54RFVkbzlydXVzRGtrMWV0TWpiRUMwck1NckptUi02NUNYT1g1OE8xMmFZUk5heWMyS01kV1RMVk1uUmpDVmIwQ2YyNEs3VGQ5R0VrMmtaZ1NORGRuc1lCVW8xTmd1RXpFSHVqNXUyV1NCOW03QmNLSUg?oc=5"
+      "event": "General market",
+      "impact": 1.0,
+      "headline": "Stock market today: BSE Sensex jumps over 1,700 points; Nifty50 tops 25,850; top reasons behind rally - The Times of India",
+      "url": "https://news.google.com/rss/articles/CBMi1wJBVV95cUxQRmZudzVqNHpZb3NjYXY5N2EtS2JuUHJ3RlpEMG42ajRLMEtPeXNKRVlCTnZzS1c5eG8wTVdUSUw3OEtMMGJZdkFsRVljSWx1NmgzSmdZNmlwRDhjcnpOOFBnYUtuVkN0dzgtQjFpMmg4RE83dGZPSHJtaXhlNVlGMVFpS29kMFZudWZLVG9tSkdiYVhRNENJdks3dXV4bkNyU0twUHBYRzhTU283eXpFWmxPZTZPc1c3M3ZFUWQ3NjV6WDNLZUFBZEFDYUlCcVZMZmhSYU0yUU5FbGwzSXpBSlFtYm5WSDI1ZmwzN0ZBNlZ3U3JHd1RGamp2TEVMVnVPYjRneGxjR2ExVHNwN1BmNUQ4bW5FN0M0cTNQSWNVRkxQNm9nWjBtNXJIMDlkbEE0TDhkZXRyMHJMaVE2cHFFdHdaTWxjTXAyQXBPaG9FYjJpdWQwWmdN0gGMAkFVX3lxTE5QN25tYWpOVFVma05JRXlZaV9vcHdOV1I3Q085TXlMOVpPTmZZYVo2S3REOUgwLTd3ekJua1JwR0xPQTV1cWZ3Y29VLWRsb0gtakhkNWdkMFVnSktSMWFXNXA5Zk5vblVwRl90T3hPUHg3Y0N2TGpaWHlXOHVXYWxkSWpyTDdJeExMU0hveXBwQWdUZ2JZVUxrdXp6bXZqbWp0Yl9sU2FKQVpEdFJHMjdKZ0JVVHlVOUIweS1CTWZZU0tGM010a3FKRE5Qd3FNazBKM2FQZGtXM01nYWVnYXJJQzhQb2ExQWFjX1ItMExTbDVyQ3U0X19xTjNEUXZWVWpWOWQwVlJ5blhaY2U?oc=5"
     }
   ],
-  "market_intelligence_score": 61.52550853889943,
+  "market_intelligence_score": 60.74150853889943,
   "risk_level": "NEUTRAL",
-  "market_confidence": 0.6537295768500949,
+  "market_confidence": 0.646673576850095,
   "data_quality": "HIGH",
   "index_data_available": true,
   "breadth_pct_above_sma20": 59.58254269449716,
@@ -50,6 +50,10 @@
     "paints": 1.6,
     "chemicals": 1.2,
     "tyres": 1.2,
-    "oil & gas": -1.6
+    "oil & gas": -1.6,
+    "bank": 0.8,
+    "financial": 0.8,
+    "real estate": 0.7,
+    "auto": 0.4
   }
 }

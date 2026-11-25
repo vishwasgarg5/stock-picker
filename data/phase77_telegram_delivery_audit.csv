@@ -75,6 +75,7 @@ telegram_sent.csv,72,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_sent.csv,73,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_sent.csv,74,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_sent.csv,75,TELEGRAM_API_CONFIRMED,True,False,True
+telegram_sent.csv,76,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_evening_sent.csv,0,LEGACY_UNVERIFIED,True,False,True
 telegram_evening_sent.csv,1,LEGACY_UNVERIFIED,True,False,True
 telegram_evening_sent.csv,2,LEGACY_UNVERIFIED,True,False,True
@@ -116,6 +117,7 @@ telegram_evening_sent.csv,37,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_evening_sent.csv,38,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_evening_sent.csv,39,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_evening_sent.csv,40,TELEGRAM_API_CONFIRMED,True,False,True
+telegram_evening_sent.csv,41,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_paper_sent.csv,0,LEGACY_UNVERIFIED,True,False,True
 telegram_paper_sent.csv,1,LEGACY_UNVERIFIED,True,False,True
 telegram_paper_sent.csv,2,LEGACY_UNVERIFIED,True,False,True
@@ -158,6 +160,7 @@ telegram_paper_sent.csv,38,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_paper_sent.csv,39,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_paper_sent.csv,40,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_paper_sent.csv,41,TELEGRAM_API_CONFIRMED,True,False,True
+telegram_paper_sent.csv,42,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_paper_v2_sent.csv,0,LEGACY_UNVERIFIED,True,False,True
 telegram_paper_v2_sent.csv,1,LEGACY_UNVERIFIED,True,False,True
 telegram_paper_v2_sent.csv,2,LEGACY_UNVERIFIED,True,False,True
@@ -191,3 +194,4 @@ telegram_paper_v2_sent.csv,29,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_paper_v2_sent.csv,30,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_paper_v2_sent.csv,31,TELEGRAM_API_CONFIRMED,True,False,True
 telegram_paper_v2_sent.csv,32,TELEGRAM_API_CONFIRMED,True,False,True
+telegram_paper_v2_sent.csv,33,TELEGRAM_API_CONFIRMED,True,False,True

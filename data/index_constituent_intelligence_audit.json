@@ -1,112 +1,112 @@
 {
-  "updated_at_ist": "2026-11-26T02:22:07.372778+05:30",
+  "updated_at_ist": "2026-11-27T02:01:46.752361+05:30",
   "index_ohlcv": {
     "NIFTY50": {
       "status": "PASS",
       "ticker": "^NSEI",
-      "rows_downloaded": 4706,
+      "rows_downloaded": 4707,
       "first_date": "2007-09-16",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "NIFTYNEXT50": {
       "status": "PASS",
       "ticker": "^NSMIDCP",
-      "rows_downloaded": 4721,
+      "rows_downloaded": 4722,
       "first_date": "2007-09-16",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "NIFTY100": {
       "status": "PASS",
       "ticker": "^CNX100",
-      "rows_downloaded": 5160,
+      "rows_downloaded": 5161,
       "first_date": "2005-11-29",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "NIFTY200": {
       "status": "PASS",
       "ticker": "^CNX200",
-      "rows_downloaded": 5643,
+      "rows_downloaded": 5644,
       "first_date": "2003-12-31",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "NIFTY500": {
       "status": "PASS",
       "ticker": "^CRSLDX",
-      "rows_downloaded": 5203,
+      "rows_downloaded": 5204,
       "first_date": "2005-09-25",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "BANKNIFTY": {
       "status": "PASS",
       "ticker": "^NSEBANK",
-      "rows_downloaded": 4721,
+      "rows_downloaded": 4722,
       "first_date": "2007-09-16",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "NIFTYIT": {
       "status": "PASS",
       "ticker": "^CNXIT",
-      "rows_downloaded": 4721,
+      "rows_downloaded": 4722,
       "first_date": "2007-09-16",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "NIFTYAUTO": {
       "status": "PASS",
       "ticker": "^CNXAUTO",
-      "rows_downloaded": 3767,
+      "rows_downloaded": 3768,
       "first_date": "2011-07-11",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "NIFTYFIN": {
       "status": "PASS",
       "ticker": "NIFTY_FIN_SERVICE.NS",
-      "rows_downloaded": 3728,
+      "rows_downloaded": 3729,
       "first_date": "2011-09-06",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "NIFTYPHARMA": {
       "status": "PASS",
       "ticker": "^CNXPHARMA",
-      "rows_downloaded": 3893,
+      "rows_downloaded": 3894,
       "first_date": "2011-01-30",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "NIFTYFMCG": {
       "status": "PASS",
       "ticker": "^CNXFMCG",
-      "rows_downloaded": 3878,
+      "rows_downloaded": 3879,
       "first_date": "2011-01-30",
-      "last_date": "2026-11-25",
+      "last_date": "2026-11-26",
       "source": "NSE official daily index snapshot",
-      "official_snapshot_date": "2026-11-25"
+      "official_snapshot_date": "2026-11-26"
     },
     "_official_snapshot": {
       "status": "PASS",
-      "date": "2026-11-25",
-      "source": "https://nsearchives.nseindia.com/content/indices/ind_close_all_25112026.csv",
+      "date": "2026-11-26",
+      "source": "https://nsearchives.nseindia.com/content/indices/ind_close_all_26112026.csv",
       "rows": 11,
       "attempted_sessions": [
-        "2026-11-25"
+        "2026-11-26"
       ]
     }
   },
@@ -192,7 +192,7 @@
   "index_history_file": "data/index_ohlcv.csv",
   "constituents_file": "data/index_constituents_history.csv",
   "features_file": "data/index_constituent_features.csv",
-  "feature_rows": 4971,
+  "feature_rows": 5965,
   "weight_disclaimer": "Only exchange-provided weights are official. Free-float-market-cap proxies are estimates and must not be represented as exact index weights.",
   "history_disclaimer": "Constituent snapshots are point-in-time from the first observed date. Current members/weights are never projected backwards to create historical membership."
 }

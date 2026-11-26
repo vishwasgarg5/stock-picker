@@ -7,60 +7,60 @@
     "final_selected_rows": 2
   },
   "phase33_chronological_prediction_replay": {
-    "status": "SCORED",
-    "scored_rows": 400,
-    "unique_target_dates": 40,
-    "holdout_target_dates": 16,
+    "status": "INSUFFICIENT_HOLDOUT",
+    "scored_rows": 120,
+    "unique_target_dates": 6,
+    "holdout_target_dates": 2,
     "minimum_holdout_target_dates_required": 5,
     "invalid_prediction_order_rows": 0,
-    "first_target_date": "2026-09-18",
-    "last_target_date": "2026-11-19",
-    "holdout_start_date": "2026-10-26",
+    "first_target_date": "2026-09-24",
+    "last_target_date": "2026-11-25",
+    "holdout_start_date": "2026-11-19",
     "context_metrics": {
-      "rows": 240,
-      "open_mape_pct": 0.7467687714633164,
-      "high_mape_pct": 1.48166886996643,
-      "low_mape_pct": 1.5395156645546086,
-      "close_mape_pct": 1.9933412641791544,
-      "close_direction_accuracy_pct": 48.333333333333336,
+      "rows": 80,
+      "open_mape_pct": 0.678272921877971,
+      "high_mape_pct": 1.3535665289565835,
+      "low_mape_pct": 1.7312777645796331,
+      "close_mape_pct": 2.267268986642935,
+      "close_direction_accuracy_pct": 51.24999999999999,
       "status": "SCORED"
     },
     "holdout_metrics": {
-      "rows": 160,
-      "open_mape_pct": 0.8230347170043553,
-      "high_mape_pct": 1.344452348167419,
-      "low_mape_pct": 1.106407168125156,
-      "close_mape_pct": 1.5727805947849123,
-      "close_direction_accuracy_pct": 51.87500000000001,
+      "rows": 40,
+      "open_mape_pct": 0.48835422431031933,
+      "high_mape_pct": 0.9177378025354677,
+      "low_mape_pct": 1.0683069910822225,
+      "close_mape_pct": 1.4782193016260607,
+      "close_direction_accuracy_pct": 55.00000000000001,
       "status": "SCORED"
     },
-    "holdout_baseline_close_mape_pct": 1.5674577862034145,
-    "holdout_prediction_close_mape_pct": 1.5727805947849123,
+    "holdout_baseline_close_mape_pct": 1.485317207749367,
+    "holdout_prediction_close_mape_pct": 1.4782193016260607,
     "method": "chronological replay of already-recorded predictions; no model refit performed",
     "promotion_allowed": false,
-    "prediction_source": "evaluations.csv paired saved forecasts/outcomes (fallback because candidate-history match coverage was insufficient)",
-    "actuals_source": "evaluations.csv paired actual OHLC"
+    "prediction_source": "prediction_candidates_history.csv",
+    "actuals_source": "ohlcv.csv (evaluation actuals did not add missing date/symbol keys)"
   },
-  "phase34_regime_accuracy_rows": 1,
+  "phase34_regime_accuracy_rows": 3,
   "phase35_trade_metrics": [
     {
       "model": "V1",
-      "executed_trades": 225,
-      "gross_pnl": 899.0374050497774,
-      "net_pnl": -1424.3896335056277,
-      "recorded_costs": 985.7535537531579,
+      "executed_trades": 230,
+      "gross_pnl": -762.3625964761015,
+      "net_pnl": -3180.2540849063844,
+      "recorded_costs": 1080.2180036280358,
       "pnl_reconciliation_delta": -9.769962616701378e-14,
-      "pnl_reconciliation_rows": 85,
+      "pnl_reconciliation_rows": 90,
       "pnl_reconciliation_incomplete_rows": 140,
       "pnl_reconciliation_status": "MISSING_GROSS_OR_COST_LEDGER",
-      "net_pnl_with_50pct_extra_cost_stress": -1917.2664103822067,
-      "net_pnl_with_100pct_extra_cost_stress": -2410.1431872587855,
-      "max_trade_sequence_drawdown_pct": -9.995041207560229,
-      "win_rate_pct": 43.111111111111114,
-      "expectancy_per_trade": -6.330620593358345,
+      "net_pnl_with_50pct_extra_cost_stress": -3720.3630867204024,
+      "net_pnl_with_100pct_extra_cost_stress": -4260.47208853442,
+      "max_trade_sequence_drawdown_pct": -9.915510859991416,
+      "win_rate_pct": 42.608695652173914,
+      "expectancy_per_trade": -13.82719167350602,
       "status": "SAMPLE_GATE_MET",
       "costs_note": "Uses recorded costs and net profit_loss; stress cases subtract only additional assumed costs",
-      "mean_trade_return_pct": -0.09363846475209915
+      "mean_trade_return_pct": -0.1299041142385091
     },
     {
       "model": "V2",
@@ -83,12 +83,12 @@
     }
   ],
   "phase36_promotion_gate": {
-    "matched_sessions": 36,
+    "matched_sessions": 37,
     "minimum_matched_sessions": 20,
     "v2_executed_trades": 2,
     "minimum_v2_executed_trades": 50,
     "holdout_comparison_available": true,
-    "holdout_v1_net_pnl": 4516.2429674377445,
+    "holdout_v1_net_pnl": 3279.1282718963635,
     "holdout_v2_net_pnl": 0.0,
     "status": "NOT_ELIGIBLE_INSUFFICIENT_OR_UNFAVORABLE_EVIDENCE",
     "production_champion": "V1",
@@ -100,7 +100,7 @@
       "check": "ohlcv_available",
       "status": "PASS",
       "affected_rows": 0,
-      "detail": "960478 OHLCV rows read"
+      "detail": "960978 OHLCV rows read"
     },
     {
       "check": "ohlcv_valid_dates",
@@ -130,7 +130,7 @@
       "check": "ohlcv_freshness",
       "status": "PASS",
       "affected_rows": 0,
-      "detail": "latest date=2026-11-25 00:00:00; calendar age days=0; weekends/holidays not adjusted"
+      "detail": "latest date=2026-11-26 00:00:00; calendar age days=0; weekends/holidays not adjusted"
     }
   ],
   "phase38_news_checks": [
@@ -171,7 +171,7 @@
       "detail": "Need at least 20 as-of index/date pairs; source timestamp quality must be verified"
     }
   ],
-  "phase39_drift_rows": 40,
+  "phase39_drift_rows": 6,
   "production_champion": "V1",
   "v2_promoted": false,
   "production_model_changed": false,
@@ -180,6 +180,7 @@
   "status_counts": {
     "PASS": 4,
     "WARN": 1,
-    "INSUFFICIENT_DATA": 1
+    "INSUFFICIENT_DATA": 1,
+    "SCORED": 3
   }
 }

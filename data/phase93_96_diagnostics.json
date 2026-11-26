@@ -2,7 +2,7 @@
   "phase93_receipt_forensics": {
     "groups_with_multiple_message_ids": 4,
     "groups_with_timestamp_intervals": 4,
-    "hashed_rows": 196,
+    "hashed_rows": 197,
     "note": "Receipt logs lack full message bodies; same hash with multiple API message IDs warrants manual review but does not prove an unintended resend.",
     "repeated_hash_groups": 4,
     "resends_performed": false,
@@ -12,67 +12,67 @@
     "chronological_source": "phase33_chronological_prediction_scores.csv",
     "periods_scored": 2,
     "ranking_or_threshold_changed": false,
-    "rows_scored": 400,
+    "rows_scored": 120,
     "status": "SEGMENTED_DIAGNOSTIC_ONLY",
-    "symbols_better_than_baseline": 62,
-    "symbols_scored": 130,
-    "symbols_worse_than_baseline": 68,
+    "symbols_better_than_baseline": 31,
+    "symbols_scored": 62,
+    "symbols_worse_than_baseline": 31,
     "worst_symbols": [
       {
-        "delta_pct_points": 1.369,
-        "rows": 2,
-        "symbol": "MTARTECH"
-      },
-      {
-        "delta_pct_points": 0.5282,
-        "rows": 2,
-        "symbol": "PPLPHARMA"
-      },
-      {
-        "delta_pct_points": 0.3876,
+        "delta_pct_points": 0.1458,
         "rows": 1,
-        "symbol": "NIACL"
+        "symbol": "AIIL"
       },
       {
-        "delta_pct_points": 0.2606,
+        "delta_pct_points": 0.1018,
         "rows": 1,
-        "symbol": "MEESHO"
+        "symbol": "POLICYBZR"
       },
       {
-        "delta_pct_points": 0.2421,
-        "rows": 2,
-        "symbol": "UNOMINDA"
-      },
-      {
-        "delta_pct_points": 0.2094,
-        "rows": 4,
-        "symbol": "IGIL"
-      },
-      {
-        "delta_pct_points": 0.1836,
+        "delta_pct_points": 0.0796,
         "rows": 1,
-        "symbol": "CARTRADE"
+        "symbol": "EIHOTEL"
       },
       {
-        "delta_pct_points": 0.152,
-        "rows": 2,
-        "symbol": "TATAINVEST"
-      },
-      {
-        "delta_pct_points": 0.1369,
+        "delta_pct_points": 0.0696,
         "rows": 1,
-        "symbol": "MRPL"
+        "symbol": "JSL"
       },
       {
-        "delta_pct_points": 0.1346,
+        "delta_pct_points": 0.0595,
         "rows": 1,
-        "symbol": "REDINGTON"
+        "symbol": "PHOENIXLTD"
+      },
+      {
+        "delta_pct_points": 0.0578,
+        "rows": 1,
+        "symbol": "ANURAS"
+      },
+      {
+        "delta_pct_points": 0.0535,
+        "rows": 1,
+        "symbol": "LLOYDSME"
+      },
+      {
+        "delta_pct_points": 0.0483,
+        "rows": 1,
+        "symbol": "AUROPHARMA"
+      },
+      {
+        "delta_pct_points": 0.0442,
+        "rows": 1,
+        "symbol": "GLENMARK"
+      },
+      {
+        "delta_pct_points": 0.0434,
+        "rows": 1,
+        "symbol": "LAURUSLABS"
       }
     ]
   },
   "phase95_v2_earliest_rejection": {
     "earliest_blocking_stage": "actual_data_join_and_validation",
-    "earliest_stage_input_rows": 410,
+    "earliest_stage_input_rows": 420,
     "earliest_stage_rejected_rows": 50,
     "funnel_stages": 13,
     "note": "The earliest stage with rejections is a funnel bottleneck candidate; later-stage counts are not additive unique candidates.",
@@ -80,14 +80,14 @@
     "signals_changed": false,
     "stages_with_rejections": 7,
     "status": "DIAGNOSTIC_ONLY",
-    "total_rejected_rows_stage_sum": 620
+    "total_rejected_rows_stage_sum": 636
   },
   "phase96_storage_preflight": {
     "backup_restore_tested": false,
     "error_type": null,
     "estimated_size_reduction_pct": 78.79,
     "first_100_rows_parity": true,
-    "gzip_size_bytes": 19026157,
+    "gzip_size_bytes": 19037257,
     "migration_executed": false,
     "next_required_steps": [
       "full-file parity validation",
@@ -98,9 +98,9 @@
     ],
     "production_reader_switched": false,
     "rollback_tested": false,
-    "source_sha256_after": "fa69f2f0cfe3a5bbde030222642b757aa059c600225bce2397ac8dbc15e34f4d",
-    "source_sha256_before": "fa69f2f0cfe3a5bbde030222642b757aa059c600225bce2397ac8dbc15e34f4d",
-    "source_size_bytes": 89694457,
+    "source_sha256_after": "bd77194a7ee13f448cd19f0dfed72e5d80abf27ca32df69f823171b5b614396c",
+    "source_sha256_before": "bd77194a7ee13f448cd19f0dfed72e5d80abf27ca32df69f823171b5b614396c",
+    "source_size_bytes": 89739931,
     "source_unchanged": true,
     "status": "PREFLIGHT_PASSED_NO_MIGRATION"
   },

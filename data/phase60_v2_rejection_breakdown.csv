@@ -1,6 +1,6 @@
 primary_reason,phase4_reason,rows
-confidence_percentile,NOT_RECORDED,144
+confidence_percentile,NOT_RECORDED,148
 phase2_not_selected,NOT_RECORDED,2
-phase4_ineligible,minimum_expected_return,170
-phase4_ineligible,phase4_confidence_floor,35
-phase4_ineligible,symbol_cooldown,7
+phase4_ineligible,minimum_expected_return,174
+phase4_ineligible,phase4_confidence_floor,36
+phase4_ineligible,symbol_cooldown,8

@@ -9,34 +9,34 @@
   "missing_facts_inferred": false,
   "status": "SCORED",
   "source": "data/evaluations.csv",
-  "matched_rows": 400,
+  "matched_rows": 410,
   "metrics": {
     "open": {
-      "n": 400,
-      "mae": 18.44750288525022,
-      "bias": 2.989537930723202,
-      "mape_pct": 0.7772751496797319
+      "n": 410,
+      "mae": 18.7225505968393,
+      "bias": 2.2627570796141048,
+      "mape_pct": 0.7763152104406558
     },
     "high": {
-      "n": 400,
-      "mae": 39.35399483326977,
-      "bias": -0.9773741332672633,
-      "mape_pct": 1.4267822612468257
+      "n": 410,
+      "mae": 39.5100334705304,
+      "bias": -1.9552694086980393,
+      "mape_pct": 1.4225956540954698
     },
     "low": {
-      "n": 400,
-      "mae": 36.350322788149725,
-      "bias": 14.861563228045668,
-      "mape_pct": 1.3662722659828275
+      "n": 410,
+      "mae": 36.3103465469689,
+      "bias": 13.731261968149001,
+      "mape_pct": 1.367631192924419
     },
     "close": {
-      "n": 400,
-      "mae": 54.36753470010091,
-      "bias": 2.4205476458733313,
-      "mape_pct": 1.8251169964214573
+      "n": 410,
+      "mae": 54.94436923970242,
+      "bias": 0.6499876132285862,
+      "mape_pct": 1.8288159442903622
     }
   },
-  "close_directional_accuracy_pct": 50.24999999999999,
+  "close_directional_accuracy_pct": 50.48780487804878,
   "chronological_split_used_for_this_summary": false,
   "note": "Descriptive accuracy over persisted realized forecast evaluations; all evaluation rows are validated and scored. Use Phase 111 for chronological replay."
 }

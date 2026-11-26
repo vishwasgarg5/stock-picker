@@ -6,9 +6,9 @@
     "minimum_v2_executed_trades_met": false,
     "both_ledgers_complete": false,
     "v2_net_pnl_exceeds_v1": false,
-    "forecast_beats_baseline": false
+    "forecast_beats_baseline": true
   },
-  "matched_sessions": 36,
+  "matched_sessions": 37,
   "minimum_matched_sessions": 20,
   "v2_executed_trades": 2,
   "minimum_v2_executed_trades": 50,

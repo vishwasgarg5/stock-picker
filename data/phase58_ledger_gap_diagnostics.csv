@@ -224,3 +224,8 @@ row_index,symbol,target_date,missing_quantity,missing_entry_price,missing_exit_p
 392,MOTILALOFS,2026-11-19,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
 393,SIGNATURE,2026-11-19,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
 394,HONASA,2026-11-19,False,False,False,False,False,False,,True,True,FIELDS_PRESENT
+400,MAHABANK,2026-11-25,False,False,False,False,False,False,,True,False,FIELDS_PRESENT
+401,HONASA,2026-11-25,False,False,False,False,False,False,,True,False,FIELDS_PRESENT
+402,IREDA,2026-11-25,False,False,False,False,False,False,,True,False,FIELDS_PRESENT
+403,MARUTI,2026-11-25,False,False,False,False,False,False,,True,False,FIELDS_PRESENT
+404,MOTILALOFS,2026-11-25,False,False,False,False,False,False,,True,False,FIELDS_PRESENT

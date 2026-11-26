@@ -9,12 +9,12 @@
   "missing_facts_inferred": false,
   "status": "INSUFFICIENT_EVIDENCE",
   "v1": {
-    "executed_rows": 234,
+    "executed_rows": 239,
     "invalid_session_date_rows": 0,
     "valid": true,
-    "distinct_sessions": 40,
+    "distinct_sessions": 41,
     "first_session": "2026-09-18",
-    "last_session": "2026-11-19",
+    "last_session": "2026-11-25",
     "minimum_trade_count_met": true,
     "minimum_session_count_met": true
   },

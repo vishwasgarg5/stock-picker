@@ -7,21 +7,21 @@
   "thresholds_changed": false,
   "automatic_promotion": false,
   "status": "SCORED",
-  "executed_trade_rows": 234,
+  "executed_trade_rows": 239,
   "pnl_source_field": "profit_loss",
   "exit_reason_field_used": "exit_reason",
   "reason_groups": 6,
-  "gross_loss_magnitude": 36109.217123231,
+  "gross_loss_magnitude": 37910.51156219584,
   "unknown_or_unrecorded_reason_rows": 149,
-  "unknown_or_unrecorded_reason_pct": 63.67521367521367,
+  "unknown_or_unrecorded_reason_pct": 62.34309623430963,
   "unknown_reason_losing_rows": 77,
   "unknown_reason_net_pnl": -3565.7362627785315,
   "unknown_reason_gross_loss": 30038.43403035043,
-  "unknown_reason_share_of_gross_loss_pct": 83.18771888029966,
+  "unknown_reason_share_of_gross_loss_pct": 79.2351060234824,
   "metadata_non_null_counts_all_trades": {
-    "entry_price": 234,
-    "exit_price": 234,
-    "exit_date": 15
+    "entry_price": 239,
+    "exit_price": 239,
+    "exit_date": 20
   },
   "metadata_non_null_counts_unknown_reason_trades": {
     "entry_price": 149,
@@ -30,8 +30,8 @@
   },
   "exit_reason_coverage_by_ledger_schema": {
     "schema_v3": {
-      "trade_rows": 15,
-      "recorded_exit_reason_rows": 15,
+      "trade_rows": 20,
+      "recorded_exit_reason_rows": 20,
       "missing_exit_reason_rows": 0,
       "exit_reason_coverage_pct": 100.0
     },

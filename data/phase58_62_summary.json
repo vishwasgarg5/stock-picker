@@ -1,9 +1,9 @@
 {
-  "as_of": "2026-11-25T20:54:54.036925+00:00",
+  "as_of": "2026-11-26T20:33:31.474045+00:00",
   "phase58_accounting": {
     "status": "INCOMPLETE",
-    "rows_examined": 400,
-    "executed_rows_examined": 225,
+    "rows_examined": 410,
+    "executed_rows_examined": 230,
     "incomplete_rows": 140,
     "missing_field_counts": {
       "quantity": 0,
@@ -21,45 +21,45 @@
   },
   "phase59_forecast": {
     "status": "PASS",
-    "scored_rows": 400,
-    "model_close_mape_pct": 1.8251169964214573,
-    "baseline_close_mape_pct": 1.8193880735627432,
-    "error_delta_pct_points": 0.0057289228587140695,
-    "beats_baseline": false,
-    "chronological_dates": 40,
+    "scored_rows": 120,
+    "model_close_mape_pct": 2.0042524249706433,
+    "baseline_close_mape_pct": 2.0107347919723755,
+    "error_delta_pct_points": -0.006482367001732214,
+    "beats_baseline": true,
+    "chronological_dates": 6,
     "symbol_breakdown_available": true,
     "evaluation_source": "phase33_chronological_prediction_scores.csv",
     "production_model_changed": false
   },
   "phase60_v2": {
     "status": "PASS",
-    "rows": 360,
+    "rows": 370,
     "buy_rows": 2,
-    "skip_rows": 358,
+    "skip_rows": 368,
     "missing_skip_reason_rows": 0,
     "primary_reason_counts": {
-      "phase4_ineligible": 212,
-      "confidence_percentile": 144,
+      "phase4_ineligible": 218,
+      "confidence_percentile": 148,
       "phase2_not_selected": 2
     },
     "phase4_reason_counts": {
-      "minimum_expected_return": 170,
-      "NOT_RECORDED": 146,
-      "phase4_confidence_floor": 35,
-      "symbol_cooldown": 7
+      "minimum_expected_return": 174,
+      "NOT_RECORDED": 150,
+      "phase4_confidence_floor": 36,
+      "symbol_cooldown": 8
     },
     "production_filters_changed": false
   },
   "phase61_telegram": {
     "status": "PASS",
-    "rows_across_logs": 196,
-    "api_confirmed_rows": 123,
+    "rows_across_logs": 197,
+    "api_confirmed_rows": 124,
     "legacy_unverified_rows": 73,
     "missing_status_rows": 0,
     "by_file": {
       "telegram_sent.csv": {
-        "rows": 77,
-        "confirmed": 50,
+        "rows": 78,
+        "confirmed": 51,
         "legacy_unverified": 27,
         "missing_status": 0
       },

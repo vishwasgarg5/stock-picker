@@ -1,5 +1,5 @@
 {
-  "as_of_utc": "2026-11-25T20:54:55.709896+00:00",
+  "as_of_utc": "2026-11-26T20:33:32.649009+00:00",
   "phases": [
     73,
     74,
@@ -8,12 +8,12 @@
   ],
   "phase73_v2_zero_buy": {
     "status": "BUY_ACTIVITY_PRESENT",
-    "rows": 360,
+    "rows": 370,
     "buy_rows": 2,
-    "skip_rows": 358,
+    "skip_rows": 368,
     "skip_reason_counts": {
-      "phase4_ineligible": 212,
-      "confidence_percentile": 144,
+      "phase4_ineligible": 218,
+      "confidence_percentile": 148,
       "phase2_not_selected": 2
     },
     "missing_skip_reasons": 0,
@@ -22,10 +22,10 @@
   },
   "phase74_directional_quality": {
     "status": "DESCRIPTIVE_ONLY",
-    "scored_rows": 400,
-    "target_dates": 40,
-    "directional_accuracy_pct": 49.75,
-    "recent_5_directional_accuracy_pct": 62.0,
+    "scored_rows": 120,
+    "target_dates": 6,
+    "directional_accuracy_pct": 52.5,
+    "recent_5_directional_accuracy_pct": 56.00000000000001,
     "production_model_changed": false,
     "method": "saved chronological scores; no refit or threshold search"
   },
@@ -37,13 +37,13 @@
   "phase76_storage_audit": {
     "status": "ABOVE_GITHUB_RECOMMENDED_SIZE",
     "path": "data/ohlcv.csv",
-    "bytes": 89694457,
-    "size_mb": 85.54,
-    "rows": 960478,
+    "bytes": 89739931,
+    "size_mb": 85.58,
+    "rows": 960978,
     "duplicate_symbol_date_keys": 0,
     "date_span": {
       "first": "2018-01-01",
-      "last": "2026-11-25"
+      "last": "2026-11-26"
     },
     "recommended_action": "Plan and test a staged compressed/partitioned storage migration with rollback; do not replace the source file in this diagnostic.",
     "storage_changed": false,
